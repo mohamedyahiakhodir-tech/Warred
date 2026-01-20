@@ -10,6 +10,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+<script src="global-call.js"></script>
 
     <style>
         /* ================= المتغيرات والتصميم العام ================= */
@@ -1585,6 +1586,54 @@
     50% { transform: translateY(-6px); } /* يطلع وينزل ببطء */
 }
 
+/* تصميم شاشة الاتصال الوارد (Pop-up) */
+#incomingCallModal {
+    display: none; /* مخفي افتراضياً */
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 99999;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.caller-avatar-large {
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    border: 3px solid #8b5cf6;
+    background-size: cover; background-position: center;
+    margin-bottom: 20px;
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
+    animation: pulseAvatar 2s infinite;
+}
+
+.caller-name-display {
+    font-size: 24px; font-weight: bold; color: white; margin-bottom: 50px;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.call-actions {
+    display: flex; gap: 40px;
+}
+
+.call-btn {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px; color: white; cursor: pointer;
+    transition: transform 0.2s;
+}
+.call-btn:active { transform: scale(0.9); }
+.btn-accept { background: #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
+.btn-decline { background: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+
+@keyframes pulseAvatar {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(139, 92, 246, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+}
 
 
     </style>
@@ -1880,6 +1929,8 @@ function initApp() {
             startPresenceSystem(); 
             // شغلنا مراقب القصص هنا
             renderStories(); 
+            listenForIncomingCallsGlobal(); 
+
         });
     });
 }
@@ -3822,15 +3873,73 @@ function renderPollSticker(question, option1, option2) {
     container.appendChild(pollDiv);
 }
 
-// ستايل الأزرار في CSS
-/*
-.story-poll button {
-    display: block; width: 100%; margin: 5px 0; padding: 10px;
-    border: 1px solid #ddd; border-radius: 8px; background: none; font-weight: bold;
-}
-*/
+// global-call.js - رادار المكالمات الموحد
 
-    </script> <div id="profilePreviewModal" class="profile-preview-overlay" onclick="closeProfilePreview()">
+// دالة لتهيئة الرادار
+function initGlobalCallListener() {
+    console.log("📡 الرادار العالمي بدأ العمل...");
+
+    // ننتظر حتى يتأكد فايربيس أن المستخدم مسجل دخول
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            // البحث في كل المكالمات في النظام
+            db.collectionGroup('calls')
+                .where('status', '==', 'ringing')
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const callData = change.doc.data();
+                            
+                            // لو المكالمة مش أنا اللي عاملها (يعني أنا المستقبل)
+                            if (callData.callerId !== user.uid) {
+                                console.log("📞 مكالمة واردة!");
+                                
+                                // تشغيل الصوت
+                                const ringtone = new Audio('./sounds/ring_in.wav');
+                                ringtone.loop = true;
+                                ringtone.play().catch(e => console.log("الصوت يحتاج تفاعل"));
+
+                                // إظهار التنبيه
+                                // بنجيب رقم الشات من مسار الملف
+                                const chatId = change.doc.ref.parent.parent.id;
+
+                                if (confirm(`📞 اتصال من ${callData.callerName || 'مستخدم'}\nهل تريد الرد؟`)) {
+                                    ringtone.pause();
+                                    // توجيه للشات للرد
+                                    window.location.href = `chat.html?chatId=${chatId}&answer=true`;
+                                } else {
+                                    ringtone.pause();
+                                    // (اختياري) ممكن هنا تعمل رفض للمكالمة في الداتابيز
+                                }
+                            }
+                        }
+                    });
+                }, error => {
+                    console.error("❌ خطأ في الرادار:", error.message);
+                    if (error.code === 'permission-denied') {
+                        alert("مشكلة في التصاريح! تأكد من قواعد الأمان (Rules).");
+                    }
+                });
+        }
+    });
+}
+
+// تشغيل الرادار فوراً عند استدعاء الملف
+initGlobalCallListener();
+
+
+    </script>
+    
+    <audio id="ringtoneIn" loop preload="none">
+    <source src="./أصوات/ring_in.wav" type="audio/wav">
+</audio>
+
+<audio id="ringtoneOut" loop preload="none">
+    <source src="./أصوات/ring_out.mp3" type="audio/mp3">
+</audio>
+
+    
+    <div id="profilePreviewModal" class="profile-preview-overlay" onclick="closeProfilePreview()">
         <div class="profile-preview-card" onclick="event.stopPropagation()">
             <div class="pp-image-container" onclick="openFullProfileImage()">
                 <div class="protection-layer"></div>
@@ -3909,6 +4018,23 @@ function renderPollSticker(question, option1, option2) {
 <div class="floating-fab" onclick="vibrate(); startNewChat()">
     <i class="fa-solid fa-pen"></i>
 </div>
+<div id="incomingCallModal">
+    <div id="callerImage" class="caller-avatar-large"></div>
+    <div id="callerName" class="caller-name-display">جاري الاتصال...</div>
+    
+    <div class="call-actions">
+        <div class="call-btn btn-decline" onclick="rejectCall()">
+            <i class="fa-solid fa-phone-slash"></i>
+        </div>
+        <div class="call-btn btn-accept" onclick="acceptCall()">
+            <i class="fa-solid fa-phone"></i>
+        </div>
+    </div>
+</div>
+
+<audio id="ringtoneIn" loop preload="none">
+    <source src="./sounds/ring_in.wav" type="audio/wav">
+</audio>
 
 
 </body>
