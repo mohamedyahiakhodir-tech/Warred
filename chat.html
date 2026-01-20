@@ -5202,16 +5202,56 @@ function closeCallUI() {
 }
 
 // دالة الاستماع للرد من الطرف الآخر (Missing Function)
+// ============================================================
+// 👂 دالة مراقبة الرد (توضع في ملف messages.html)
+// ============================================================
+
 function listenForAnswer() {
-    db.collection('chats').doc(chatId).collection('calls').doc('active_call')
-      .onSnapshot(snapshot => {
-          const data = snapshot.data();
-          if (data && data.answer && !peerConnection.currentRemoteDescription) {
-              const rtcSessionDescription = new RTCSessionDescription(data.answer);
-              peerConnection.setRemoteDescription(rtcSessionDescription);
-          }
-      });
+    // مراقبة وثيقة المكالمة
+    const unsubscribe = db.collection('chats').doc(chatId).collection('calls').doc('active_call')
+        .onSnapshot(snapshot => {
+            const data = snapshot.data();
+            
+            // 1. لو المكالمة اتمسحت أو مش موجودة
+            if (!data) {
+                // نوقف الرنين فوراً
+                const ringOut = document.getElementById('ringtoneOut');
+                if(ringOut) { ringOut.pause(); ringOut.currentTime = 0; }
+                endCall(); // نقفل الشاشة
+                return;
+            }
+
+            // 2. 🔥 حالة الرفض (المهمة جداً) 🔥
+            if (data.status === 'rejected') {
+                // نوقف الرنين فوراً
+                const ringOut = document.getElementById('ringtoneOut');
+                if(ringOut) { ringOut.pause(); ringOut.currentTime = 0; }
+                
+                // رسالة صغيرة ونقفل
+                // alert("تم رفض المكالمة 🚫"); // ممكن تشيل الـ alert لو عايزه يفصل صامت
+                console.log("الطرف الآخر رفض المكالمة");
+                
+                endCall(); // دالة إنهاء المكالمة الموجودة عندك
+                unsubscribe(); // وقف المراقبة
+            }
+
+            // 3. حالة الرد (المكالمة فتحت)
+            if (data.status === 'answered' && peerConnection) {
+                const ringOut = document.getElementById('ringtoneOut');
+                if(ringOut) { ringOut.pause(); ringOut.currentTime = 0; }
+
+                // تنفيذ الرد
+                const answer = data.answer;
+                const remoteDesc = new RTCSessionDescription(answer);
+                peerConnection.setRemoteDescription(remoteDesc);
+                
+                // بدء عداد الوقت
+                startCallTimer();
+                unsubscribe(); // خلاص رد، مش محتاجين نراقب الرد تاني
+            }
+        });
 }
+
 function toggleSpeaker() {
     const remoteAudio = document.getElementById('remoteAudio');
     const speakerBtn = document.getElementById('speakerBtn');
