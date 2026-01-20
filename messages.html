@@ -1929,8 +1929,7 @@ function initApp() {
             startPresenceSystem(); 
             // شغلنا مراقب القصص هنا
             renderStories(); 
-            listenForIncomingCallsGlobal(); 
-
+            
         });
     });
 }
@@ -3871,57 +3870,6 @@ function renderPollSticker(question, option1, option2) {
     `;
     
     container.appendChild(pollDiv);
-}
-
-// global-call.js - رادار المكالمات الموحد
-
-// دالة لتهيئة الرادار
-function initGlobalCallListener() {
-    console.log("📡 الرادار العالمي بدأ العمل...");
-
-    // ننتظر حتى يتأكد فايربيس أن المستخدم مسجل دخول
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            // البحث في كل المكالمات في النظام
-            db.collectionGroup('calls')
-                .where('status', '==', 'ringing')
-                .onSnapshot(snapshot => {
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === 'added') {
-                            const callData = change.doc.data();
-                            
-                            // لو المكالمة مش أنا اللي عاملها (يعني أنا المستقبل)
-                            if (callData.callerId !== user.uid) {
-                                console.log("📞 مكالمة واردة!");
-                                
-                                // تشغيل الصوت
-                                const ringtone = new Audio('./sounds/ring_in.wav');
-                                ringtone.loop = true;
-                                ringtone.play().catch(e => console.log("الصوت يحتاج تفاعل"));
-
-                                // إظهار التنبيه
-                                // بنجيب رقم الشات من مسار الملف
-                                const chatId = change.doc.ref.parent.parent.id;
-
-                                if (confirm(`📞 اتصال من ${callData.callerName || 'مستخدم'}\nهل تريد الرد؟`)) {
-                                    ringtone.pause();
-                                    // توجيه للشات للرد
-                                    window.location.href = `chat.html?chatId=${chatId}&answer=true`;
-                                } else {
-                                    ringtone.pause();
-                                    // (اختياري) ممكن هنا تعمل رفض للمكالمة في الداتابيز
-                                }
-                            }
-                        }
-                    });
-                }, error => {
-                    console.error("❌ خطأ في الرادار:", error.message);
-                    if (error.code === 'permission-denied') {
-                        alert("مشكلة في التصاريح! تأكد من قواعد الأمان (Rules).");
-                    }
-                });
-        }
-    });
 }
 
 // تشغيل الرادار فوراً عند استدعاء الملف
