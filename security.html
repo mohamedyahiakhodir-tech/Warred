@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NABD - الخصوصية والأمان</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+/* ================= الأنماط الأساسية الموحدة (Dark Mode) ================= */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Verdana,sans-serif;transition:all .2s ease-in-out}
+body{background:#0d0d0f;color:#fff}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{
+    display:flex;justify-content:flex-start;align-items:center;
+    padding:18px 15px;font-size:20px;font-weight:900;
+    border-bottom:1px solid #1f1f23;position:sticky;top:0;
+    background:#0d0d0f;z-index:50;
+}
+.header-btn{cursor:pointer;font-size:22px;color:#7c3aed; margin-left: 15px;}
+.header-name{font-size:20px;font-weight:700;}
+
+/* SECURITY CONTAINER */
+.security-container{
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+.setting-section{
+    margin-bottom: 30px;
+}
+.setting-section h2{
+    color: #fff;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 0 5px 0;
+}
+.section-desc {
+    font-size: 13px;
+    color: #aaa;
+    margin-bottom: 15px;
+}
+
+/* SETTING ITEM */
+.setting-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:15px 0;
+    border-bottom:1px solid #1f1f23;
+    cursor:pointer;
+}
+.setting-item:last-child{
+    border-bottom:none;
+}
+.setting-label{
+    font-size: 16px;
+}
+.setting-action{
+    font-size: 14px;
+    color: #7c3aed;
+}
+
+/* Modal for Password Change */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+.modal-content {
+    background: #1c1c1c;
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 350px;
+    width: 90%;
+}
+.modal-content h3 {
+    color: #7c3aed;
+    margin-bottom: 20px;
+    text-align: center;
+}
+.modal-content input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 15px;
+    background: #0d0d0f;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+}
+.modal-content button {
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    flex: 1;
+}
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.modal-footer .btn-cancel { background: #333; color: #ccc; }
+.modal-footer .btn-save { background: #7c3aed; color: #fff; }
+#passwordError {
+    color: #ff5555;
+    margin-top: 10px;
+    font-size: 13px;
+    text-align: center;
+    display: none;
+}
+#passwordSuccess {
+    color: #33ff57;
+    margin-top: 10px;
+    font-size: 13px;
+    text-align: center;
+    display: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="changePasswordModal" class="modal-overlay">
+    <div class="modal-content">
+        <h3>تغيير كلمة السر</h3>
+        <input type="password" id="currentPassword" placeholder="كلمة السر الحالية">
+        <input type="password" id="newPassword" placeholder="كلمة السر الجديدة (6 أحرف أو أكثر)">
+        <input type="password" id="confirmNewPassword" placeholder="تأكيد كلمة السر الجديدة">
+
+        <div class="modal-footer">
+            <button class="btn-cancel" onclick="toggleModal(false)">إلغاء</button>
+            <button class="btn-save" onclick="changePassword()">حفظ</button>
+        </div>
+        <p id="passwordError"></p>
+        <p id="passwordSuccess"></p>
+    </div>
+</div>
+<div class="header">
+  <i class="fa-solid fa-arrow-right header-btn" onclick="goBack()"></i>
+  <span class="header-name">الخصوصية والأمان</span>
+</div>
+
+<div class="security-container">
+    
+    <div class="setting-section">
+        <h2>تسجيل الدخول والاسترداد</h2>
+        <div class="section-desc">يمكنك إدارة كلمات السر وتفضيلات تسجيل الدخول وطرق الاسترداد.</div>
+        
+        <div class="setting-item" onclick="toggleModal(true)">
+            <span class="setting-label">تغيير كلمة السر</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+
+        <div class="setting-item" onclick="handleSecurityOption('two_factor.html')">
+            <span class="setting-label">المصادقة الثنائية</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+        
+        <div class="setting-item" onclick="handleSecurityOption('saved_logins.html')">
+            <span class="setting-label">تسجيل الدخول المحفوظ</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h2>التحقق من الأمان</h2>
+        <div class="section-desc">يمكنك مراجعة المشكلات المتعلقة بالمخاطر الأمنية وإجراء فحص دوري.</div>
+
+        <div class="setting-item" onclick="handleSecurityOption('login_locations.html')">
+            <span class="setting-label">الأماكن التي سجلت الدخول منها</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+
+        <div class="setting-item" onclick="handleSecurityOption('login_alerts.html')">
+            <span class="setting-label">تنبيهات تسجيل الدخول</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+        
+        <div class="setting-item" onclick="handleSecurityOption('recent_emails.html')">
+            <span class="setting-label">أحدث رسائل البريد الإلكتروني</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+
+        <div class="setting-item" onclick="handleSecurityOption('security_check.html')">
+            <span class="setting-label">التحقق من الأمان</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h2>دردشات مشفرة تماماً بين الطرفين</h2>
+        <div class="section-desc">يمكنك إدارة إعدادات الدردشات المشفرة تماماً بين الطرفين.</div>
+
+        <div class="setting-item" onclick="handleSecurityOption('secure_storage.html')">
+            <span class="setting-label">التخزين الآمن</span>
+            <span class="setting-action"><i class="fa-solid fa-chevron-left"></i></span>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<script>
+// 🚨 المسار الأساسي لملفات NABD 🚨
+const BASE_PATH = 'file:///storage/emulated/0/NABD/';
+
+function getFilePath(fileName) {
+    return BASE_PATH + fileName;
+}
+
+
+firebase.initializeApp({
+  apiKey:"AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c", 
+  authDomain:"pools-e4381.firebaseapp.com",
+  projectId:"pools-e4381"
+});
+
+const auth = firebase.auth();
+const modal = document.getElementById('changePasswordModal');
+const currentPassEl = document.getElementById('currentPassword');
+const newPassEl = document.getElementById('newPassword');
+const confirmNewPassEl = document.getElementById('confirmNewPassword');
+const errorEl = document.getElementById('passwordError');
+const successEl = document.getElementById('passwordSuccess');
+
+let currentUser;
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUser = user;
+    } else {
+        // التوجيه إلى صفحة تسجيل الدخول باستخدام المسار المطلق
+        location.href = getFilePath("login.html"); 
+    }
+});
+
+
+function goBack() {
+    // 🚨 تم التعديل ليعود مباشرة إلى صفحة الإعدادات (settings.html) كما طلبت 🚨
+    location.href = getFilePath("settings.html"); 
+}
+
+// دالة عامة لتوجيه خيارات الأمان (باستخدام المسار المطلق)
+function handleSecurityOption(page) {
+    location.href = getFilePath(page);
+}
+
+
+function toggleModal(show) {
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+    
+    if (show) {
+        currentPassEl.value = '';
+        newPassEl.value = '';
+        confirmNewPassEl.value = '';
+        modal.style.display = 'flex';
+    } else {
+        modal.style.display = 'none';
+    }
+}
+
+async function changePassword() {
+    const currentPassword = currentPassEl.value;
+    const newPassword = newPassEl.value;
+    const confirmNewPassword = confirmNewPassEl.value;
+
+    errorEl.style.display = 'none';
+    successEl.style.display = 'none';
+
+    if (!currentPassword || !newPassword || !confirmNewPassword) {
+        errorEl.innerText = "الرجاء تعبئة جميع الحقول.";
+        errorEl.style.display = 'block';
+        return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+        errorEl.innerText = "كلمة السر الجديدة وتأكيدها غير متطابقان.";
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    if (newPassword.length < 6) {
+        errorEl.innerText = "يجب أن تكون كلمة السر الجديدة 6 أحرف على الأقل.";
+        errorEl.style.display = 'block';
+        return;
+    }
+    
+    // 1. إعادة المصادقة باستخدام كلمة السر الحالية
+    const credential = firebase.auth.EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+    );
+
+    try {
+        await currentUser.reauthenticateWithCredential(credential);
+
+        // 2. إذا نجحت إعادة المصادقة، قم بتحديث كلمة السر
+        await currentUser.updatePassword(newPassword);
+
+        successEl.innerText = "تم تغيير كلمة السر بنجاح! سيتم تسجيل خروجك قريباً.";
+        successEl.style.display = 'block';
+        
+        // تسجيل الخروج لإجبار المستخدم على تسجيل الدخول بكلمة السر الجديدة
+        setTimeout(() => {
+            auth.signOut();
+        }, 2000);
+
+    } catch (error) {
+        let errorMessage = "فشل تغيير كلمة السر.";
+        if (error.code === 'auth/wrong-password') {
+            errorMessage = "كلمة السر الحالية غير صحيحة.";
+        } else if (error.code === 'auth/requires-recent-login') {
+             errorMessage = "يتطلب هذا الإجراء تسجيل دخول حديث. يرجى تسجيل الخروج والمحاولة مرة أخرى.";
+        }
+        errorEl.innerText = errorMessage;
+        errorEl.style.display = 'block';
+        console.error("Error changing password:", error);
+    }
+}
+</script>
+
+</body>
+</html>

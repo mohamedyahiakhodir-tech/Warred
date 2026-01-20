@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - الرادار المحيط</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #020202;
+            --radar-color: #00ff00; /* اللون الأخضر */
+            --radar-dim: rgba(0, 255, 0, 0.15);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; }
+        body { background: var(--bg-color); color: var(--radar-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+
+        /* --- الهيدر --- */
+        .header {
+            width: 100%; padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            position: absolute; top: 0; z-index: 50;
+        }
+        .back-btn {
+            font-size: 20px; color: var(--radar-color); border: 1px solid var(--radar-color);
+            width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+        }
+        
+        /* اختيار المسافة */
+        .range-selector {
+            position: absolute; top: 80px; z-index: 40; display: flex; gap: 10px;
+        }
+        .range-chip {
+            padding: 5px 15px; border: 1px solid var(--radar-color); border-radius: 20px;
+            font-size: 12px; cursor: pointer; opacity: 0.5; transition: 0.3s; background: rgba(0,20,0,0.8);
+        }
+        .range-chip.active { opacity: 1; background: var(--radar-color); color: #000; font-weight: bold; }
+
+        /* --- الرادار --- */
+        .radar-container {
+            position: relative; width: 340px; height: 340px; margin-top: 25vh;
+            border-radius: 50%; border: 2px solid var(--radar-color);
+            background: 
+                repeating-radial-gradient(transparent 0, transparent 58px, var(--radar-dim) 59px, var(--radar-dim) 60px);
+            box-shadow: 0 0 40px var(--radar-dim), inset 0 0 60px rgba(0,20,0,0.9);
+            overflow: hidden;
+        }
+
+        /* خطوط */
+        .crosshair {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--radar-dim);
+        }
+        .crosshair.v { transform: rotate(90deg); }
+
+        /* الماسح */
+        .scanner {
+            position: absolute; inset: 0; border-radius: 50%;
+            background: conic-gradient(from 0deg, transparent 75%, rgba(0, 255, 0, 0.4));
+            animation: scan 4s linear infinite; z-index: 2; pointer-events: none;
+        }
+
+        /* المستخدم (نقطة) */
+        .blip {
+            position: absolute; width: 12px; height: 12px; background: #fff;
+            border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px var(--radar-color);
+            transform: translate(-50%, -50%); cursor: pointer; z-index: 5;
+            transition: opacity 0.5s; opacity: 0;
+        }
+        .blip.visible { opacity: 1; animation: blipPulse 2s infinite; }
+
+        /* مركز الرادار (أنا) */
+        .center-point {
+            position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; 
+            background: var(--radar-color); border-radius: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--radar-color); z-index: 10;
+        }
+
+        /* --- لوحة المعلومات --- */
+        .info-panel {
+            position: absolute; bottom: 30px; width: 90%; text-align: center;
+        }
+        .status-text { font-family: monospace; font-size: 14px; margin-bottom: 15px; text-shadow: 0 0 5px var(--radar-color); }
+
+        /* كارت المستخدم */
+        .user-card {
+            background: rgba(0, 20, 0, 0.95); border: 1px solid var(--radar-color);
+            padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px;
+            box-shadow: 0 0 20px var(--radar-dim); display: none; text-align: left;
+        }
+        .uc-img { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--radar-color); background-size: cover; }
+        .uc-btn { margin-right: auto; padding: 8px 15px; background: var(--radar-color); border: none; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes blipPulse { 0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); } 70% { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 0 10px rgba(255,255,255,0); } 100% { transform: translate(-50%, -50%) scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-right"></i></div>
+        <div style="font-family: monospace; font-weight: bold;">LIVE RADAR</div>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <div class="range-selector">
+        <div class="range-chip active" onclick="setRange(50, this)">50 كم</div>
+        <div class="range-chip" onclick="setRange(100, this)">100 كم</div>
+        <div class="range-chip" onclick="setRange(300, this)">300 كم</div>
+    </div>
+
+    <div class="radar-container" id="radarBox">
+        <div class="crosshair"></div>
+        <div class="crosshair v"></div>
+        <div class="scanner"></div>
+        <div class="center-point"></div> </div>
+
+    <div class="info-panel">
+        <div class="status-text" id="statusText">جاري تحديد موقعك...</div>
+        
+        <div class="user-card" id="userCard">
+            <div class="uc-img" id="ucImg"></div>
+            <div>
+                <h4 id="ucName" style="margin:0; font-size:16px;">Name</h4>
+                <span id="ucDist" style="font-size:12px; font-family:monospace; opacity:0.8;">يبعد 5 كم</span>
+            </div>
+            <button class="uc-btn" onclick="openProfile()">زيارة</button>
+        </div>
+    </div>
+
+    <audio id="pingSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3"></audio>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        
+        let myLat = null;
+        let myLng = null;
+        let searchRadius = 50; // الافتراضي 50 كم
+        let selectedUserId = null;
+
+        // 1. طلب الموقع أول ما يفتح
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                myLat = pos.coords.latitude;
+                myLng = pos.coords.longitude;
+                updateMyLocation(myLat, myLng);
+                startScanning();
+            },
+            (err) => {
+                document.getElementById('statusText').innerText = "❌ يرجى تفعيل الموقع (GPS)";
+                document.getElementById('statusText').style.color = "red";
+            }
+        );
+
+        function updateMyLocation(lat, lng) {
+            firebase.auth().onAuthStateChanged(user => {
+                if(user) {
+                    // تحديث موقعك في الداتابيز عشان تظهر لغيرك
+                    db.collection('users').doc(user.uid).update({
+                        locationLat: lat,
+                        locationLng: lng,
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            });
+        }
+
+        // تغيير نطاق البحث
+        function setRange(km, el) {
+            searchRadius = km;
+            document.querySelectorAll('.range-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            
+            // مسح النقاط القديمة وإعادة البحث
+            document.querySelectorAll('.blip').forEach(b => b.remove());
+            document.getElementById('userCard').style.display = 'none';
+            startScanning();
+        }
+
+        async function startScanning() {
+            if(!myLat) return;
+            document.getElementById('statusText').innerText = `بحث في نطاق ${searchRadius} كم...`;
+
+            // جلب المستخدمين النشطين مؤخراً (في آخر 24 ساعة مثلاً)
+            // ملاحظة: للتطبيق الفعلي يفضل استخدام GeoFire للحسابات المعقدة
+            // هنا سنجلب المستخدمين ونفلترهم بالمسافة في المتصفح (مناسب للتطبيقات المتوسطة)
+            const yesterday = new Date(Date.now() - 86400000); 
+            
+            const snap = await db.collection('users')
+                .orderBy('lastActive', 'desc')
+                .limit(50) // أقصى عدد عشان الأداء
+                .get();
+
+            let foundCount = 0;
+
+            snap.forEach(doc => {
+                const u = doc.data();
+                // استثناء نفسي + التأكد من وجود إحداثيات
+                if(doc.id !== firebase.auth().currentUser.uid && u.locationLat && u.locationLng) {
+                    
+                    const dist = calcDistance(myLat, myLng, u.locationLat, u.locationLng);
+                    
+                    // لو المسافة أقل من النطاق المحدد
+                    if(dist <= searchRadius) {
+                        createBlip(u, dist, doc.id);
+                        foundCount++;
+                    }
+                }
+            });
+
+            if(foundCount === 0) {
+                document.getElementById('statusText').innerText = "لا يوجد مستخدمين في هذا النطاق";
+            } else {
+                document.getElementById('statusText').innerText = `تم رصد ${foundCount} مستخدمين`;
+            }
+        }
+
+        // رسم النقطة على الرادار
+        function createBlip(user, dist, uid) {
+            const radarBox = document.getElementById('radarBox');
+            const blip = document.createElement('div');
+            blip.className = 'blip';
+
+            // تحويل المسافة والزاوية لمكان على شاشة الرادار (Pixel)
+            // بما أننا لا نعرف الاتجاه (Bearing)، سنوزعهم عشوائياً كزاوية
+            // لكن المسافة من المركز (Radius) ستكون دقيقة نسبياً للنطاق
+            const angle = Math.random() * Math.PI * 2;
+            
+            // تحويل المسافة (كم) لنسبة مئوية من نصف قطر الرادار (170px)
+            const maxRadiusPx = 160; 
+            const pixelDist = (dist / searchRadius) * maxRadiusPx;
+            
+            const x = 170 + pixelDist * Math.cos(angle);
+            const y = 170 + pixelDist * Math.sin(angle);
+
+            blip.style.left = x + 'px';
+            blip.style.top = y + 'px';
+
+            blip.onclick = () => showUser(user, dist, uid);
+
+            // إظهار النقطة لما الخط يعدي عليها (محاكاة)
+            setTimeout(() => {
+                blip.classList.add('visible');
+                const audio = document.getElementById('pingSound');
+                audio.currentTime = 0; audio.play().catch(()=>{});
+            }, Math.random() * 2000);
+
+            radarBox.appendChild(blip);
+        }
+
+        function showUser(user, dist, uid) {
+            selectedUserId = uid;
+            const card = document.getElementById('userCard');
+            const img = document.getElementById('ucImg');
+            
+            document.getElementById('ucName').innerText = user.name || 'مستخدم';
+            document.getElementById('ucDist').innerText = `يبعد ${dist.toFixed(1)} كم`;
+            
+            if(user.profilePic) {
+                img.style.backgroundImage = `url('${user.profilePic}')`;
+                img.innerText = '';
+            } else {
+                img.style.background = '#003300';
+                img.innerText = user.name ? user.name[0] : 'U';
+                img.style.display = 'grid'; img.style.placeItems = 'center'; img.style.fontWeight='bold';
+            }
+
+            card.style.display = 'flex';
+        }
+
+        function openProfile() {
+            if(selectedUserId) location.href = `profile.html?uid=${selectedUserId}`;
+        }
+
+        // دالة حساب المسافة (Haversine Formula)
+        function calcDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // نصف قطر الأرض بالكيلومتر
+            const dLat = deg2rad(lat2 - lat1);
+            const dLon = deg2rad(lon2 - lon1);
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
+            return R * c;
+        }
+
+        function deg2rad(deg) {
+            return deg * (Math.PI/180);
+        }
+    </script>
+</body>
+</html>

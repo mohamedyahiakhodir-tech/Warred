@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NABD - الإشعارات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-solid: #5D5FEF;
+            --text-color: #eee;
+            --secondary-text: #aaa;
+            --border-color: #2a2a2a;
+            --unread-bg: rgba(93, 95, 239, 0.15);
+            --uranium: #3fff00;
+            --vip-gold: #f59e0b; /* لون ذهبي للتوثيق */
+        }
+        body { background: var(--bg-color); color: var(--text-color); margin: 0; font-family: "Cairo", sans-serif; padding-bottom: 80px; }
+        
+        .header { display: flex; align-items: center; padding: 15px 20px; background: rgba(22, 22, 22, 0.95); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        
+        .mark-all-btn {
+            background: transparent;
+            border: 1px solid var(--primary-solid);
+            color: var(--primary-solid);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-family: "Cairo", sans-serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .mark-all-btn:hover { background: var(--primary-solid); color: #fff; }
+
+        .header h2 { margin: 0; font-size: 20px; flex: 1; text-align: center; }
+        .back-btn { font-size: 20px; cursor: pointer; color: var(--uranium); }
+
+        .notif-list { padding: 10px; }
+        
+        .notif-item { display: flex; gap: 12px; padding: 15px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: 0.2s; position: relative; border-radius: 12px; margin-bottom: 8px; background: var(--card-color); border: 1px solid transparent; }
+        
+        .notif-item.unopened { 
+            background: var(--unread-bg); 
+            border-color: rgba(93, 95, 239, 0.3); 
+            border-right: 4px solid var(--primary-solid); 
+        }
+        
+        /* ستايل خاص لرسائل النظام */
+        .notif-item.system-msg {
+            background: rgba(245, 158, 11, 0.1) !important;
+            border-right: 4px solid var(--vip-gold) !important;
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+        
+        .notif-item.opened { opacity: 0.7; background: transparent; }
+
+        .notif-avatar { width: 50px; height: 50px; border-radius: 50%; background: #333; background-size: cover; background-position: center; display: grid; place-items: center; font-weight: bold; font-size: 18px; flex-shrink: 0; position: relative; border: 1px solid var(--border-color); }
+        .notif-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .notif-text { font-size: 14px; line-height: 1.4; color: var(--text-color); }
+        .notif-text b { color: #fff; margin-left: 3px; }
+        .notif-time { font-size: 11px; color: var(--secondary-text); margin-top: 5px; }
+        .notif-icon { width: 30px; height: 30px; display: grid; place-items: center; font-size: 18px; }
+        
+        .verified-badge { 
+            color: #3897f0; 
+            margin-right: 4px; 
+            font-size: 13px; 
+            vertical-align: -2px;
+            display: inline-block;
+        }
+
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-color); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 99; }
+        .nav-item { font-size: 22px; color: var(--secondary-text); cursor: pointer; }
+        .nav-item.active { color: var(--primary-solid); }
+
+        .empty-state { text-align: center; padding: 50px 20px; color: var(--secondary-text); }
+        .empty-state i { font-size: 50px; margin-bottom: 15px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <h2>الإشعارات</h2>
+        <button class="mark-all-btn" onclick="markAllAsOpened()">
+            <i class="fa-solid fa-check-double"></i> تحديد الكل كمقروء
+        </button>
+    </div>
+
+    <div class="notif-list" id="notifList">
+        <div style="text-align: center; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="location.href='home.html'"><i class="fa-solid fa-house"></i></div>
+        <div class="nav-item" onclick="location.href='friends.html'"><i class="fa-solid fa-users"></i></div>
+        <div class="nav-item" onclick="location.href='create_post.html'"><i class="fa-solid fa-plus-circle"></i></div>
+        <div class="nav-item active"><i class="fa-solid fa-bell"></i></div>
+        <div class="nav-item" onclick="location.href='profile.html'"><i class="fa-regular fa-user"></i></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+
+        const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3');
+        const ghostColors = ["#ff0000", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#ff9900", "#9900ff", "#ffffff", "#00ff99"];
+
+        function getGhostIdentity(uid) {
+            if (!uid) return { id: '0000', color: '#ff0000' };
+            let hash = 0;
+            for (let i = 0; i < uid.length; i++) { hash = uid.charCodeAt(i) + ((hash << 5) - hash); }
+            hash = Math.abs(hash);
+            const ghostID = (hash % 9000) + 1000; 
+            const colorIndex = hash % ghostColors.length;
+            return { id: ghostID, color: ghostColors[colorIndex] };
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (user) { 
+                loadNotifications(user.uid);
+                clearHomeBadgeOnly();
+            } else { 
+                window.location.href = "index.html"; 
+            }
+        });
+
+        // === تفعيل دالة تحديث حالة القراءة لتنظيف العلامة الخارجية ===
+        async function clearHomeBadgeOnly() {
+            const user = auth.currentUser;
+            if (!user) return;
+            
+            // جلب الإشعارات غير المقروءة
+            const snapshot = await db.collection('notifications')
+                .where('recipientId', '==', user.uid)
+                .where('read', '==', false)
+                .get();
+
+            if (snapshot.empty) return;
+
+            // تحديث الحقل read فقط ليختفي التنبيه من الخارج
+            const batch = db.batch();
+            snapshot.docs.forEach(doc => {
+                batch.update(doc.ref, { read: true }); 
+            });
+            
+            await batch.commit();
+        }
+
+        function loadNotifications(uid) {
+            let isFirstLoad = true;
+            db.collection('notifications').where('recipientId', '==', uid).orderBy('createdAt', 'desc')
+                .onSnapshot(snapshot => {
+                    const list = document.getElementById('notifList');
+                    
+                    if (snapshot.empty) {
+                        list.innerHTML = `<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><p>لا توجد إشعارات جديدة</p></div>`;
+                        return;
+                    }
+
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === "added" && !isFirstLoad) {
+                            if (change.doc.data().read === false) { notificationSound.play().catch(()=>{}); }
+                        }
+                    });
+
+                    list.innerHTML = "";
+                    
+                    snapshot.forEach(doc => {
+                        const notif = doc.data();
+                        const id = doc.id;
+                        const isOpened = notif.opened === true; // استخدام opened للتحكم في لون الخلفية داخل القائمة
+                        
+                        // المتغيرات الافتراضية
+                        let senderName = notif.senderName || notif.name || 'مستخدم نبض';
+                        let rawPic = notif.senderPic || notif.pic || notif.photoURL;
+                        let senderPic = "";
+                        if (rawPic && rawPic !== "null" && rawPic !== "undefined" && rawPic.trim() !== "") {
+                            senderPic = rawPic;
+                        }
+
+                        let isVerified = notif.isVerified || notif.verified;
+                        if(isVerified === "true") isVerified = true;
+
+                        let avatarHtml = '';
+                        let nameStyle = '';
+                        let verifiedHtml = '';
+                        let iconHtml = '<i class="fa-solid fa-bell" style="color:var(--primary-solid)"></i>';
+                        let displayText = notif.text;
+                        let customClass = '';
+
+                        // --- معالجة أنواع الإشعارات ---
+
+                        if (notif.type === 'system_msg') {
+                            // 1. إشعار النظام (توثيق، رسائل إدارية)
+                            senderName = notif.title || "إدارة NABD";
+                            displayText = notif.body; 
+                            customClass = 'system-msg';
+                            verifiedHtml = '<i class="fa-solid fa-circle-check verified-badge" style="color:#f59e0b"></i>';
+                            
+                            // أيقونة التاج الذهبي
+                            avatarHtml = `
+                                <div class="notif-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none; box-shadow:0 0 10px rgba(245,158,11,0.4)">
+                                    <i class="fa-solid fa-crown" style="color:white; font-size:22px"></i>
+                                </div>`;
+                            iconHtml = '<i class="fa-solid fa-envelope-open-text" style="color:#f59e0b"></i>';
+
+                        } else if (notif.isGhost) {
+                            // 2. الشبح
+                            const ghost = getGhostIdentity(notif.senderUid);
+                            senderName = `مستخدم نبض #${ghost.id}`;
+                            nameStyle = `style="color: ${ghost.color} !important; text-shadow: 0 0 5px ${ghost.color}40;"`;
+                            avatarHtml = `<div class="notif-avatar" style="background: #000; border: 1px solid ${ghost.color}; box-shadow: 0 0 8px ${ghost.color}40;"><i class="fa-solid fa-user-secret" style="color: ${ghost.color}; font-size: 18px;"></i></div>`;
+                        
+                        } else {
+                            // 3. المستخدم العادي
+                            if (isVerified === true) {
+                                verifiedHtml = '<i class="fa-solid fa-circle-check verified-badge"></i>';
+                            }
+                            if (senderPic) {
+                                avatarHtml = `<div class="notif-avatar" style="background-image: url('${senderPic}')"></div>`;
+                            } else {
+                                avatarHtml = `<div class="notif-avatar" style="background-color: #444">${senderName[0]}</div>`;
+                            }
+
+                            // أيقونات التفاعل العادية + المنشن الجديد
+                            if (notif.type === 'like') iconHtml = '<i class="fa-solid fa-heart" style="color:#ff3b30"></i>';
+                            else if (notif.type === 'comment') iconHtml = '<i class="fa-solid fa-comment" style="color:#009EFD"></i>';
+                            else if (notif.type === 'reply') iconHtml = '<i class="fa-solid fa-reply" style="color:#F093FB"></i>';
+                            else if (notif.type === 'share') iconHtml = '<i class="fa-solid fa-share-nodes" style="color:#bf5af2"></i>';
+                            else if (notif.type === 'friend_request') iconHtml = '<i class="fa-solid fa-user-plus" style="color:#34c759"></i>';
+                            else if (notif.type === 'poke') iconHtml = '<i class="fa-solid fa-hand-point-up" style="color:#ffb533"></i>';
+                            
+                            // === إضافة المنشن ===
+                            else if (notif.type === 'mention') iconHtml = '<i class="fa-solid fa-at" style="color:#5D5FEF; font-size:20px;"></i>';
+                            else if (notif.type === 'mention_comment') iconHtml = '<i class="fa-solid fa-comments" style="color:#5D5FEF; font-size:20px;"></i>';
+                        }
+
+                        const div = document.createElement('div');
+                        div.className = `notif-item ${isOpened ? 'opened' : 'unopened'} ${customClass}`;
+                        div.onclick = () => handleNotificationClick(id, notif);
+                        
+                        div.innerHTML = `
+                            ${avatarHtml}
+                            <div class="notif-content">
+                                <div class="notif-text">
+                                    <b ${nameStyle}>${senderName}</b>${verifiedHtml} 
+                                    <div style="font-size:13px; margin-top:3px; opacity:0.9">${displayText}</div>
+                                </div>
+                                <div class="notif-time">${notif.createdAt ? moment(notif.createdAt.toDate()).fromNow() : 'الآن'}</div>
+                            </div>
+                            <div class="notif-icon">${iconHtml}</div>
+                        `;
+                        list.appendChild(div);
+                    });
+                    isFirstLoad = false;
+                });
+        }
+
+        async function handleNotificationClick(docId, notif) {
+            await db.collection('notifications').doc(docId).update({ opened: true, read: true });
+            
+            // لو إشعار نظام
+            if (notif.type === 'system_msg') {
+                if (notif.title && notif.title.includes('توثيق')) {
+                    window.location.href = 'profile.html'; 
+                }
+                return;
+            }
+
+            if (notif.link) { 
+                let targetLink = notif.link;
+                if(targetLink.includes('#post-')) {
+                    targetLink = targetLink.replace('#post-', '&post=');
+                }
+                window.location.href = targetLink; 
+            } else if (notif.postId) {
+                let url = `profile.html?uid=${notif.recipientId}&post=${notif.postId}`;
+                if (notif.commentId) { url += `&comment=${notif.commentId}`; }
+                window.location.href = url;
+            }
+        }
+
+        async function markAllAsOpened() {
+            const user = auth.currentUser;
+            if (!user) return;
+            const btn = document.querySelector('.mark-all-btn');
+            try {
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري...';
+                const snapshot = await db.collection('notifications').where('recipientId', '==', user.uid).get();
+                if (snapshot.empty) { btn.innerHTML = '<i class="fa-solid fa-check-double"></i> تم'; return; }
+                const batch = db.batch();
+                snapshot.docs.forEach(doc => {
+                    batch.update(doc.ref, { opened: true, read: true });
+                });
+                await batch.commit();
+                btn.innerHTML = '<i class="fa-solid fa-check-double"></i> تم';
+            } catch (error) { btn.innerHTML = 'خطأ'; }
+        }
+    </script>
+</body>
+</html>

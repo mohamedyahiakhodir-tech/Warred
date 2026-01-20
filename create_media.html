@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>نشر ميديا - NABD Pro Max</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+
+    <style>
+        * { box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        
+        body {
+            margin: 0;
+            background-color: #0d0d0f;
+            background-image: radial-gradient(circle at 50% 10%, rgba(93, 95, 239, 0.1) 0%, transparent 60%);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* === الهيدر === */
+        .header {
+            padding: 15px 20px;
+            background: rgba(13, 13, 15, 0.95);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky; top: 0; z-index: 50;
+        }
+        .header-title { font-weight: 800; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(93, 95, 239, 0.3); }
+        .close-btn { font-size: 24px; color: #888; cursor: pointer; transition: 0.3s; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; }
+        
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+
+        .post-btn {
+            background: linear-gradient(135deg, #5D5FEF, #7c3aed);
+            border: none; padding: 8px 24px; border-radius: 50px;
+            color: #fff; font-weight: 700; cursor: pointer; font-size: 14px;
+            box-shadow: 0 4px 15px rgba(93, 95, 239, 0.4); transition: 0.3s;
+        }
+        .post-btn:disabled { background: #222; color: #555; box-shadow: none; cursor: not-allowed; }
+
+        .draft-btn {
+            background: rgba(255, 255, 255, 0.08); color: #ddd;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 16px; border-radius: 50px; cursor: pointer;
+            font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 6px;
+            transition: 0.2s; min-width: 90px; justify-content: center;
+        }
+        .draft-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; border-color: #5D5FEF; }
+        .draft-btn.saving { color: #5D5FEF; border-color: #5D5FEF; }
+        .draft-btn.saved { color: #4caf50; border-color: #4caf50; }
+
+
+        /* === منطقة المستخدم === */
+        .user-area { display: flex; align-items: center; gap: 12px; padding: 15px 20px 5px; }
+        .avatar { 
+            width: 48px; height: 48px; border-radius: 50%; 
+            background: #333; background-size: cover; background-position: center; 
+            border: 2px solid #5D5FEF; 
+        }
+        .user-info { display: flex; flex-direction: column; gap: 4px; }
+        .username { font-weight: bold; font-size: 16px; line-height: 1.2; }
+        
+        .privacy-btn {
+            background: rgba(255,255,255,0.08); color: #aaa; font-size: 11px; padding: 4px 10px;
+            border-radius: 6px; width: fit-content; cursor: pointer; display: flex;
+            align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;
+        }
+        .privacy-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
+
+        /* === المحتوى === */
+        .content { flex: 1; padding: 20px; overflow-y: auto; position: relative; padding-bottom: 50px; }
+        
+        .content.drag-active {
+            background: rgba(93, 95, 239, 0.1);
+            border: 2px dashed #5D5FEF;
+            border-radius: 20px; margin: 10px;
+        }
+
+        .caption-wrapper {
+            background: transparent; border: none;
+            padding: 5px; margin-bottom: 5px; position: relative;
+            transition: 0.3s;
+        }
+        .caption-wrapper:focus-within {
+            background: linear-gradient(to bottom, rgba(93, 95, 239, 0.05), transparent);
+            border-radius: 12px;
+        }
+
+        .caption-area {
+            width: 100%; background: transparent; border: none; color: #eee;
+            font-size: 18px; resize: none; min-height: 80px; padding: 10px 0; font-family: inherit;
+            white-space: pre-wrap; word-wrap: break-word;
+        }
+        .caption-area:empty:before { content: attr(placeholder); color: #777; display: block; }
+
+        /* ستايل المنشن داخل المحرر */
+        .mention-node {
+            color: #5D5FEF; /* لون مميز للمنشن */
+            font-weight: 800;
+            background: rgba(93, 95, 239, 0.15);
+            border-radius: 6px;
+            padding: 2px 6px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            margin: 0 2px;
+            transition: 0.2s;
+        }
+        .mention-node:hover { background: rgba(93, 95, 239, 0.3); }
+
+        .char-counter {
+            position: absolute; bottom: 10px; left: 10px; width: 24px; height: 24px; pointer-events: none;
+        }
+        .circular-chart { display: block; margin: 0 auto; max-width: 100%; max-height: 100%; transform: rotate(-90deg); }
+        .circle-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 3; }
+        .circle { fill: none; stroke-width: 3; stroke-linecap: round; transition: stroke-dasharray 0.3s ease, stroke 0.3s; stroke: #5D5FEF; }
+        .circle.warning { stroke: #ff9800; }
+        .circle.danger { stroke: #ff3b30; }
+
+        .tools-bar {
+            display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none;
+            padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;
+        }
+        .tool-chip {
+            display: flex; align-items: center; gap: 8px; color: #ccc; 
+            font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+            padding: 8px 16px; background: rgba(255,255,255,0.05); border-radius: 20px; 
+            border: 1px solid rgba(255,255,255,0.1); transition: 0.2s;
+        }
+        .tool-chip:hover { background: rgba(93, 95, 239, 0.1); border-color: #5D5FEF; color: #fff; }
+
+        .tags-wrapper {
+            display: flex; flex-wrap: wrap; gap: 8px; padding: 5px 0 15px;
+        }
+        .tag-chip {
+            background: rgba(93, 95, 239, 0.15); border: 1px solid rgba(93, 95, 239, 0.3);
+            color: #b0b2ff; padding: 6px 12px; border-radius: 20px; font-size: 13px;
+            display: flex; align-items: center; gap: 6px; font-weight: bold; animation: fadeIn 0.3s;
+        }
+        .tag-chip i { cursor: pointer; font-size: 12px; opacity: 0.7; transition:0.2s; }
+        .tag-chip i:hover { color: #ff3b30; opacity: 1; }
+        @keyframes fadeIn { from{opacity:0; transform:scale(0.9);} to{opacity:1; transform:scale(1);} }
+
+        /* === تحسينات الفيديو === */
+        .media-list {
+            display: flex; flex-direction: column; gap: 25px; width: 100%;
+        }
+
+        .media-item {
+            position: relative; width: 100%; border-radius: 16px; overflow: hidden;
+            background: #000; border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            aspect-ratio: 9 / 16;
+        }
+
+        .custom-video-wrapper {
+            position: relative; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center; 
+            background: #000; 
+        }
+        .custom-video-wrapper video { 
+            width: 100%; height: 100%; 
+            object-fit: cover;
+            display: block; 
+        }
+        .media-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        .custom-video-wrapper:fullscreen,
+        .custom-video-wrapper:-webkit-full-screen {
+            width: 100vw; height: 100vh; background: #000; 
+            display: flex; justify-content: center; align-items: center;
+        }
+        .custom-video-wrapper:fullscreen video { max-height: 100vh; object-fit: contain; }
+
+        .custom-controls {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 10px 15px; display: flex; align-items: center; gap: 10px;
+            opacity: 0; transition: 0.3s; z-index: 20; direction: ltr;
+        }
+        .media-item:hover .custom-controls,
+        .custom-video-wrapper.paused .custom-controls { opacity: 1; }
+
+        .progress-container { flex: 1; height: 4px; background: rgba(255,255,255,0.3); border-radius: 5px; cursor: pointer; position: relative; }
+        .progress-filled { height: 100%; background: #5D5FEF; border-radius: 5px; width: 0%; pointer-events: none; }
+        .center-play-btn {
+            position: absolute; width: 60px; height: 60px; background: rgba(0,0,0,0.5);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 24px; cursor: pointer; backdrop-filter: blur(4px);
+            border: 2px solid rgba(255,255,255,0.3); pointer-events: none; z-index: 50; transition: 0.2s;
+        }
+        .ctrl-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; padding: 5px; }
+        .time-display { font-size: 11px; color: #ddd; font-family: monospace; min-width: 35px; text-align: center; }
+
+        .media-actions {
+            position: absolute; top: 10px; right: 10px; display: flex; gap: 10px; z-index: 100;
+        }
+        .action-btn {
+            background: rgba(0,0,0,0.6); color: #fff; width: 32px; height: 32px;
+            border-radius: 50%; display: grid; place-items: center; cursor: pointer;
+            backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); transition: 0.2s;
+        }
+        .action-btn:hover { background: #5D5FEF; border-color: #5D5FEF; }
+        .action-btn.delete:hover { background: #ff3b30; border-color: #ff3b30; }
+
+        .edit-cover-badge {
+            position: absolute; top: 10px; left: 10px; 
+            background: rgba(13, 13, 15, 0.8); color: #fff; padding: 6px 14px;
+            border-radius: 20px; font-size: 11px; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 6px;
+            backdrop-filter: blur(4px); z-index: 100; transition: 0.2s;
+        }
+        .edit-cover-badge:hover { background: #5D5FEF; border-color: #5D5FEF; }
+
+        /* === القوائم والمودال === */
+        .bottom-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none;
+            align-items: flex-end; justify-content: center; backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: #1a1a1a; width: 100%; border-radius: 20px 20px 0 0; padding: 25px;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); border-top: 1px solid #333; max-height: 80vh; display: flex; flex-direction: column;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; font-size: 16px; color: #fff; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        
+        .list-opt { 
+            display: flex; align-items: center; gap: 12px; padding: 12px; 
+            border-bottom: 1px solid #222; cursor: pointer; color: #ddd; border-radius: 8px; transition: 0.2s;
+        }
+        .list-opt:hover { background: #252525; }
+        .list-opt.active { color: #5D5FEF; background: rgba(93, 95, 239, 0.1); }
+
+        .cover-modal {
+            position: fixed; inset: 0; background: #000; z-index: 4000; display: none;
+            flex-direction: column;
+        }
+        .cm-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; }
+        .cm-title { font-weight: bold; font-size: 16px; }
+        .cm-done { color: #5D5FEF; font-weight: bold; cursor: pointer; font-size: 16px; padding: 5px 10px; }
+        .cm-preview-area { flex: 1; display: flex; align-items: center; justify-content: center; background: #111; overflow: hidden; }
+        .cm-video { max-width: 100%; max-height: 80vh; }
+        .cm-controls { padding: 25px 20px; background: #161616; border-top: 1px solid #222; }
+        .range-slider {
+            -webkit-appearance: none; width: 100%; height: 50px; background: #222;
+            border-radius: 8px; outline: none; overflow: hidden;
+            background-image: linear-gradient(90deg, #333 1px, transparent 1px); background-size: 10px 100%;
+        }
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 12px; height: 50px; background: #fff;
+            border: 2px solid #5D5FEF; cursor: pointer; box-shadow: 0 0 10px rgba(93, 95, 239, 0.8);
+        }
+
+        .upload-overlay {
+            position: fixed; inset: 0; background: rgba(5, 5, 8, 0.8); z-index: 5000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        .progress-ring { width: 70px; height: 70px; border: 5px solid #222; border-top: 5px solid #5D5FEF; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+
+<body>
+
+    <div class="upload-overlay" id="uploadOverlay">
+        <div class="progress-ring"></div>
+        <div style="font-weight:bold; font-size:18px; color:#fff;" id="statusMain">جاري النشر...</div>
+        <div style="color:#888; font-size:13px; margin-top:10px;" id="statusSub">0%</div>
+    </div>
+
+    <div class="bottom-modal" id="privacyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>خصوصية المنشور</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('privacyModal')" style="cursor:pointer"></i>
+            </div>
+            <div class="list-opt active" id="opt-public" onclick="setPrivacy('public')">
+                <i class="fa-solid fa-earth-americas"></i> <div>العامة</div>
+            </div>
+            <div class="list-opt" id="opt-friends" onclick="setPrivacy('friends')">
+                <i class="fa-solid fa-user-group"></i> <div>الأصدقاء</div>
+            </div>
+            <div class="list-opt" id="opt-private" onclick="setPrivacy('private')">
+                <i class="fa-solid fa-lock"></i> <div>أنا فقط</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-modal" id="tagsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>إضافة هاشتاجات</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('tagsModal')" style="cursor:pointer"></i>
+            </div>
+            <input type="text" id="tagInput" placeholder="اكتب الهاشتاج..." style="width:100%; padding:14px; background:#222; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;" oninput="searchTags(this.value)">
+            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">مقترحات:</div>
+            <div id="tagsResultsList" style="overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+    </div>
+
+    <div class="bottom-modal" id="mentionsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>الإشارة إلى صديق</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('mentionsModal')" style="cursor:pointer"></i>
+            </div>
+            <input type="text" id="mentionInput" placeholder="ابحث عن اسم المستخدم..." style="width:100%; padding:14px; background:#222; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;" oninput="searchUsers(this.value)">
+            <div id="mentionsResultsList" style="overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+    </div>
+
+    <div class="cover-modal" id="coverModal">
+        <div class="cm-header">
+            <span class="close-btn" onclick="closeCoverModal()">&times;</span>
+            <span class="cm-title">اختيار لقطة الغلاف</span>
+            <span class="cm-done" onclick="saveCoverSelection()">حفظ</span>
+        </div>
+        <div class="cm-preview-area">
+            <video id="coverVideoPlayer" class="cm-video" playsinline muted></video>
+        </div>
+        <div class="cm-controls">
+            <input type="range" id="coverSlider" class="range-slider" min="0" max="100" step="0.1" value="0">
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="close-btn" onclick="history.back()"><i class="fa-solid fa-arrow-right"></i></div>
+        <div class="header-title">منشور جديد</div>
+        
+        <div class="header-actions">
+            <button class="draft-btn" id="draftBtn" onclick="manualSaveDraft()">
+                <i class="fa-regular fa-bookmark"></i> <span id="draftText">مسودة</span>
+            </button>
+            <button class="post-btn" id="postBtn" onclick="handlePost()" disabled>نشر</button>
+        </div>
+    </div>
+
+    <div class="user-area" id="userArea" style="display:none;">
+        <div class="avatar" id="userAvatar"></div>
+        <div class="user-info">
+            <div class="username" id="userName">جاري التحميل...</div>
+            <div class="privacy-btn" onclick="openPrivacy()">
+                <i class="fa-solid fa-earth-americas" id="privacyIcon"></i>
+                <span id="privacyText">العامة</span>
+                <i class="fa-solid fa-caret-down" style="font-size:10px;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="content" id="dropZone">
+        <div class="caption-wrapper">
+            <div class="caption-area" id="editor" contenteditable="true" placeholder="بم تفكر اليوم؟..." 
+                 oninput="onEditorInput(event)"></div>
+            
+            <div class="char-counter">
+                <svg viewBox="0 0 36 36" class="circular-chart">
+                    <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <path class="circle" id="charCircle" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+            </div>
+        </div>
+        
+        <div class="tools-bar">
+            <label class="tool-chip">
+                <i class="fa-solid fa-image" style="color:#4caf50;"></i> صور/فيديو
+                <input type="file" id="fileInput" hidden multiple accept="image/*,video/*">
+            </label>
+            <div class="tool-chip" onclick="openTagsModal()">
+                <i class="fa-solid fa-hashtag" style="color:#e91e63;"></i> هاشتاج
+            </div>
+            <div class="tool-chip" onclick="openMentionsModal()">
+                <i class="fa-solid fa-user-tag" style="color:#2196f3;"></i> إشارة
+            </div>
+        </div>
+            
+        <div class="tags-wrapper" id="visualTagsContainer"></div>
+
+        <div class="media-list" id="mediaPreview"></div>
+
+    </div>
+
+    <canvas id="thumbCanvas" style="display:none;"></canvas>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app", 
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore(), storage = firebase.storage();
+
+        let mediaItems = []; 
+        let currentUser = null;
+        let currentUserData = null; 
+        let activeEditId = null;
+        let selectedTags = [];
+        let currentPrivacy = 'public';
+        let recentHashtags = JSON.parse(localStorage.getItem('my_recent_hashtags') || '[]');
+        let savedRange = null; 
+        let mentionedUsersMap = new Map();
+        let autoSaveInterval = null;
+        let lastDraftContent = ''; 
+        let draftDB;
+
+        // --- إعداد قاعدة بيانات المسودات ---
+        const dbRequest = indexedDB.open("NabdDraftsDB", 1);
+        dbRequest.onupgradeneeded = function(event) {
+            draftDB = event.target.result;
+            if (!draftDB.objectStoreNames.contains('drafts')) {
+                draftDB.createObjectStore('drafts', { keyPath: 'id' });
+            }
+        };
+        dbRequest.onsuccess = function(event) {
+            draftDB = event.target.result;
+            setTimeout(loadDraft, 500);
+            startAutoSave();
+        };
+
+        auth.onAuthStateChanged(u => { 
+            if (!u) location.href = 'index.html'; 
+            currentUser = u;
+            document.getElementById('userArea').style.display = 'flex';
+            loadUserData();
+        });
+
+        async function loadUserData() {
+            try {
+                const d = await db.collection("users").doc(currentUser.uid).get();
+                const data = d.data();
+                currentUserData = data; 
+                document.getElementById('userName').innerText = data.name;
+                if(data.profilePic) document.getElementById('userAvatar').style.backgroundImage = `url('${data.profilePic}')`;
+            } catch(e){}
+        }
+
+        // --- وظائف المنشن (تم التصحيح هنا) ---
+        function onEditorInput(e) {
+            checkPostButton();
+            // اكتشاف الكتابة لعلامة @
+            const sel = window.getSelection();
+            if(sel.rangeCount) {
+                const node = sel.anchorNode;
+                const text = node.textContent;
+                const offset = sel.anchorOffset;
+                if (text.slice(offset - 1, offset) === '@') {
+                    const range = document.createRange();
+                    range.setStart(node, offset - 1);
+                    range.setEnd(node, offset);
+                    range.deleteContents(); 
+                    openMentionsModal();
+                }
+            }
+        }
+
+        function openMentionsModal() {
+            saveSelection();
+            document.getElementById('mentionsModal').style.display = 'flex';
+            const input = document.getElementById('mentionInput');
+            input.value = '';
+            input.focus();
+            searchUsers('');
+        }
+
+        function saveSelection() {
+            const sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                const range = sel.getRangeAt(0);
+                const editor = document.getElementById('editor');
+                if (editor.contains(range.commonAncestorContainer)) {
+                    savedRange = range.cloneRange();
+                }
+            }
+        }
+
+        async function searchUsers(query) {
+            const list = document.getElementById('mentionsResultsList');
+            list.innerHTML = '';
+            const cleanQuery = query.trim();
+            try {
+                let usersRef = db.collection('users');
+                let snap;
+                if(cleanQuery.length > 0) {
+                    snap = await usersRef.where('name', '>=', cleanQuery).where('name', '<=', cleanQuery + '\uf8ff').limit(5).get();
+                } else {
+                    snap = await usersRef.limit(5).get();
+                }
+                if (snap.empty) { list.innerHTML = '<div style="text-align:center; color:#777; padding:10px;">لا يوجد نتائج</div>'; return; }
+                snap.forEach(doc => {
+                    const userData = doc.data();
+                    const uid = doc.id;
+                    if(uid !== currentUser.uid) {
+                        const avatar = userData.profilePic || 'https://via.placeholder.com/40';
+                        const safeName = userData.name.replace(/'/g, "\\'"); 
+                        list.innerHTML += `
+                        <div class="list-opt" onclick="insertMentionTag('${uid}', '${safeName}')">
+                            <div style="width:35px; height:35px; border-radius:50%; background:url('${avatar}') center/cover;"></div>
+                            <div>
+                                <div style="font-weight:bold">${userData.name}</div>
+                                <div style="font-size:11px; color:#777">@${userData.username || 'user'}</div>
+                            </div>
+                        </div>`;
+                    }
+                });
+            } catch(e) { console.log(e); }
+        }
+
+        // دالة الإدراج المعدلة
+        function insertMentionTag(uid, name) {
+            closeModal('mentionsModal'); 
+            const editor = document.getElementById('editor');
+            editor.focus();
+            
+            if (savedRange) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(savedRange);
+            }
+
+            const mentionNode = document.createElement('span');
+            mentionNode.className = 'mention-node';
+            // إضافة علامة @ للاسم
+            mentionNode.textContent = '@' + name; 
+            mentionNode.contentEditable = "false"; 
+            mentionNode.setAttribute('data-uid', uid); 
+            
+            // ستايل إضافي للتأكيد
+            mentionNode.style.color = '#5D5FEF';
+            mentionNode.style.fontWeight = 'bold';
+            mentionNode.style.marginRight = '4px';
+
+            const space = document.createTextNode('\u00A0'); 
+            const sel = window.getSelection();
+            if (sel.getRangeAt && sel.rangeCount) {
+                const range = sel.getRangeAt(0);
+                range.deleteContents(); 
+                range.insertNode(mentionNode);
+                range.setStartAfter(mentionNode);
+                range.setEndAfter(mentionNode);
+                range.insertNode(space);
+                range.setStartAfter(space);
+                range.setEndAfter(space);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            } else {
+                editor.appendChild(mentionNode);
+                editor.appendChild(space);
+            }
+            mentionedUsersMap.set(uid, true);
+            checkPostButton();
+        }
+
+        // --- وظائف المسودات ---
+        function startAutoSave() { autoSaveInterval = setInterval(() => { saveDraft(true); }, 5000); }
+        function manualSaveDraft() { saveDraft(false); }
+        function saveDraft(isAuto = false) {
+            const editorHTML = document.getElementById('editor').innerHTML;
+            const textContent = document.getElementById('editor').innerText.trim();
+            const hasContent = textContent.length > 0 || mediaItems.length > 0;
+            if (!hasContent) return;
+            const currentContentStr = editorHTML + mediaItems.length + selectedTags.join('');
+            if (isAuto && currentContentStr === lastDraftContent) return;
+            const btn = document.getElementById('draftBtn');
+            const btnText = document.getElementById('draftText');
+            if(isAuto) { btn.classList.add('saving'); btnText.innerText = "جاري الحفظ..."; }
+            const filesToSave = mediaItems.map(item => { return { file: item.file, type: item.type, thumbBlob: item.thumbBlob }; });
+            const draftData = { id: 'current_draft', html: editorHTML, text: textContent, media: filesToSave, tags: selectedTags, timestamp: Date.now() };
+            const transaction = draftDB.transaction(["drafts"], "readwrite");
+            const store = transaction.objectStore("drafts");
+            const request = store.put(draftData);
+            request.onsuccess = function() {
+                lastDraftContent = currentContentStr;
+                btn.classList.remove('saving'); btn.classList.add('saved'); btnText.innerHTML = 'محفوظ <i class="fa-solid fa-check"></i>';
+                setTimeout(() => { btn.classList.remove('saved'); btnText.innerText = "مسودة"; }, 2000);
+            };
+        }
+        function loadDraft() {
+            if(!draftDB) return;
+            const transaction = draftDB.transaction(["drafts"], "readonly");
+            const store = transaction.objectStore("drafts");
+            const request = store.get('current_draft');
+            request.onsuccess = function(event) {
+                const draft = event.target.result;
+                if (draft) {
+                    Swal.fire({
+                        title: 'مسودة محفوظة', text: "يوجد مسودة غير منشورة. استعادتها؟", icon: 'info',
+                        showCancelButton: true, confirmButtonColor: '#5D5FEF', cancelButtonColor: '#333',
+                        confirmButtonText: 'نعم', cancelButtonText: 'لا', background: '#1a1a1a', color: '#fff'
+                    }).then((result) => { if (result.isConfirmed) restoreDraftData(draft); else clearDraft(); });
+                }
+            };
+        }
+        function restoreDraftData(draft) {
+            if(draft.html) document.getElementById('editor').innerHTML = draft.html;
+            else if(draft.text) document.getElementById('editor').innerText = draft.text;
+            if(draft.tags) { selectedTags = draft.tags; renderTags(); }
+            if(draft.media && draft.media.length > 0) {
+                mediaItems = []; 
+                draft.media.forEach(savedItem => {
+                    const id = Date.now() + Math.random().toString(16).slice(2);
+                    mediaItems.push({ id: id, file: savedItem.file, type: savedItem.type, thumbBlob: savedItem.thumbBlob, previewUrl: URL.createObjectURL(savedItem.file) });
+                });
+                renderMediaList();
+            }
+            checkPostButton();
+        }
+        function clearDraft() {
+            const transaction = draftDB.transaction(["drafts"], "readwrite");
+            const store = transaction.objectStore("drafts");
+            store.delete('current_draft');
+        }
+
+        // --- Drag & Drop & Files ---
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eName => { dropZone.addEventListener(eName, e => { e.preventDefault(); e.stopPropagation(); }); });
+        ['dragenter', 'dragover'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.add('drag-active')));
+        ['dragleave', 'drop'].forEach(eName => dropZone.addEventListener(eName, () => dropZone.classList.remove('drag-active')));
+        dropZone.addEventListener('drop', e => handleFiles(e.dataTransfer.files));
+        fileInput.addEventListener('change', e => handleFiles(e.target.files));
+        function handleFiles(files) {
+            const newFiles = Array.from(files);
+            newFiles.forEach(file => {
+                const isVideo = file.type.startsWith('video');
+                const id = Date.now() + Math.random().toString(16).slice(2);
+                mediaItems.push({ id: id, file: file, type: isVideo ? 'video' : 'image', thumbBlob: null, previewUrl: URL.createObjectURL(file) });
+            });
+            renderMediaList(); checkPostButton(); fileInput.value = ''; 
+        }
+        function renderMediaList() {
+            const list = document.getElementById('mediaPreview'); list.innerHTML = '';
+            mediaItems.forEach((item, index) => {
+                let posterAttr = (item.type === 'video' && item.thumbBlob) ? `poster="${URL.createObjectURL(item.thumbBlob)}"` : '';
+
+                let contentHtml = item.type === 'video' ? `
+                    <div class="custom-video-wrapper paused" id="wrapper_${item.id}">
+                        <video src="${item.previewUrl}" id="video_${item.id}" ${posterAttr} onclick="togglePlay('${item.id}')" ontimeupdate="updateProgress('${item.id}')" onended="resetPlayer('${item.id}')" playsinline></video>
+                        <div class="center-play-btn" id="centerBtn_${item.id}"><i class="fa-solid fa-play"></i></div>
+                        <div class="custom-controls">
+                            <button class="ctrl-btn" onclick="togglePlay('${item.id}')"><i class="fa-solid fa-play" id="playIcon_${item.id}"></i></button>
+                            <div class="time-display" id="currTime_${item.id}">0:00</div>
+                            <div class="progress-container" onclick="seekVideo(event, '${item.id}')"><div class="progress-filled" id="progBar_${item.id}"></div></div>
+                            <div class="time-display" id="durTime_${item.id}">0:00</div>
+                            <button class="ctrl-btn" onclick="toggleFullscreen('${item.id}')"><i class="fa-solid fa-expand"></i></button>
+                        </div>
+                    </div>
+                    <div class="edit-cover-badge" onclick="openCoverEditor('${item.id}')"><i class="fa-regular fa-image"></i> اختر غلاف</div>` : `<img src="${item.previewUrl}">`;
+                list.innerHTML += `<div class="media-item" data-id="${item.id}">${contentHtml}<div class="media-actions"><div class="action-btn delete" onclick="removeItem('${item.id}')"><i class="fa-solid fa-xmark"></i></div></div></div>`;
+            });
+            new Sortable(list, { animation: 250, handle: '.media-item', delay: 100, onEnd: function (evt) { const newOrderIds = Array.from(list.children).map(child => child.getAttribute('data-id')); mediaItems = newOrderIds.map(id => mediaItems.find(item => item.id === id)); } });
+        }
+
+        // --- Video Controls ---
+        function togglePlay(id) {
+            const vid = document.getElementById(`video_${id}`);
+            const wrapper = document.getElementById(`wrapper_${id}`);
+            const centerBtn = document.getElementById(`centerBtn_${id}`);
+            const playIcon = document.getElementById(`playIcon_${id}`);
+            if (vid.paused) { vid.play(); wrapper.classList.remove('paused'); centerBtn.style.opacity = '0'; centerBtn.style.transform = 'scale(1.5)'; playIcon.className = 'fa-solid fa-pause'; } 
+            else { vid.pause(); wrapper.classList.add('paused'); centerBtn.style.opacity = '1'; centerBtn.style.transform = 'scale(1)'; playIcon.className = 'fa-solid fa-play'; }
+        }
+        function updateProgress(id) {
+            const vid = document.getElementById(`video_${id}`);
+            const bar = document.getElementById(`progBar_${id}`);
+            const curr = document.getElementById(`currTime_${id}`);
+            if(vid.duration) { bar.style.width = `${(vid.currentTime / vid.duration) * 100}%`; curr.innerText = formatTime(vid.currentTime); }
+        }
+        function seekVideo(e, id) {
+            const vid = document.getElementById(`video_${id}`);
+            const rect = e.currentTarget.getBoundingClientRect();
+            let pos = (e.clientX || e.touches[0].clientX) - rect.left;
+            if(vid.duration) vid.currentTime = (Math.max(0, Math.min(pos, rect.width))/rect.width) * vid.duration;
+        }
+        function resetPlayer(id) {
+            document.getElementById(`wrapper_${id}`).classList.add('paused');
+            document.getElementById(`centerBtn_${id}`).style.opacity = '1';
+            document.getElementById(`playIcon_${id}`).className = 'fa-solid fa-play';
+        }
+        function toggleFullscreen(id) {
+            const w = document.getElementById(`wrapper_${id}`), v = document.getElementById(`video_${id}`);
+            if (!document.fullscreenElement) { (w.requestFullscreen || v.webkitEnterFullscreen).call(w.requestFullscreen ? w : v); } 
+            else { document.exitFullscreen(); }
+        }
+        function formatTime(s) { if(!s) return "0:00"; const m=Math.floor(s/60); const sc=Math.floor(s%60); return `${m}:${sc<10?'0':''}${sc}`; }
+        function removeItem(id) { mediaItems = mediaItems.filter(item => item.id !== id); renderMediaList(); checkPostButton(); }
+
+        // --- Cover Editor ---
+        const coverModal = document.getElementById('coverModal'), coverVideo = document.getElementById('coverVideoPlayer'), coverSlider = document.getElementById('coverSlider');
+        function openCoverEditor(id) {
+            const item = mediaItems.find(x => x.id === id); if (!item) return;
+            activeEditId = id; coverVideo.src = item.previewUrl; coverModal.style.display = 'flex';
+            coverVideo.onloadedmetadata = () => { coverSlider.max = coverVideo.duration; coverSlider.value = 0; coverVideo.currentTime = 0; };
+        }
+        coverSlider.oninput = function() { coverVideo.currentTime = this.value; };
+        function closeCoverModal() { coverModal.style.display = 'none'; coverVideo.pause(); activeEditId = null; }
+        function saveCoverSelection() {
+            if (!activeEditId) return;
+            const canvas = document.getElementById('thumbCanvas');
+            canvas.width = coverVideo.videoWidth; canvas.height = coverVideo.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(coverVideo, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob((blob) => {
+                const idx = mediaItems.findIndex(x => x.id === activeEditId);
+                if (idx > -1) { 
+                    mediaItems[idx].thumbBlob = blob; 
+                    const vidEl = document.getElementById(`video_${activeEditId}`);
+                    if(vidEl) vidEl.poster = URL.createObjectURL(blob);
+                }
+                closeCoverModal();
+            }, 'image/jpeg', 0.85);
+        }
+
+        // --- Hashtags ---
+        function openTagsModal() { document.getElementById('tagsModal').style.display = 'flex'; document.getElementById('tagInput').focus(); searchTags(''); }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        async function searchTags(query) {
+            const list = document.getElementById('tagsResultsList'), clean = query.replace('#','').toLowerCase(); list.innerHTML = '';
+            if(clean.length > 0) list.innerHTML += `<div class="list-opt" onclick="addTag('${clean}')"><i class="fa-solid fa-plus"></i> <div><div>#${clean}</div><div style="font-size:11px;color:#777">جديد</div></div></div>`;
+            if(clean.length === 0 && recentHashtags.length > 0) recentHashtags.forEach(tag => list.innerHTML += `<div class="list-opt" onclick="addTag('${tag}')"><i class="fa-solid fa-clock-rotate-left"></i> <div><div>#${tag}</div><div style="font-size:11px;color:#777">مؤخراً</div></div></div>`);
+            if(clean.length >= 1) {
+                try {
+                    const s = await db.collection('hashtags').where('name','>=',clean).where('name','<=',clean+'\uf8ff').limit(5).get();
+                    s.forEach(d => { if(d.data().name!==clean) list.innerHTML += `<div class="list-opt" onclick="addTag('${d.data().name}')"><i class="fa-solid fa-hashtag"></i> <div><div>#${d.data().name}</div></div></div>`; });
+                } catch(e){}
+            }
+        }
+        function addTag(tag) { if(!selectedTags.includes(tag)) { selectedTags.push(tag); renderTags(); } closeModal('tagsModal'); checkPostButton(); }
+        function renderTags() {
+            const c = document.getElementById('visualTagsContainer'); c.innerHTML = '';
+            selectedTags.forEach(t => c.innerHTML += `<div class="tag-chip"><span>#${t}</span><i class="fa-solid fa-xmark" onclick="removeTag('${t}')"></i></div>`);
+        }
+        function removeTag(t) { selectedTags = selectedTags.filter(x => x!==t); renderTags(); checkPostButton(); }
+
+        // --- Privacy & UI Checks ---
+        function openPrivacy() { document.getElementById('privacyModal').style.display = 'flex'; }
+        function setPrivacy(type) {
+            currentPrivacy = type;
+            const icon = document.getElementById('privacyIcon'), text = document.getElementById('privacyText');
+            if(type==='public') { icon.className='fa-solid fa-earth-americas'; text.innerText='العامة'; }
+            else if(type==='friends') { icon.className='fa-solid fa-user-group'; text.innerText='الأصدقاء'; }
+            else { icon.className='fa-solid fa-lock'; text.innerText='أنا فقط'; }
+            document.querySelectorAll('.list-opt').forEach(el=>el.classList.remove('active'));
+            document.getElementById(`opt-${type}`).classList.add('active');
+            closeModal('privacyModal');
+        }
+        function checkPostButton() {
+            const txt = document.getElementById('editor').innerText.trim();
+            document.getElementById('postBtn').disabled = !(txt.length>0 || mediaItems.length>0 || selectedTags.length>0);
+            const circle = document.getElementById('charCircle'), percent = Math.min((txt.length / 2200) * 100, 100);
+            if(circle) { circle.setAttribute('stroke-dasharray', `${percent}, 100`); circle.className = `circle ${percent > 90 ? 'danger' : (percent > 70 ? 'warning' : '')}`; }
+        }
+
+        // --- عملية النشر (تم التعديل بالكامل هنا) ---
+        async function handlePost() {
+            const overlay = document.getElementById('uploadOverlay');
+            const progressTxt = document.getElementById('statusSub');
+            overlay.style.display = 'flex';
+            
+            try {
+                // التأكد من وجود بيانات المستخدم للإشعار
+                if (!currentUserData) {
+                    const userDoc = await db.collection("users").doc(currentUser.uid).get();
+                    currentUserData = userDoc.data();
+                }
+
+                // 1. تحضير النص والروابط
+                const editor = document.getElementById('editor');
+                let plainText = editor.innerText;
+                
+                // نسخة مؤقتة للمعالجة
+                let tempDiv = document.createElement('div');
+                tempDiv.innerHTML = editor.innerHTML;
+                
+                let finalMentions = [];
+
+                // تحويل عناصر المنشن إلى روابط HTML
+                const mentionNodes = tempDiv.querySelectorAll('.mention-node');
+                mentionNodes.forEach(span => {
+                    const uid = span.getAttribute('data-uid');
+                    const displayName = span.innerText; // سيأخذ الاسم مع @
+                    
+                    if(uid) {
+                        if(!finalMentions.includes(uid)) finalMentions.push(uid);
+                        
+                        // إنشاء الرابط الذي سيظهر في المنشور
+                        const link = document.createElement('a');
+                        link.href = `profile.html?uid=${uid}`; 
+                        link.innerText = displayName; 
+                        // تنسيقات الرابط
+                        link.style.color = '#5D5FEF';
+                        link.style.fontWeight = '800';
+                        link.style.textDecoration = 'none';
+                        
+                        span.parentNode.replaceChild(link, span);
+                    }
+                });
+
+                let finalHtml = tempDiv.innerHTML; // الـ HTML النهائي
+
+                // 2. رفع الميديا
+                let uploadedMedia = [];
+                for(let i=0; i<mediaItems.length; i++) {
+                    const item = mediaItems[i];
+                    let file = item.file;
+                    if(item.type === 'image') { try { file = await imageCompression(file, {maxSizeMB:1, maxWidthOrHeight:1920}); } catch(e){} }
+                    const fname = `${Date.now()}_${i}`;
+                    const ref = storage.ref(`posts/${currentUser.uid}/${fname}`);
+                    await ref.put(file);
+                    const url = await ref.getDownloadURL();
+                    let mediaObj = { url: url, type: item.type };
+                    if(item.type === 'video' && item.thumbBlob) {
+                        const tRef = storage.ref(`posts/${currentUser.uid}/thumb_${fname}`);
+                        await tRef.put(item.thumbBlob);
+                        mediaObj.thumbnail = await tRef.getDownloadURL();
+                    }
+                    uploadedMedia.push(mediaObj);
+                    progressTxt.innerText = Math.round(((i+1)/mediaItems.length)*100) + '%';
+                }
+
+                // 3. تحديث الهاشتاجات
+                if(selectedTags.length > 0) {
+                    const batch = db.batch();
+                    selectedTags.forEach(t => { recentHashtags = recentHashtags.filter(x=>x!==t); recentHashtags.unshift(t); });
+                    localStorage.setItem('my_recent_hashtags', JSON.stringify(recentHashtags.slice(0,20)));
+                    selectedTags.forEach(t => {
+                        const r = db.collection('hashtags').doc(t);
+                        batch.set(r, { name:t, postsCount: firebase.firestore.FieldValue.increment(1) }, {merge:true});
+                    });
+                    await batch.commit();
+                }
+
+                // 4. الحفظ في فايربيس (جدول posts)
+                const newPostRef = await db.collection('posts').add({
+                    uid: currentUser.uid,
+                    text: plainText,
+                    html: finalHtml, 
+                    media: uploadedMedia,
+                    hashtags: selectedTags,
+                    mentions: finalMentions,
+                    privacy: currentPrivacy,
+                    type: uploadedMedia.length > 0 ? (uploadedMedia.some(m=>m.type==='video')?'video':'image') : 'text',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    likes: {}, commentsCount: 0
+                });
+
+                // 5. إرسال الإشعارات
+                if (finalMentions.length > 0) {
+                    const notifBatch = db.batch();
+                    const senderName = currentUserData ? currentUserData.name : "مستخدم";
+                    const senderPic = currentUserData ? currentUserData.profilePic : null;
+                    
+                    finalMentions.forEach(uid => {
+                        if (uid !== currentUser.uid) {
+                            const newNotifRef = db.collection('notifications').doc();
+                            notifBatch.set(newNotifRef, {
+                                recipientId: uid,
+                                senderUid: currentUser.uid,
+                                senderName: senderName,
+                                senderPic: senderPic,
+                                type: 'mention', 
+                                text: `ذكرك في منشور جديد: ${plainText.substring(0, 30)}...`,
+                                postId: newPostRef.id,
+                                link: `profile.html?uid=${currentUser.uid}&post=${newPostRef.id}`, 
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                read: false,
+                                opened: false
+                            });
+                        }
+                    });
+                    await notifBatch.commit();
+                }
+
+                clearDraft(); 
+                location.href = 'home.html';
+
+            } catch(e) {
+                console.error(e);
+                overlay.style.display = 'none';
+                Swal.fire({icon:'error', title:'خطأ', text:'حدث خطأ أثناء النشر'});
+            }
+        }
+    </script>
+</body>
+</html>

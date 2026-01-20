@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - التفاصيل</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <style>
+        /* --- المتغيرات (الوضع الليلي الافتراضي) --- */
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #5D5FEF;
+            --uranium-green: #3fff00;
+            --text-color: #eee;
+            --border-color: #222;
+            --danger-color: #ff3b30;
+            --input-bg: #252525;
+            --header-bg: rgba(22, 22, 22, 0.95);
+        }
+
+        /* --- الوضع النهاري (Light Mode) --- */
+        body.light-mode {
+            --bg-color: #f0f2f5;
+            --card-color: #ffffff;
+            --primary-color: #5D5FEF;
+            --uranium-green: #3fff00; /* يبقى اليورانيوم مشعاً */
+            --text-color: #1a1a1a;
+            --border-color: #ddd;
+            --danger-color: #ff3b30;
+            --input-bg: #f0f2f5;
+            --header-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); padding-bottom: 90px; overflow-x: hidden; transition: background 0.3s, color 0.3s; }
+
+        /* --- زر اليورانيوم (Orb) بفيزياء الاندفاع --- */
+        .uranium-orb {
+            position: fixed; 
+            bottom: 100px; left: 20px; 
+            width: 55px; height: 55px;
+            background: radial-gradient(circle at 30% 30%, #e6ffcc, var(--uranium-green), #1a4d00);
+            border-radius: 50%; 
+            z-index: 9999; 
+            cursor: grab;
+            box-shadow: 0 0 25px var(--uranium-green), inset -5px -5px 15px rgba(0,0,0,0.4);
+            animation: pulse-orb 3s infinite alternate;
+            touch-action: none;
+            /* سيتم التحكم في Transition عبر JS للفيزياء */
+        }
+        
+        .uranium-orb:active { cursor: grabbing; transform: scale(0.90); }
+
+        @keyframes pulse-orb { 
+            0% { box-shadow: 0 0 15px var(--uranium-green); } 
+            100% { box-shadow: 0 0 35px var(--uranium-green); } 
+        }
+
+        /* --- الهيدر --- */
+        .fb-header {
+            background: var(--header-bg); backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 1000;
+            padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;
+            transition: background 0.3s;
+        }
+        .fb-logo { 
+            font-size: 26px; font-weight: 900; color: var(--primary-color); 
+            letter-spacing: 1px; cursor: pointer; transition: 0.3s;
+        }
+        .fb-logo:active { opacity: 0.7; transform: scale(0.95); }
+
+        .container { max-width: 700px; margin: auto; padding: 12px; }
+
+        /* --- المنشور --- */
+        #postContainer {
+            background: var(--card-color); border-radius: 20px; border: 1px solid var(--border-color);
+            margin-bottom: 15px; overflow: hidden; animation: slideIn 0.4s ease;
+            transition: background 0.3s, border 0.3s;
+        }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .post-header { display: flex; justify-content: space-between; align-items: center; padding: 15px; }
+        .user-meta { display: flex; gap: 12px; align-items: center; cursor: pointer; }
+        
+        .avatar { 
+            width: 45px; height: 45px; border-radius: 50%; border: 2px solid var(--border-color); 
+            display: grid; place-items: center; font-weight: 900; color: #fff;
+            background-size: cover; background-position: center; overflow: hidden;
+            background-color: #888;
+        }
+
+        .post-content { padding: 0 15px 15px; font-size: 16px; line-height: 1.7; color: var(--text-color); white-space: pre-wrap; }
+        .post-media img { width: 100%; border-top: 1px solid var(--border-color); display: block; }
+
+        .action-bar { display: flex; padding: 5px; border-top: 1px solid var(--border-color); background: rgba(0,0,0,0.05); }
+        .action-btn { flex: 1; text-align: center; padding: 12px; color: #888; font-size: 13px; font-weight: 700; cursor: pointer; border-radius: 10px; transition: 0.2s; }
+        .action-btn i { font-size: 16px; margin-left: 5px; transition: 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .action-btn:active i { transform: scale(1.4); }
+        .action-btn.liked { color: var(--danger-color); }
+        .action-btn.liked i { transform: scale(1.1); }
+
+        /* --- التعليقات --- */
+        .comment-wrapper { margin-bottom: 20px; animation: fadeIn 0.3s ease; }
+        .cm-main { display: flex; gap: 12px; }
+        .cm-bubble { background: var(--input-bg); padding: 12px 18px; border-radius: 18px; flex: 1; border: 1px solid var(--border-color); }
+        
+        .cm-user { 
+            font-weight: 800; font-size: 13px; color: var(--primary-color); 
+            cursor: pointer; margin-bottom: 4px; display: flex; align-items: center; gap: 4px;
+        }
+        
+        .cm-text { font-size: 14px; color: var(--text-color); line-height: 1.5; }
+
+        /* --- الردود --- */
+        .replies-box { margin-right: 45px; margin-top: 10px; border-right: 2px solid var(--border-color); padding-right: 12px; }
+        
+        .reply-container { display: flex; gap: 10px; margin-bottom: 12px; }
+        
+        .reply-avatar {
+            width: 32px; height: 32px; min-width: 32px; border-radius: 50%; border: 1px solid var(--border-color);
+            background-size: cover; background-position: center;
+            display: grid; place-items: center; font-size: 11px; font-weight: bold; color: #fff;
+            cursor: pointer;
+        }
+
+        .reply-content {
+            background: var(--input-bg); padding: 10px 14px; border-radius: 15px; 
+            border: 1px solid var(--border-color); font-size: 13px; color: var(--text-color); flex: 1;
+        }
+        
+        .reply-header { display: flex; align-items: center; gap: 5px; margin-bottom: 3px; }
+        .reply-author { font-weight: bold; color: var(--text-color); cursor: pointer; font-size: 12px; }
+
+        .reply-mention { 
+            color: var(--uranium-green); background: rgba(63, 255, 0, 0.08); 
+            padding: 1px 6px; border-radius: 5px; font-size: 11px; 
+            font-weight: 700; cursor: pointer; border: 1px solid rgba(63, 255, 0, 0.1);
+            text-shadow: 0 0 5px rgba(63,255,0,0.2);
+        }
+
+        .verified-badge { color: #4c9eeb; font-size: 12px; }
+
+        /* --- شريط الإدخال --- */
+        .footer-input {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-color);
+            padding: 12px 15px; border-top: 1px solid var(--border-color); display: flex; gap: 12px; align-items: center; z-index: 1500;
+            max-width: 700px; margin: auto; transition: background 0.3s;
+        }
+        .cm-input {
+            flex: 1; background: var(--input-bg); border: 1px solid var(--border-color); padding: 12px 20px;
+            border-radius: 30px; color: var(--text-color); outline: none; font-size: 14px; transition: 0.3s;
+        }
+        .cm-input:focus { border-color: var(--primary-color); }
+
+        /* --- القوائم --- */
+        .options-menu {
+            position: fixed; bottom: 0; left: 0; right: 0; background: var(--card-color);
+            border-radius: 25px 25px 0 0; z-index: 2500; transform: translateY(100%);
+            transition: 0.3s cubic-bezier(0.1, 0.7, 0.1, 1); padding: 20px 0; border-top: 1px solid var(--border-color);
+        }
+        .options-menu.active { transform: translateY(0); }
+        .option-item { padding: 15px 25px; display: flex; align-items: center; gap: 15px; font-weight: 700; cursor: pointer; color: var(--text-color); }
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2400; display: none; backdrop-filter: blur(4px); }
+
+        #toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 30px; border-radius: 50px; font-weight: 700; opacity: 0; transition: 0.3s; z-index: 3000; pointer-events: none; }
+        #toast.show { opacity: 1; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body id="mainBody">
+
+    <div id="uraniumOrb" class="uranium-orb"></div>
+
+    <div class="overlay" id="overlay" onclick="closeOptions()"></div>
+    <div class="options-menu" id="optionsMenu">
+        <div style="width:40px; height:4px; background:#444; border-radius:5px; margin:0 auto 15px;"></div>
+        <div class="option-item" onclick="savePost()"><i class="fa-regular fa-bookmark"></i> حفظ المنشور</div>
+        <div class="option-item" onclick="copyLink()"><i class="fa-solid fa-link"></i> نسخ الرابط</div>
+        <div class="option-item" onclick="reportPost()"><i class="fa-solid fa-flag"></i> إبلاغ</div>
+        <div class="option-item" id="delOpt" style="color:var(--danger-color); display:none" onclick="deletePost()"><i class="fa-solid fa-trash"></i> حذف المنشور</div>
+    </div>
+
+    <div class="fb-header">
+        <i class="fa-solid fa-chevron-right" onclick="history.back()" style="cursor:pointer; font-size: 20px; color: #ccc;"></i>
+        <div class="fb-logo" onclick="location.reload()">NABD</div>
+        <div style="width:20px;"></div>
+    </div>
+
+    <div class="container" id="contentArea">
+        <div id="loader" style="text-align: center; padding: 80px;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size: 35px; color: var(--primary-color);"></i></div>
+        
+        <div id="postWrapper"></div>
+        
+        <h4 id="cmHeader" style="margin: 20px 5px 15px; color: var(--primary-color); font-weight: 900; font-size: 14px; display: none;">التعليقات</h4>
+        <div id="commentsList" style="padding-bottom: 20px;"></div>
+    </div>
+
+    <div class="footer-input">
+        <input type="text" id="cmInp" class="cm-input" placeholder="اكتب تعليقك..." autocomplete="off">
+        <i class="fa-solid fa-paper-plane" onclick="sendComment()" style="color:var(--primary-color); font-size: 22px; cursor: pointer;"></i>
+    </div>
+
+    <div id="toast">تم بنجاح</div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        moment.locale('ar');
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c", 
+            authDomain: "pools-e4381.firebaseapp.com", 
+            projectId: "pools-e4381" 
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(), auth = firebase.auth();
+
+        let postId = new URLSearchParams(window.location.search).get('postId');
+        let currentUser = null, usersCache = {};
+
+        // حالة اللايك المحلي (للسرعة)
+        let isLocallyLiked = false;
+        let localLikeCount = 0;
+
+        auth.onAuthStateChanged(user => { 
+            if (user) { 
+                currentUser = user; 
+                if(postId) loadFullPost();
+                else document.getElementById('loader').innerText = "خطأ في الرابط";
+            } else {
+                location.href = "index.html";
+            }
+        });
+
+        /* =======================================================
+           1. فيزياء اليورانيوم (الاندفاع، السكرين شوت، الثيم)
+           ======================================================= */
+        const orb = document.getElementById('uraniumOrb');
+        const body = document.getElementById('mainBody');
+        
+        let isDragging = false;
+        let startX, startY;
+        let currentX, currentY;
+        let velocityX = 0, velocityY = 0;
+        let lastX, lastY;
+        let lastTime;
+        let animationFrame;
+        let longPressTimer;
+        let isLongPress = false;
+
+        // التهيئة المبدئية للموقع
+        const rect = orb.getBoundingClientRect();
+        currentX = rect.left;
+        currentY = rect.top;
+
+        orb.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startX = touch.clientX;
+            startY = touch.clientY;
+            lastX = startX;
+            lastY = startY;
+            lastTime = Date.now();
+            
+            isDragging = false;
+            isLongPress = false;
+            velocityX = 0;
+            velocityY = 0;
+            
+            // إلغاء أي حركة جارية
+            cancelAnimationFrame(animationFrame);
+            orb.style.transition = 'none'; // إزالة الانتقال للتحكم اليدوي الفوري
+            
+            // مؤقت الضغطة المطولة (للثيم)
+            longPressTimer = setTimeout(() => {
+                isLongPress = true;
+                toggleTheme();
+                navigator.vibrate(50); // اهتزاز خفيف
+            }, 600); // 600ms للضغطة المطولة
+
+        }, {passive: false});
+
+        orb.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const now = Date.now();
+            const dt = now - lastTime;
+            
+            const dx = touch.clientX - startX;
+            const dy = touch.clientY - startY;
+
+            // إذا تحرك أكثر من 10 بيكسل، نلغي مؤقت الضغطة المطولة
+            if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
+                clearTimeout(longPressTimer);
+                isDragging = true;
+            }
+
+            if (isDragging) {
+                currentX = touch.clientX - (orb.offsetWidth / 2);
+                currentY = touch.clientY - (orb.offsetHeight / 2);
+                
+                orb.style.left = `${currentX}px`;
+                orb.style.top = `${currentY}px`;
+                orb.style.bottom = 'auto';
+
+                // حساب السرعة (Velocity) للاندفاع
+                if (dt > 0) {
+                    velocityX = (touch.clientX - lastX) / dt; 
+                    velocityY = (touch.clientY - lastY) / dt;
+                }
+                lastX = touch.clientX;
+                lastY = touch.clientY;
+                lastTime = now;
+            }
+        }, {passive: false});
+
+        orb.addEventListener('touchend', (e) => {
+            clearTimeout(longPressTimer);
+
+            if (!isDragging && !isLongPress) {
+                // ضغطة واحدة (سكرين شوت)
+                takeScreenshot();
+            } else if (isDragging) {
+                // إفلات بعد سحب -> تطبيق فيزياء الاندفاع (Momentum)
+                applyMomentum();
+            }
+        });
+
+        function applyMomentum() {
+            // تخميد السرعة
+            const friction = 0.92; 
+            const stopThreshold = 0.1;
+
+            function step() {
+                if (Math.abs(velocityX) > stopThreshold || Math.abs(velocityY) > stopThreshold) {
+                    currentX += velocityX * 15; // معامل ضرب للاندفاع
+                    currentY += velocityY * 15;
+                    
+                    velocityX *= friction;
+                    velocityY *= friction;
+
+                    // حدود الشاشة (الارتداد)
+                    const screenW = window.innerWidth;
+                    const screenH = window.innerHeight;
+                    const orbSize = 55;
+
+                    if (currentX < 0) { currentX = 0; velocityX *= -0.5; }
+                    if (currentX > screenW - orbSize) { currentX = screenW - orbSize; velocityX *= -0.5; }
+                    if (currentY < 0) { currentY = 0; velocityY *= -0.5; }
+                    if (currentY > screenH - orbSize) { currentY = screenH - orbSize; velocityY *= -0.5; }
+
+                    orb.style.left = `${currentX}px`;
+                    orb.style.top = `${currentY}px`;
+
+                    animationFrame = requestAnimationFrame(step);
+                } else {
+                    // توقف الاندفاع -> الانجذاب للحافة (Snap to Edge)
+                    snapToEdge();
+                }
+            }
+            step();
+        }
+
+        function snapToEdge() {
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            const orbRect = orb.getBoundingClientRect();
+            
+            let targetX;
+            
+            // تحديد أقرب حافة
+            if (orbRect.left + (orbRect.width/2) < screenW / 2) {
+                targetX = 10; // يسار
+            } else {
+                targetX = screenW - 65; // يمين
+            }
+
+            // التأكد من الحدود الرأسية
+            let targetY = parseInt(orb.style.top);
+            if (targetY < 50) targetY = 50;
+            if (targetY > screenH - 100) targetY = screenH - 100;
+
+            // تفعيل الانتقال السلس بال CSS
+            orb.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            orb.style.left = `${targetX}px`;
+            orb.style.top = `${targetY}px`;
+        }
+
+        function toggleTheme() {
+            body.classList.toggle('light-mode');
+            const mode = body.classList.contains('light-mode') ? 'النهاري' : 'الليلي';
+            showToast(`تم التبديل للوضع ${mode}`);
+        }
+
+        function takeScreenshot() {
+            orb.style.display = 'none'; // إخفاء الزر
+            showToast("جاري التقاط الشاشة...");
+            
+            setTimeout(() => {
+                html2canvas(document.body, {
+                    useCORS: true,
+                    allowTaint: false,
+                    scrollY: -window.scrollY
+                }).then(canvas => {
+                    orb.style.display = 'block'; // إظهار الزر
+                    
+                    // تنزيل الصورة
+                    const link = document.createElement('a');
+                    link.download = `NABD_Snap_${Date.now()}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    showToast("تم حفظ السكرين شوت");
+                }).catch(err => {
+                    orb.style.display = 'block';
+                    console.error(err);
+                    showToast("فشل الالتقاط");
+                });
+            }, 100);
+        }
+
+        /* =======================================================
+           2. تحميل البيانات واللايك السريع
+           ======================================================= */
+
+        async function getUser(uid) {
+            if (usersCache[uid]) return usersCache[uid];
+            const d = await db.collection("users").doc(uid).get();
+            const data = d.data() || {};
+            const userInfo = {
+                name: data.name || "مستخدم",
+                char: (data.name || "U")[0].toUpperCase(),
+                color: generateColor(uid),
+                profilePic: data.profilePic || null,
+                isVerified: data.isVerified === true
+            };
+            usersCache[uid] = userInfo;
+            return userInfo;
+        }
+
+        function generateColor(s) { 
+            const c = ["#5D5FEF", "#ff3b30", "#34c759", "#af52de", "#ff9500"]; 
+            let h = 0; for(let i=0; i<s.length; i++) h = s.charCodeAt(i) + ((h<<5)-h); 
+            return c[Math.abs(h)%c.length]; 
+        }
+
+        function loadFullPost() {
+            db.collection("posts").doc(postId).onSnapshot(async doc => {
+                if (!doc.exists) return;
+                const p = doc.data(); 
+                const u = await getUser(p.uid);
+                
+                // تحديث الحالة المحلية للايك
+                const likes = p.likes || {};
+                localLikeCount = Object.keys(likes).length;
+                isLocallyLiked = !!likes[currentUser.uid];
+
+                if(p.uid === currentUser.uid) document.getElementById('delOpt').style.display = 'flex';
+
+                document.getElementById('loader').style.display = 'none';
+                document.getElementById('cmHeader').style.display = 'block';
+                
+                const verifiedBadge = u.isVerified ? `<i class="fa-solid fa-circle-check verified-badge"></i>` : '';
+
+                document.getElementById('postWrapper').innerHTML = `
+                    <div id="postContainer">
+                        <div class="post-header">
+                            <div class="user-meta" onclick="location.href='profile.html?uid=${p.uid}'">
+                                <div class="avatar" style="background-image: ${u.profilePic ? 'url('+u.profilePic+')' : 'none'}; background-color: ${u.profilePic ? 'transparent' : u.color};">
+                                    ${u.profilePic ? '' : u.char}
+                                </div>
+                                <div>
+                                    <div style="font-weight:900; display: flex; align-items: center; gap: 5px;">
+                                        ${u.name} ${verifiedBadge}
+                                    </div>
+                                    <div style="font-size:11px; opacity:0.7;">${moment(p.createdAt?.toDate()).fromNow()}</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-ellipsis-vertical" onclick="openOptions()" style="padding: 10px; cursor: pointer; color: #666;"></i>
+                        </div>
+                        <div class="post-content">${p.text}</div>
+                        ${p.imageUrl ? `<img src="${p.imageUrl}" class="post-media">` : ''}
+                        
+                        <div class="action-bar">
+                            <div id="likeBtn" class="action-btn ${isLocallyLiked ? 'liked' : ''}" onclick="fastLike()">
+                                <i class="${isLocallyLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> 
+                                <span id="likeCountText">${localLikeCount}</span>
+                            </div>
+                            <div class="action-btn" onclick="document.getElementById('cmInp').focus()">
+                                <i class="fa-regular fa-comment"></i> ${p.commentsCount || 0}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                loadComments();
+            });
+        }
+
+        // --- دالة اللايك السريع (Optimistic UI) ---
+        async function fastLike() {
+            const btn = document.getElementById('likeBtn');
+            const icon = btn.querySelector('i');
+            const countSpan = document.getElementById('likeCountText');
+
+            // عكس الحالة فوراً (بصرياً)
+            isLocallyLiked = !isLocallyLiked;
+            localLikeCount = isLocallyLiked ? localLikeCount + 1 : localLikeCount - 1;
+
+            // تحديث الواجهة
+            if(isLocallyLiked) {
+                btn.classList.add('liked');
+                icon.className = 'fa-solid fa-heart';
+            } else {
+                btn.classList.remove('liked');
+                icon.className = 'fa-regular fa-heart';
+            }
+            countSpan.innerText = localLikeCount;
+
+            // إرسال الطلب للسيرفر
+            const ref = db.collection("posts").doc(postId);
+            try {
+                await db.runTransaction(async t => {
+                    const doc = await t.get(ref);
+                    let likes = doc.data().likes || {};
+                    
+                    if(likes[currentUser.uid]) {
+                        delete likes[currentUser.uid]; // إزالة اللايك
+                    } else {
+                        likes[currentUser.uid] = true; // إضافة اللايك
+                    }
+                    t.update(ref, { likes });
+                });
+            } catch (error) {
+                console.error("Like failed:", error);
+                // تراجع في حالة الخطأ (Revert)
+                isLocallyLiked = !isLocallyLiked;
+                localLikeCount = isLocallyLiked ? localLikeCount + 1 : localLikeCount - 1;
+                // إعادة رسم الزر للحالة القديمة
+                if(isLocallyLiked) {
+                    btn.classList.add('liked');
+                    icon.className = 'fa-solid fa-heart';
+                } else {
+                    btn.classList.remove('liked');
+                    icon.className = 'fa-regular fa-heart';
+                }
+                countSpan.innerText = localLikeCount;
+                showToast("فشل الاتصال");
+            }
+        }
+
+        function loadComments() {
+            db.collection("posts").doc(postId).collection("comments").orderBy("createdAt", "asc").onSnapshot(async snap => {
+                const list = document.getElementById('commentsList'); list.innerHTML = "";
+                if(snap.empty) {
+                    list.innerHTML = `<div style="text-align:center; opacity:0.6; padding: 20px; font-size:13px;">كن أول من يعلق...</div>`;
+                    return;
+                }
+                
+                for (const d of snap.docs) {
+                    const c = d.data(); const u = await getUser(c.uid);
+                    const verifiedBadge = u.isVerified ? `<i class="fa-solid fa-circle-check verified-badge"></i>` : '';
+
+                    const html = `
+                        <div class="comment-wrapper">
+                            <div class="cm-main">
+                                <div class="avatar" style="width:38px; height:38px; min-width:38px; background-image: ${u.profilePic ? 'url('+u.profilePic+')' : 'none'}; background-color: ${u.profilePic ? 'transparent' : u.color}; cursor: pointer;" onclick="location.href='profile.html?uid=${c.uid}'">
+                                    ${u.profilePic ? '' : u.char}
+                                </div>
+                                <div class="cm-bubble">
+                                    <div class="cm-user" onclick="location.href='profile.html?uid=${c.uid}'">
+                                        ${u.name} ${verifiedBadge}
+                                    </div>
+                                    <div class="cm-text">${c.text}</div>
+                                </div>
+                            </div>
+                            <div style="margin-right:50px; margin-top:5px; font-size:11px; opacity:0.7; font-weight:700;">
+                                <span onclick="replyTo('${d.id}', '${u.name}', '${c.uid}')" style="cursor:pointer">رد</span> • ${moment(c.createdAt?.toDate()).fromNow()}
+                            </div>
+                            <div id="replies-${d.id}" class="replies-box"></div>
+                        </div>`;
+                    list.insertAdjacentHTML('beforeend', html);
+                    loadReplies(d.id);
+                }
+            });
+        }
+
+        function loadReplies(cid) {
+            db.collection("posts").doc(postId).collection("comments").doc(cid).collection("replies").orderBy("createdAt", "asc").onSnapshot(async snap => {
+                const box = document.getElementById(`replies-${cid}`); box.innerHTML = "";
+                for (const d of snap.docs) {
+                    const r = d.data();
+                    const rUser = await getUser(r.uid);
+                    const verifiedBadge = rUser.isVerified ? `<i class="fa-solid fa-circle-check verified-badge"></i>` : '';
+
+                    box.innerHTML += `
+                        <div class="reply-container">
+                            <div class="reply-avatar" 
+                                 style="background-image: ${rUser.profilePic ? 'url('+rUser.profilePic+')' : 'none'}; background-color: ${rUser.profilePic ? 'transparent' : rUser.color};"
+                                 onclick="location.href='profile.html?uid=${r.uid}'">
+                                 ${rUser.profilePic ? '' : rUser.char}
+                            </div>
+                            <div class="reply-content">
+                                <div class="reply-header">
+                                    <span class="reply-author" onclick="location.href='profile.html?uid=${r.uid}'">
+                                        ${rUser.name} ${verifiedBadge}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="reply-mention" onclick="location.href='profile.html?uid=${r.replyToUid}'">${r.replyTo}</span>
+                                    ${r.text}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            });
+        }
+
+        async function sendComment() {
+            const inp = document.getElementById('cmInp'), text = inp.value.trim();
+            if(!text) return;
+            
+            const rId = inp.dataset.replyId;
+            const rName = inp.dataset.replyName;
+            const rUid = inp.dataset.replyUid;
+
+            inp.value = ""; inp.disabled = true;
+            
+            try {
+                if(!rId) {
+                    await db.collection("posts").doc(postId).collection("comments").add({ 
+                        uid: currentUser.uid, text, createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+                    });
+                    await db.collection("posts").doc(postId).update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
+                } else {
+                    await db.collection("posts").doc(postId).collection("comments").doc(rId).collection("replies").add({
+                        uid: currentUser.uid, text: text.replace(rName, "").trim(), replyTo: rName, replyToUid: rUid, createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+                inp.dataset.replyId = ""; inp.dataset.replyName = ""; inp.dataset.replyUid = "";
+                inp.placeholder = "اكتب تعليقك...";
+            } catch (e) {
+                console.error(e);
+                showToast("فشل الإرسال");
+            } finally {
+                inp.disabled = false;
+            }
+        }
+
+        function replyTo(id, name, uid) {
+            const inp = document.getElementById('cmInp');
+            inp.dataset.replyId = id; inp.dataset.replyName = name; inp.dataset.replyUid = uid;
+            inp.value = ""; 
+            inp.placeholder = `الرد على ${name}...`;
+            inp.focus();
+        }
+
+        function openOptions() { document.getElementById('overlay').style.display='block'; document.getElementById('optionsMenu').classList.add('active'); }
+        function closeOptions() { document.getElementById('overlay').style.display='none'; document.getElementById('optionsMenu').classList.remove('active'); }
+        function showToast(m) { const t=document.getElementById('toast'); t.innerText=m; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2000); }
+        function copyLink() { navigator.clipboard.writeText(window.location.href); showToast("تم نسخ الرابط"); closeOptions(); }
+        async function savePost() { showToast("تم الحفظ"); closeOptions(); }
+        async function reportPost() { showToast("تم إرسال البلاغ"); closeOptions(); }
+        async function deletePost() { if(confirm("حذف المنشور؟")){ await db.collection("posts").doc(postId).delete(); history.back(); } }
+    </script>
+</body>
+</html>
+ه

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NABD - رسائل الدعم والإدارة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --text-color: #eee;
+            --border-color: #2a2a2a;
+            --vip-gold: #f59e0b; 
+            --msg-bg: rgba(245, 158, 11, 0.05);
+        }
+        
+        body { background: var(--bg-color); color: var(--text-color); margin: 0; font-family: "Cairo", sans-serif; padding-bottom: 80px; }
+        
+        .header { display: flex; align-items: center; padding: 15px 20px; background: rgba(22, 22, 22, 0.95); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        .back-btn { font-size: 20px; cursor: pointer; color: var(--vip-gold); transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header h2 { margin: 0; font-size: 18px; flex: 1; text-align: center; display:flex; align-items:center; justify-content:center; gap:8px; font-weight: 800; color: white; }
+        
+        .inbox-container { padding: 15px; }
+
+        .msg-card {
+            background: var(--card-color);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            position: relative;
+            transition: 0.3s;
+            overflow: hidden;
+        }
+        .msg-card:active { transform: scale(0.98); background: #222; }
+
+        /* تمييز الرسائل غير المقروءة */
+        .msg-card.unread {
+            background: var(--msg-bg);
+            border-color: rgba(245, 158, 11, 0.3);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.05);
+        }
+        .msg-card.unread::before {
+            content: ''; position: absolute; top: 15px; left: 15px;
+            width: 8px; height: 8px; background: #ef4444; border-radius: 50%;
+            box-shadow: 0 0 5px #ef4444;
+        }
+
+        .msg-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .msg-icon {
+            width: 45px; height: 45px; border-radius: 50%;
+            background: linear-gradient(135deg, #f59e0b, #b45309);
+            display: grid; place-items: center; color: white; font-size: 20px;
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .msg-info h3 { margin: 0; font-size: 15px; color: white; display: flex; align-items: center; gap: 8px; }
+        .msg-info span { font-size: 11px; color: #888; font-family: monospace; letter-spacing: 0.5px; }
+        
+        .msg-body { font-size: 14px; line-height: 1.6; color: #ddd; white-space: pre-wrap; word-wrap: break-word; }
+
+        .official-badge { background: rgba(245,158,11,0.2); color: var(--vip-gold); font-size: 10px; padding: 3px 8px; border-radius: 10px; border: 1px solid rgba(245,158,11,0.3); display: flex; align-items: center; gap: 4px; }
+
+        .empty-state { text-align: center; padding: 80px 20px; color: #555; }
+        .empty-state i { font-size: 60px; margin-bottom: 20px; opacity: 0.3; }
+        .empty-state h3 { color: #888; margin-bottom: 5px; }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-color); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 99; }
+        .nav-item { font-size: 22px; color: #aaa; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <h2><i class="fa-solid fa-shield-cat" style="color:var(--vip-gold)"></i> رسائل الإدارة</h2>
+        <div style="width: 20px;"></div>
+    </div>
+
+    <div class="inbox-container" id="inboxList">
+        <div style="text-align:center; padding:50px; color:#777">
+            <i class="fa-solid fa-circle-notch fa-spin fa-2x" style="margin-bottom:15px; color:var(--vip-gold)"></i><br>
+            جاري جلب الرسائل...
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="location.href='home.html'"><i class="fa-solid fa-house"></i></div>
+        <div class="nav-item" onclick="location.href='friends.html'"><i class="fa-solid fa-users"></i></div>
+        <div class="nav-item" onclick="location.href='create_post.html'"><i class="fa-solid fa-plus-circle"></i></div>
+        <div class="nav-item" onclick="location.href='notifications.html'"><i class="fa-solid fa-bell"></i></div>
+        <div class="nav-item active" onclick="location.href='profile.html'"><i class="fa-regular fa-user"></i></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                loadAdminMessages(user.uid);
+            } else {
+                location.href = "index.html";
+            }
+        });
+
+        function loadAdminMessages(uid) {
+            // 1. استخدام الاستعلام البسيط (بدون فلتر النوع) لتجنب طلب الفهرس
+            db.collection('notifications')
+                .where('recipientId', '==', uid)
+                .orderBy('createdAt', 'desc')
+                .limit(50) 
+                .onSnapshot(snap => {
+                    const list = document.getElementById('inboxList');
+                    list.innerHTML = "";
+
+                    // 2. الفلترة داخل المتصفح (Client-Side Filtering)
+                    // بنختار بس الرسائل اللي نوعها 'system_msg' (رسايل الإدارة والتوثيق)
+                    const adminMsgs = snap.docs.filter(doc => {
+                        const type = doc.data().type;
+                        return type === 'system_msg';
+                    });
+
+                    if (adminMsgs.length === 0) {
+                        list.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fa-solid fa-inbox"></i>
+                                <h3>الصندوق نظيف</h3>
+                                <p>لم تصلك أي رسائل إدارية حتى الآن</p>
+                            </div>`;
+                        return;
+                    }
+
+                    // 3. عرض الرسائل
+                    adminMsgs.forEach(doc => {
+                        const msg = doc.data();
+                        const isRead = msg.read === true;
+                        
+                        // تنسيق الوقت
+                        let timeStr = 'الآن';
+                        if (msg.createdAt) {
+                            timeStr = moment(msg.createdAt.toDate()).calendar();
+                        }
+
+                        const title = msg.title || "تنبيه من الإدارة";
+                        const body = msg.body || msg.text || "لا يوجد محتوى نصي";
+
+                        list.innerHTML += `
+                        <div class="msg-card ${isRead ? '' : 'unread'}" onclick="markAsRead('${doc.id}')">
+                            <div class="msg-header">
+                                <div class="msg-icon"><i class="fa-solid fa-crown"></i></div>
+                                <div class="msg-info">
+                                    <h3>
+                                        ${title} 
+                                        <span class="official-badge"><i class="fa-solid fa-check-circle"></i> رسمي</span>
+                                    </h3>
+                                    <span>${timeStr}</span>
+                                </div>
+                            </div>
+                            <div class="msg-body">${body}</div>
+                        </div>`;
+                    });
+                });
+        }
+
+        function markAsRead(docId) {
+            // تحديث حالة القراءة عند الضغط (تختفي النقطة الحمراء واللمعة)
+            db.collection('notifications').doc(docId).update({ read: true, opened: true });
+        }
+
+    </script>
+</body>
+</html>

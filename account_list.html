@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تبديل الحسابات</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+body{
+    background:#0d0d0f;
+    color:#fff;
+    font-family:'Segoe UI',Tahoma;
+    margin:0;
+    padding:20px;
+}
+h2{
+    text-align:center;
+    color:#7c3aed;
+    margin-bottom:20px;
+}
+.account{
+    background:#16161a;
+    border:1px solid #2a2a2e;
+    border-radius:12px;
+    padding:15px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+    cursor:pointer;
+}
+.account:hover{
+    background:#1f1f23;
+}
+.left{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+.avatar{
+    width:45px;
+    height:45px;
+    border-radius:50%;
+    background:#7c3aed;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:bold;
+}
+.email{
+    font-size:13px;
+    opacity:.7;
+}
+.remove{
+    color:#ff5555;
+    font-size:18px;
+    cursor:pointer;
+}
+.add-btn{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:none;
+    border-radius:12px;
+    background:#7c3aed;
+    color:#fff;
+    font-size:16px;
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<h2>تبديل الحسابات</h2>
+
+<div id="list"></div>
+
+<button class="add-btn" onclick="addAccount()">
+<i class="fa-solid fa-plus"></i> إضافة حساب
+</button>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<script>
+const BASE_PATH = 'file:///storage/emulated/0/NABD/';
+const getFilePath = f => BASE_PATH + f;
+
+firebase.initializeApp({
+  apiKey:"AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+  authDomain:"pools-e4381.firebaseapp.com",
+  projectId:"pools-e4381"
+});
+
+const auth = firebase.auth();
+const list = document.getElementById("list");
+
+let saved = JSON.parse(localStorage.getItem("savedAccounts")) || [];
+
+function render(){
+    list.innerHTML = "";
+    if(saved.length === 0){
+        list.innerHTML = `<p style="text-align:center;opacity:.6">لا توجد حسابات محفوظة</p>`;
+        return;
+    }
+    saved.forEach((u,i)=>{
+        list.innerHTML += `
+        <div class="account" onclick="switchAccount('${u.uid}')">
+            <div class="left">
+                <div class="avatar">${u.name[0] || 'U'}</div>
+                <div>
+                    <div>${u.name}</div>
+                    <div class="email">${u.email}</div>
+                </div>
+            </div>
+            <i class="fa-solid fa-trash remove" onclick="removeAccount(event,${i})"></i>
+        </div>`;
+    });
+}
+
+function removeAccount(e,i){
+    e.stopPropagation();
+    saved.splice(i,1);
+    localStorage.setItem("savedAccounts",JSON.stringify(saved));
+    render();
+}
+
+function switchAccount(uid){
+    localStorage.setItem("targetUid",uid);
+    location.href = getFilePath("index.html");
+}
+
+function addAccount(){
+    auth.signOut().then(()=>{
+        location.href = getFilePath("index.html");
+    });
+}
+
+render();
+</script>
+
+</body>
+</html>

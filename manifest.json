@@ -1,0 +1,21 @@
+{
+  "name": "Wareed-وريد",
+
+  "short_name": "Wareed",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1223f0",
+  "theme_color": "#2e45db",
+  "description": "منصة تواصل اجتماعي",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": [
+    "social"
+  ]
+}

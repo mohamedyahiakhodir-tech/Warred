@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - Watch</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+
+    <style>
+        :root { 
+            --bg-color: #000; 
+            --primary-color: #5D5FEF; 
+            --danger-color: #ff3b30; 
+            --verified-color: #20D5EC;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg-color); 
+            color: #fff; 
+            height: 100vh; 
+            overflow: hidden; 
+            position: fixed;
+            width: 100%;
+            user-select: none;
+        }
+
+        /* --- الهيدر العائم --- */
+        .top-bar {
+            position: absolute; top: 0; left: 0; right: 0; z-index: 100;
+            padding: 15px 20px;
+            display: flex; justify-content: center; align-items: center; gap: 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+        }
+        .tab-btn {
+            font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.6); 
+            cursor: pointer; transition: 0.3s; position: relative; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+        .tab-btn.active { color: #fff; font-size: 18px; transform: scale(1.1); }
+        .tab-btn.active::after {
+            content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+            width: 20px; height: 3px; background: #fff; border-radius: 2px;
+        }
+        
+        .icon-header { position: absolute; font-size: 24px; cursor: pointer; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); color: #fff; }
+        .search-pos { left: 20px; }
+        .camera-pos { right: 20px; }
+
+        /* --- حاوية الفيديوهات --- */
+        .videos-feed { 
+            height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; 
+            scroll-behavior: smooth; scrollbar-width: none;
+        }
+        .videos-feed::-webkit-scrollbar { display: none; }
+
+        .video-card { 
+            width: 100%; height: 100vh; position: relative; 
+            scroll-snap-align: start; scroll-snap-stop: always; 
+            background: #000; display: flex; align-items: center; justify-content: center; 
+        }
+        
+        .video-player { width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+        .click-layer { position: absolute; inset: 0; z-index: 5; }
+
+        /* --- Skeleton Loader (بديل شاشة الانتظار) --- */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+        .skeleton-card {
+            width: 100%; height: 100vh; background: #000;
+            position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden;
+            scroll-snap-align: start;
+        }
+        .skeleton-card::before {
+            content: ""; position: absolute; inset: 0;
+            background: linear-gradient(to right, #000 4%, #1a1a1a 25%, #000 36%);
+            background-size: 1000px 100%; animation: shimmer 1.5s infinite linear; z-index: 1;
+        }
+        .sk-item { position: absolute; background: #222; z-index: 2; }
+        .sk-side { right: 10px; width: 45px; height: 45px; border-radius: 50%; }
+        .sk-text { left: 20px; bottom: 80px; height: 20px; width: 60%; border-radius: 4px; }
+        .sk-text-sm { left: 20px; bottom: 50px; height: 15px; width: 40%; border-radius: 4px; }
+
+
+        /* --- المعلومات --- */
+        .overlay-info { 
+            position: absolute; bottom: 25px; right: 15px; left: 80px; 
+            z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); pointer-events: none;
+        }
+        .info-content { pointer-events: auto; }
+        .v-username { font-weight: 800; font-size: 17px; color: #fff; display: flex; align-items: center; gap: 6px; }
+        .verified-badge { color: var(--verified-color); font-size: 14px; margin-right: 2px; }
+        .v-desc { font-size: 14px; line-height: 1.4; color: #eee; margin-top: 5px; }
+        .music-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 10px; }
+        .music-icon { animation: spin 4s linear infinite; }
+
+        /* --- الأزرار الجانبية --- */
+        .side-actions { 
+            position: absolute; left: 10px; bottom: 100px; z-index: 20; 
+            display: flex; flex-direction: column; gap: 20px; align-items: center; 
+        }
+        .action-btn-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .side-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #fff; background-size: cover; display: grid; place-items: center; font-weight: bold; }
+        .follow-plus { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: var(--danger-color); color: #fff; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; transition: 0.3s; cursor: pointer; border: 2px solid #fff; }
+        .glass-icon { font-size: 32px; color: #fff; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); transition: 0.2s; }
+        .glass-icon:active { transform: scale(0.8); }
+        .action-label { font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+
+        /* --- تأثير القلب --- */
+        .heart-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: var(--danger-color); font-size: 100px; z-index: 15; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 20px rgba(255,59,48,0.8)); }
+        .animate-heart { animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.3) rotate(-15deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; } }
+
+        /* --- قرص الموسيقى --- */
+        .music-disc { width: 45px; height: 45px; background: #222; border-radius: 50%; border: 8px solid #111; display: grid; place-items: center; overflow: hidden; animation: spin 5s linear infinite; margin-top: 10px; }
+        .disc-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* --- شريط تقدم الفيديو --- */
+        .video-progress-container {
+            position: absolute; bottom: 0; left: 0; right: 0; height: 15px; z-index: 60;
+            cursor: pointer; display: flex; align-items: flex-end; touch-action: none; 
+        }
+        .video-progress-bg {
+            width: 100%; height: 3px; background: rgba(255, 255, 255, 0.3);
+            position: relative; transition: height 0.2s;
+        }
+        .video-progress-container:active .video-progress-bg { height: 8px; }
+        .video-progress-fill {
+            height: 100%; width: 0%; background: var(--primary-color);
+            position: relative; border-radius: 0 4px 4px 0;
+        }
+        .video-progress-fill::after {
+            content: ''; position: absolute; right: -6px; top: 50%;
+            transform: translateY(-50%) scale(0); width: 12px; height: 12px;
+            background: #fff; border-radius: 50%; transition: transform 0.2s;
+            box-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+        .video-progress-container:active .video-progress-fill::after { transform: translateY(-50%) scale(1); }
+
+        /* --- شيت التعليقات --- */
+        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 150; display: none; backdrop-filter: blur(3px); }
+        .comments-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #121212; height: 75vh; border-radius: 20px 20px 0 0; z-index: 200; display: flex; flex-direction: column; transform: translateY(100%); transition: 0.3s cubic-bezier(0.1, 0.7, 0.1, 1); border-top: 1px solid #333; }
+        .comments-sheet.active { transform: translateY(0); }
+        
+        .cm-item { display: flex; gap: 12px; margin-bottom: 18px; padding: 0 15px; align-items: flex-start; }
+        .cm-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; background: #333; background-size: cover; background-position: center; border: 1px solid #444; display: grid; place-items: center; font-weight: bold; font-size: 12px; color: #fff; }
+        .cm-content { flex: 1; display: flex; flex-direction: column; }
+        .cm-username { font-size: 13px; color: #ccc; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
+        .cm-text { font-size: 14px; color: #fff; line-height: 1.4; }
+        .cm-meta { font-size: 11px; color: #777; margin-top: 6px; display: flex; gap: 15px; align-items: center; }
+        .cm-reply-link { font-weight: bold; color: #999; cursor: pointer; transition: 0.2s; }
+        .cm-reply-link:hover { color: var(--primary-color); }
+
+        .reply-container { display: flex; gap: 10px; margin-top: 12px; }
+        .reply-avatar { width: 28px; height: 28px; min-width: 28px; border-radius: 50%; background: #333; background-size: cover; border: 1px solid #444; }
+        .reply-mention { color: var(--primary-color); font-weight: 700; margin-left: 4px; background: rgba(93, 95, 239, 0.1); padding: 1px 4px; border-radius: 4px; }
+
+        .cm-footer { padding: 10px 15px; background: #121212; border-top: 1px solid #333; display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+        .reply-bar { display: none; justify-content: space-between; align-items: center; background: #222; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #aaa; border-right: 3px solid var(--primary-color); }
+        .input-row { display: flex; gap: 10px; align-items: center; }
+        .cm-input { flex: 1; background: #222; border: 1px solid #333; padding: 12px 20px; border-radius: 30px; color: #fff; outline: none; font-size: 14px; transition: 0.3s; }
+        .cm-input:focus { border-color: var(--primary-color); }
+        .send-btn-disabled { opacity: 0.5; pointer-events: none; cursor: default !important; }
+
+        /* صفحة البحث */
+        .search-overlay { position: fixed; inset: 0; background: #121212; z-index: 600; display: flex; flex-direction: column; transform: translateX(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .search-overlay.active { transform: translateX(0); }
+        .search-header { padding: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; }
+        .search-input { flex: 1; background: #2a2a2a; border: none; padding: 12px 15px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; }
+        .search-results { flex: 1; overflow-y: auto; padding: 10px; }
+        .search-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #222; cursor: pointer; }
+        .s-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; background-size: cover; display: grid; place-items: center; font-weight: bold; }
+
+        /* قائمة الضغط المطول */
+        .lp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 400; display: none; backdrop-filter: blur(3px); }
+        .lp-menu { position: fixed; bottom: 0; left: 0; right: 0; background: #1e1e1e; border-radius: 15px 15px 0 0; padding: 20px; z-index: 401; transform: translateY(100%); transition: 0.3s; color: #fff; }
+        .lp-menu.active { transform: translateY(0); }
+        .lp-row-icons { display: flex; justify-content: space-around; margin-bottom: 25px; }
+        .lp-icon-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .lp-circle { width: 50px; height: 50px; border-radius: 50%; background: #333; display: grid; place-items: center; font-size: 20px; }
+        .lp-option { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; font-size: 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+        .lp-option:last-child { border-bottom: none; }
+        .speed-control { display: flex; gap: 5px; background: #333; border-radius: 20px; padding: 2px; }
+        .speed-btn { padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
+        .speed-btn.active { background: #555; color: #fff; font-weight: bold; }
+
+        body.clear-mode .overlay-info, body.clear-mode .side-actions, body.clear-mode .top-bar { opacity: 0 !important; pointer-events: none !important; }
+    </style>
+</head>
+<body>
+
+    <div class="search-overlay" id="searchOverlay">
+        <div class="search-header">
+            <i class="fa-solid fa-arrow-right" onclick="toggleSearch()" style="font-size: 20px; cursor: pointer; padding: 5px;"></i>
+            <input type="text" class="search-input" placeholder="بحث عن مستخدم..." oninput="doSearch(this.value)">
+        </div>
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <div class="top-bar">
+        <i class="fa-solid fa-magnifying-glass icon-header search-pos" onclick="toggleSearch()"></i>
+        
+        <div class="tab-btn" id="tab-following" onclick="switchTab('following')">متابعك</div>
+        <div class="tab-btn active" id="tab-foryou" onclick="switchTab('foryou')">لك</div>
+        <div class="tab-btn" id="tab-trending" onclick="switchTab('trending')">الرائج</div>
+
+        <i class="fa-solid fa-camera icon-header camera-pos" onclick="window.location.href='create_media.html'"></i>
+    </div>
+
+    <div class="videos-feed" id="feedContainer">
+        <div class="skeleton-card" id="initialSkeleton">
+            <div class="sk-item sk-side" style="bottom: 300px;"></div>
+            <div class="sk-item sk-side" style="bottom: 240px;"></div>
+            <div class="sk-item sk-side" style="bottom: 180px;"></div>
+            <div class="sk-item sk-side" style="bottom: 120px;"></div>
+            <div class="sk-item sk-text"></div>
+            <div class="sk-item sk-text-sm"></div>
+        </div>
+    </div>
+
+    <div class="overlay-bg" id="cmOverlay" onclick="closeComments()"></div>
+    <div class="comments-sheet" id="cmSheet">
+        <div style="padding: 15px; text-align: center; border-bottom: 1px solid #333; font-weight: bold; font-size: 14px;">
+            التعليقات (<span id="cmCountTotal">0</span>)
+            <i class="fa-solid fa-xmark" onclick="closeComments()" style="position:absolute; left:15px; font-size:18px; cursor: pointer;"></i>
+        </div>
+        <div id="cmList" style="flex: 1; overflow-y: auto; padding-top: 15px;"></div>
+        <div class="cm-footer">
+            <div id="replyBar" class="reply-bar">
+                <span>الرد على <b id="replyToName" style="color:var(--primary-color)">...</b></span>
+                <i class="fa-solid fa-xmark" onclick="cancelReply()" style="cursor:pointer"></i>
+            </div>
+            <div class="input-row">
+                <input type="text" id="cmInput" class="cm-input" placeholder="أضف تعليقاً..." autocomplete="off">
+                <i class="fa-solid fa-paper-plane" id="sendBtnIcon" onclick="sendComment()" style="color:var(--primary-color); font-size:22px; padding:10px; cursor: pointer;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="lp-overlay" id="lpOverlay" onclick="closeLongPressMenu()"></div>
+    <div class="lp-menu" id="lpMenu">
+        <div class="lp-row-icons">
+            <div class="lp-icon-btn" onclick="handleLongPressAction('download')">
+                <div class="lp-circle"><i class="fa-solid fa-download"></i></div>
+                <span style="font-size:12px; color:#ccc;">تنزيل</span>
+            </div>
+            <div class="lp-icon-btn" onclick="handleLongPressAction('not_interested')">
+                <div class="lp-circle"><i class="fa-regular fa-heart-crack"></i></div>
+                <span style="font-size:12px; color:#ccc;">غير مهتم</span>
+            </div>
+            <div class="lp-icon-btn" onclick="handleLongPressAction('report')">
+                <div class="lp-circle"><i class="fa-regular fa-flag"></i></div>
+                <span style="font-size:12px; color:#ccc;">إبلاغ</span>
+            </div>
+        </div>
+        <div style="background:#2a2a2a; border-radius:12px; overflow:hidden;">
+            <div class="lp-option" onclick="event.stopPropagation()">
+                <div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-gauge-high"></i> السرعة</div>
+                <div class="speed-control">
+                    <div class="speed-btn" onclick="changeSpeed(0.5, this)">0.5x</div>
+                    <div class="speed-btn active" onclick="changeSpeed(1.0, this)">1x</div>
+                    <div class="speed-btn" onclick="changeSpeed(1.5, this)">1.5x</div>
+                    <div class="speed-btn" onclick="changeSpeed(2.0, this)">2x</div>
+                </div>
+            </div>
+            <div class="lp-option" onclick="toggleClearDisplay()">
+                <div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-expand"></i> شاشة خالية</div>
+            </div>
+            <div class="lp-option" onclick="toggleAutoScroll()">
+                <div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> تمرير تلقائي</div>
+                <div id="autoScrollStatus" style="font-size:12px; color:#aaa;">إيقاف</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        moment.locale('ar');
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app", 
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(), auth = firebase.auth();
+
+        let currentUser = null, currentVideoId = null, replyData = null;
+        let followingSet = new Set();
+        let currentTab = 'foryou'; 
+        let clickTimer = null;
+        let pressTimer;
+        let isLongPress = false;
+        let currentVideoElement = null;
+        let isAutoScroll = false;
+        let isSendingComment = false;
+
+        auth.onAuthStateChanged(async user => {
+            if (user) { 
+                currentUser = user; 
+                await loadFollowing(); 
+                loadVideos(); 
+            } 
+            else location.href='index.html'; 
+        });
+
+        async function loadFollowing() {
+            try {
+                const snap = await db.collection('users').doc(currentUser.uid).collection('following').get();
+                snap.forEach(doc => followingSet.add(doc.id));
+            } catch(e){}
+        }
+
+        // --- نظام التحكم في الفيديو (الديكتاتور) ---
+        function playTargetVideo(targetVid) {
+            const allVideos = document.querySelectorAll('video');
+            for (let i = 0; i < allVideos.length; i++) {
+                if (allVideos[i] !== targetVid) {
+                    allVideos[i].pause();
+                    allVideos[i].currentTime = 0;
+                }
+            }
+
+            if (targetVid.paused) {
+                currentVideoElement = targetVid;
+                var playPromise = targetVid.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => { targetVid.muted = false; })
+                    .catch(error => { targetVid.muted = true; targetVid.play(); });
+                }
+            }
+        }
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const vid = entry.target;
+                if (entry.isIntersecting && entry.intersectionRatio > 0.8) {
+                    if (vid.dataset.manualPause !== "true") {
+                        playTargetVideo(vid); 
+                    }
+                    vid.onended = () => {
+                        if (isAutoScroll) {
+                            document.querySelector('.videos-feed').scrollBy({ top: window.innerHeight, behavior: 'smooth' });
+                        } else {
+                            vid.play();
+                        }
+                    };
+                } else {
+                    vid.pause();
+                }
+            });
+        }, { threshold: [0.8] });
+
+        // --- تحميل الفيديوهات مع إزالة الـ Skeleton ---
+        async function loadVideos() {
+            // ملاحظة: لا نعرض Loader، الـ Skeleton موجود بالفعل في HTML
+            const container = document.getElementById('feedContainer');
+            // لا نفرغ الـ container الآن حتى لا تختفي الشاشة الوهمية
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode'); 
+            const targetUid = urlParams.get('uid'); 
+            const startAtId = urlParams.get('startAt') || urlParams.get('post');
+
+            let allVideos = [];
+
+            try {
+                let q;
+                const postsRef = db.collection('posts');
+
+                if (mode === 'profile' && targetUid) {
+                    document.querySelector('.top-bar').style.display = 'none'; 
+                    q = postsRef.where('uid', '==', targetUid).orderBy('createdAt', 'desc').limit(50);
+                } 
+                else {
+                    document.querySelector('.top-bar').style.display = 'flex'; 
+                    
+                    if (startAtId && !mode) {
+                        const targetDoc = await postsRef.doc(startAtId).get();
+                        if (targetDoc.exists) {
+                            const d = targetDoc.data();
+                            const vObj = d.media && d.media.find(m => m.type === 'video');
+                            if (vObj) allVideos.push({ id: targetDoc.id, ...d, videoUrl: vObj.url, poster: vObj.thumbnail || "" });
+                        }
+                    }
+
+                    if (currentTab === 'trending') q = postsRef.orderBy('commentsCount', 'desc').limit(50); 
+                    else if (currentTab === 'following') q = postsRef.orderBy('createdAt', 'desc').limit(50);
+                    else q = postsRef.orderBy('createdAt', 'desc').limit(50); 
+                }
+
+                const snap = await q.get();
+                
+                snap.forEach(doc => {
+                    if (startAtId && !mode && doc.id === startAtId) return;
+                    const d = doc.data();
+                    if (!mode && currentTab === 'following' && !followingSet.has(d.uid)) return;
+                    
+                    if (d.media && Array.isArray(d.media)) {
+                        const vObj = d.media.find(m => m.type === 'video');
+                        if (vObj) {
+                            allVideos.push({ id: doc.id, ...d, videoUrl: vObj.url, poster: vObj.thumbnail || "" });
+                        }
+                    }
+                });
+
+                // الآن وصلت البيانات: احذف الشاشة الوهمية
+                const skeleton = document.getElementById('initialSkeleton');
+                if(skeleton) skeleton.remove();
+
+                if (allVideos.length === 0) {
+                    container.innerHTML = '<div style="display:flex; height:100vh; align-items:center; justify-content:center; color:#777; flex-direction:column;"><i class="fa-solid fa-video-slash" style="font-size:40px; margin-bottom:15px;"></i><p>لا توجد فيديوهات حالياً</p></div>';
+                }
+
+                for (const v of allVideos) {
+                    await renderVideoCard(v, container);
+                }
+
+                if (startAtId) {
+                    const targetCard = document.getElementById(`card-${startAtId}`);
+                    if (targetCard) {
+                        setTimeout(() => {
+                            targetCard.scrollIntoView({ behavior: 'auto', block: 'start' });
+                            playTargetVideo(targetCard.querySelector('video'));
+                        }, 200);
+                    }
+                } else {
+                    playFirstVideo(container);
+                }
+
+            } catch (e) { 
+                console.error("Error loading videos:", e); 
+                // في حالة الخطأ، احذف الشاشة الوهمية واعرض رسالة
+                const skeleton = document.getElementById('initialSkeleton');
+                if(skeleton) skeleton.remove();
+            }
+        }
+
+        function playFirstVideo(container) {
+            const firstVid = container.querySelector('.video-card video');
+            if (firstVid) {
+                setTimeout(() => {
+                    playTargetVideo(firstVid);
+                }, 300);
+            }
+        }
+
+        async function renderVideoCard(v, container) {
+            let uName = "مستخدم", uChar = "U", uPic = null, isVerified = false;
+            try {
+                const uSnap = await db.collection('users').doc(v.uid).get();
+                if(uSnap.exists) { 
+                    const ud = uSnap.data(); 
+                    uName = ud.name; uPic = ud.profilePic; uChar = uName[0].toUpperCase();
+                    isVerified = ud.isVerified === true;
+                }
+            } catch(e){}
+
+            const isLiked = v.likes && v.likes[currentUser.uid];
+            const likesCount = v.likes ? Object.keys(v.likes).length : 0;
+            const isMe = v.uid === currentUser.uid;
+            const showFollowBtn = !isMe && !followingSet.has(v.uid);
+            const badgeHtml = isVerified ? `<i class="fa-solid fa-circle-check verified-badge"></i>` : '';
+
+            const html = `
+                <div class="video-card" id="card-${v.id}">
+                    <video class="video-player" 
+                           src="${v.videoUrl}" 
+                           poster="${v.poster}" 
+                           loop playsinline preload="auto"
+                           ontimeupdate="updateProgressBar(this, '${v.id}')"></video>
+                    
+                    <div class="click-layer" 
+                         ontouchstart="handleTouchStart(event)" 
+                         ontouchend="handleTouchEnd(event, '${v.id}')"
+                         ontouchmove="handleTouchMove()">
+                    </div>
+                    
+                    <i class="fa-solid fa-heart heart-center" id="heart-${v.id}"></i>
+
+                    <div class="overlay-info">
+                        <div class="info-content">
+                            <div class="user-row" onclick="location.href='profile.html?uid=${v.uid}'">
+                                <div class="v-username">${uName} ${badgeHtml}</div>
+                            </div>
+                            <div class="v-desc">${v.text || ''}</div>
+                            <div class="music-row"><i class="fa-solid fa-music music-icon"></i> الصوت الأصلي</div>
+                        </div>
+                    </div>
+
+                    <div class="side-actions">
+                        <div class="avatar-container" onclick="location.href='profile.html?uid=${v.uid}'">
+                            <div class="side-avatar" style="background-image: url('${uPic || ''}'); background-color: #555;">${uPic ? '' : uChar}</div>
+                            ${showFollowBtn ? `<div class="follow-plus" id="follow-${v.uid}" onclick="followUser(event, '${v.uid}')"><i class="fa-solid fa-plus"></i></div>` : ''}
+                        </div>
+
+                        <div class="action-btn-wrapper" onclick="toggleLike('${v.id}')">
+                            <i class="fa-solid fa-heart glass-icon" id="like-icon-${v.id}" style="color:${isLiked ? '#ff3b30' : '#fff'}"></i>
+                            <span class="action-label" id="like-count-${v.id}">${likesCount}</span>
+                        </div>
+
+                        <div class="action-btn-wrapper" onclick="openComments('${v.id}')">
+                            <i class="fa-solid fa-comment-dots glass-icon"></i>
+                            <span class="action-label">${v.commentsCount || 0}</span>
+                        </div>
+
+                        <div class="action-btn-wrapper" onclick="openLongPressMenu()">
+                            <i class="fa-solid fa-share glass-icon"></i>
+                            <span class="action-label">المزيد</span>
+                        </div>
+
+                        <div class="music-disc">
+                            <img src="${uPic || 'https://via.placeholder.com/50'}" class="disc-img">
+                        </div>
+                    </div>
+
+                    <div class="video-progress-container" 
+                         onclick="seekVideo(event, '${v.id}')"
+                         ontouchmove="scrubVideo(event, '${v.id}')">
+                        <div class="video-progress-bg">
+                            <div class="video-progress-fill" id="prog-${v.id}"></div>
+                        </div>
+                    </div>
+                </div>`;
+            
+            container.insertAdjacentHTML('beforeend', html);
+            observer.observe(container.lastElementChild.querySelector('video'));
+        }
+
+        // --- دوال شريط التقدم ---
+        function updateProgressBar(vid, id) {
+            const bar = document.getElementById(`prog-${id}`);
+            if (vid.duration) {
+                const percentage = (vid.currentTime / vid.duration) * 100;
+                bar.style.width = `${percentage}%`;
+            }
+        }
+
+        function seekVideo(e, id) {
+            e.stopPropagation();
+            const container = e.currentTarget;
+            const vid = document.querySelector(`#card-${id} video`);
+            if (vid && vid.duration) {
+                const rect = container.getBoundingClientRect();
+                const percentage = (e.clientX - rect.left) / rect.width;
+                vid.currentTime = percentage * vid.duration;
+            }
+        }
+
+        function scrubVideo(e, id) {
+            e.stopPropagation();
+            const container = e.currentTarget;
+            const vid = document.querySelector(`#card-${id} video`);
+            if (vid && vid.duration) {
+                const rect = container.getBoundingClientRect();
+                let percentage = (e.touches[0].clientX - rect.left) / rect.width;
+                percentage = Math.max(0, Math.min(1, percentage));
+                vid.currentTime = percentage * vid.duration;
+                document.getElementById(`prog-${id}`).style.width = `${percentage * 100}%`;
+            }
+        }
+
+        function handleTouchStart(e) {
+            isLongPress = false;
+            pressTimer = setTimeout(() => {
+                isLongPress = true;
+                openLongPressMenu();
+                if(navigator.vibrate) navigator.vibrate(50);
+            }, 500);
+        }
+
+        function handleTouchEnd(e, id) {
+            clearTimeout(pressTimer);
+            if (!isLongPress) handleTap(e, id);
+        }
+
+        function handleTouchMove() { clearTimeout(pressTimer); }
+
+        function handleTap(e, id) {
+            const vid = document.querySelector(`#card-${id} video`);
+            const heartIcon = document.getElementById(`like-icon-${id}`);
+            
+            if (clickTimer) {
+                clearTimeout(clickTimer); clickTimer = null;
+                showBigHeart(id);
+                if (heartIcon.style.color !== 'rgb(255, 59, 48)') toggleLike(id);
+            } else {
+                clickTimer = setTimeout(() => {
+                    if (vid.paused) {
+                        playTargetVideo(vid); 
+                        vid.dataset.manualPause = "false";
+                    } else {
+                        vid.pause();
+                        vid.dataset.manualPause = "true";
+                    }
+                    clickTimer = null;
+                }, 250);
+            }
+        }
+
+        function openLongPressMenu() {
+            document.getElementById('lpOverlay').style.display = 'block';
+            document.getElementById('lpMenu').classList.add('active');
+        }
+
+        function closeLongPressMenu() {
+            document.getElementById('lpMenu').classList.remove('active');
+            document.getElementById('lpOverlay').style.display = 'none';
+        }
+
+        function handleLongPressAction(action) {
+            closeLongPressMenu();
+            if (action === 'download' && currentVideoElement) {
+                const a = document.createElement('a'); a.href = currentVideoElement.src; a.download = `NABD_${Date.now()}.mp4`; a.click();
+            } else if (action === 'not_interested') {
+                Swal.fire({icon: 'info', title: 'تم', toast: true, position: 'top', showConfirmButton: false, timer: 1500, background:'#222', color:'#fff'});
+            } else if (action === 'report') {
+                Swal.fire({title:'إبلاغ', input:'text', background:'#222', color:'#fff', confirmButtonText:'إرسال'});
+            }
+        }
+
+        function changeSpeed(rate, btn) {
+            if (currentVideoElement) currentVideoElement.playbackRate = rate;
+            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function toggleClearDisplay() {
+            document.body.classList.toggle('clear-mode');
+            closeLongPressMenu();
+        }
+
+        function toggleAutoScroll() {
+            isAutoScroll = !isAutoScroll;
+            document.getElementById('autoScrollStatus').innerText = isAutoScroll ? 'تشغيل' : 'إيقاف';
+            document.getElementById('autoScrollStatus').style.color = isAutoScroll ? '#34c759' : '#aaa';
+        }
+
+        function openComments(id) {
+            currentVideoId = id;
+            document.getElementById('cmOverlay').style.display = 'block';
+            document.getElementById('cmSheet').classList.add('active');
+            
+            db.collection('posts').doc(id).collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                const list = document.getElementById('cmList'); list.innerHTML = "";
+                document.getElementById('cmCountTotal').innerText = snap.size;
+                
+                snap.forEach(async doc => {
+                    const c = doc.data();
+                    const u = await getUser(c.uid);
+                    const badge = u.isVerified ? `<i class="fa-solid fa-circle-check verified-badge" style="font-size:12px;"></i>` : '';
+                    const uPic = u.profilePic ? `url('${u.profilePic}')` : 'none';
+                    const uChar = u.profilePic ? '' : (u.name[0] || 'U');
+
+                    const itemHtml = `
+                        <div class="cm-item">
+                            <div class="cm-avatar" style="background-image:${uPic}" onclick="location.href='profile.html?uid=${c.uid}'">${uChar}</div>
+                            <div class="cm-content">
+                                <div class="cm-username">${u.name} ${badge}</div>
+                                <div class="cm-text">${c.text}</div>
+                                <div class="cm-meta">
+                                    <span>${moment(c.createdAt?.toDate()).fromNow()}</span>
+                                    <span class="cm-reply-link" onclick="prepareReply('${doc.id}', '${u.name}', '${c.uid}')">رد</span>
+                                </div>
+                                <div id="replies-${doc.id}"></div>
+                            </div>
+                        </div>`;
+                    
+                    list.insertAdjacentHTML('beforeend', itemHtml);
+                    loadReplies(id, doc.id);
+                });
+            });
+        }
+
+        function loadReplies(postId, commentId) {
+            db.collection('posts').doc(postId).collection('comments').doc(commentId).collection('replies').orderBy('createdAt', 'asc').onSnapshot(async snap => {
+                const container = document.getElementById(`replies-${commentId}`); container.innerHTML = "";
+                for (const doc of snap.docs) {
+                    const r = doc.data();
+                    const u = await getUser(r.uid);
+                    const badge = u.isVerified ? `<i class="fa-solid fa-circle-check verified-badge" style="font-size:10px;"></i>` : '';
+                    const uPic = u.profilePic ? `url('${u.profilePic}')` : 'none';
+                    
+                    container.innerHTML += `
+                        <div class="reply-container">
+                            <div class="reply-avatar" style="background-image:${uPic}" onclick="location.href='profile.html?uid=${r.uid}'"></div>
+                            <div class="cm-content">
+                                <div class="cm-username" style="font-size:12px;">${u.name} ${badge}</div>
+                                <div class="cm-text" style="font-size:13px;">
+                                    <span class="reply-mention">${r.replyToName}</span> ${r.text}
+                                </div>
+                            </div>
+                        </div>`;
+                }
+            });
+        }
+
+        function prepareReply(cid, name, uid) {
+            replyData = { id: cid, name: name, uid: uid };
+            document.getElementById('replyBar').style.display = 'flex';
+            document.getElementById('replyToName').innerText = name;
+            document.getElementById('cmInput').focus();
+        }
+
+        function cancelReply() {
+            replyData = null;
+            document.getElementById('replyBar').style.display = 'none';
+        }
+
+        async function sendComment() {
+            if(isSendingComment) return;
+            const inp = document.getElementById('cmInput');
+            const txt = inp.value.trim();
+            const btn = document.getElementById('sendBtnIcon');
+
+            if(!txt) return; 
+            isSendingComment = true;
+            btn.classList.add('send-btn-disabled'); 
+            inp.value = "";
+            
+            try {
+                const payload = {
+                    uid: currentUser.uid, 
+                    text: txt, 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                if (replyData) {
+                    payload.replyToName = replyData.name;
+                    payload.replyToUid = replyData.uid;
+                    await db.collection('posts').doc(currentVideoId).collection('comments').doc(replyData.id).collection('replies').add(payload);
+                } else {
+                    await db.collection('posts').doc(currentVideoId).collection('comments').add(payload);
+                    await db.collection('posts').doc(currentVideoId).update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
+                }
+                cancelReply();
+            } catch (e) { console.error(e); } 
+            finally {
+                isSendingComment = false;
+                btn.classList.remove('send-btn-disabled');
+            }
+        }
+
+        async function getUser(uid) {
+            const d = await db.collection('users').doc(uid).get(); 
+            const data = d.data() || {};
+            return { 
+                name: data.name || "مستخدم", 
+                profilePic: data.profilePic, 
+                char: (data.name?data.name[0]:'U').toUpperCase(),
+                isVerified: data.isVerified === true 
+            };
+        }
+
+        function closeComments() { document.getElementById('cmSheet').classList.remove('active'); document.getElementById('cmOverlay').style.display = 'none'; }
+        
+        async function toggleLike(id) {
+            const icon = document.getElementById(`like-icon-${id}`);
+            const span = document.getElementById(`like-count-${id}`);
+            let count = parseInt(span.innerText);
+            const isLiked = icon.style.color === 'rgb(255, 59, 48)';
+            icon.style.color = isLiked ? '#fff' : '#ff3b30';
+            span.innerText = isLiked ? Math.max(0, count - 1) : count + 1;
+            const ref = db.collection('posts').doc(id);
+            if (isLiked) await ref.update({ [`likes.${currentUser.uid}`]: firebase.firestore.FieldValue.delete() });
+            else await ref.update({ [`likes.${currentUser.uid}`]: true });
+        }
+
+        async function followUser(e, uid) {
+            e.stopPropagation();
+            const btn = document.getElementById(`follow-${uid}`);
+            btn.style.transform = "scale(0)";
+            setTimeout(() => btn.remove(), 300);
+            try {
+                await db.collection('users').doc(currentUser.uid).collection('following').doc(uid).set({ at: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('users').doc(uid).collection('followers').doc(currentUser.uid).set({ at: firebase.firestore.FieldValue.serverTimestamp() });
+                followingSet.add(uid);
+            } catch(e){}
+        }
+
+        function showBigHeart(id) {
+            const heart = document.getElementById(`heart-${id}`);
+            heart.classList.remove('animate-heart');
+            void heart.offsetWidth;
+            heart.classList.add('animate-heart');
+        }
+
+        function toggleSearch() {
+            const ol = document.getElementById('searchOverlay');
+            ol.style.transform = ol.style.transform === 'translateX(0px)' ? 'translateX(100%)' : 'translateX(0px)';
+        }
+
+        function doSearch(val) {
+            if(!val.trim()) { document.getElementById('searchResults').innerHTML = ""; return; }
+            db.collection('users').orderBy('name').startAt(val).endAt(val+'\uf8ff').limit(10).get().then(snap => {
+                const container = document.getElementById('searchResults'); container.innerHTML = "";
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    const uPic = u.profilePic ? `url('${u.profilePic}')` : 'none';
+                    container.innerHTML += `
+                        <div class="search-item" onclick="location.href='profile.html?uid=${doc.id}'">
+                            <div class="s-avatar" style="background-image:${uPic}"></div><div style="color:#fff;">${u.name}</div>
+                        </div>`;
+                });
+            });
+        }
+
+        function switchTab(t) {
+            currentTab = t;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${t}`).classList.add('active');
+            loadVideos();
+        }
+    </script>
+</body>
+</html>

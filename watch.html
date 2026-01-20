@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>وريد - مركز الأرباح</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4634861441378149"
+     crossorigin="anonymous"></script>
+
+    <style>
+        :root { --bg-color: #0d0d0f; --card-bg: #161616; --primary: #ffd700; --accent: #00C6FF; --text: #eee; --border: #222; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text); padding: 20px; padding-bottom: 50px; user-select: none; }
+        .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .back-btn { width: 40px; height: 40px; background: rgba(255,255,255,0.05); border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff; }
+        .balance-card { background: linear-gradient(135deg, #1a1a1a 0%, #000 100%); border: 1px solid #333; border-radius: 24px; padding: 25px; text-align: center; position: relative; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-bottom: 25px; }
+        .balance-amount { font-size: 42px; font-weight: 900; color: #fff; margin: 10px 0; }
+        .currency { font-size: 18px; color: var(--primary); }
+        
+        /* تنسيق مربع الإعلان */
+        .ad-container {
+            width: 100%;
+            margin: 20px 0;
+            background: #111;
+            border: 1px dashed #444;
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 280px; 
+            text-align: center;
+        }
+        
+        .earn-btn-container { text-align: center; margin-bottom: 40px; }
+        .watch-btn { background: linear-gradient(135deg, #00C6FF, #0072FF); color: #fff; border: none; width: 100%; padding: 20px; border-radius: 20px; font-size: 18px; font-weight: 800; cursor: pointer; box-shadow: 0 5px 25px rgba(0, 198, 255, 0.3); transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 12px; }
+        .watch-btn:active { transform: scale(0.97); }
+        .watch-btn:disabled { background: #333; cursor: not-allowed; box-shadow: none; }
+        
+        .withdraw-section { margin-bottom: 30px; }
+        .progress-track { width: 100%; height: 10px; background: #222; border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #ff8c00, #ffd700); width: 0%; border-radius: 10px; transition: 1s; }
+        .withdraw-btn { position: fixed; bottom: 20px; left: 20px; right: 20px; background: #2ecc71; color: #fff; padding: 15px; border-radius: 15px; text-align: center; font-weight: 800; border: none; opacity: 0.5; pointer-events: none; z-index: 100; }
+        .withdraw-btn.active { opacity: 1; pointer-events: auto; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-right"></i></div>
+        <h3 style="font-weight: 800;">الأرباح والمكافآت</h3>
+        <div style="width:40px"></div>
+    </div>
+
+    <div class="balance-card">
+        <div class="balance-title">الرصيد الحالي</div>
+        <div class="balance-amount" id="cashDisplay">0.00 <span class="currency">ج.م</span></div>
+        <div id="pointsDisplay" style="color:#777; font-size: 14px;">0 نقطة</div>
+    </div>
+
+    <div class="ad-container" id="adSlot">
+        
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-4634861441378149"
+             data-ad-slot="0000000000" 
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        
+    </div>
+
+    <div class="earn-btn-container">
+        <button class="watch-btn" id="adBtn" onclick="claimReward()">
+            <i class="fa-solid fa-gift"></i> استلام المكافأة (50 نقطة)
+        </button>
+    </div>
+
+    <div class="withdraw-section">
+        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:12px;">
+            <span>الحد الأدنى للسحب</span>
+            <span>50.00 ج.م</span>
+        </div>
+        <div class="progress-track">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+    </div>
+
+    <button class="withdraw-btn" id="withdrawBtn" onclick="requestWithdraw()">
+        <i class="fa-solid fa-money-bill-transfer"></i> سحب الأرباح
+    </button>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        let currentUser = null;
+        let currentPoints = 0;
+        
+        const POINTS_PER_AD = 50;
+        const MIN_WITHDRAW_EGP = 50;
+
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                currentUser = user;
+                loadUserData();
+            }
+        });
+
+        function loadUserData() {
+             db.collection('users').doc(currentUser.uid).onSnapshot(doc => {
+                if(doc.exists) {
+                    currentPoints = doc.data().points || 0;
+                    updateUI();
+                }
+            });
+        }
+
+        function updateUI() {
+            let cash = (currentPoints / 1000).toFixed(2);
+            document.getElementById('pointsDisplay').innerText = currentPoints + " نقطة";
+            document.getElementById('cashDisplay').innerHTML = cash + ' <span class="currency">ج.م</span>';
+            
+            let percent = (cash / MIN_WITHDRAW_EGP) * 100;
+            if(percent > 100) percent = 100;
+            document.getElementById('progressBar').style.width = percent + "%";
+
+            const wBtn = document.getElementById('withdrawBtn');
+            if(cash >= MIN_WITHDRAW_EGP) {
+                wBtn.classList.add('active');
+                wBtn.innerText = "سحب الأرباح الآن 🤑";
+            } else {
+                wBtn.classList.remove('active');
+            }
+        }
+
+        function claimReward() {
+            if(!currentUser) return alert("يجب تسجيل الدخول!");
+
+            const btn = document.getElementById('adBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري التحقق...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                db.collection('users').doc(currentUser.uid).update({
+                    points: firebase.firestore.FieldValue.increment(POINTS_PER_AD)
+                }).then(() => {
+                    alert("✅ مبروك! تم إضافة 50 نقطة.");
+                    btn.innerHTML = '<i class="fa-solid fa-gift"></i> استلام المكافأة (50 نقطة)';
+                    btn.disabled = false;
+                }).catch(err => {
+                    alert("حدث خطأ في الاتصال");
+                    btn.disabled = false;
+                });
+            }, 2000); 
+        }
+
+        function requestWithdraw() {
+            let cash = (currentPoints / 1000).toFixed(2);
+            if(cash >= MIN_WITHDRAW_EGP) {
+                if(confirm("هل تريد سحب " + cash + " ج.م؟")) {
+                    alert("تم استلام طلبك! سيتم التواصل معك قريباً.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>

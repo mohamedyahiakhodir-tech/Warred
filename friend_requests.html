@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - الطلبات</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+    
+    <style>
+        /* === إعدادات عامة === */
+        * { box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            
+            /* --- الألوان --- */
+            --btn-confirm: #33ff57;  /* الأخضر */
+            --btn-delete: #ff5555;   /* الأحمر */
+            --accent-color: #7c3aed; /* البنفسجي */
+            
+            --text-color: #eee;
+            --secondary-text: #aaa;
+            --border-color: #2a2a2a;
+        }
+        body { background: var(--bg-color); color: var(--text-color); margin: 0; font-family: "Cairo", sans-serif; padding-bottom: 90px; overflow-x: hidden; }
+        
+        /* === Header === */
+        .header { display: flex; align-items: center; padding: 15px 20px; background: rgba(13, 13, 15, 0.98); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        .header h2 { margin: 0; font-size: 18px; flex: 1; text-align: center; font-weight: 700; }
+        .back-btn { font-size: 20px; cursor: pointer; color: var(--accent-color); padding: 5px; }
+
+        /* === Section Titles === */
+        .section-title {
+            padding: 20px 20px 10px 20px;
+            font-size: 18px; font-weight: 800; color: #fff;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .count-badge {
+            background: var(--btn-delete); color: white; 
+            padding: 2px 8px; border-radius: 6px; font-size: 13px; 
+            margin-right: 5px; display: none; font-weight: bold;
+        }
+
+        /* === List Container === */
+        .list-container { padding: 0 10px; }
+
+        /* === User Card Item === */
+        .user-card { 
+            display: flex; align-items: flex-start; gap: 12px;
+            padding: 10px; 
+            background: transparent; 
+            margin-bottom: 5px; 
+            border-radius: 0;
+            width: 100%; position: relative;
+            transition: 0.2s;
+        }
+        .user-card:active { background: rgba(255,255,255,0.05); }
+        
+        .user-avatar { 
+            width: 70px; height: 70px; 
+            border-radius: 50%; 
+            background: #333; 
+            background-size: cover; background-position: center; 
+            display: grid; place-items: center; 
+            font-weight: bold; font-size: 24px; 
+            flex-shrink: 0; border: 1px solid #333;
+        }
+        
+        .user-info { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 70px; }
+        .user-name { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+        .user-meta { font-size: 13px; color: var(--secondary-text); margin-bottom: 8px; }
+
+        /* === Action Buttons Row === */
+        .actions-row { display: flex; gap: 8px; width: 100%; }
+        
+        .btn {
+            flex: 1; border: none; padding: 8px 0; border-radius: 8px;
+            font-family: "Cairo"; font-weight: 700; font-size: 15px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px;
+            transition: 0.2s; height: 36px;
+        }
+        .btn:active { transform: scale(0.96); opacity: 0.9; }
+
+        .btn-primary { background: var(--btn-confirm); color: #0d0d0f; }
+        .btn-secondary { background: var(--btn-delete); color: #fff; }
+        .btn-sent { background: #3a3b3c; color: #ccc; }
+
+        /* === Empty State === */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--secondary-text); font-size: 15px; display: none; }
+        .empty-state.visible { display: block; }
+        .empty-state i { font-size: 50px; margin-bottom: 15px; opacity: 0.5; display: block; color: var(--accent-color); }
+
+        /* === Bottom Nav === */
+        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-color); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 900; }
+        .nav-item { font-size: 22px; color: var(--secondary-text); cursor: pointer; transition: 0.2s; }
+        .nav-item.active { color: var(--accent-color); transform: translateY(-2px); }
+
+        /* Toast Notification */
+        #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 10000; display: flex; align-items: center; gap: 8px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        #toast.show { opacity: 1; bottom: 100px; }
+
+        /* =========================================
+           تصميم نافذة التأكيد الاحترافية (Custom Modal)
+           ========================================= */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 20000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+
+        .modal-card {
+            background: #1c1c1e; width: 85%; max-width: 320px; padding: 25px;
+            border-radius: 20px; text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            transform: scale(0.9);
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+
+        .modal-icon { font-size: 40px; color: var(--btn-delete); margin-bottom: 15px; }
+        .modal-title { font-size: 18px; font-weight: bold; margin-bottom: 10px; color: #fff; }
+        .modal-desc { font-size: 14px; color: #aaa; margin-bottom: 25px; line-height: 1.5; }
+
+        .modal-actions { display: flex; gap: 10px; }
+        .modal-btn {
+            flex: 1; padding: 12px; border-radius: 12px;
+            font-size: 14px; font-weight: bold; cursor: pointer;
+            border: none; font-family: "Cairo"; transition: 0.2s;
+        }
+        .btn-confirm-cancel { background: var(--btn-delete); color: white; }
+        .btn-confirm-cancel:active { transform: scale(0.95); opacity: 0.9; }
+        
+        .btn-keep { background: rgba(255,255,255,0.1); color: white; }
+        .btn-keep:active { background: rgba(255,255,255,0.15); transform: scale(0.95); }
+
+    </style>
+</head>
+<body>
+
+    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-modern-technology-select-3124.mp3" preload="auto"></audio>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="playClick(); history.back()"></i>
+        <h2>الطلبات</h2>
+        <div style="width: 20px;"></div>
+    </div>
+
+    <div class="section-title">
+        <span>طلبات الصداقة <span id="reqCountBadge" class="count-badge">0</span></span>
+    </div>
+    <div class="list-container" id="requestsContainer">
+        <div style="text-align: center; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent-color)"></i></div>
+    </div>
+    <div id="noRequestsMsg" class="empty-state">
+        <i class="fa-solid fa-user-check"></i>
+        لا توجد طلبات صداقة جديدة
+    </div>
+
+    <div class="section-title" style="margin-top: 10px; border-top: 1px solid #222; padding-top: 20px;">
+        <span>أشخاص قد تعرفهم</span>
+    </div>
+    <div class="list-container" id="suggestionsContainer">
+        <div style="text-align: center; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin" style="color:var(--accent-color)"></i></div>
+    </div>
+
+    <div id="toast"><i class="fa-solid fa-check"></i> <span>تم الإجراء!</span></div>
+
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-card">
+            <i class="fa-solid fa-user-xmark modal-icon"></i>
+            <div class="modal-title">إلغاء الطلب؟</div>
+            <div class="modal-desc">هل أنت متأكد من رغبتك في سحب طلب الصداقة المرسل لهذا المستخدم؟</div>
+            <div class="modal-actions">
+                <button class="modal-btn btn-keep" onclick="closeConfirmModal()">تراجع</button>
+                <button class="modal-btn btn-confirm-cancel" onclick="executeCancel()">نعم، إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="playClick(); location.href='home.html'"><i class="fa-solid fa-house"></i></div>
+        <div class="nav-item" onclick="playClick(); location.href='friends.html'"><i class="fa-solid fa-users"></i></div>
+        <div class="nav-item active" onclick="playClick()"><i class="fa-solid fa-user-plus"></i></div>
+        <div class="nav-item" onclick="playClick(); location.href='notifications.html'"><i class="fa-regular fa-bell"></i></div>
+        <div class="nav-item" onclick="playClick(); location.href='profile.html'"><i class="fa-regular fa-user"></i></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+
+        // === الصورة الافتراضية (هنا التعديل الأساسي) ===
+        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+        // === Sounds ===
+        const clickAudio = document.getElementById('clickSound');
+        clickAudio.volume = 0.5;
+        function playClick() { if(clickAudio) { clickAudio.currentTime=0; clickAudio.play().catch(e=>{}); } }
+
+        let currentUserUid = null;
+        let myFriendsSet = new Set();
+        let pendingCancelUid = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) { currentUserUid = user.uid; initPage(); } 
+            else { location.href = "index.html"; }
+        });
+
+        async function initPage() { await fetchMyFriends(); loadRequests(); loadSuggestions(); }
+        async function fetchMyFriends() {
+            try { const snap = await db.collection("users").doc(currentUserUid).collection("friends").get(); snap.forEach(doc => myFriendsSet.add(doc.id)); } catch (e) {}
+        }
+
+        // --- تحميل الطلبات الواردة ---
+        function loadRequests() {
+            const container = document.getElementById('requestsContainer');
+            const emptyMsg = document.getElementById('noRequestsMsg');
+            const badge = document.getElementById('reqCountBadge');
+
+            db.collection("users").doc(currentUserUid).collection("friendRequests")
+                .onSnapshot(async (snapshot) => {
+                    if (snapshot.empty) { container.innerHTML = ''; emptyMsg.classList.add('visible'); badge.style.display = 'none'; return; }
+                    emptyMsg.classList.remove('visible'); badge.style.display = 'inline-block'; badge.innerText = snapshot.size;
+                    container.innerHTML = ''; 
+                    for (const doc of snapshot.docs) {
+                        const senderId = doc.id;
+                        const reqData = doc.data();
+                        const userDoc = await db.collection("users").doc(senderId).get();
+                        const userData = userDoc.data() || {};
+                        const name = userData.name || "مستخدم مجهول";
+                        
+                        // هنا التعديل: استخدام الصورة الافتراضية إذا لم توجد صورة
+                        const pic = userData.profilePic || userData.avatarUrl || defaultAvatar;
+                        
+                        const timeAgo = reqData.createdAt ? moment(reqData.createdAt.toDate()).fromNow() : 'الآن';
+
+                        const card = document.createElement('div');
+                        card.className = 'user-card';
+                        card.innerHTML = `
+                            <div class="user-avatar" onclick="playClick(); location.href='profile.html?uid=${senderId}'" style="background-image:url('${pic}'); background-color:transparent;"></div>
+                            <div class="user-info">
+                                <div class="user-name">${name}</div>
+                                <div class="user-meta">${timeAgo}</div>
+                                <div class="actions-row">
+                                    <button class="btn btn-primary" onclick="playClick(); acceptRequest('${senderId}')">تأكيد</button>
+                                    <button class="btn btn-secondary" onclick="playClick(); rejectRequest('${senderId}')">حذف</button>
+                                </div>
+                            </div>`;
+                        container.appendChild(card);
+                    }
+                });
+        }
+
+        // --- تحميل الاقتراحات ---
+        async function loadSuggestions() {
+            const container = document.getElementById('suggestionsContainer');
+            try {
+                const snap = await db.collection("users").limit(30).get();
+                container.innerHTML = '';
+                let count = 0;
+                for (const doc of snap.docs) {
+                    const uid = doc.id;
+                    if (uid !== currentUserUid && !myFriendsSet.has(uid)) {
+                        const userData = doc.data();
+                        const name = userData.name || "مستخدم";
+                        
+                        // هنا التعديل: استخدام الصورة الافتراضية إذا لم توجد صورة
+                        const pic = userData.profilePic || userData.avatarUrl || defaultAvatar;
+                        
+                        const bio = userData.bio || "مشترك في NABD";
+
+                        let isRequestSent = false;
+                        try { const sentCheck = await db.collection("users").doc(uid).collection("friendRequests").doc(currentUserUid).get(); if(sentCheck.exists) isRequestSent = true; } catch(e) {}
+
+                        let actionButton = '';
+                        if (isRequestSent) {
+                            actionButton = `<button class="btn btn-sent" id="btn-${uid}" onclick="playClick(); requestCancelConfirmation('${uid}')"><i class="fa-solid fa-check"></i> تم الإرسال</button>`;
+                        } else {
+                            actionButton = `<button class="btn btn-primary" id="btn-${uid}" onclick="playClick(); sendFriendRequest('${uid}')"><i class="fa-solid fa-user-plus"></i> إضافة صديق</button>`;
+                        }
+
+                        const card = document.createElement('div');
+                        card.className = 'user-card';
+                        card.innerHTML = `
+                            <div class="user-avatar" onclick="playClick(); location.href='profile.html?uid=${uid}'" style="background-image:url('${pic}'); background-color:transparent;"></div>
+                            <div class="user-info">
+                                <div class="user-name">${name}</div>
+                                <div class="user-meta" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;">${bio}</div>
+                                <div class="actions-row">
+                                    ${actionButton}
+                                    <button class="btn btn-secondary" onclick="playClick(); this.closest('.user-card').remove()">إزالة</button>
+                                </div>
+                            </div>`;
+                        container.appendChild(card);
+                        count++;
+                    }
+                }
+                if(count === 0) container.innerHTML = '<div class="empty-state visible"><i class="fa-solid fa-users-slash"></i>لا توجد اقتراحات حالياً</div>';
+            } catch (e) {}
+        }
+
+        // --- الإجراءات (Actions) ---
+        async function acceptRequest(senderId) {
+            try {
+                const batch = db.batch();
+                batch.set(db.collection("users").doc(currentUserUid).collection("friends").doc(senderId), { acceptedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                batch.set(db.collection("users").doc(senderId).collection("friends").doc(currentUserUid), { acceptedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                batch.delete(db.collection("users").doc(currentUserUid).collection("friendRequests").doc(senderId));
+                await batch.commit();
+                showToast("تمت المصادقة! 🎉");
+                myFriendsSet.add(senderId);
+                loadSuggestions(); 
+            } catch (error) { showToast("حدث خطأ"); }
+        }
+
+        async function rejectRequest(senderId) {
+            try { await db.collection("users").doc(currentUserUid).collection("friendRequests").doc(senderId).delete(); showToast("تم حذف الطلب"); } catch (error) {}
+        }
+
+        async function sendFriendRequest(targetUid) {
+            const btn = document.getElementById(`btn-${targetUid}`);
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>'; btn.style.opacity = '0.7';
+            try {
+                await db.collection("users").doc(targetUid).collection("friendRequests").doc(currentUserUid).set({ createdAt: firebase.firestore.FieldValue.serverTimestamp(), from: currentUserUid });
+                btn.classList.remove('btn-primary'); btn.classList.add('btn-sent');
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الإرسال';
+                btn.onclick = function() { playClick(); requestCancelConfirmation(targetUid); };
+                btn.style.opacity = '1';
+                showToast("تم إرسال طلب الصداقة");
+            } catch (error) { btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة صديق'; btn.style.opacity = '1'; showToast("فشل الإرسال"); }
+        }
+
+        // --- منطق النافذة المنبثقة (Modal Logic) ---
+
+        // 1. فتح النافذة
+        function requestCancelConfirmation(targetUid) {
+            pendingCancelUid = targetUid;
+            document.getElementById('confirmModal').classList.add('active');
+        }
+
+        // 2. إغلاق النافذة
+        function closeConfirmModal() {
+            playClick();
+            document.getElementById('confirmModal').classList.remove('active');
+            pendingCancelUid = null;
+        }
+
+        // 3. تنفيذ الإلغاء الفعلي
+        async function executeCancel() {
+            if(!pendingCancelUid) return;
+            const targetUid = pendingCancelUid;
+            
+            document.getElementById('confirmModal').classList.remove('active');
+            
+            const btn = document.getElementById(`btn-${targetUid}`);
+            if(btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+            
+            try {
+                await db.collection("users").doc(targetUid).collection("friendRequests").doc(currentUserUid).delete();
+                
+                if(btn) {
+                    btn.classList.remove('btn-sent'); btn.classList.add('btn-primary');
+                    btn.innerHTML = '<i class="fa-solid fa-user-plus"></i> إضافة صديق';
+                    btn.onclick = function() { playClick(); sendFriendRequest(targetUid); };
+                }
+                showToast("تم إلغاء الطلب");
+            } catch (error) {
+                if(btn) btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الإرسال';
+                showToast("فشل الإلغاء");
+            }
+            pendingCancelUid = null;
+        }
+
+        function showToast(msg) { const t = document.getElementById('toast'); t.querySelector('span').innerText = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+    </script>
+</body>
+</html>

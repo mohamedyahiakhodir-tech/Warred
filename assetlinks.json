@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "lol.wareed.twa",
+        "sha256_cert_fingerprints": ["AB:8B:4D:25:30:7D:7E:C7:85:8C:CB:15:F8:C7:7A:71:2D:84:50:21:37:D5:6D:A4:37:F4:43:07:31:47:4A:F9"]
+      }
+    }]

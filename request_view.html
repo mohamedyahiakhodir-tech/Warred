@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>طلب مراسلة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <style>
+        :root { --bg-deep: #050505; --accent-color: #8b5cf6; --success: #22c55e; --danger: #ef4444; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-deep); color: #fff; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; display: flex; flex-direction: column; height: 100vh; }
+
+        .header { padding: 15px; background: rgba(30,30,35,0.95); display: flex; align-items: center; gap: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); height: 70px; }
+        .back-btn { font-size: 20px; padding: 10px; cursor: pointer; }
+        .user-info { display: flex; align-items: center; gap: 10px; }
+        .avatar { width: 42px; height: 42px; border-radius: 50%; background-size: cover; background-color: #333; }
+        .name { font-weight: bold; font-size: 16px; }
+
+        .msg-container { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 100px; }
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 18px; background: #2a2a2a; border-bottom-left-radius: 4px; font-size: 15px; align-self: flex-start; position: relative; }
+        .time { font-size: 10px; opacity: 0.6; margin-top: 5px; display: block; }
+
+        /* شريط القبول والرفض */
+        .action-bar { position: fixed; bottom: 0; width: 100%; padding: 20px; background: #15151a; border-top: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; align-items: center; gap: 15px; z-index: 100; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .notice { font-size: 13px; color: #aaa; text-align: center; }
+        .btns { display: flex; gap: 10px; width: 100%; justify-content: center; }
+        .btn { flex: 1; padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 15px; max-width: 180px; }
+        .btn-accept { background: var(--success); color: white; }
+        .btn-block { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+        
+        /* Loading */
+        .loading-state { text-align: center; margin-top: 50px; color: #777; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="location.href='messages.html'"></i>
+        <div class="user-info">
+            <div id="avatar" class="avatar"></div>
+            <div id="name" class="name">...</div>
+        </div>
+    </div>
+
+    <div id="container" class="msg-container">
+        <div class="loading-state"><i class="fa-solid fa-spinner fa-spin"></i> جاري تحميل الطلب...</div>
+    </div>
+
+    <div class="action-bar">
+        <div class="notice"><i class="fa-solid fa-shield-halved"></i> لن يعرف المرسل أنك قرأت الرسالة حتى تقبل الطلب.</div>
+        <div class="btns">
+            <button class="btn btn-block" onclick="blockUser()"><i class="fa-solid fa-ban"></i> حظر</button>
+            <button class="btn btn-accept" onclick="acceptUser()"><i class="fa-solid fa-check"></i> قبول ومراسلة</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = { apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c", authDomain: "pools-e4381.firebaseapp.com", projectId: "pools-e4381" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore(); const auth = firebase.auth();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const chatId = urlParams.get('chatId');
+        const targetName = decodeURIComponent(urlParams.get('name'));
+        const targetUid = urlParams.get('uid');
+        let currentUser = null;
+
+        document.getElementById('name').innerText = targetName;
+
+        auth.onAuthStateChanged(user => {
+            if (!user) location.href = '.html';
+            currentUser = user;
+            loadAvatar();
+            loadMessages();
+        });
+
+        function loadAvatar() {
+            db.collection('users').doc(targetUid).get().then(doc => {
+                const url = (doc.exists && (doc.data().profilePic || doc.data().avatarUrl)) ? (doc.data().profilePic || doc.data().avatarUrl) : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                document.getElementById('avatar').style.backgroundImage = `url('${url}')`;
+            });
+        }
+
+        function loadMessages() {
+            const cont = document.getElementById('container');
+            // نستخدم get مرة واحدة فقط للمعاينه (بدون Realtime عشان ميعرفش انك شوفت)
+            db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp', 'asc').limit(20).get().then(snap => {
+                cont.innerHTML = '';
+                if(snap.empty) { cont.innerHTML = '<div class="loading-state">لا توجد رسائل لعرضها.</div>'; return; }
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const div = document.createElement('div');
+                    div.className = 'msg';
+                    div.innerHTML = `${d.text} <span class="time">${d.timestamp ? moment(d.timestamp.toDate()).format('h:mm A') : ''}</span>`;
+                    cont.appendChild(div);
+                });
+                cont.scrollTop = cont.scrollHeight;
+            });
+        }
+
+        async function acceptUser() {
+            const btn = document.querySelector('.btn-accept');
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري القبول...';
+            try {
+                // إضافة للصداقة
+                await db.collection('users').doc(currentUser.uid).collection('friends').doc(targetUid).set({ addedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                // تحديث حالة الشات ليظهر كمقروء
+                await db.collection('chats').doc(chatId).update({ seen: true, unreadCount: 0 });
+                // تحويل للشات العادي
+                location.replace(`chat.html?chatId=${chatId}&name=${encodeURIComponent(targetName)}&uid=${targetUid}`);
+            } catch(e) { console.error(e); alert("حدث خطأ"); }
+        }
+
+        async function blockUser() {
+            if(confirm("حظر هذا المستخدم؟")) {
+                await db.collection('chats').doc(chatId).update({ blockedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
+                location.href = 'messages.html';
+            }
+        }
+    </script>
+</body>
+</html>

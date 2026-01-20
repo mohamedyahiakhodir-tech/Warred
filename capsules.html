@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - الذكريات</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --card-bg: rgba(30, 30, 30, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #ffffff;
+            --text-sec: #aaaaaa;
+            --accent-color: #ffd700; 
+            --accent-glow: rgba(255, 215, 0, 0.3);
+            --input-bg: #151515;
+            --danger: #ff3b30;
+            --sidebar-bg: #101010;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background: var(--bg-color); color: var(--text-main); padding-bottom: 100px; min-height: 100vh; overflow-x: hidden; transition: 0.5s; }
+
+        /* --- الهيدر --- */
+        .header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            position: sticky; top: 0; z-index: 50;
+            background: rgba(5, 5, 5, 0.9); backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .header h2 { font-size: 18px; font-weight: 800; margin: 0; }
+        .header-icon { font-size: 22px; cursor: pointer; padding: 5px; color: #fff; }
+
+        /* --- القائمة الجانبية (تظهر من اليمين للعربي) --- */
+        .side-menu-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; backdrop-filter: blur(5px); }
+        .side-menu {
+            position: fixed; top: 0; right: 0; height: 100%; width: 260px; background: var(--sidebar-bg); z-index: 201;
+            transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 1px solid var(--glass-border); display: flex; flex-direction: column;
+        }
+        .side-menu.open { transform: translateX(0); }
+
+        .menu-header { padding: 30px 20px; text-align: center; border-bottom: 1px solid var(--glass-border); background: rgba(255,255,255,0.02); }
+        .menu-avatar { width: 60px; height: 60px; border-radius: 50%; background: #333; margin: 0 auto 10px; border: 2px solid var(--accent-color); background-size: cover; background-position: center; }
+        
+        .menu-items { padding: 10px; overflow-y: auto; flex: 1; }
+        .menu-item { 
+            padding: 12px 15px; margin-bottom: 5px; border-radius: 10px; cursor: pointer; 
+            display: flex; align-items: center; gap: 15px; color: var(--text-sec); font-weight: 600; transition: 0.2s; 
+        }
+        .menu-item:hover, .menu-item.active { background: var(--accent-color); color: #000; }
+        .menu-item i { width: 20px; text-align: center; }
+
+        .menu-section-title { font-size: 11px; color: #555; margin: 15px 15px 5px; font-weight: bold; }
+
+        /* --- عنوان القسم الحالي --- */
+        .current-section-title {
+            text-align: center; padding: 20px 0 10px; font-size: 20px; font-weight: 900; color: var(--accent-color);
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+
+        /* --- الكبسولات --- */
+        .capsules-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; padding: 0 20px; }
+        .capsule-card {
+            background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px;
+            text-align: center; position: relative; min-height: 180px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px); transition: 0.3s;
+        }
+        
+        /* كبسولة الزمن (مقفولة بوقت) */
+        .capsule-card.time-locked { 
+            background: repeating-linear-gradient(45deg, #1a1a1a, #1a1a1a 10px, #222 10px, #222 20px); 
+            border-color: #444; opacity: 0.8;
+        }
+        
+        /* كارت عادي (مقفول بباسورد) */
+        .capsule-card.pass-locked { border-color: var(--accent-color); box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        
+        /* كارت مفتوح */
+        .capsule-card.open { border: 1px solid rgba(255,255,255,0.2); }
+
+        /* --- المودال --- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000; display: none; justify-content: center; align-items: center; padding: 20px; }
+        .modal-card { background: #111; width: 100%; max-width: 400px; border-radius: 24px; padding: 25px; border: 1px solid var(--glass-border); }
+
+        .input-group { margin-bottom: 15px; }
+        .lbl { display: block; font-size: 12px; color: var(--text-sec); margin-bottom: 8px; font-weight: bold; }
+        .inp { width: 100%; background: var(--input-bg); border: 1px solid var(--glass-border); padding: 14px; border-radius: 12px; color: #fff; }
+        textarea.inp { height: 100px; resize: none; }
+
+        /* اختيار القسم في المودال */
+        .cat-select { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .cat-opt { 
+            padding: 12px; border-radius: 10px; background: var(--input-bg); text-align: center; 
+            cursor: pointer; border: 1px solid transparent; opacity: 0.6; display: flex; align-items: center; gap: 8px; justify-content: center;
+        }
+        .cat-opt.active { border-color: var(--accent-color); opacity: 1; background: rgba(255, 215, 0, 0.1); }
+        .cat-opt i { font-size: 16px; }
+
+        .fab { position: fixed; bottom: 30px; left: 30px; width: 60px; height: 60px; border-radius: 50%; background: var(--accent-color); color: #000; display: grid; place-items: center; font-size: 24px; box-shadow: 0 10px 20px rgba(0,0,0,0.4); cursor: pointer; z-index: 100; }
+        .btn-full { width: 100%; padding: 14px; border-radius: 12px; background: var(--accent-color); color: #000; font-weight: 800; border: none; cursor: pointer; margin-top: 10px; }
+        .btn-text { background: none; color: var(--text-sec); padding: 10px; width: 100%; border: none; cursor: pointer; }
+
+        #toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #222; color: #fff; padding: 10px 20px; border-radius: 50px; border: 1px solid var(--accent-color); z-index: 9999; transition: 0.4s; font-weight: bold; }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+    </style>
+</head>
+<body>
+
+    <div class="side-menu-overlay" id="sideOverlay" onclick="closeSideMenu()"></div>
+    <div class="side-menu" id="sideMenu">
+        <div class="menu-header">
+            <div class="menu-avatar" id="menuAvatar"></div>
+            <div id="menuName" style="color:#fff; font-weight:bold;">مستخدم</div>
+        </div>
+        
+        <div class="menu-items">
+            <div class="menu-section-title">التنقل</div>
+            <div class="menu-item" onclick="location.href='home.html'"><i class="fa-solid fa-house"></i> الرئيسية</div>
+            
+            <div class="menu-section-title">الأقسام</div>
+            <div class="menu-item active" onclick="filterCapsules('all', this)"><i class="fa-solid fa-layer-group"></i> الكل</div>
+            <div class="menu-item" onclick="filterCapsules('capsule', this)"><i class="fa-solid fa-hourglass-half"></i> الكبسولة الزمنية</div>
+            <div class="menu-item" onclick="filterCapsules('secrets', this)"><i class="fa-solid fa-user-secret"></i> أسراري</div>
+            <div class="menu-item" onclick="filterCapsules('friends', this)"><i class="fa-solid fa-users"></i> أصدقائي</div>
+            <div class="menu-item" onclick="filterCapsules('love', this)"><i class="fa-solid fa-heart"></i> الحبيب</div>
+        </div>
+    </div>
+
+    <div class="header">
+        <i class="fa-solid fa-bars header-icon" onclick="openSideMenu()" style="order: -1;"></i>
+        <h2>الذكريات</h2>
+        <i class="fa-solid fa-arrow-right header-icon" onclick="history.back()"></i>
+    </div>
+
+    <div class="current-section-title" id="sectionTitle">
+        <i class="fa-solid fa-layer-group"></i> كل الذكريات
+    </div>
+
+    <div class="capsules-grid" id="capsulesContainer"></div>
+    <div id="emptyState" style="text-align:center; margin-top:80px; display:none; color:#555;">لا يوجد محتوى في هذا القسم</div>
+
+    <div class="fab" onclick="openCreateModal()"><i class="fa-solid fa-plus"></i></div>
+
+    <div class="modal-overlay" id="createModal">
+        <div class="modal-card">
+            <h3 style="margin-bottom: 20px;">إضافة جديدة</h3>
+            
+            <div class="input-group">
+                <label class="lbl">اختر القسم</label>
+                <div class="cat-select">
+                    <div class="cat-opt" onclick="selectCat('capsule', this)"><i class="fa-solid fa-hourglass"></i> كبسولة</div>
+                    <div class="cat-opt" onclick="selectCat('secrets', this)"><i class="fa-solid fa-mask"></i> أسرار</div>
+                    <div class="cat-opt" onclick="selectCat('friends', this)"><i class="fa-solid fa-users"></i> أصدقاء</div>
+                    <div class="cat-opt" onclick="selectCat('love', this)"><i class="fa-solid fa-heart"></i> حبيب</div>
+                </div>
+                <input type="hidden" id="selectedCategory">
+            </div>
+
+            <div class="input-group">
+                <label class="lbl">المحتوى</label>
+                <textarea id="newContent" class="inp" placeholder="اكتب هنا..."></textarea>
+            </div>
+
+            <div class="input-group" id="dateSection" style="display:none;">
+                <label class="lbl" style="color:var(--accent-color)">تاريخ الفتح (إجباري للكبسولة)</label>
+                <input type="date" id="newDate" class="inp">
+            </div>
+
+            <div class="input-group">
+                <label style="display:flex; justify-content:space-between; cursor:pointer;">
+                    <span class="lbl"><i class="fa-solid fa-lock"></i> حماية بباسورد (اختياري)</span>
+                    <input type="checkbox" id="hasPassword" onchange="document.getElementById('newPin').style.display = this.checked ? 'block' : 'none'">
+                </label>
+                <input type="number" id="newPin" class="inp" placeholder="أدخل الرمز" style="display:none; margin-top:5px;">
+            </div>
+
+            <button class="btn-full" onclick="saveMemory()">حفظ</button>
+            <button class="btn-text" onclick="closeModals()">إلغاء</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="unlockModal">
+        <div class="modal-card" style="text-align:center">
+            <i class="fa-solid fa-shield-halved" style="font-size: 40px; color: var(--accent-color); margin-bottom: 15px;"></i>
+            <h3>محمية برمز</h3>
+            <input type="tel" id="unlockPinInput" class="inp" style="text-align:center; font-size:24px; letter-spacing:5px; margin:20px 0;" placeholder="****">
+            <button class="btn-full" onclick="verifyPin()">فتح</button>
+            <button class="btn-text" onclick="closeModals()">إلغاء</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="viewModal">
+        <div class="modal-card">
+            <div style="text-align:center; color:var(--accent-color); margin-bottom:10px;"><i class="fa-solid fa-quote-left"></i></div>
+            <div id="viewContent" style="white-space: pre-wrap; line-height: 1.6; max-height: 300px; overflow-y: auto;"></div>
+            <div id="viewDate" style="font-size:11px; color:#555; margin-top:15px; border-top:1px solid #333; padding-top:10px;"></div>
+            <button class="btn-full" onclick="closeModals()">إغلاق</button>
+        </div>
+    </div>
+
+    <div id="toast"><i class="fa-solid fa-check"></i> <span id="toastMsg">تم</span></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // إعدادات فايربيس
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+        let currentUser = null;
+        let allMemories = []; // هنا هنخزن كل الداتا ونعمل فلتر في المتصفح
+        let currentFilter = 'all';
+        let pendingItem = null; // العنصر اللي بنحاول نفتحه
+
+        // Auth
+        auth.onAuthStateChanged(user => {
+            if (user) { 
+                currentUser = user;
+                // تحميل بيانات المستخدم للهيدر
+                db.collection('users').doc(user.uid).get().then(d => {
+                    if(d.exists) {
+                        document.getElementById('menuName').innerText = d.data().name;
+                        if(d.data().profilePic) document.getElementById('menuAvatar').style.backgroundImage = `url('${d.data().profilePic}')`;
+                    }
+                });
+                loadMemories();
+            } else { location.href = 'index.html'; }
+        });
+
+        // --- 1. تحميل الداتا ---
+        function loadMemories() {
+            db.collection("time_capsules")
+                .where("uid", "==", currentUser.uid)
+                .onSnapshot(snap => {
+                    allMemories = [];
+                    snap.forEach(doc => allMemories.push({id: doc.id, ...doc.data()}));
+                    // ترتيب بالأحدث
+                    allMemories.sort((a,b) => b.createdAt - a.createdAt);
+                    
+                    renderMemories(); // عرض حسب الفلتر الحالي
+                });
+        }
+
+        // --- 2. نظام الفلتر (القائمة الجانبية) ---
+        function filterCapsules(category, el) {
+            currentFilter = category;
+            
+            // تحديث شكل القائمة (اللون الأصفر)
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            if(el) el.classList.add('active');
+            
+            // تحديث العنوان
+            const titles = {
+                'all': '<i class="fa-solid fa-layer-group"></i> كل الذكريات',
+                'capsule': '<i class="fa-solid fa-hourglass-half"></i> الكبسولة الزمنية',
+                'secrets': '<i class="fa-solid fa-user-secret"></i> أسراري',
+                'friends': '<i class="fa-solid fa-users"></i> أصدقائي',
+                'love': '<i class="fa-solid fa-heart"></i> ذكريات الحبيب'
+            };
+            document.getElementById('sectionTitle').innerHTML = titles[category];
+
+            closeSideMenu();
+            renderMemories();
+        }
+
+        // --- 3. العرض (Rendering) ---
+        function renderMemories() {
+            const container = document.getElementById('capsulesContainer');
+            container.innerHTML = '';
+            
+            // تصفية البيانات حسب القسم
+            const filtered = currentFilter === 'all' 
+                ? allMemories 
+                : allMemories.filter(m => m.category === currentFilter);
+
+            if(filtered.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            } else {
+                document.getElementById('emptyState').style.display = 'none';
+            }
+
+            filtered.forEach(m => {
+                const div = document.createElement('div');
+                const isCapsule = m.category === 'capsule'; // دي بس اللي ليها وقت
+                const now = new Date();
+                let isTimeLocked = false;
+                let timeLeftText = "";
+
+                // لو هي كبسولة، نشيك على الوقت
+                if(isCapsule && m.unlockDate) {
+                    const unlock = m.unlockDate.toDate();
+                    if(now < unlock) {
+                        isTimeLocked = true;
+                        timeLeftText = moment(unlock).fromNow();
+                    }
+                }
+
+                // تحديد الكلاس والأيقونة
+                if(isTimeLocked) {
+                    div.className = 'capsule-card time-locked';
+                    div.innerHTML = `
+                        <i class="fa-solid fa-lock" style="font-size:40px; margin-bottom:15px; color:#555;"></i>
+                        <div style="font-weight:bold; color:#777;">كبسولة مغلقة</div>
+                        <div style="font-size:11px; color:#555;">تفتح ${timeLeftText}</div>
+                    `;
+                } else {
+                    // مفتوحة زمنياً (بس ممكن عليها باسورد)
+                    div.className = m.lockCode ? 'capsule-card pass-locked' : 'capsule-card open';
+                    
+                    let icon = 'fa-file-lines';
+                    if(m.category === 'friends') icon = 'fa-users';
+                    if(m.category === 'love') icon = 'fa-heart';
+                    if(m.category === 'secrets') icon = 'fa-mask';
+                    if(m.category === 'capsule') icon = 'fa-box-open'; // كبسولة فتحت
+
+                    div.innerHTML = `
+                        <i class="fa-solid ${icon}" style="font-size:40px; margin-bottom:15px; color:${m.lockCode?'var(--accent-color)':'#fff'}"></i>
+                        <div style="font-weight:bold;">${m.lockCode ? 'محمية برمز' : 'ذكرى'}</div>
+                        <div style="font-size:11px; color:#aaa;">${moment(m.createdAt.toDate()).format('D MMM')}</div>
+                        ${m.lockCode ? '<i class="fa-solid fa-key" style="position:absolute; top:10px; right:10px; font-size:12px; color:var(--accent-color)"></i>' : ''}
+                    `;
+                }
+
+                // عند الضغط
+                div.onclick = () => {
+                    // 1. لو مقفولة بالوقت (كبسولة) -> مستحيل تفتح
+                    if(isTimeLocked) {
+                        div.style.animation = "shake 0.4s"; setTimeout(()=>div.style.animation="", 400);
+                        showToast("⛔ تفتح " + timeLeftText);
+                        return;
+                    }
+
+                    // 2. لو عليها باسورد (أي قسم) -> اطلب الباسورد
+                    if(m.lockCode) {
+                        pendingItem = m;
+                        document.getElementById('unlockPinInput').value = '';
+                        document.getElementById('unlockModal').style.display = 'flex';
+                    } else {
+                        // 3. مفهاش حاجة -> افتح علطول
+                        showContent(m);
+                    }
+                };
+
+                container.appendChild(div);
+            });
+        }
+
+        // --- 4. الإنشاء (Create Logic) ---
+        function openCreateModal() {
+            // نفتح المودال ونحدد القسم الحالي
+            const defaultCat = currentFilter === 'all' ? 'capsule' : currentFilter;
+            // محاكاة الضغط على القسم
+            const opts = document.querySelectorAll('.cat-opt');
+            opts.forEach(o => {
+                if(o.innerText.includes(getCatName(defaultCat))) selectCat(defaultCat, o);
+            });
+            document.getElementById('createModal').style.display = 'flex';
+        }
+
+        function getCatName(val) {
+            if(val=='capsule') return 'كبسولة';
+            if(val=='secrets') return 'أسرار';
+            if(val=='friends') return 'أصدقاء';
+            if(val=='love') return 'حبيب';
+            return '';
+        }
+
+        function selectCat(val, el) {
+            document.querySelectorAll('.cat-opt').forEach(o => o.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('selectedCategory').value = val;
+
+            // إظهار التاريخ فقط لو اخترنا "كبسولة"
+            if(val === 'capsule') {
+                document.getElementById('dateSection').style.display = 'block';
+                // تعيين حد أدنى للتاريخ (بكرة)
+                const tmr = new Date(); tmr.setDate(tmr.getDate() + 1);
+                document.getElementById('newDate').min = tmr.toISOString().split('T')[0];
+            } else {
+                document.getElementById('dateSection').style.display = 'none';
+            }
+        }
+
+        async function saveMemory() {
+            const cat = document.getElementById('selectedCategory').value;
+            const content = document.getElementById('newContent').value;
+            const hasPass = document.getElementById('hasPassword').checked;
+            const pin = document.getElementById('newPin').value;
+
+            if(!content) return showToast("⚠️ اكتب المحتوى");
+            
+            // لو كبسولة -> التاريخ إجباري
+            let unlockDate = null;
+            if(cat === 'capsule') {
+                const d = document.getElementById('newDate').value;
+                if(!d) return showToast("⚠️ حدد تاريخ الفتح للكبسولة");
+                unlockDate = firebase.firestore.Timestamp.fromDate(new Date(d));
+            }
+
+            // لو فيه باسورد
+            if(hasPass && !pin) return showToast("⚠️ اكتب الباسورد");
+
+            try {
+                await db.collection("time_capsules").add({
+                    uid: currentUser.uid,
+                    content: content,
+                    category: cat,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    unlockDate: unlockDate, // هيكون null لغير الكبسولة
+                    lockCode: hasPass ? pin : null,
+                    isLocked: hasPass
+                });
+                showToast("✅ تم الحفظ");
+                closeModals();
+                // Reset
+                document.getElementById('newContent').value = "";
+                document.getElementById('newPin').value = "";
+                document.getElementById('hasPassword').checked = false;
+            } catch(e) { console.error(e); showToast("❌ خطأ"); }
+        }
+
+        // --- دوال مساعدة ---
+        function verifyPin() {
+            if(document.getElementById('unlockPinInput').value == pendingItem.lockCode) {
+                document.getElementById('unlockModal').style.display = 'none';
+                showContent(pendingItem);
+            } else {
+                showToast("🚫 رمز خاطئ");
+            }
+        }
+
+        function showContent(m) {
+            document.getElementById('viewContent').innerText = m.content;
+            document.getElementById('viewDate').innerText = moment(m.createdAt.toDate()).format('YYYY/MM/DD');
+            document.getElementById('viewModal').style.display = 'flex';
+        }
+
+        function closeModals() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+        function openSideMenu() { document.getElementById('sideMenu').classList.add('open'); document.getElementById('sideOverlay').style.display='block'; }
+        function closeSideMenu() { document.getElementById('sideMenu').classList.remove('open'); document.getElementById('sideOverlay').style.display='none'; }
+        function showToast(msg) { const t=document.getElementById('toast'); document.getElementById('toastMsg').innerText=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),3000); }
+        
+        // CSS Shake Animation
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-5px); } 100% { transform: translateX(0); } }`;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

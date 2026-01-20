@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المنشورات المحفوظة</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<style>
+body {
+    background:#0d0d0f;
+    color:#fff;
+    font-family:'Segoe UI', Tahoma, Verdana, sans-serif;
+}
+.header {
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:12px;
+    background:#1c1c1c;
+    border-bottom:1px solid #222;
+}
+.header i {
+    font-size:22px;
+    cursor:pointer;
+    color: #fff;
+}
+.header b {
+    font-size: 18px;
+}
+.container {
+    max-width:600px;
+    margin:auto;
+    padding:12px;
+}
+.post {
+    background:#0c0c0c;
+    border:1px solid #222;
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:15px;
+    cursor: pointer;
+}
+.post small { 
+    color:#aaa;
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+}
+.loading-text {
+    text-align: center;
+    padding: 20px;
+    color: #7c3aed;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <i class="fa-solid fa-arrow-right" onclick="history.back()"></i>
+    <b>المنشورات المحفوظة</b>
+</div>
+
+<div class="container" id="savedPosts">
+    <div class="loading-text">جاري تحميل المنشورات المحفوظة...</div>
+</div>
+
+<script>
+    moment.locale('ar');
+    const BASE_PATH = 'file:///storage/emulated/0/NABD/';
+    function getFilePath(fileName) {
+        return BASE_PATH + fileName;
+    }
+
+    // 🚨 الإصلاح 1: منع تكرار التهيئة
+    if (!firebase.apps.length) {
+        firebase.initializeApp({
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381"
+        });
+    }
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const savedPostsDiv = document.getElementById("savedPosts");
+
+    auth.onAuthStateChanged(async user => {
+        if (!user) {
+             location.href = getFilePath("index.html");
+             return;
+        }
+
+        const savedCollectionRef = db.collection("users")
+            .doc(user.uid)
+            .collection("savedPosts");
+            
+        const snapshot = await savedCollectionRef
+            .orderBy("savedAt", "desc")
+            .get();
+
+        savedPostsDiv.innerHTML = ""; // مسح مؤشر التحميل
+
+        if (snapshot.empty) {
+            savedPostsDiv.innerHTML =
+                '<p style="text-align:center;color:#888; padding: 20px;">لا توجد منشورات محفوظة</p>';
+            return;
+        }
+
+        // استخدام Promise.all لجلب بيانات المنشورات بالتوازي
+        const postPromises = snapshot.docs.map(doc => {
+            const postId = doc.data().postId;
+            const savedAt = doc.data().savedAt;
+            return db.collection("posts").doc(postId).get().then(postDoc => {
+                if (postDoc.exists) {
+                    return { id: postId, data: postDoc.data(), savedAt: savedAt };
+                }
+                return null;
+            }).catch(e => {
+                console.error("فشل جلب المنشور:", postId, e);
+                return null;
+            });
+        });
+
+        const results = await Promise.all(postPromises);
+
+        results.filter(r => r !== null).forEach(r => {
+            const p = r.data;
+            
+            // 🚨 الإصلاح 2: إضافة تحقق شرطي لـ savedAt
+            const savedTime = r.savedAt
+                ? moment(r.savedAt.toDate()).format('D MMM YYYY, h:mm a')
+                : 'الآن';
+
+            savedPostsDiv.innerHTML += `
+                <div class="post" onclick="toggleComments('${r.id}')">
+                    <div>${p.text.substring(0, 150)}...</div>
+                    <small>محفوظ بتاريخ: ${savedTime}</small>
+                </div>
+            `;
+        });
+    });
+    
+    // 🚨 الإصلاح 3: تعريف الدالة في النطاق العام (Global Scope) لتكون متاحة للـ HTML
+    function toggleComments(id) {
+        sessionStorage.setItem('fromPage', window.location.href);
+        location.href = getFilePath(`post_details.html?postId=${id}`);
+    }
+</script>
+
+</body>
+</html>

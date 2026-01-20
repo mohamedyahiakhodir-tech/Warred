@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "339799216046",
+    "firebase_url": "https://pools-e4381-default-rtdb.firebaseio.com",
+    "project_id": "pools-e4381",
+    "storage_bucket": "pools-e4381.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:339799216046:android:27ba5829ac20c8d6e9023f",
+        "android_client_info": {
+          "package_name": "com.wareed.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "339799216046-dlo003kc4a7fc8v996ficlv5bdnncqo2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAtOCxFXJeis6Zb1J0I2qL-uZXrq8Vq19A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "339799216046-dlo003kc4a7fc8v996ficlv5bdnncqo2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD Ultimate Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-body: #0b1120;
+            --bg-card: #151e32;
+            --primary: #3b82f6;
+            --border: #2d3748;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --vip: #f59e0b;
+            --bot: #d946ef; 
+            --safe: #2dd4bf;
+            --shadow: #64748b;
+            --ad: #8b5cf6;
+            --trend: #ff5722;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        .mobile-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: rgba(21, 30, 50, 0.95);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .menu-btn { font-size: 24px; cursor: pointer; color: var(--text-main); }
+        .logo { font-size: 20px; font-weight: 900; color: var(--text-main); display: flex; align-items: center; gap: 10px; }
+        .logo i { color: var(--primary); }
+
+        /* --- Sidebar --- */
+        .sidebar {
+            position: fixed; top: 0; right: -280px; width: 260px; height: 100%;
+            background: #151e32; border-left: 1px solid var(--border);
+            display: flex; flex-direction: column; padding: 20px;
+            z-index: 2000; transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+        .sidebar.active { right: 0; }
+        .sidebar-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1500;
+            display: none; backdrop-filter: blur(3px);
+        }
+        .sidebar-overlay.active { display: block; }
+
+        .nav-item {
+            padding: 14px 15px; margin-bottom: 8px; border-radius: 12px;
+            color: var(--text-muted); font-weight: 600; font-size: 14px;
+            cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.03);
+        }
+        .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
+        .sb-group-title { font-size: 11px; color: var(--text-muted); opacity: 0.5; margin: 15px 0 5px 0; font-weight: bold; }
+
+        /* --- Main Content --- */
+        .main-content { flex: 1; padding: 15px; overflow-y: auto; padding-bottom: 80px; }
+        .view-section { display: none; animation: fadeIn 0.3s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* --- UI Elements --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: var(--bg-card); padding: 20px; border-radius: 16px; border: 1px solid var(--border); text-align: center; }
+        .stat-num { font-size: 24px; font-weight: 900; color: white; margin: 5px 0; }
+        .stat-label { font-size: 12px; color: var(--text-muted); }
+        .stat-icon { font-size: 20px; margin-bottom: 5px; }
+
+        .control-panel { background: rgba(217, 70, 239, 0.05); border: 1px dashed var(--bot); padding: 15px; border-radius: 16px; margin-bottom: 20px; }
+        .cp-title { font-weight: bold; color: var(--bot); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 15px; }
+        
+        .sys-panel { background: rgba(59, 130, 246, 0.05); border: 1px solid var(--primary); padding: 15px; border-radius: 16px; margin-bottom: 20px; }
+        .sys-title { font-weight: bold; color: var(--primary); margin-bottom: 15px; display: flex; align-items: center; gap: 10px; font-size: 15px; }
+
+        .inp { width: 100%; padding: 12px; background: var(--bg-body); border: 1px solid var(--border); color: white; border-radius: 8px; margin-bottom: 10px; font-size: 14px; }
+        .btn { padding: 12px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+        .btn-bot { background: var(--bot); }
+        .btn-danger { background: var(--danger); }
+        .btn-success { background: var(--success); }
+        .btn-primary { background: var(--primary); }
+        .btn-ad { background: var(--ad); }
+
+        .grid { display: grid; grid-template-columns: 1fr; gap: 15px; } 
+        .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 15px; position: relative; overflow: hidden; }
+        .card-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .u-av { width: 45px; height: 45px; background: #333; border-radius: 50%; display: grid; place-items: center; background-size: cover; font-weight: bold; font-size: 18px; }
+        
+        .report-card { border-right: 3px solid var(--danger); background: rgba(239,68,68,0.05); }
+        .request-card { border-right: 3px solid var(--vip); background: rgba(245, 158, 11, 0.05); }
+        .r-meta { font-size: 12px; color: var(--text-muted); display: flex; justify-content: space-between; margin-top:5px; }
+
+        .archive-card { background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); margin-bottom: 15px; overflow: hidden; cursor: pointer; transition: 0.2s; }
+        .ac-media { height: 180px; background: #000; display: flex; align-items: center; justify-content: center; }
+        .ac-media img, .ac-media video { width: 100%; height: 100%; object-fit: cover; }
+        .ac-body { padding: 15px; }
+        .ac-text { font-size: 14px; color: #ddd; margin-bottom: 10px; }
+
+        .vault-container { overflow-x: auto; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border); }
+        .vault-table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        .vault-table th { text-align: right; padding: 15px; color: var(--text-muted); font-size: 12px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.2); white-space: nowrap; }
+        .vault-table td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--text-main); }
+        .blur-pass { filter: blur(5px); transition: 0.3s; cursor: pointer; }
+        .blur-pass:hover { filter: blur(0); }
+
+        /* Modal */
+        .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .m-box { background: var(--bg-card); width: 90%; max-width: 400px; padding: 20px; border-radius: 24px; border: 1px solid var(--border); max-height: 85vh; overflow-y: auto; }
+        
+        .preview-header { text-align: center; margin-bottom: 20px; }
+        .preview-av { width: 80px; height: 80px; border-radius: 50%; background: #333; margin: 0 auto 10px; display: grid; place-items: center; font-size: 30px; font-weight: bold; border: 3px solid var(--primary); background-size: cover; }
+        
+        .switch-row { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 10px; margin-bottom: 10px; }
+        .switch { position: relative; display: inline-block; width: 45px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--success); }
+        input:checked + .slider:before { transform: translateX(21px); }
+
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: white; color: black; padding: 12px 30px; border-radius: 50px; font-weight: 800; display: none; z-index: 5000; box-shadow: 0 5px 20px rgba(0,0,0,0.3); width: max-content; }
+        .row-flex { display: flex; gap: 10px; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div class="mobile-header">
+        <div class="logo"><i class="fa-solid fa-shield-cat"></i> NABD ADMIN</div>
+        <div class="menu-btn" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </div>
+    </div>
+
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <div class="sidebar" id="mainSidebar">
+        <div style="display:flex; justify-content:space-between; margin-bottom:20px;">
+            <div class="logo" style="font-size:18px"><i class="fa-solid fa-layer-group"></i> القائمة</div>
+            <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer" onclick="toggleSidebar()"></i>
+        </div>
+        
+        <div class="sb-group-title">عام</div>
+        <div class="nav-item active" onclick="switchView('dashboard', this)">
+            <i class="fa-solid fa-chart-line"></i> لوحة المعلومات
+        </div>
+        <div class="nav-item" onclick="switchView('system', this)">
+            <i class="fa-solid fa-gear"></i> إعدادات النظام
+        </div>
+        <div class="nav-item" onclick="switchView('ads', this)">
+            <i class="fa-solid fa-rectangle-ad" style="color:var(--ad)"></i> مدير الإعلانات
+        </div>
+
+        <div class="sb-group-title">الإدارة</div>
+        <div class="nav-item" onclick="switchView('users', this)">
+            <i class="fa-solid fa-users"></i> المستخدمين
+        </div>
+        <div class="nav-item" onclick="switchView('requests', this)">
+            <i class="fa-solid fa-id-card" style="color:var(--vip)"></i> طلبات التوثيق
+        </div>
+        <div class="nav-item" onclick="switchView('reports', this)">
+            <i class="fa-solid fa-triangle-exclamation" style="color:var(--danger)"></i> البلاغات
+        </div>
+        <div class="nav-item" onclick="switchView('archive', this)">
+            <i class="fa-solid fa-box-archive"></i> الأرشيف
+        </div>
+
+        <div class="sb-group-title">الجيش (Bots)</div>
+        <div class="nav-item" onclick="switchView('bot-control', this)">
+            <i class="fa-solid fa-robot"></i> غرفة التحكم
+        </div>
+        <div class="nav-item" onclick="switchView('vault', this)">
+            <i class="fa-solid fa-vault"></i> خزنة الحسابات
+        </div>
+        
+        <div style="margin-top: auto;">
+            <div class="nav-item" style="color:var(--danger); border:1px solid rgba(239,68,68,0.2)" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i> خروج
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        
+        <div id="view-dashboard" class="view-section active">
+            <h2 style="margin-bottom:20px">لوحة المعلومات</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-icon" style="color:var(--primary)"><i class="fa-solid fa-users"></i></div><div class="stat-num" id="statUsers">0</div><div class="stat-label">المستخدمين</div></div>
+                <div class="stat-card"><div class="stat-icon" style="color:var(--success)"><i class="fa-solid fa-image"></i></div><div class="stat-num" id="statPosts">0</div><div class="stat-label">المنشورات</div></div>
+                <div class="stat-card"><div class="stat-icon" style="color:var(--bot)"><i class="fa-solid fa-robot"></i></div><div class="stat-num" id="statBots">0</div><div class="stat-label">عدد البوتات</div></div>
+                <div class="stat-card"><div class="stat-icon" style="color:var(--danger)"><i class="fa-solid fa-triangle-exclamation"></i></div><div class="stat-num" id="statReports">0</div><div class="stat-label">البلاغات</div></div>
+            </div>
+        </div>
+
+        <div id="view-system" class="view-section">
+            <h2 style="margin-bottom:20px">إعدادات النظام</h2>
+            <div class="sys-panel" style="border-color:var(--danger); background:rgba(239,68,68,0.05)">
+                <div class="sys-title" style="color:var(--danger)"><i class="fa-solid fa-screwdriver-wrench"></i> وضع الصيانة</div>
+                <div class="switch-row">
+                    <span>إغلاق المنصة للجميع (ماعدا الأدمن)</span>
+                    <label class="switch"><input type="checkbox" id="chkMaint" onchange="toggleMaintenance()"><span class="slider round"></span></label>
+                </div>
+            </div>
+            <div class="sys-panel" style="border-color:var(--trend); background:rgba(255, 87, 34, 0.05)">
+                <div class="sys-title" style="color:var(--trend)"><i class="fa-solid fa-fire"></i> صناعة التريند</div>
+                <input type="text" id="trendTag" class="inp" placeholder="الهاشتاج (بدون #)">
+                <button class="btn" style="background:var(--trend)" onclick="setTrend()">تعيين التريند الأول</button>
+            </div>
+            <div class="sys-panel">
+                <div class="sys-title"><i class="fa-solid fa-bullhorn"></i> إذاعة عامة (Broadcast)</div>
+                <input type="text" id="bcTitle" class="inp" placeholder="العنوان">
+                <textarea id="bcBody" class="inp" placeholder="الرسالة..." rows="3"></textarea>
+                <button class="btn btn-primary" onclick="sendBroadcast()"><i class="fa-solid fa-paper-plane"></i> إرسال للكل</button>
+            </div>
+            <div class="sys-panel">
+                <div class="sys-title"><i class="fa-solid fa-panorama"></i> بانر التطبيق</div>
+                <input type="text" id="bannerUrl" class="inp" placeholder="رابط الصورة">
+                <button class="btn btn-success" onclick="saveBanner()">تحديث البانر</button>
+            </div>
+            <div class="sys-panel">
+                <div class="sys-title"><i class="fa-solid fa-filter"></i> فلتر الكلمات</div>
+                <textarea id="badWords" class="inp" placeholder="كلمة1, كلمة2" rows="4"></textarea>
+                <button class="btn btn-danger" onclick="saveBadWords()">حفظ</button>
+            </div>
+        </div>
+
+        <div id="view-ads" class="view-section">
+            <h2 style="margin-bottom:20px; color:var(--ad)">مدير الإعلانات</h2>
+            <div class="control-panel" style="border-color:var(--ad); background:rgba(139, 92, 246, 0.05)">
+                <div class="cp-title" style="color:var(--ad)"><i class="fa-solid fa-bullhorn"></i> إنشاء إعلان ممول</div>
+                <input type="text" id="adImage" class="inp" placeholder="رابط صورة الإعلان">
+                <input type="text" id="adLink" class="inp" placeholder="رابط التوجيه">
+                <textarea id="adText" class="inp" placeholder="نص الإعلان..." rows="3"></textarea>
+                <button class="btn btn-ad" onclick="createAd()"><i class="fa-solid fa-rocket"></i> نشر الإعلان</button>
+            </div>
+        </div>
+
+        <div id="view-users" class="view-section">
+            <h2 style="margin-bottom:20px">المستخدمين</h2>
+            <div class="control-panel" style="background:var(--bg-card); border-color:var(--border); padding:10px;">
+                <input type="text" class="inp" placeholder="بحث..." onkeyup="searchUsers(this.value)" style="margin:0">
+            </div>
+            <div class="grid" id="usersGrid"></div>
+        </div>
+
+        <div id="view-requests" class="view-section">
+            <h2 style="margin-bottom:20px">طلبات التوثيق</h2>
+            <div class="grid" id="requestsGrid"></div>
+        </div>
+
+        <div id="view-reports" class="view-section">
+            <h2 style="margin-bottom:20px">البلاغات</h2>
+            <div class="grid" id="reportsGrid"></div>
+        </div>
+
+        <div id="view-archive" class="view-section">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                <h2>الأرشيف</h2>
+                <button class="btn" style="background:var(--bg-card); font-size:12px; width:auto; padding:8px 15px;" onclick="loadArchive()"><i class="fa-solid fa-rotate"></i></button>
+            </div>
+            <div class="grid" id="archiveGrid"></div>
+        </div>
+
+        <div id="view-bot-control" class="view-section">
+            <h2 style="margin-bottom:20px; color:var(--bot)">غرفة التحكم</h2>
+            <div class="control-panel">
+                <div class="cp-title"><i class="fa-solid fa-industry"></i> مصنع البوتات</div>
+                <div class="row-flex" style="flex-wrap:wrap">
+                    <input type="text" id="botBaseName" class="inp" placeholder="الاسم" style="flex:2; min-width:120px">
+                    <input type="number" id="botCount" class="inp" placeholder="العدد" style="flex:1; min-width:80px">
+                    <input type="text" id="botFixedPass" class="inp" placeholder="السر (فاضي=359264)" style="flex:2; min-width:120px">
+                </div>
+                <button class="btn btn-bot" onclick="generateBots()"><i class="fa-solid fa-plus"></i> تصنيع</button>
+                <div id="genLog" style="font-size:11px; margin-top:10px; color:var(--text-muted); max-height:80px; overflow-y:auto;"></div>
+            </div>
+            <div class="control-panel">
+                <div class="cp-title"><i class="fa-solid fa-bullhorn"></i> نشر جماعي</div>
+                <textarea id="massPostText" class="inp" placeholder="اكتب المنشور..." rows="3"></textarea>
+                <input type="text" id="massPostVideo" class="inp" placeholder="رابط فيديو (اختياري)">
+                <div class="row-flex" style="margin-top:10px">
+                    <input type="number" id="massPostCount" class="inp" value="10" style="width:70px; margin:0">
+                    <button class="btn btn-success" style="flex:1" onclick="executeMassPost()">نشر</button>
+                </div>
+            </div>
+            <div class="control-panel">
+                <div class="cp-title"><i class="fa-solid fa-fire"></i> هجوم التفاعل</div>
+                <input type="text" id="targetPostId" class="inp" placeholder="ID المنشور">
+                <div class="row-flex">
+                    <button class="btn btn-danger" style="flex:1" onclick="massLike()">لايكات</button>
+                    <button class="btn btn-bot" style="flex:1; background:var(--primary)" onclick="massComment()">تعليقات</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-vault" class="view-section">
+            <h2 style="margin-bottom:20px">الخزنة</h2>
+            <div class="vault-container">
+                <table class="vault-table">
+                    <thead><tr><th>الاسم</th><th>البريد</th><th>السر</th><th>التاريخ</th></tr></thead>
+                    <tbody id="vaultBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="userModal">
+        <div class="m-box">
+            <div style="text-align:left; margin-bottom:10px;"><i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer" onclick="closeModal('userModal')"></i></div>
+            <div class="preview-header">
+                <div class="preview-av" id="pmAv"></div>
+                <div class="preview-name" id="pmName">User</div>
+                <div class="preview-email" id="pmEmail">email@example.com</div>
+            </div>
+            
+            <div class="sys-panel" style="padding:10px; margin-bottom:15px; border-color:var(--vip)">
+                <div style="font-size:12px; color:var(--vip); margin-bottom:5px"><i class="fa-solid fa-coins"></i> البنك المركزي</div>
+                <div class="row-flex">
+                    <input type="number" id="userWallet" class="inp" placeholder="الرصيد" style="margin:0">
+                    <button class="btn" style="background:var(--vip); width:auto" onclick="updateBalance()">تحديث</button>
+                </div>
+            </div>
+
+            <div style="border-top:1px solid #333; padding-top:15px; margin-bottom:15px;">
+                <div style="font-size:12px; color:#aaa; margin-bottom:5px"><i class="fa-solid fa-envelope"></i> رسالة إدارية خاصة</div>
+                <div class="row-flex">
+                    <input type="text" id="sysMsgTxt" class="inp" placeholder="اكتب الرسالة..." style="margin:0">
+                    <button class="btn" style="background:var(--primary); width:auto" onclick="sendSystemDM()">إرسال</button>
+                </div>
+            </div>
+
+            <div class="switch-row">
+                <span><i class="fa-solid fa-shield-halved" style="color:var(--safe)"></i> حصانة</span>
+                <label class="switch"><input type="checkbox" id="chkSafe" onchange="toggleSafe()"><span class="slider round"></span></label>
+            </div>
+            <div class="switch-row">
+                <span><i class="fa-solid fa-crown" style="color:var(--vip)"></i> توثيق (VIP)</span>
+                <label class="switch"><input type="checkbox" id="chkVip" onchange="toggleVip()"><span class="slider round"></span></label>
+            </div>
+            <div class="switch-row">
+                <span><i class="fa-solid fa-ghost" style="color:var(--shadow)"></i> حظر شبحي</span>
+                <label class="switch"><input type="checkbox" id="chkShadow" onchange="toggleShadowBan()"><span class="slider round"></span></label>
+            </div>
+
+            <div style="margin-top:20px;">
+                <input type="number" id="gmFake" class="inp" placeholder="متابعين وهميين">
+                <button class="btn btn-success" style="width:100%" onclick="saveFake()">حفظ المتابعين</button>
+            </div>
+            <button id="gmBanBtn" class="btn btn-danger" style="width:100%; margin-top:10px" onclick="toggleBan()">حظر الحساب</button>
+        </div>
+    </div>
+
+    <div class="modal" id="postModal">
+        <div class="m-box">
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
+                <h3>معاينة المنشور</h3>
+                <i class="fa-solid fa-xmark" style="font-size:20px; cursor:pointer" onclick="closeModal('postModal')"></i>
+            </div>
+            <div id="postPreviewContent"></div>
+            <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-top:10px; font-size:14px; max-height:100px; overflow-y:auto;" id="postPreviewText">نص المنشور...</div>
+            <div class="row-flex" style="margin-top:20px;">
+                <button class="btn btn-danger" onclick="deleteTargetPost()"><i class="fa-solid fa-trash"></i> حذف</button>
+                <div style="font-size:10px; color:var(--text-muted); flex:1; text-align:left;" id="postPreviewId">ID</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+
+        let allUsers = [], allBots = [];
+        let curUid = null, curData = null;
+        let curPostId = null;
+
+        auth.onAuthStateChanged(u => {
+            if(!u) location.href = "admin_login.html"; 
+            else {
+                loadStats();
+                loadSystemSettings();
+                loadUsers();
+                loadReports(); 
+                loadRequests(); 
+                loadArchive();
+                loadVault();
+            }
+        });
+
+        // --- UI Logic ---
+        function toggleSidebar() {
+            document.getElementById('mainSidebar').classList.toggle('active');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+        function switchView(id, btn) {
+            document.querySelectorAll('.view-section').forEach(e => e.classList.remove('active'));
+            document.getElementById('view-'+id).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            btn.classList.add('active');
+            toggleSidebar();
+        }
+        function closeModal(id) { document.getElementById(id).style.display='none'; }
+        function toast(m) { const t=document.getElementById('toast'); t.innerText=m; t.style.display="block"; setTimeout(()=>t.style.display="none",3000); }
+        function logout() { auth.signOut().then(()=>location.href="admin_login.html"); }
+
+        // --- Core Functions ---
+        function loadStats() {
+            db.collection("users").onSnapshot(snap => {
+                let u=0, b=0; snap.forEach(d => { if(d.data().isBot) b++; else u++; });
+                document.getElementById('statUsers').innerText = u; document.getElementById('statBots').innerText = b;
+            });
+            db.collection("posts").onSnapshot(snap => document.getElementById('statPosts').innerText = snap.size);
+            db.collection("reports").onSnapshot(snap => document.getElementById('statReports').innerText = snap.size);
+        }
+
+        // --- System Settings ---
+        function loadSystemSettings() {
+            db.collection("settings").doc("config").onSnapshot(doc => {
+                if(doc.exists) {
+                    const d = doc.data();
+                    document.getElementById('chkMaint').checked = d.maintenance || false;
+                    document.getElementById('bannerUrl').value = d.banner || "";
+                    document.getElementById('badWords').value = d.badWords ? d.badWords.join(", ") : "";
+                }
+            });
+            db.collection("settings").doc("trends").onSnapshot(doc => {
+                if(doc.exists) document.getElementById('trendTag').value = doc.data().top || "";
+            });
+        }
+        function toggleMaintenance() {
+            const v = document.getElementById('chkMaint').checked;
+            db.collection("settings").doc("config").set({maintenance: v}, {merge:true}).then(()=>toast("تم التحديث"));
+        }
+        function saveBanner() {
+            const v = document.getElementById('bannerUrl').value;
+            db.collection("settings").doc("config").set({banner: v}, {merge:true}).then(()=>toast("تم الحفظ"));
+        }
+        function saveBadWords() {
+            const v = document.getElementById('badWords').value;
+            const arr = v.split(",").map(w=>w.trim()).filter(w=>w);
+            db.collection("settings").doc("config").set({badWords: arr}, {merge:true}).then(()=>toast("تم الحفظ"));
+        }
+        function setTrend() {
+            const tag = document.getElementById('trendTag').value;
+            db.collection("settings").doc("trends").set({top: tag}, {merge:true}).then(()=>toast("تم تعيين التريند"));
+        }
+        
+        // --- Broadcast & System Messages (THE FIX IS HERE) ---
+        function sendBroadcast() {
+            const t = document.getElementById('bcTitle').value;
+            const b = document.getElementById('bcBody').value;
+            if(!t || !b) return toast("أكمل البيانات");
+            // إرسال كـ Broadcast عشان تظهر للكل
+            db.collection("notifications").add({
+                type: "broadcast", 
+                title: t, 
+                body: b, 
+                createdAt: new Date(),
+                read: false,
+                opened: false
+            }).then(()=> { 
+                toast("تم الإرسال للجميع"); 
+                document.getElementById('bcTitle').value=""; document.getElementById('bcBody').value=""; 
+            });
+        }
+
+        // إرسال رسالة خاصة لمستخدم معين
+        function sendSystemDM() {
+            const msg = document.getElementById('sysMsgTxt').value;
+            if(!msg) return toast("اكتب رسالة");
+            
+            // إضافة الإشعار في الكوليكشن الرئيسي
+            db.collection("notifications").add({
+                recipientId: curUid, // يروح للمستخدم الحالي بس
+                type: "system_msg", 
+                title: "رسالة إدارية", 
+                body: msg, 
+                createdAt: new Date(), 
+                read: false,
+                opened: false
+            }).then(() => { 
+                toast("تم الإرسال"); 
+                document.getElementById('sysMsgTxt').value=""; 
+            });
+        }
+
+        // --- Verification Logic (LINKED TO NOTIFICATIONS) ---
+        function loadRequests() {
+            db.collection("verification_requests").onSnapshot(snap => {
+                const g = document.getElementById("requestsGrid"); g.innerHTML="";
+                if(snap.empty) { g.innerHTML="<div style='text-align:center;padding:20px;color:#777'>لا توجد طلبات</div>"; return; }
+                snap.forEach(doc => {
+                    const r = doc.data();
+                    g.innerHTML += `
+                    <div class="card request-card">
+                        <div style="font-weight:bold; margin-bottom:5px">${r.name || 'مستخدم'}</div>
+                        <div style="font-size:12px;color:#aaa;margin-bottom:10px">ID: ${r.uid}</div>
+                        <div class="row-flex">
+                            <button class="btn btn-success" onclick="acceptVerify('${r.uid}', '${doc.id}')">قبول</button>
+                            <button class="btn btn-danger" onclick="rejectVerify('${doc.id}')">رفض</button>
+                        </div>
+                    </div>`;
+                });
+            });
+        }
+
+        // دالة القبول اللي بتبعت الإشعار
+        function acceptVerify(uid, reqId) {
+            db.collection("users").doc(uid).update({ isVerified: true, isVip: true }).then(() => {
+                // إرسال إشعار التوثيق (تعديل: للكوليكشن الرئيسي)
+                db.collection("notifications").add({
+                    recipientId: uid,
+                    type: "system_msg",
+                    title: "🎉 تم توثيق حسابك!",
+                    body: "تهانينا! تمت الموافقة على طلبك. حسابك الآن موثق رسمياً.",
+                    createdAt: new Date(),
+                    read: false,
+                    opened: false
+                });
+                // حذف الطلب
+                db.collection("verification_requests").doc(reqId).delete();
+                toast("تم التوثيق وإبلاغ المستخدم");
+            });
+        }
+        function rejectVerify(reqId) {
+            db.collection("verification_requests").doc(reqId).delete().then(()=>toast("تم الرفض"));
+        }
+
+        // --- Other Features (Ads, Users, Reports, Archive, Bots, Vault) ---
+        function createAd() {
+            const img=document.getElementById('adImage').value, link=document.getElementById('adLink').value, txt=document.getElementById('adText').value;
+            if(!img || !link) return toast("ناقص بيانات");
+            db.collection("posts").add({
+                text: txt, media: [{type:'image', url:img}], isAd: true, adLink: link,
+                createdAt: new Date(), likes: {}, commentsCount: 0
+            }).then(() => { toast("تم نشر الإعلان"); document.getElementById('adImage').value=""; });
+        }
+
+        function loadUsers() {
+            db.collection("users").onSnapshot(snap => {
+                allUsers=[]; allBots=[];
+                snap.forEach(d => { let u=d.data(); u.uid=d.id; allUsers.push(u); if(u.isBot) allBots.push(u); });
+                renderUsers(allUsers);
+            });
+        }
+        function renderUsers(list) {
+            const g=document.getElementById("usersGrid"); g.innerHTML="";
+            list.forEach(u => {
+                const av = u.profilePic ? `background-image:url('${u.profilePic}')` : `background:#333`;
+                g.innerHTML += `
+                <div class="card ${u.isBot?'bot':''}">
+                    <div class="card-header">
+                        <div class="u-av" style="${av}">${u.profilePic?'':(u.name||'U')[0]}</div>
+                        <div><div style="font-weight:bold">${u.name}</div><div style="font-size:11px;color:#aaa">${u.email}</div></div>
+                    </div>
+                    <button class="btn-control" onclick="openUserPreview('${u.uid}')"><i class="fa-solid fa-sliders"></i> تحكم</button>
+                </div>`;
+            });
+        }
+        function searchUsers(v) { renderUsers(allUsers.filter(u=>(u.name||"").toLowerCase().includes(v.toLowerCase())||u.email.toLowerCase().includes(v.toLowerCase()))); }
+
+        function loadReports() {
+            db.collection("reports").orderBy("createdAt", "desc").limit(20).onSnapshot(snap => {
+                const g=document.getElementById("reportsGrid"); g.innerHTML="";
+                if(snap.empty) { g.innerHTML="<div style='text-align:center;padding:20px;color:#777'>لا بلاغات</div>"; return; }
+                snap.forEach(doc => {
+                    const r=doc.data();
+                    g.innerHTML += `<div class="card report-card"><div class="r-reason">${r.reason||"بدون سبب"}</div><div class="r-meta"><span>من: ${r.reporterUid?r.reporterUid.slice(0,5):'??'}..</span><button style="border:none;background:none;color:var(--primary)" onclick="navigator.clipboard.writeText('${r.postId}');toast('تم النسخ')">ID</button></div></div>`;
+                });
+            });
+        }
+
+        function loadArchive() {
+            db.collection("posts").orderBy("createdAt", "desc").limit(50).onSnapshot(snap => {
+                const g=document.getElementById("archiveGrid"); g.innerHTML="";
+                snap.forEach(doc => {
+                    const p=doc.data();
+                    let m = '<i class="fa-solid fa-align-left fa-2x" style="color:#555"></i>';
+                    if(p.media && p.media[0]) m = p.media[0].type==='video' ? `<video src="${p.media[0].url}#t=1"></video>` : `<img src="${p.media[0].url}">`;
+                    const pJson = JSON.stringify({id: doc.id, ...p}).replace(/"/g, '&quot;');
+                    g.innerHTML += `<div class="archive-card" onclick="openPostPreview(${pJson})"><div class="ac-media">${m}</div><div class="ac-body"><div class="ac-text">${p.text||''}</div></div></div>`;
+                });
+            });
+        }
+        function openPostPreview(post) {
+            curPostId = post.id;
+            const d = document.getElementById('postPreviewContent'); d.innerHTML="";
+            if(post.media && post.media[0]) d.innerHTML = post.media[0].type==='video' ? `<div class="post-preview-media"><video src="${post.media[0].url}" controls></video></div>` : `<div class="post-preview-media"><img src="${post.media[0].url}"></div>`;
+            document.getElementById('postPreviewText').innerText = post.text || "";
+            document.getElementById('postPreviewId').innerText = "ID: " + post.id;
+            document.getElementById('postModal').style.display = 'flex';
+        }
+        function deleteTargetPost() { if(confirm("حذف؟")) db.collection("posts").doc(curPostId).delete().then(()=>{toast("تم الحذف"); closeModal('postModal');}); }
+
+        async function generateBots() {
+            const name=document.getElementById('botBaseName').value, count=document.getElementById('botCount').value, pass=document.getElementById('botFixedPass').value||"359264";
+            if(!name || !count) return toast("بيانات ناقصة");
+            const tempApp = firebase.initializeApp(firebaseConfig, "BotGen");
+            toast("جاري التصنيع...");
+            for(let i=1; i<=count; i++) {
+                try {
+                    const em = `bot.${Date.now()}.${i}@nabd.ai`;
+                    const c = await tempApp.auth().createUserWithEmailAndPassword(em, pass);
+                    await db.collection("users").doc(c.user.uid).set({name:`${name} ${i}`, email:em, isBot:true, createdAt:new Date(), profilePic:"", isVerified:false});
+                    await db.collection("admin_bot_vault").add({name:`${name} ${i}`, email:em, password:pass, createdAt:new Date()});
+                    document.getElementById('genLog').innerHTML += `<div>تم: ${name} ${i}</div>`;
+                } catch(e) {}
+            }
+            await tempApp.delete(); toast("تم الانتهاء");
+        }
+
+        function loadVault() {
+            db.collection("admin_bot_vault").onSnapshot(snap => {
+                const b=document.getElementById("vaultBody"); b.innerHTML="";
+                snap.forEach(d => {
+                    const v=d.data();
+                    const dt = v.createdAt ? new Date(v.createdAt.seconds*1000).toLocaleDateString() : '-';
+                    b.innerHTML += `<tr><td>${v.name}</td><td style="font-family:monospace;color:var(--primary)">${v.email}</td><td class="blur-pass" onclick="this.classList.toggle('blur-pass')">${v.password}</td><td>${dt}</td></tr>`;
+                });
+            });
+        }
+
+        function openUserPreview(uid) {
+            curUid = uid; curData = allUsers.find(u => u.uid === uid);
+            document.getElementById('pmName').innerText = curData.name;
+            document.getElementById('pmEmail').innerText = curData.email;
+            document.getElementById('pmAv').innerText = (curData.name||"U")[0];
+            document.getElementById('pmAv').style.backgroundImage = curData.profilePic ? `url('${curData.profilePic}')` : 'none';
+            document.getElementById('chkSafe').checked = curData.isSafe||false;
+            document.getElementById('chkVip').checked = curData.isVip||false;
+            document.getElementById('chkShadow').checked = curData.isShadowBanned||false;
+            document.getElementById('userWallet').value = curData.balance||0;
+            document.getElementById('gmFake').value = curData.fakeFollowersCount||0;
+            const btn = document.getElementById('gmBanBtn');
+            btn.innerText = curData.isDisabled ? "فك الحظر" : "حظر الحساب";
+            btn.className = curData.isDisabled ? "btn btn-success" : "btn btn-danger";
+            document.getElementById('userModal').style.display = 'flex';
+        }
+
+        function toggleSafe() { db.collection("users").doc(curUid).update({isSafe: document.getElementById('chkSafe').checked}).then(()=>toast("تم")); }
+        function toggleVip() { const v=document.getElementById('chkVip').checked; db.collection("users").doc(curUid).update({isVip:v, isVerified:v}).then(()=>toast("تم")); }
+        function toggleShadowBan() { const v=document.getElementById('chkShadow').checked; db.collection("users").doc(curUid).update({isShadowBanned:v}).then(()=>toast("تم")); }
+        function updateBalance() { db.collection("users").doc(curUid).update({balance: parseInt(document.getElementById('userWallet').value)||0}).then(()=>toast("تم")); }
+        function toggleBan() { if(curData.isSafe) return toast("محصن!"); db.collection("users").doc(curUid).update({isDisabled: !curData.isDisabled}).then(()=>{ closeModal('userModal'); toast("تم"); }); }
+        function saveFake() { db.collection("users").doc(curUid).update({fakeFollowersCount: parseInt(document.getElementById('gmFake').value)||0}).then(()=>toast("تم")); }
+
+        async function executeMassPost() {
+            const txt=document.getElementById('massPostText').value, vid=document.getElementById('massPostVideo').value, limit=document.getElementById('massPostCount').value;
+            if(!txt && !vid) return toast("فارغ!");
+            const bots = allBots.slice(0, limit);
+            const batch = db.batch();
+            bots.forEach(b => {
+                const ref = db.collection("posts").doc();
+                batch.set(ref, {uid:b.uid, text:txt, createdAt:new Date(), likes:{}, commentsCount:0, visibility:'public', media: vid?[{type:'video', url:vid}]:[]});
+            });
+            await batch.commit(); toast("تم النشر");
+        }
+        async function massLike() {
+            const pid=document.getElementById('targetPostId').value; if(!pid) return toast("أدخل ID");
+            const bots = allBots.slice(0, 20); const ref = db.collection("posts").doc(pid);
+            await db.runTransaction(async t => { const doc = await t.get(ref); let l = doc.data().likes || {}; bots.forEach(b => l[b.uid]=true); t.update(ref, {likes:l}); });
+            toast("تم");
+        }
+        async function massComment() {
+            const pid=document.getElementById('targetPostId').value, txt=prompt("التعليق:"); if(!pid || !txt) return;
+            const bots = allBots.slice(0, 10); const batch = db.batch();
+            bots.forEach(b => { batch.set(db.collection("posts").doc(pid).collection("comments").doc(), { uid:b.uid, name:b.name, pic:b.profilePic||"", text:txt, createdAt:new Date(), isBot:true }); });
+            batch.update(db.collection("posts").doc(pid), {commentsCount: firebase.firestore.FieldValue.increment(bots.length)});
+            await batch.commit(); toast("تم");
+        }
+    </script>
+</body>
+</html>

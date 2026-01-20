@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>هدايا النبض - NABD</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5D5FEF;
+            --gold: #ffcc00;
+            --dark-bg: #0d0d0f;
+            --card-bg: #161616;
+            --neon-green: #3fff00;
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: white;
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header-stats {
+            width: 90%;
+            max-width: 400px;
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            border: 1px solid #222;
+            margin-top: 20px;
+        }
+
+        .game-container {
+            background: var(--card-bg);
+            padding: 25px 15px;
+            border-radius: 30px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            border: 1px solid #222;
+            margin-top: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+            background: #000;
+            padding: 15px 5px;
+            border-radius: 15px;
+            margin: 20px 0;
+            overflow: hidden;
+            border: 2px solid #222;
+        }
+
+        .reel {
+            width: 60px;
+            height: 80px;
+            background: #111;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .strip {
+            position: absolute;
+            width: 100%;
+            transition: transform 3s cubic-bezier(0.1, 0, 0.1, 1);
+        }
+
+        .symbol {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .btn-spin {
+            background: linear-gradient(180deg, var(--primary), #3b3dbb);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 900;
+            cursor: pointer;
+        }
+
+        .btn-spin:disabled { opacity: 0.4; }
+
+        .paytable {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 11px;
+            margin-top: 15px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-stats">
+        <span>اللفات: <b id="tries">--/20</b></span>
+        <span style="color:var(--neon-green)">💰 <span id="balance">0</span></span>
+    </div>
+
+    <div class="game-container">
+        <h2 style="margin:0; color:var(--gold);">🎰 هدايا النبض</h2>
+        <p style="font-size: 12px; color:#666;">اربح نقاط حقيقية تضاف لحسابك</p>
+
+        <div class="slot-machine" id="machine">
+            <div class="reel"><div class="strip" id="s0"></div></div>
+            <div class="reel"><div class="strip" id="s1"></div></div>
+            <div class="reel"><div class="strip" id="s2"></div></div>
+            <div class="reel"><div class="strip" id="s3"></div></div>
+            <div class="reel"><div class="strip" id="s4"></div></div>
+        </div>
+
+        <div id="msg" style="margin-bottom: 15px; font-weight: bold;">اضغط SPIN لتبدأ</div>
+        <button class="btn-spin" id="spinBtn" onclick="handleSpin()" disabled>جاري التحميل...</button>
+
+        <div class="paytable">
+            <div>5 أشكال = 500ن</div>
+            <div>4 أشكال = 50ن</div>
+            <div>3 أشكال = 5ن</div>
+            <div>ظهور 💎 = 1ن</div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // 1. إعدادات Firebase (نفس إعداداتك بالظبط)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com", 
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+
+        const symbols = ["🍎", "🍒", "🌟", "🚀", "⚡", "🍀", "💎", "💰"];
+        let userRef = null;
+        let dailyTries = 0;
+
+        // 2. الربط مع بيانات المستخدم
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                userRef = db.collection('users').doc(user.uid);
+                await syncData();
+                document.getElementById('spinBtn').disabled = false;
+                document.getElementById('spinBtn').innerText = "SPIN 🚀";
+            } else {
+                window.location.href = "index.html"; // لو مش مسجل يخرجه
+            }
+        });
+
+        async function syncData() {
+            const doc = await userRef.get();
+            if (doc.exists) {
+                const data = doc.data();
+                const today = new Date().toLocaleDateString('en-US');
+
+                if (data.lastSpinDate !== today) {
+                    await userRef.update({ dailyTries: 20, lastSpinDate: today });
+                    dailyTries = 20;
+                } else {
+                    dailyTries = data.dailyTries || 0;
+                }
+                document.getElementById('tries').innerText = `${dailyTries}/20`;
+                document.getElementById('balance').innerText = data.points || 0;
+            }
+        }
+
+        // تهيئة البكرات بالصور
+        function init() {
+            for (let i = 0; i < 5; i++) {
+                const s = document.getElementById(`s${i}`);
+                for (let j = 0; j < 30; j++) {
+                    const d = document.createElement('div');
+                    d.className = 'symbol';
+                    d.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                    s.appendChild(d);
+                }
+            }
+        }
+        init();
+
+        async function handleSpin() {
+            if (dailyTries <= 0) {
+                alert("خلصت لفاتك النهاردة، استنى لبكرة!");
+                return;
+            }
+
+            const btn = document.getElementById('spinBtn');
+            btn.disabled = true;
+            document.getElementById('msg').innerText = "جاري اللف... 🎰";
+
+            let res = [];
+            const isWin = Math.random() < 0.05; // 5% نسبة الفوز بـ 500
+            const winSym = symbols[Math.floor(Math.random() * symbols.length)];
+
+            for (let i = 0; i < 5; i++) {
+                const strip = document.getElementById(`s${i}`);
+                const final = isWin ? winSym : symbols[Math.floor(Math.random() * symbols.length)];
+                res.push(final);
+
+                strip.lastElementChild.innerText = final;
+                strip.style.transition = 'none';
+                strip.style.transform = 'translateY(0)';
+                
+                setTimeout(() => {
+                    strip.style.transition = `transform ${2 + i * 0.3}s cubic-bezier(0.1, 0, 0.1, 1)`;
+                    strip.style.transform = `translateY(-${29 * 80}px)`;
+                }, 50);
+            }
+
+            setTimeout(async () => {
+                await processResult(res);
+                btn.disabled = false;
+            }, 4000);
+        }
+
+        async function processResult(res) {
+            const counts = {};
+            res.forEach(x => counts[x] = (counts[x] || 0) + 1);
+            const max = Math.max(...Object.values(counts));
+            
+            let prize = 0;
+            if (max === 5) prize = 500;
+            else if (max === 4) prize = 50;
+            else if (max === 3) prize = 5;
+            else if (res.includes("💎")) prize = 1;
+
+            // تحديث السيرفر
+            await userRef.update({
+                points: firebase.firestore.FieldValue.increment(prize),
+                dailyTries: firebase.firestore.FieldValue.increment(-1)
+            });
+
+            await syncData(); // تحديث الأرقام على الشاشة
+
+            const msg = document.getElementById('msg');
+            if (prize > 0) {
+                msg.innerText = `مبروك! كسبت ${prize} نقطة 🎉`;
+                msg.style.color = "#3fff00";
+            } else {
+                msg.innerText = "حظ أوفر المرة القادمة!";
+                msg.style.color = "#777";
+            }
+        }
+    </script>
+</body>
+</html>

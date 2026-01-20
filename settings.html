@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NABD - الإعدادات</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+<style>
+/* ================= CSS Styles (الوضع الليلي الافتراضي) ================= */
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Tahoma,Verdana,sans-serif;transition:all .2s ease-in-out}
+body{background:#0d0d0f;color:#fff}
+a{text-decoration:none;color:inherit}
+
+/* HEADER */
+.header{
+    display:flex;justify-content:flex-start;align-items:center;
+    padding:18px 15px;font-size:20px;font-weight:900;
+    border-bottom:1px solid #1f1f23;position:sticky;top:0;
+    background:#0d0d0f;z-index:50;
+}
+.header-btn{cursor:pointer;font-size:22px;color:#7c3aed; margin-left: 15px;}
+.header-name{font-size:20px;font-weight:700;}
+
+/* SETTINGS CONTAINER */
+.settings-container{
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+.setting-section h2{
+    color: #7c3aed;
+    font-size: 18px;
+    padding: 10px 0;
+    margin-top: 25px;
+    border-bottom: 2px solid #1f1f23;
+}
+
+/* SETTING ITEM */
+.setting-item{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:15px 0;
+    border-bottom:1px solid #1f1f23;
+    cursor:pointer;
+}
+.setting-item:last-child{
+    border-bottom:none;
+}
+.setting-info{
+    display:flex;align-items:center;gap:15px;
+}
+.setting-info i{
+    font-size: 20px;
+    width: 30px;
+    text-align: center;
+    color: #7c3aed;
+}
+.setting-label{
+    font-size: 16px;
+}
+.setting-action{
+    font-size: 14px;
+    opacity: 0.7;
+}
+
+/* Theme Toggle Switch */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 28px;
+}
+.switch input {opacity: 0; width: 0; height: 0;}
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 28px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+input:checked + .slider {
+    background-color: #7c3aed;
+}
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
+
+/* Specific Styles */
+.danger-zone .setting-info i, .danger-zone .setting-label {
+    color: #ff5555;
+}
+
+/* ================= LIGHT MODE STYLES (تمت الإضافة) ================= */
+body.light-mode {
+    background: #f0f2f5; 
+    color: #1a1a1a;     
+}
+body.light-mode .header {
+    background: #fff;
+    border-bottom-color: #e0e0e0;
+}
+body.light-mode .setting-section h2 {
+    border-bottom-color: #e0e0e0;
+}
+body.light-mode .setting-item {
+    border-bottom-color: #e0e0e0;
+}
+body.light-mode .setting-info i {
+    color: #3f51b5; 
+}
+</style>
+</head>
+
+<body class="dark-mode"> 
+
+<div id="reauthModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:100; align-items:center; justify-content:center; flex-direction:column; padding:20px;">
+    <div style="background:#1c1c1c; padding:30px; border-radius:10px; max-width:350px; width:100%;">
+        <h3 style="color:#ff5555; margin-bottom:15px; text-align:center;">تأكيد حذف الحساب</h3>
+        <p style="margin-bottom:15px;">الرجاء إدخال كلمة المرور الحالية للمتابعة:</p>
+        <input type="password" id="reauthPassword" placeholder="كلمة المرور الحالية" style="width:100%; padding:10px; margin-bottom:15px; background:#0d0d0f; border:1px solid #333; border-radius:8px; color:#fff;">
+        
+        <div style="display:flex; justify-content:space-between;">
+            <button onclick="document.getElementById('reauthModal').style.display='none'" style="background:#333; color:#ccc; padding:10px; border:none; border-radius:8px; flex:1; margin-left:10px;">إلغاء</button>
+            <button onclick="reauthenticateAndDelete()" style="background:#ff5555; color:#fff; padding:10px; border:none; border-radius:8px; flex:1;">تأكيد الحذف</button>
+        </div>
+        <p id="reauthError" style="color:red; margin-top:10px; font-size:12px; display:none; text-align:center;"></p>
+    </div>
+</div>
+<div class="header">
+  <i class="fa-solid fa-arrow-right header-btn" onclick="goBack()"></i>
+  <span class="header-name">الإعدادات</span>
+</div>
+
+<div class="settings-container">
+    
+    <div class="setting-section">
+        <h2><i class="fa-solid fa-paintbrush"></i> المظهر</h2>
+        
+        <div class="setting-item" style="cursor: default;">
+            <div class="setting-info">
+                <i class="fa-solid fa-moon"></i>
+                <span class="setting-label">الوضع الليلي / الوضع الفاتح</span>
+            </div>
+            <label class="switch">
+                <input type="checkbox" id="themeToggle" onchange="toggleTheme()">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </div>
+
+    <div class="setting-section">
+        <h2><i class="fa-solid fa-user-gear"></i> الحساب والملف الشخصي</h2>
+        
+        <div class="setting-item" onclick="location.href=getFilePath('edit.html')">
+            <div class="setting-info">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <span class="setting-label">تعديل الملف الشخصي</span>
+            </div>
+            <div class="setting-action"><i class="fa-solid fa-chevron-left"></i></div>
+        </div>
+    </div>
+    
+    <div class="setting-section">
+        <h2><i class="fa-solid fa-shield-halved"></i> الخصوصية والأمان</h2>
+        
+        <div class="setting-item" onclick="location.href=getFilePath('security.html')">
+            <div class="setting-info">
+                <i class="fa-solid fa-lock"></i>
+                <span class="setting-label">تغيير كلمة المرور وإعدادات الأمان</span>
+            </div>
+            <div class="setting-action"><i class="fa-solid fa-chevron-left"></i></div>
+        </div>
+    </div>
+    
+    <div class="setting-section danger-zone">
+        <h2><i class="fa-solid fa-fire-extinguisher"></i> إعدادات أخرى</h2>
+
+        <div class="setting-item" onclick="logout()">
+            <div class="setting-info">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span class="setting-label">تسجيل الخروج</span>
+            </div>
+            <div class="setting-action"><i class="fa-solid fa-chevron-left"></i></div>
+        </div>
+        
+        <div class="setting-item" onclick="confirmDeleteAccount()">
+            <div class="setting-info">
+                <i class="fa-solid fa-trash-can"></i>
+                <span class="setting-label">حذف الحساب نهائياً</span>
+            </div>
+            <div class="setting-action"><i class="fa-solid fa-chevron-left"></i></div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script>
+// 🚨 المسار الأساسي لملفات NABD 🚨
+const BASE_PATH = 'file:///storage/emulated/0/NABD/';
+
+function getFilePath(fileName) {
+    return BASE_PATH + fileName;
+}
+
+
+// إعداد Firebase 
+firebase.initializeApp({
+  apiKey:"AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c", 
+  authDomain:"pools-e4381.firebaseapp.com",
+  projectId:"pools-e4381"
+});
+
+const auth = firebase.auth();
+const themeToggleEl = document.getElementById('themeToggle');
+const reauthPasswordEl = document.getElementById('reauthPassword');
+const reauthErrorEl = document.getElementById('reauthError');
+
+// التحقق من حالة المصادقة (لضمان بقاء المستخدم في settings.html إذا كان مسجل الدخول)
+auth.onAuthStateChanged(user => {
+    if (!user) {
+        // إذا لم يكن مسجل الدخول، وجهه إلى صفحة الدخول (index.html)
+        location.href = getFilePath("index.html"); 
+    } 
+});
+
+
+/* 1. وظائف التحكم في المظهر (Theme Toggle) */
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+        themeToggleEl.checked = true;
+    } else {
+        document.body.classList.remove('light-mode');
+        themeToggleEl.checked = false;
+    }
+}
+
+function toggleTheme() {
+    if (themeToggleEl.checked) {
+        document.body.classList.add('light-mode');
+        localStorage.setItem('theme', 'light');
+    } else {
+        document.body.classList.remove('light-mode');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// تحميل المظهر عند فتح الصفحة
+window.onload = loadTheme;
+
+
+/* 2. باقي الدوال الأساسية */
+function goBack() {
+  // 🚨 تم التعديل هنا ليعود إلى الصفحة الرئيسية (home.html) 🚨
+  location.href = getFilePath("home.html"); 
+}
+
+function logout() {
+    auth.signOut().then(() => {
+        // 🚨 تم التعديل هنا ليعود إلى صفحة تسجيل الدخول (index.html) 🚨
+        location.href = getFilePath("index.html"); 
+    }).catch(error => {
+        alert("حدث خطأ في تسجيل الخروج: " + error.message);
+    });
+}
+
+
+/* 3. وظائف حذف الحساب (إعادة المصادقة + الحذف) */
+
+function confirmDeleteAccount() {
+    // عرض نافذة المودال لطلب كلمة المرور
+    document.getElementById('reauthModal').style.display='flex';
+    reauthPasswordEl.value = '';
+    reauthErrorEl.style.display = 'none';
+}
+
+function reauthenticateAndDelete() {
+    const password = reauthPasswordEl.value;
+    const user = auth.currentUser;
+    
+    if (!user) {
+        reauthErrorEl.innerText = "لا يوجد مستخدم مسجل حالياً.";
+        reauthErrorEl.style.display = 'block';
+        return;
+    }
+    
+    if (!password) {
+        reauthErrorEl.innerText = "الرجاء إدخال كلمة المرور.";
+        reauthErrorEl.style.display = 'block';
+        return;
+    }
+
+    const credentials = firebase.auth.EmailAuthProvider.credential(
+        user.email, 
+        password
+    );
+
+    // 1. إعادة المصادقة للتأكد من أن المستخدم الحالي هو المالك
+    user.reauthenticateWithCredential(credentials)
+        .then(() => {
+            // 2. نجحت إعادة المصادقة، الآن يمكن حذف الحساب
+            user.delete()
+                .then(() => {
+                    alert("تم حذف حسابك بنجاح. نعتذر لرؤيتك ترحل.");
+                    document.getElementById('reauthModal').style.display='none';
+                    // 3. التوجيه إلى صفحة التسجيل بعد الحذف باستخدام المسار المطلق
+                    location.href = getFilePath("index.html"); 
+                })
+                .catch(error => {
+                    // فشل الحذف
+                    reauthErrorEl.innerText = "فشل حذف الحساب: " + error.message;
+                    reauthErrorEl.style.display = 'block';
+                });
+        })
+        .catch(error => {
+            // فشل إعادة المصادقة (كلمة مرور غير صحيحة)
+            reauthErrorEl.innerText = "كلمة المرور غير صحيحة أو حسابك قديم جداً ويتطلب تسجيل دخول جديد.";
+            reauthErrorEl.style.display = 'block';
+        });
+}
+</script>
+
+</body>
+</html>

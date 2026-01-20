@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4634861441378149"
+     crossorigin="anonymous"></script>
+    <title>Wareed - تسجيل الدخول</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* نفس الستايل القديم بالظبط مع إضافات بسيطة */
+        :root {
+            --bg-color: #0d0d0f; --card-color: #161616; --primary-color: #00C6FF;
+            --primary-gradient: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%);
+            --text-color: #eee; --secondary-text: #aaa; --border-color: #333;
+            --input-bg: #1f1f1f; --success-color: #00e676; --error-color: #ff1744;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; }
+        
+        body {
+            background: var(--bg-color); color: var(--text-color); min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            background-image: radial-gradient(circle at 50% 0%, rgba(0, 198, 255, 0.1), transparent 50%);
+        }
+
+        /* شاشة التحميل */
+        #loading-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 9999; transition: opacity 0.5s ease-out;
+        }
+        .loading-logo { font-size: 80px; color: var(--primary-color); animation: pulse 1.5s infinite ease-in-out; display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .loading-logo span { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: 2px; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
+        .progress-container { width: 200px; height: 6px; background-color: #222; border-radius: 10px; overflow: hidden; position: relative; }
+        .progress-bar { height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 10px; animation: fillProgress 2.5s ease-out forwards; }
+        @keyframes fillProgress { 0% { width: 0%; } 100% { width: 100%; } }
+
+        /* النوافذ المنبثقة (Modals) */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center;
+            z-index: 5000; backdrop-filter: blur(5px);
+        }
+        .modal-card {
+            background: #1a1a1a; width: 90%; max-width: 350px; padding: 25px;
+            border-radius: 20px; border: 1px solid var(--border-color); text-align: center;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8); transform: scale(0.8);
+            animation: popUp 0.3s forwards cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popUp { to { transform: scale(1); } }
+        .modal-icon { font-size: 50px; color: var(--primary-color); margin-bottom: 15px; }
+        .modal-title { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 10px; }
+        .modal-desc { font-size: 14px; color: #aaa; margin-bottom: 20px; line-height: 1.6; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #333; color: #fff; font-weight: bold; cursor: pointer; }
+        .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; }
+        .btn-full { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; }
+
+        /* باقي التنسيقات */
+        #main-content { display: none; width: 100%; padding: 20px; align-items: center; justify-content: center; }
+        .auth-card { background: var(--card-color); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; position: relative; overflow: hidden; animation: fadeIn 0.8s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        .logo-area { margin-bottom: 30px; display: inline-flex; align-items: center; gap: 10px; font-size: 32px; font-weight: 900; color: #fff; }
+        .logo-icon { color: var(--primary-color); filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.5)); }
+        h2 { margin-bottom: 10px; font-weight: 800; }
+        p { color: var(--secondary-text); font-size: 14px; margin-bottom: 30px; }
+        .input-group { position: relative; margin-bottom: 15px; text-align: right; }
+        .custom-input { width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); padding: 14px 45px 14px 45px; border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: 0.3s; }
+        .custom-input.valid { border-color: var(--success-color); } .custom-input.invalid { border-color: var(--error-color); }
+        .custom-input:focus { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 198, 255, 0.1); }
+        .input-icon { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: var(--secondary-text); }
+        .custom-input:focus ~ .input-icon { color: var(--primary-color); }
+        .toggle-pass { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: #555; cursor: pointer; transition: 0.3s; z-index: 10; }
+        .toggle-pass:hover { color: #fff; }
+        .btn-primary { width: 100%; padding: 14px; background: var(--primary-gradient); border: none; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 5px 20px rgba(0, 198, 255, 0.3); }
+        .btn-primary:active { transform: scale(0.98); } .btn-primary:disabled { opacity: 0.7; cursor: not-allowed; }
+        .switch-link { margin-top: 20px; font-size: 14px; color: var(--secondary-text); }
+        .switch-link span { color: var(--primary-color); font-weight: 700; cursor: pointer; text-decoration: underline; }
+        .forgot-pass-link { display: block; text-align: left; font-size: 12px; color: #777; margin-top: 5px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
+        .forgot-pass-link:hover { color: var(--primary-color); }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 25px; border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; white-space: nowrap; border: 1px solid var(--border-color); }
+        #toast.show { opacity: 1; bottom: 50px; }
+    </style>
+</head>
+<body>
+    <audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="successSound" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+
+    <div id="loading-screen">
+        <div class="loading-logo">
+            <i class="fa-solid fa-heart-pulse"></i> <span>Wareed</span>
+        </div>
+        <div class="progress-container"><div class="progress-bar"></div></div>
+    </div>
+
+    <div class="modal-overlay" id="forgotModal">
+        <div class="modal-card">
+            <div class="modal-icon"><i class="fa-solid fa-lock-open"></i></div>
+            <div class="modal-title">نسيت كلمة المرور؟</div>
+            <div class="modal-desc">ولا يهمك! اكتب إيميلك وهنبعتلك رابط تعمل باسورد جديد.</div>
+            <div class="input-group">
+                <input type="email" id="resetEmail" class="custom-input" placeholder="البريد الإلكتروني">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('forgotModal')">إلغاء</button>
+                <button class="btn-confirm" onclick="confirmReset()">إرسال الرابط</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="verifyModal">
+        <div class="modal-card">
+            <div class="modal-icon"><i class="fa-solid fa-envelope-circle-check"></i></div>
+            <div class="modal-title">أكد بريدك الإلكتروني</div>
+            <div class="modal-desc">بعتنالك رابط تفعيل على الإيميل بتاعك. لازم تدوس عليه عشان تقدر تدخل التطبيق.</div>
+            
+            <button class="btn-full" onclick="closeModal('verifyModal'); toggleForms();">تمام، هروح أفعله</button>
+            <div style="margin-top:10px; font-size:12px; color:#777;">لم يصلك؟ <span onclick="resendVerification()" style="color:var(--primary-color); cursor:pointer;">إعادة الإرسال</span></div>
+        </div>
+    </div>
+
+    <div id="main-content">
+        <div class="auth-card" id="loginForm">
+            <div class="logo-area"><i class="fa-solid fa-heart-pulse logo-icon"></i><span>Wareed</span></div>
+            <h2>مرحباً بك مجدداً 👋</h2>
+            <p>سجل الدخول للمتابعة إلى عالمك</p>
+
+            <div class="input-group">
+                <input type="email" id="loginEmail" class="custom-input" placeholder="البريد الإلكتروني" onkeyup="validateEmail(this)">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+            <div class="input-group">
+                <input type="password" id="loginPass" class="custom-input" placeholder="كلمة المرور" onkeyup="validatePass(this)">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <i class="fa-solid fa-eye toggle-pass" onclick="togglePasswordVisibility('loginPass', this)"></i>
+            </div>
+            
+            <span class="forgot-pass-link" onclick="playClick(); openModal('forgotModal')">نسيت كلمة المرور؟</span>
+
+            <button class="btn-primary" onclick="playClick(); loginAction()" id="loginBtn">تسجيل الدخول</button>
+            <div class="switch-link">ليس لديك حساب؟ <span onclick="playClick(); toggleForms()">إنشاء حساب جديد</span></div>
+        </div>
+
+        <div class="auth-card" id="signupForm" style="display: none;">
+            <div class="logo-area"><i class="fa-solid fa-heart-pulse logo-icon"></i><span>Wareed</span></div>
+            <h2>حساب جديد 🚀</h2>
+            <p>انضم إلينا وابدأ رحلتك الآن</p>
+
+            <div class="input-group">
+                <input type="text" id="regName" class="custom-input" placeholder="الاسم الكامل">
+                <i class="fa-solid fa-user input-icon"></i>
+            </div>
+            <div class="input-group">
+                <input type="email" id="regEmail" class="custom-input" placeholder="البريد الإلكتروني" onkeyup="validateEmail(this)">
+                <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+            <div class="input-group">
+                <input type="password" id="regPass" class="custom-input" placeholder="كلمة المرور" onkeyup="validatePass(this)">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <i class="fa-solid fa-eye toggle-pass" onclick="togglePasswordVisibility('regPass', this)"></i>
+            </div>
+
+            <button class="btn-primary" onclick="playClick(); signupAction()" id="regBtn">إنشاء الحساب</button>
+            <div class="switch-link">لديك حساب بالفعل؟ <span onclick="playClick(); toggleForms()">تسجيل الدخول</span></div>
+        </div>
+    </div>
+
+    <div id="toast"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+        let userIsLoggedIn = false;
+        function playClick() { document.getElementById("clickSound").play().catch(()=>{}); }
+        function playSuccess() { document.getElementById("successSound").play().catch(()=>{}); }
+
+        // إدارة المودال (نوافذ)
+        function openModal(id) {
+            if(id === 'forgotModal') document.getElementById('resetEmail').value = document.getElementById('loginEmail').value;
+            document.getElementById(id).style.display = "flex";
+        }
+        function closeModal(id) { document.getElementById(id).style.display = "none"; }
+
+        // إعادة إرسال رابط التفعيل
+        function resendVerification() {
+            if(auth.currentUser) {
+                auth.currentUser.sendEmailVerification()
+                .then(() => showToast("✅ تم إرسال الرابط مرة أخرى"))
+                .catch((e) => showToast("❌ انتظر قليلاً قبل المحاولة مجدداً"));
+            }
+        }
+
+        function confirmReset() {
+            playClick();
+            const email = document.getElementById('resetEmail').value;
+            if(!email) return showToast("⚠️ اكتب الإيميل الأول");
+            const btn = document.querySelector('.btn-confirm');
+            const originalText = btn.innerText;
+            btn.innerText = "جاري الإرسال..."; btn.disabled = true;
+
+            auth.sendPasswordResetEmail(email)
+                .then(() => {
+                    closeModal('forgotModal'); playSuccess();
+                    showToast("✅ تم إرسال الرابط! راجع بريدك");
+                    btn.innerText = originalText; btn.disabled = false;
+                })
+                .catch((error) => {
+                    showToast("❌ الإيميل ده مش متسجل عندنا");
+                    btn.innerText = originalText; btn.disabled = false;
+                });
+        }
+
+        // --- تسجيل الدخول (مع التحقق من التفعيل) ---
+        async function loginAction() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const btn = document.getElementById('loginBtn');
+            if (!email || !pass) return showToast("⚠️ يرجى ملء البيانات");
+            btn.innerText = "جاري التحقق..."; btn.disabled = true;
+
+            try {
+                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+                const user = userCredential.user;
+
+                // هام: التحقق هل الإيميل مفعل ولا لأ
+                if (user.emailVerified) {
+                    playSuccess(); showToast("✅ تم الدخول بنجاح");
+                    setTimeout(() => window.location.href = "home.html", 1000);
+                } else {
+                    showToast("⚠️ يجب تفعيل بريدك الإلكتروني أولاً");
+                    openModal('verifyModal'); // اظهار نافذة التنبيه
+                    auth.signOut(); // نخرجه تاني عشان ميبقاش دخل
+                    btn.innerText = "تسجيل الدخول"; btn.disabled = false;
+                }
+            } catch (e) { 
+                showToast("❌ بيانات غير صحيحة"); btn.innerText = "تسجيل الدخول"; btn.disabled = false; 
+            }
+        }
+
+        // --- إنشاء حساب (مع إرسال رابط التفعيل) ---
+        async function signupAction() {
+            const name = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+            const btn = document.getElementById('regBtn');
+            if (!name || !email || !pass) return showToast("⚠️ املأ الحقول المطلوبة");
+            if (pass.length < 6) return showToast("⚠️ كلمة المرور قصيرة");
+            btn.innerText = "جاري الإنشاء..."; btn.disabled = true;
+
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                const user = cred.user;
+                
+                // 1. تحديث الاسم
+                await user.updateProfile({ displayName: name });
+                
+                // 2. إرسال رابط التفعيل للإيميل
+                await user.sendEmailVerification();
+
+                // 3. حفظ البيانات
+                await db.collection('users').doc(user.uid).set({ uid: user.uid, name: name, email: email, points: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                
+                playSuccess(); 
+                // 4. إظهار نافذة "روح فعل حسابك" بدل ما ندخله علطول
+                openModal('verifyModal');
+                
+                btn.innerText = "إنشاء الحساب"; btn.disabled = false;
+            } catch (e) { showToast("❌ حدث خطأ"); btn.innerText = "إنشاء الحساب"; btn.disabled = false; }
+        }
+
+        // باقي الدوال المساعدة
+        function togglePasswordVisibility(inputId, icon) {
+            playClick(); const input = document.getElementById(inputId);
+            if (input.type === "password") { input.type = "text"; icon.classList.remove("fa-eye"); icon.classList.add("fa-eye-slash"); }
+            else { input.type = "password"; icon.classList.remove("fa-eye-slash"); icon.classList.add("fa-eye"); }
+        }
+        function validateEmail(input) {
+            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (regex.test(input.value)) { input.classList.add("valid"); input.classList.remove("invalid"); }
+            else { input.classList.add("invalid"); input.classList.remove("valid"); }
+            if(input.value === "") input.classList.remove("invalid", "valid");
+        }
+        function validatePass(input) {
+            if (input.value.length >= 6) { input.classList.add("valid"); input.classList.remove("invalid"); }
+            else { input.classList.add("invalid"); input.classList.remove("valid"); }
+            if(input.value === "") input.classList.remove("invalid", "valid");
+        }
+        function toggleForms() {
+            const login = document.getElementById('loginForm');
+            const signup = document.getElementById('signupForm');
+            if (login.style.display === 'none') { login.style.display = 'block'; signup.style.display = 'none'; }
+            else { login.style.display = 'none'; signup.style.display = 'block'; }
+        }
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        auth.onAuthStateChanged(user => { 
+            // نتأكد إنه مسجل + إنه مفعل حسابه
+            if (user && user.emailVerified) { userIsLoggedIn = true; } 
+            else { userIsLoggedIn = false; }
+        });
+
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(function() {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    if (userIsLoggedIn) window.location.href = "home.html";
+                    else document.getElementById('main-content').style.display = 'flex';
+                }, 500); 
+            }, 2500);
+        });
+    </script>
+</body>
+</html>

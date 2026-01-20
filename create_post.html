@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>إنشاء منشور - NABD</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        /* --- الأساسيات --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body {
+            background: #0d0d0f;
+            color: #fff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* --- الهيدر --- */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 15px; background: rgba(22, 22, 22, 0.98); 
+            border-bottom: 1px solid #222; z-index: 100;
+        }
+        .header-title { font-weight: 700; font-size: 18px; }
+        .post-btn { 
+            background: linear-gradient(135deg, #5D5FEF, #7c3aed); 
+            color: #fff; border: none; padding: 8px 24px; border-radius: 20px; 
+            font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.3s;
+        }
+        .post-btn:disabled { background: #333; color: #777; cursor: not-allowed; opacity: 0.7; }
+
+        /* --- منطقة المستخدم --- */
+        .user-area { display: flex; align-items: center; gap: 10px; padding: 15px 15px 5px 15px; }
+        .avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; background-size: cover; border: 1px solid #333; }
+        .user-info { display: flex; flex-direction: column; gap: 4px; }
+        .username { font-weight: bold; font-size: 16px; line-height: 1.2; }
+        
+        /* زر الخصوصية */
+        .privacy-btn {
+            background: #1f1f1f; color: #aaa; font-size: 11px; padding: 4px 8px;
+            border-radius: 6px; width: fit-content; cursor: pointer; display: flex;
+            align-items: center; gap: 5px; border: 1px solid #333; transition: 0.2s;
+        }
+        .privacy-btn:hover { background: #333; color: #fff; }
+        .feeling-badge { font-size: 12px; color: #5D5FEF; display: none; align-items: center; gap: 5px; }
+
+        /* --- شريط الأدوات العلوي (الجديد) --- */
+        .top-tools-bar {
+            display: flex; gap: 10px; padding: 10px 15px;
+            overflow-x: auto; scrollbar-width: none;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 5px;
+        }
+        .tool-chip {
+            display: flex; align-items: center; gap: 8px; color: #ccc; 
+            font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+            padding: 8px 15px; background: #1a1a1a; border-radius: 20px; 
+            border: 1px solid #333; transition: 0.2s;
+        }
+        .tool-chip:active { transform: scale(0.95); background: #252525; }
+        .tool-chip i { font-size: 14px; }
+
+
+        /* --- منطقة المحتوى --- */
+        .content-area { flex: 1; padding: 0 15px; overflow-y: auto; position: relative; display: flex; flex-direction: column; }
+        
+        /* مربع الكتابة */
+        .editor-box {
+            width: 100%; min-height: 80px; font-size: 18px; color: #fff; 
+            white-space: pre-wrap; position: relative; z-index: 10; padding: 10px 0;
+            margin-bottom: 5px;
+        }
+        .editor-box:empty:before { content: attr(placeholder); color: #777; display: block; }
+        
+        /* مود الخلفيات الملونة */
+        .colored-mode .editor-box { 
+            text-align: center; font-weight: 800; font-size: 24px; 
+            color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.3); 
+            height: 250px; display: flex; align-items: center; justify-content: center;
+        }
+
+        /* --- منطقة الهاشتاجات المخصصة --- */
+        .tags-wrapper {
+            display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05); margin-bottom: 10px;
+        }
+        .tag-chip {
+            background: rgba(93, 95, 239, 0.1); border: 1px solid rgba(93, 95, 239, 0.3);
+            color: #5D5FEF; padding: 4px 10px; border-radius: 15px; font-size: 12px;
+            display: flex; align-items: center; gap: 5px; font-weight: bold;
+        }
+        .tag-chip i { cursor: pointer; font-size: 10px; opacity: 0.7; }
+        
+        /* شبكة الميديا */
+        .        /* --- تنسيق حاوية الفيديو (الوضع العادي) --- */
+        .media-grid {
+            display: flex; flex-direction: column; gap: 15px; margin-top: 15px; width: 100%;
+        }
+
+        .media-item {
+            position: relative; width: 100%; border-radius: 12px; overflow: hidden;
+            background: #000; border: 1px solid #333; display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- تنسيق المشغل والملء الشاشة --- */
+        .custom-video-wrapper {
+            position: relative; width: 100%; height: auto; 
+            display: flex; justify-content: center; align-items: center; 
+            background: #000;
+        }
+
+        .custom-video-wrapper video {
+            width: 100%; max-height: 500px; display: block;
+        }
+
+        /* تنسيقات خاصة عند تفعيل وضع ملء الشاشة */
+        .custom-video-wrapper:fullscreen,
+        .custom-video-wrapper:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000;
+            position: fixed; top: 0; left: 0; z-index: 2147483647; /* أعلى رقم ممكن */
+        }
+
+        .custom-video-wrapper:fullscreen video,
+        .custom-video-wrapper:-webkit-full-screen video {
+            max-height: 100vh; width: 100%; height: 100%; object-fit: contain;
+        }
+
+        /* شريط التحكم */
+        /* --- شريط التحكم السفلي --- */
+        .custom-controls {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 10px 15px; display: flex; align-items: center; gap: 10px;
+            opacity: 0; transition: 0.3s; 
+            z-index: 2147483648; 
+            pointer-events: auto;
+            
+            /* التعديل الجديد والمهم جداً */
+            direction: ltr; /* يخلي الشريط والأزرار تترتب من الشمال لليمين */
+        }
+        
+        /* باقي التنسيقات زي ما هي... */
+        .media-item:hover .custom-controls,
+        .custom-video-wrapper.paused .custom-controls,
+        .custom-video-wrapper:fullscreen .custom-controls { 
+            opacity: 1;
+        }
+
+        /* --- شريط التقدم --- */
+        .progress-filled { 
+            height: 100%; 
+            background: #5D5FEF; 
+            border-radius: 5px; 
+            width: 0%; 
+            
+            /* تأكيد إن الملء يبدأ من الشمال */
+            transform-origin: left; 
+        }
+
+        
+        /* إظهار التحكم عند التوقف أو المرور */
+        .media-item:hover .custom-controls,
+        .custom-video-wrapper.paused .custom-controls,
+        .custom-video-wrapper:fullscreen .custom-controls { 
+            opacity: 1;
+        }
+
+        /* زر التشغيل الكبير */
+        .center-play-btn {
+            position: absolute; width: 60px; height: 60px; background: rgba(0,0,0,0.5);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 24px; cursor: pointer; backdrop-filter: blur(4px);
+            border: 2px solid rgba(255,255,255,0.3); pointer-events: none; z-index: 50;
+            transition: 0.2s;
+        }
+
+        /* تكبير التحكم في وضع ملء الشاشة */
+        .custom-video-wrapper:fullscreen .custom-controls { padding: 25px; }
+        .custom-video-wrapper:fullscreen .ctrl-btn { font-size: 20px; padding: 10px; } /* كبرنا مساحة اللمس */
+
+        /* باقي العناصر */
+        .ctrl-btn { background: none; border: none; color: #fff; cursor: pointer; font-size: 16px; padding: 5px; }
+        .progress-container { flex: 1; height: 5px; background: rgba(255,255,255,0.3); border-radius: 5px; cursor: pointer; position: relative; }
+        .time-display { font-size: 11px; color: #ddd; font-family: monospace; min-width: 30px; text-align: center; }
+        .remove-media-btn { position: absolute; top: 10px; right: 10px; z-index: 100; background: rgba(0,0,0,0.6); color: #fff; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; }
+.media-item img, .media-item video { width: 100%; height: 100%; object-fit: cover; }
+        .remove-media-btn { 
+            position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.6); 
+            color: #fff; width: 22px; height: 22px; border-radius: 50%; 
+            display: grid; place-items: center; cursor: pointer; font-size: 10px; backdrop-filter: blur(2px);
+        }
+
+        /* --- شريط الإعدادات والتعليقات --- */
+        .settings-bar {
+            padding: 10px 15px; background: #111; border-top: 1px solid #222;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .setting-label { display: flex; align-items: center; gap: 10px; color: #eee; font-size: 14px; font-weight: 600; }
+        
+        /* زر التبديل (Toggle Switch) */
+        .switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 34px; border: 1px solid #444; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #5D5FEF; border-color: #5D5FEF; }
+        input:checked + .slider:before { transform: translateX(18px); }
+
+        /* --- الفوتر والأدوات --- */
+        .footer-tools { 
+            padding: 10px 15px; background: #161616; 
+            display: flex; flex-direction: column; gap: 12px; padding-bottom: 20px;
+        }
+        
+        .bg-scroll-wrapper { overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .bg-section { display: flex; gap: 10px; width: max-content; align-items: center; height: 45px; }
+        .bg-circle { width: 35px; height: 35px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: 0.2s; flex-shrink: 0; }
+        .bg-circle.active { border-color: #fff; transform: scale(1.15); }
+        .bg-none { background: #222; border: 1px solid #444; position: relative; }
+        .bg-none::after { content: '\f05e'; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 12px; }
+
+        /* --- القوائم المنبثقة (Modals) --- */
+        .bottom-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; display: none;
+            align-items: flex-end; justify-content: center; backdrop-filter: blur(3px);
+        }
+        .modal-content {
+            background: #1a1a1a; width: 100%; border-radius: 20px 20px 0 0; padding: 20px;
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); border-top: 1px solid #333; max-height: 80vh; display: flex; flex-direction: column;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 16px; border-bottom: 1px solid #2a2a2a; padding-bottom: 15px; color: #fff; }
+        
+        .list-opt { 
+            display: flex; align-items: center; gap: 12px; padding: 12px; 
+            border-bottom: 1px solid #222; cursor: pointer; color: #ddd; border-radius: 8px; transition: 0.2s;
+        }
+        .list-opt:last-child { border-bottom: none; }
+        .list-opt:hover { background: #252525; }
+        .list-opt.active { color: #5D5FEF; background: rgba(93, 95, 239, 0.1); }
+        .list-opt i { width: 25px; text-align: center; font-size: 18px; }
+
+        .fm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; overflow-y: auto; }
+        .feeling-box { background: #222; padding: 10px; border-radius: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border: 1px solid #333; }
+        
+        /* شاشة التحميل */
+        .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 5000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .progress-ring { width: 60px; height: 60px; border: 4px solid #333; border-top: 4px solid #5D5FEF; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ستايل الاسم داخل المنشور */
+        .mention-node {
+            color: #2196f3;
+            font-weight: bold;
+            background: rgba(33, 150, 243, 0.1);
+            border-radius: 4px;
+            padding: 0 4px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="progress-ring"></div>
+        <div style="font-weight:bold; font-size:16px; color:#fff;" id="loadingText">جاري النشر...</div>
+        <div style="color:#aaa; font-size:12px; margin-top:5px;" id="uploadProgress">0%</div>
+    </div>
+
+    <div class="bottom-modal" id="privacyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>من يمكنه رؤية المنشور؟</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('privacyModal')" style="cursor:pointer"></i>
+            </div>
+            <div class="list-opt active" id="opt-public" onclick="setPrivacy('public')">
+                <i class="fa-solid fa-earth-americas"></i>
+                <div>
+                    <div>العامة 🌍</div>
+                    <div style="font-size:11px; color:#777;">أي شخص على المنصة</div>
+                </div>
+            </div>
+            <div class="list-opt" id="opt-friends" onclick="setPrivacy('friends')">
+                <i class="fa-solid fa-user-group"></i>
+                <div>
+                    <div>الأصدقاء 👥</div>
+                    <div style="font-size:11px; color:#777;">أصدقاؤك فقط</div>
+                </div>
+            </div>
+            <div class="list-opt" id="opt-private" onclick="setPrivacy('private')">
+                <i class="fa-solid fa-lock"></i>
+                <div>
+                    <div>أنا فقط 🔒</div>
+                    <div style="font-size:11px; color:#777;">لن يراه أحد غيرك</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-modal" id="feelingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>بم تشعر؟</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('feelingsModal')" style="cursor:pointer"></i>
+            </div>
+            <div class="fm-grid" id="feelingsList"></div>
+        </div>
+    </div>
+
+    <div class="bottom-modal" id="tagsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>إضافة هاشتاجات</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('tagsModal')" style="cursor:pointer"></i>
+            </div>
+            <input type="text" id="tagInput" placeholder="اكتب الهاشتاج..." style="width:100%; padding:12px; background:#222; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;" oninput="searchTags(this.value)">
+            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">مقترحات:</div>
+            <div id="tagsResultsList" style="overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+    </div>
+
+    <div class="bottom-modal" id="mentionsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>الإشارة إلى صديق</span>
+                <i class="fa-solid fa-xmark" onclick="closeModal('mentionsModal')" style="cursor:pointer"></i>
+            </div>
+            <input type="text" id="mentionInput" placeholder="ابحث عن اسم المستخدم..." style="width:100%; padding:12px; background:#222; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;" oninput="searchUsers(this.value)">
+            <div id="mentionsResultsList" style="overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+    </div>
+
+    <div class="header">
+        <div style="display:flex; gap:15px; align-items:center;">
+            <i class="fa-solid fa-arrow-right" style="font-size:20px; cursor:pointer; color:#eee;" onclick="history.back()"></i>
+            <span class="header-title">منشور جديد</span>
+        </div>
+        <button class="post-btn" id="postBtn" onclick="handlePost()" disabled>نشر</button>
+    </div>
+
+    <div class="user-area">
+        <div class="avatar" id="userAvatar"></div>
+        <div class="user-info">
+            <div class="username" id="userName">جاري التحميل...</div>
+            <div class="privacy-btn" onclick="openPrivacy()">
+                <i class="fa-solid fa-earth-americas" id="privacyIcon"></i>
+                <span id="privacyText">العامة</span>
+                <i class="fa-solid fa-caret-down" style="font-size:10px; margin-right:2px;"></i>
+            </div>
+            <div class="feeling-badge" id="feelingBadge"></div>
+        </div>
+    </div>
+
+    <div class="top-tools-bar">
+        <label class="tool-chip">
+            <i class="fa-solid fa-image" style="color:#4caf50;"></i> صور/فيديو
+            <input type="file" hidden multiple accept="image/*,video/*" onchange="handleFileSelect(event)">
+        </label>
+        <div class="tool-chip" onclick="openFeelings()">
+            <i class="fa-regular fa-face-smile" style="color:#ffeb3b;"></i> شعور
+        </div>
+        <div class="tool-chip" onclick="openTagsModal()">
+            <i class="fa-solid fa-hashtag" style="color:#e91e63;"></i> هاشتاج
+        </div>
+        <div class="tool-chip" onclick="insertAtSymbol()">
+            <i class="fa-solid fa-user-tag" style="color:#2196f3;"></i> إشارة
+        </div>
+    </div>
+
+    <div class="content-area" id="inputArea">
+        <div class="editor-box" id="editor" contenteditable="true" placeholder="بم تفكر اليوم؟..." oninput="handleInput()"></div>
+        
+        <div class="tags-wrapper" id="visualTagsContainer"></div>
+
+        <div class="media-grid" id="mediaPreview"></div>
+    </div>
+
+    <div class="settings-bar">
+        <div class="setting-label">
+            <i class="fa-regular fa-comments" style="color:#aaa; font-size:18px;"></i>
+            <span>السماح بالتعليقات</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="commentsToggle" checked>
+            <span class="slider"></span>
+        </label>
+    </div>
+
+    <div class="footer-tools">
+        <div class="bg-scroll-wrapper" id="bgWrapper">
+            <div class="bg-section" id="bgContainer"></div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <script>
+        // إعدادات فايربيس
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app", 
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore(), storage = firebase.storage();
+
+        // المتغيرات العامة
+        let currentUser = null;
+        let selectedFiles = [];
+        let selectedBg = '';
+        let currentFeeling = null;
+        let currentPrivacy = 'public';
+        let selectedTags = []; 
+        let recentHashtags = JSON.parse(localStorage.getItem('my_recent_hashtags') || '[]');
+        
+        let savedRange = null; 
+        let mentionedUsersMap = new Map();
+
+        // بيانات الخلفيات
+        const backgrounds = [
+            { id: 'none', css: 'transparent' },
+            { id: 'black', css: '#000000' },
+            { id: 'white', css: '#ffffff', text: '#000' },
+            { id: 'grey', css: '#333333' },
+            { id: 'navy', css: '#000080' },
+            { id: 'g1', css: 'linear-gradient(45deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%)', text: '#000' },
+            { id: 'g2', css: 'linear-gradient(to right, #ff758c 0%, #ff7eb3 100%)' },
+            { id: 'g3', css: 'linear-gradient(120deg, #f6d365 0%, #fda085 100%)' },
+            { id: 'g4', css: 'linear-gradient(to top, #ff0844 0%, #ffb199 100%)' },
+            { id: 'g10', css: 'linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%)', text: '#000' },
+            { id: 'g11', css: 'linear-gradient(to right, #4facfe 0%, #00f2fe 100%)' },
+            { id: 'g20', css: 'linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%)', text: '#000' },
+            { id: 'g21', css: 'linear-gradient(to right, #43e97b 0%, #38f9d7 100%)', text: '#000' },
+            { id: 'g35', css: 'linear-gradient(to top, #09203f 0%, #537895 100%)' },
+            { id: 'g48', css: 'linear-gradient(to right, #12c2e9, #c471ed, #f64f59)' }
+        ];
+
+        // بيانات المشاعر
+        const feelingsData = [
+            { icon: '😊', text: 'السعادة' }, { icon: '🥰', text: 'الحب' }, { icon: '🤩', text: 'الحماس' },
+            { icon: '😞', text: 'الحزن' }, { icon: '😡', text: 'الغضب' }, { icon: '😎', text: 'الروقان' },
+            { icon: '😴', text: 'النعاس' }, { icon: '🤒', text: 'المرض' }, { icon: '😱', text: 'الصدمة' },
+            { icon: '😂', text: 'الضحك' }, { icon: '😤', text: 'الإصرار' }, { icon: '🤪', text: 'الجنون' },
+            { icon: '🥶', text: 'البرد' }, { icon: '🥵', text: 'الحر' }, { icon: '🤔', text: 'الحيرة' },
+            { icon: '✈️', text: 'السفر' }, { icon: '🎮', text: 'اللعب' }, { icon: '🍴', text: 'الأكل' },
+            { icon: '☕', text: 'الشرب' }, { icon: '🎧', text: 'الاستماع' }, { icon: '📚', text: 'المذاكرة' },
+            { icon: '💼', text: 'العمل' }, { icon: '🏋️', text: 'الرياضة' }, { icon: '📸', text: 'التصوير' }
+        ];
+
+        // عند التحميل
+        auth.onAuthStateChanged(async user => {
+            if (!user) location.href = 'index.html';
+            currentUser = user;
+            loadUserData();
+            renderBackgrounds();
+            renderFeelings();
+        });
+
+        // -----------------------------------------------------
+        // 1. منطق الهاشتاجات (الإضافة، الحذف، البحث)
+        // -----------------------------------------------------
+        function openTagsModal() { 
+            document.getElementById('tagsModal').style.display = 'flex'; 
+            document.getElementById('tagInput').focus();
+            searchTags(''); 
+        }
+
+        async function searchTags(query) {
+            const list = document.getElementById('tagsResultsList');
+            list.innerHTML = '';
+            const cleanQuery = query.replace('#', '').toLowerCase();
+
+            if(cleanQuery.length > 0) {
+                list.innerHTML += `
+                <div class="list-opt" onclick="addTag('${cleanQuery}')">
+                    <i class="fa-solid fa-plus"></i>
+                    <div>
+                        <div>#${cleanQuery}</div>
+                        <div style="font-size:11px; color:#777">هاشتاج جديد</div>
+                    </div>
+                </div>`;
+            }
+
+            if(cleanQuery.length === 0 && recentHashtags.length > 0) {
+                recentHashtags.forEach(tag => {
+                    list.innerHTML += `
+                    <div class="list-opt" onclick="addTag('${tag}')">
+                        <i class="fa-solid fa-clock-rotate-left" style="color:#aaa"></i>
+                        <div>
+                            <div>#${tag}</div>
+                            <div style="font-size:11px; color:#777">استخدمته مؤخراً</div>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            if(cleanQuery.length >= 1) {
+                try {
+                    const snap = await db.collection('hashtags')
+                        .where('name', '>=', cleanQuery)
+                        .where('name', '<=', cleanQuery + '\uf8ff')
+                        .limit(5)
+                        .get();
+                    
+                    snap.forEach(doc => {
+                        const tagData = doc.data();
+                        if(tagData.name !== cleanQuery) {
+                            list.innerHTML += `
+                            <div class="list-opt" onclick="addTag('${tagData.name}')">
+                                <i class="fa-solid fa-hashtag" style="color:#5D5FEF"></i>
+                                <div>
+                                    <div>#${tagData.name}</div>
+                                    <div style="font-size:11px; color:#5D5FEF">${tagData.postsCount || 0} منشور</div>
+                                </div>
+                            </div>`;
+                        }
+                    });
+                } catch(e) { console.log(e); }
+            }
+        }
+
+        function addTag(tagName) {
+            if(!selectedTags.includes(tagName)) {
+                selectedTags.push(tagName);
+                renderVisualTags();
+            }
+            document.getElementById('tagInput').value = '';
+            closeModal('tagsModal');
+            checkPostButton();
+        }
+
+        function removeTag(tagName) {
+            selectedTags = selectedTags.filter(t => t !== tagName);
+            renderVisualTags();
+            checkPostButton();
+        }
+
+        function renderVisualTags() {
+            const container = document.getElementById('visualTagsContainer');
+            container.innerHTML = '';
+            selectedTags.forEach(tag => {
+                const chip = document.createElement('div');
+                chip.className = 'tag-chip';
+                chip.innerHTML = `<span>#${tag}</span> <i class="fa-solid fa-xmark" onclick="removeTag('${tag}')"></i>`;
+                container.appendChild(chip);
+            });
+        }
+
+        // -----------------------------------------------------
+        // 2. منطق الخصوصية
+        // -----------------------------------------------------
+        function openPrivacy() { document.getElementById('privacyModal').style.display = 'flex'; }
+        
+        function setPrivacy(type) {
+            currentPrivacy = type;
+            const icon = document.getElementById('privacyIcon');
+            const text = document.getElementById('privacyText');
+            
+            if(type === 'public') { icon.className='fa-solid fa-earth-americas'; text.innerText='العامة'; }
+            else if(type === 'friends') { icon.className='fa-solid fa-user-group'; text.innerText='الأصدقاء'; }
+            else { icon.className='fa-solid fa-lock'; text.innerText='أنا فقط'; }
+
+            document.querySelectorAll('.list-opt').forEach(el => el.classList.remove('active'));
+            document.getElementById(`opt-${type}`).classList.add('active');
+            
+            closeModal('privacyModal');
+        }
+
+        // -----------------------------------------------------
+        // 3. دوال عامة
+        // -----------------------------------------------------
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function handleInput() { checkPostButton(); }
+        
+        function checkPostButton() {
+            const text = document.getElementById('editor').innerText.trim();
+            const hasContent = text.length > 0 || selectedFiles.length > 0 || selectedTags.length > 0;
+            document.getElementById('postBtn').disabled = !hasContent;
+        }
+
+        // -----------------------------------------------------
+        // 5. منطق الإشارات (Mentions) - مع القائمة المنبثقة
+        // -----------------------------------------------------
+        function insertAtSymbol() {
+            saveSelection();
+            document.getElementById('mentionsModal').style.display = 'flex'; // فتح القائمة المنبثقة
+            const input = document.getElementById('mentionInput');
+            input.value = '';
+            input.focus();
+            searchUsers('');
+        }
+
+        // استبدل دالة saveSelection القديمة بهذه:
+function saveSelection() {
+    const sel = window.getSelection();
+    if (sel.getRangeAt && sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        // نتأكد إن المؤشر جوه مربع الكتابة فعلاً
+        const editor = document.getElementById('editor');
+        if (editor.contains(range.commonAncestorContainer)) {
+            savedRange = range.cloneRange(); // نسخ النطاق عشان ميروحش
+        }
+    }
+}
+
+
+        function restoreSelection() {
+            if (savedRange) {
+                const sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(savedRange);
+            } else {
+                document.getElementById('editor').focus();
+            }
+        }
+
+        // استبدل دالة searchUsers القديمة بهذه:
+async function searchUsers(query) {
+    const list = document.getElementById('mentionsResultsList');
+    list.innerHTML = '';
+    const cleanQuery = query.trim();
+
+    try {
+        let usersRef = db.collection('users');
+        let snap;
+        if(cleanQuery.length > 0) {
+            snap = await usersRef.where('name', '>=', cleanQuery).where('name', '<=', cleanQuery + '\uf8ff').limit(5).get();
+        } else {
+            snap = await usersRef.limit(5).get();
+        }
+
+        if (snap.empty) {
+            list.innerHTML = '<div style="text-align:center; color:#777; padding:10px;">لا يوجد نتائج</div>';
+            return;
+        }
+
+        snap.forEach(doc => {
+            const userData = doc.data();
+            const uid = doc.id;
+            if(uid !== currentUser.uid) {
+                const avatar = userData.profilePic || 'https://via.placeholder.com/40';
+                
+                // تنظيف الاسم من المشاكل المحتملة (مثل علامات التنصيص)
+                const safeName = userData.name.replace(/'/g, "\\'"); 
+
+                list.innerHTML += `
+                <div class="list-opt" onclick="insertMentionTag('${uid}', '${safeName}')">
+                    <div style="width:35px; height:35px; border-radius:50%; background:url('${avatar}') center/cover;"></div>
+                    <div>
+                        <div style="font-weight:bold">${userData.name}</div>
+                        <div style="font-size:11px; color:#777">@${userData.username || 'user'}</div>
+                    </div>
+                </div>`;
+            }
+        });
+    } catch(e) { console.log(e); }
+}
+
+
+        function insertMentionTag(uid, name) {
+    closeModal('mentionsModal'); 
+    const editor = document.getElementById('editor');
+    
+    editor.focus();
+
+    if (savedRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+    }
+
+    const mentionNode = document.createElement('span');
+    mentionNode.className = 'mention-node';
+    
+    // --- التعديل هنا: شيلنا علامة @ ---
+    mentionNode.textContent = name; 
+    // -------------------------------
+    
+    mentionNode.contentEditable = "false"; 
+    mentionNode.setAttribute('data-uid', uid); 
+
+    const space = document.createTextNode('\u00A0'); 
+
+    const sel = window.getSelection();
+    if (sel.getRangeAt && sel.rangeCount) {
+        const range = sel.getRangeAt(0);
+        range.deleteContents(); 
+        range.insertNode(mentionNode);
+        
+        range.setStartAfter(mentionNode);
+        range.setEndAfter(mentionNode);
+        
+        range.insertNode(space);
+        
+        range.setStartAfter(space);
+        range.setEndAfter(space);
+        
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } else {
+        editor.appendChild(mentionNode);
+        editor.appendChild(space);
+    }
+
+    mentionedUsersMap.set(uid, true);
+    checkPostButton();
+}
+
+
+        // المشاعر
+        function openFeelings() { document.getElementById('feelingsModal').style.display = 'flex'; }
+        function renderFeelings() {
+            const list = document.getElementById('feelingsList');
+            feelingsData.forEach(f => {
+                const div = document.createElement('div');
+                div.className = 'feeling-box';
+                div.innerHTML = `<span style="font-size:22px">${f.icon}</span> <span style="font-weight:bold; font-size:13px">${f.text}</span>`;
+                div.onclick = () => selectFeeling(f);
+                list.appendChild(div);
+            });
+        }
+        function selectFeeling(f) {
+            currentFeeling = f;
+            const badge = document.getElementById('feelingBadge');
+            badge.style.display = 'flex';
+            badge.innerHTML = `يشعر بـ ${f.icon} ${f.text}`;
+            closeModal('feelingsModal');
+        }
+
+        // الخلفيات
+        function renderBackgrounds() {
+            const container = document.getElementById('bgContainer');
+            backgrounds.forEach(bg => {
+                const div = document.createElement('div');
+                div.className = `bg-circle ${bg.id==='none'?'bg-none active':''}`;
+                div.style.background = bg.css;
+                div.onclick = () => selectBg(bg);
+                container.appendChild(div);
+            });
+        }
+        function selectBg(bg) {
+            if(selectedFiles.length > 0) return;
+            selectedBg = bg.id === 'none' ? '' : bg.css;
+            const editor = document.getElementById('editor');
+            const area = document.getElementById('inputArea');
+            document.querySelectorAll('.bg-circle').forEach(c => c.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            if(selectedBg) {
+                area.classList.add('colored-mode');
+                editor.style.background = selectedBg;
+            } else {
+                area.classList.remove('colored-mode');
+                editor.style.background = 'transparent';
+            }
+        }
+
+        // الميديا
+        function handleFileSelect(e) {
+            selectBg({id:'none', css:'transparent'});
+            document.getElementById('bgWrapper').style.display = 'none';
+            const files = Array.from(e.target.files);
+            selectedFiles.push(...files);
+            renderMediaPreview();
+            checkPostButton();
+        }
+                function renderMediaPreview() {
+            const grid = document.getElementById('mediaPreview');
+            grid.innerHTML = '';
+            
+            selectedFiles.forEach((file, index) => {
+                const url = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video');
+
+                let content = '';
+
+                if (isVideo) {
+                    // HTML المشغل الاحترافي
+                    content = `
+                    <div class="custom-video-wrapper paused" id="wrapper_${index}">
+                        <video src="${url}" id="video_${index}" onclick="togglePlay(${index})" ontimeupdate="updateProgress(${index})" onended="resetPlayer(${index})"></video>
+                        
+                        <div class="center-play-btn" id="centerBtn_${index}">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+
+                        <div class="custom-controls">
+                            <button class="ctrl-btn" onclick="togglePlay(${index})">
+                                <i class="fa-solid fa-play" id="playIcon_${index}"></i>
+                            </button>
+                            
+                            <div class="time-display" id="currTime_${index}">0:00</div>
+                            
+                            <div class="progress-container" onclick="seekVideo(event, ${index})">
+                                <div class="progress-filled" id="progBar_${index}">
+                                    <div class="progress-thumb"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="time-display" id="durTime_${index}">0:00</div>
+                            
+                            <button class="ctrl-btn" onclick="toggleMute(${index})">
+                                <i class="fa-solid fa-volume-high" id="muteIcon_${index}"></i>
+                            </button>
+                            
+                            <button class="ctrl-btn" onclick="toggleFullscreen(${index})">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>`;
+                    
+                    // خدعة صغيرة عشان نجيب مدة الفيديو أول ما يحمل
+                    setTimeout(() => {
+                        const vid = document.getElementById(`video_${index}`);
+                        vid.onloadedmetadata = () => {
+                            document.getElementById(`durTime_${index}`).innerText = formatTime(vid.duration);
+                        };
+                    }, 100);
+
+                } else {
+                    // عرض الصورة العادي
+                    content = `<img src="${url}">`;
+                }
+
+                grid.innerHTML += `
+                    <div class="media-item">
+                        ${content}
+                        <div class="remove-media-btn" onclick="removeFile(${index})">
+                            <i class="fa-solid fa-xmark"></i>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // --- دوال تشغيل الفيديو الاحترافي ---
+
+        function togglePlay(idx) {
+            const vid = document.getElementById(`video_${idx}`);
+            const wrapper = document.getElementById(`wrapper_${idx}`);
+            const centerBtn = document.getElementById(`centerBtn_${idx}`);
+            const playIcon = document.getElementById(`playIcon_${idx}`);
+
+            if (vid.paused) {
+                vid.play();
+                wrapper.classList.remove('paused');
+                centerBtn.style.opacity = '0'; // اخفاء الزر الكبير
+                centerBtn.style.transform = 'scale(1.5)';
+                playIcon.className = 'fa-solid fa-pause';
+            } else {
+                vid.pause();
+                wrapper.classList.add('paused');
+                centerBtn.style.opacity = '1'; // اظهار الزر الكبير
+                centerBtn.style.transform = 'scale(1)';
+                playIcon.className = 'fa-solid fa-play';
+            }
+        }
+
+        function updateProgress(idx) {
+            const vid = document.getElementById(`video_${idx}`);
+            const bar = document.getElementById(`progBar_${idx}`);
+            const curr = document.getElementById(`currTime_${idx}`);
+            
+            const percent = (vid.currentTime / vid.duration) * 100;
+            bar.style.width = `${percent}%`;
+            curr.innerText = formatTime(vid.currentTime);
+        }
+
+                function seekVideo(e, idx) {
+            const vid = document.getElementById(`video_${idx}`);
+            // هنا بنجيب الشريط نفسه (الحاوية الرمادية)
+            // e.currentTarget يضمن اننا بنحسب بالنسبة للشريط الرمادي مش النقطة البيضاء
+            const container = e.currentTarget; 
+            
+            // 1. حساب مكان بداية الشريط من يسار الشاشة
+            const rect = container.getBoundingClientRect();
+            
+            // 2. حساب مكان الضغطة بالنسبة للشريط (مكان الماوس - بداية الشريط)
+            let clickPosition = (e.clientX || e.touches[0].clientX) - rect.left;
+            
+            // التأكد اننا مش بنخرج بره حدود الشريط (أقل من صفر أو أكبر من العرض)
+            if (clickPosition < 0) clickPosition = 0;
+            if (clickPosition > rect.width) clickPosition = rect.width;
+
+            // 3. حساب النسبة المئوية
+            const percent = clickPosition / rect.width;
+            
+            // 4. تطبيق الوقت الجديد
+            if (vid.duration) {
+                vid.currentTime = percent * vid.duration;
+            }
+        }
+
+
+        function resetPlayer(idx) {
+            const wrapper = document.getElementById(`wrapper_${idx}`);
+            const centerBtn = document.getElementById(`centerBtn_${idx}`);
+            const playIcon = document.getElementById(`playIcon_${idx}`);
+            
+            wrapper.classList.add('paused');
+            centerBtn.style.opacity = '1';
+            centerBtn.style.transform = 'scale(1)';
+            playIcon.className = 'fa-solid fa-play';
+        }
+
+        function toggleMute(idx) {
+            const vid = document.getElementById(`video_${idx}`);
+            const icon = document.getElementById(`muteIcon_${idx}`);
+            vid.muted = !vid.muted;
+            icon.className = vid.muted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+        }
+
+                        function toggleFullscreen(idx) {
+            const wrapper = document.getElementById(`wrapper_${idx}`);
+            const video = document.getElementById(`video_${idx}`);
+            
+            // التأكد إننا مش أصلاً في وضع ملء الشاشة
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement;
+
+            if (!isFullscreen) {
+                // محاولة تكبير الحاوية (الأفضل عشان الأزرار تظهر)
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen().catch(err => {
+                        // لو فشل تكبير الحاوية، كبر الفيديو نفسه
+                        if(video.webkitEnterFullscreen) video.webkitEnterFullscreen();
+                    });
+                } else if (wrapper.webkitRequestFullscreen) { /* Chrome & Safari & Opera */
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) { /* IE/Edge */
+                    wrapper.msRequestFullscreen();
+                } else if (video.webkitEnterFullscreen) { 
+                    // الحل الأخير لأجهزة iOS (iPhone/iPad)
+                    // الآيفون مبيقبلش تكبير الـ div، فبنشغل مشغل الآيفون الأصلي
+                    video.webkitEnterFullscreen();
+                }
+            } else {
+                // الخروج من وضع ملء الشاشة
+                if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                else if (document.mozCancelFullScreen) document.mozCancelFullScreen();
+                else if (document.msExitFullscreen) document.msExitFullscreen();
+            }
+        }
+
+
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = Math.floor(seconds % 60);
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function removeFile(i) {
+            selectedFiles.splice(i, 1);
+            renderMediaPreview();
+            if(selectedFiles.length === 0) document.getElementById('bgWrapper').style.display = 'block';
+            checkPostButton();
+        }
+
+        async function loadUserData() {
+            try {
+                const d = await db.collection("users").doc(currentUser.uid).get();
+                document.getElementById('userName').innerText = d.data().name;
+                if(d.data().profilePic) document.getElementById('userAvatar').style.backgroundImage = `url('${d.data().profilePic}')`;
+            } catch(e){}
+        }
+    /* --- دوال نظام الروابط الذكي --- */
+
+// 1. استخراج أول رابط من النص
+function extractFirstLink(text) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const matches = text.match(urlRegex);
+    return matches ? matches[0] : null;
+}
+
+// 2. جلب البيانات من API خارجي (Microlink)
+async function fetchLinkMetadata(url) {
+    try {
+        // بنستخدم خدمة microlink المجانية
+        const response = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        const json = await response.json();
+        
+        if (json.status === 'success') {
+            const data = json.data;
+            return {
+                title: data.title,
+                description: data.description,
+                image: data.image ? data.image.url : null,
+                domain: data.publisher || new URL(url).hostname,
+                url: url
+            };
+        }
+        return null;
+    } catch (e) {
+        console.error("Link Preview Error:", e);
+        return null;
+    }
+}
+
+
+        // ==========================================
+        //  عملية النشر
+        // ==========================================
+        async function handlePost() {
+    // 1. تجهيز البيانات
+    const editor = document.getElementById('editor');
+    let contentHtml = editor.innerHTML;
+    let rawText = editor.innerText.trim();
+    
+    // استخراج المنشن
+    let finalMentions = [];
+    editor.querySelectorAll('.mention-node').forEach(node => {
+        const uid = node.getAttribute('data-uid');
+        if(uid && !finalMentions.includes(uid)) finalMentions.push(uid);
+    });
+
+    const allowComments = document.getElementById('commentsToggle').checked; 
+    
+    // التحقق من المحتوى
+    if (rawText.length === 0 && selectedFiles.length === 0 && selectedTags.length === 0) return;
+
+    document.getElementById('loadingOverlay').style.display = 'flex';
+    
+    try {
+        // 2. معالجة الهاشتاجات في النص
+        if(selectedTags.length > 0) {
+            const tagsString = selectedTags.map(t => `#${t}`).join(' ');
+            rawText = rawText + (rawText ? '\n\n' : '') + tagsString;
+            contentHtml = contentHtml + (contentHtml ? '<br><br>' : '') + tagsString;
+        }
+
+        // 3. 🔥 الجديد: فحص وجلب بيانات الرابط (Link Preview)
+        let linkMeta = null;
+        // بنجيب الرابط بس لو مفيش صور مرفقة (عشان الشكل ميبوظش)
+        if (selectedFiles.length === 0) {
+            const foundUrl = extractFirstLink(rawText);
+            if (foundUrl) {
+                document.getElementById('loadingText').innerText = "جاري جلب الرابط...";
+                linkMeta = await fetchLinkMetadata(foundUrl);
+                document.getElementById('loadingText').innerText = "جاري النشر...";
+            }
+        }
+
+        // 4. رفع الصور والفيديو
+        let mediaArray = [];
+        if (selectedFiles.length > 0) {
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                const percent = ((i / selectedFiles.length) * 100).toFixed(0);
+                document.getElementById('uploadProgress').innerText = `${percent}%`;
+                const fileName = `${Date.now()}_${i}_${file.name}`;
+                const ref = storage.ref(`posts/${currentUser.uid}/${fileName}`);
+                await ref.put(file);
+                const url = await ref.getDownloadURL();
+                mediaArray.push({ url: url, type: file.type.startsWith('video') ? 'video' : 'image' });
+            }
+        }
+
+        // 5. تحديث عداد الهاشتاجات
+        if(selectedTags.length > 0) {
+            const batch = db.batch();
+            selectedTags.forEach(t => {
+                recentHashtags = recentHashtags.filter(h => h !== t);
+                recentHashtags.unshift(t);
+            });
+            localStorage.setItem('my_recent_hashtags', JSON.stringify(recentHashtags.slice(0, 15)));
+            selectedTags.forEach(tag => {
+                const tagRef = db.collection('hashtags').doc(tag);
+                batch.set(tagRef, { 
+                    name: tag, 
+                    postsCount: firebase.firestore.FieldValue.increment(1),
+                    lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+            });
+            await batch.commit();
+        }
+
+        // 6. 🔥 حفظ المنشور (شامل linkMeta الجديد)
+        const docRef = await db.collection("posts").add({
+            uid: currentUser.uid,
+            contentHtml: contentHtml,
+            text: rawText,
+            privacy: currentPrivacy,
+            allowComments: allowComments,
+            background: (mediaArray.length > 0 || linkMeta) ? null : selectedBg, // لو فيه رابط أو ميديا نلغي الخلفية الملونة
+            feeling: currentFeeling,
+            media: mediaArray,
+            linkMeta: linkMeta, // 👈 ده الحقل الجديد للرابط
+            hashtags: selectedTags,
+            mentions: finalMentions,
+            type: mediaArray.length > 0 ? (mediaArray.some(m=>m.type==='video')?'video':'image') : 'text',
+            likes: {},
+            commentsCount: 0,
+            views: 0,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // 7. 🔥 إرسال الإشعارات للمنشن
+        if (finalMentions.length > 0) {
+            const batch = db.batch();
+            let senderPic = "";
+            const avatarStyle = document.getElementById('userAvatar').style.backgroundImage;
+            if (avatarStyle && avatarStyle !== 'none') {
+                senderPic = avatarStyle.slice(5, -2).replace(/"/g, "");
+            }
+
+            finalMentions.forEach(uid => {
+                if (uid !== currentUser.uid) {
+                    const notifRef = db.collection('notifications').doc();
+                    batch.set(notifRef, {
+                        recipientId: uid,
+                        senderId: currentUser.uid,
+                        senderName: document.getElementById('userName').innerText,
+                        senderPic: senderPic,
+                        type: 'mention',
+                        text: 'أشار إليك في منشور جديد',
+                        postId: docRef.id,
+                        read: false,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+            });
+            await batch.commit();
+        }
+
+        // 8. إنهاء والتحويل
+        document.getElementById('loadingOverlay').style.display = 'none';
+        window.location.href = 'home.html';
+
+    } catch (e) {
+        console.error(e);
+        document.getElementById('loadingOverlay').style.display = 'none';
+        Swal.fire({ icon: 'error', title: 'فشل النشر', text: 'يرجى المحاولة لاحقاً' });
+    }
+}
+
+    </script>
+</body>
+</html>

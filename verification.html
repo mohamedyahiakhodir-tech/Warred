@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - مركز التوثيق والمستويات</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-body: #0b1120;
+            --card-bg: #151e32;
+            --primary: #5D5FEF;
+            --gold: #f59e0b;
+            --text: #fff;
+            --text-muted: #94a3b8;
+            --success: #10b981;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --locked: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+        body { background: var(--bg-body); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; padding-bottom: 20px; }
+
+        /* --- Header & Tabs --- */
+        .main-header { padding: 15px 20px; display: flex; align-items: center; background: rgba(21, 30, 50, 0.95); position: sticky; top: 0; z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .back-btn { font-size: 20px; color: var(--text); cursor: pointer; }
+        .main-title { flex: 1; text-align: center; font-weight: 800; font-size: 18px; }
+
+        .tabs-container {
+            display: flex; gap: 10px; padding: 15px; background: var(--bg-body);
+            position: sticky; top: 60px; z-index: 99; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .tab-btn {
+            flex: 1; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+            background: var(--card-bg); color: var(--text-muted); font-weight: bold; font-size: 14px;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .tab-btn.active {
+            background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 5px 15px rgba(93, 95, 239, 0.3);
+        }
+
+        /* --- View Containers --- */
+        .view-section { display: none; padding: 10px; animation: fadeIn 0.4s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(10px)} to{opacity:1; transform:translateY(0)} }
+
+        /* ============================
+           STYLES FOR SYSTEM 1 (TOSEEQ) 
+           ============================ */
+        .hero { text-align: center; padding: 30px 20px; background: linear-gradient(180deg, rgba(93, 95, 239, 0.15) 0%, transparent 100%); }
+        .badge-icon { font-size: 50px; color: var(--primary); text-shadow: 0 0 30px rgba(93, 95, 239, 0.5); margin-bottom: 10px; }
+        .hero h1 { margin-bottom: 5px; font-size: 22px; }
+        .hero p { color: var(--text-muted); font-size: 13px; max-width: 300px; margin: 0 auto; opacity: 0.8; }
+
+        .criteria-card { background: var(--card-bg); border-radius: 16px; padding: 15px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.05); position: relative; overflow: hidden; }
+        .c-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .c-left { display: flex; gap: 12px; align-items: center; }
+        .c-icon { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; font-size: 16px; }
+        .c-info h3 { font-size: 15px; margin-bottom: 2px; }
+        .c-info span { font-size: 11px; color: var(--text-muted); }
+        .c-percent { font-weight: bold; font-size: 13px; }
+
+        .progress-track { height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-top: 10px; }
+        .progress-fill { height: 100%; width: 0%; border-radius: 10px; transition: width 1s ease; }
+        .status-text { text-align: left; font-size: 11px; margin-top: 6px; font-weight: bold; opacity: 0.8; font-family: monospace; }
+
+        /* Colors for Cards */
+        .card-views .c-icon { background: rgba(245, 158, 11, 0.15); color: var(--gold); }
+        .card-views .progress-fill { background: var(--gold); }
+        .card-followers .c-icon { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+        .card-followers .progress-fill { background: var(--success); }
+        .card-likes .c-icon { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+        .card-likes .progress-fill { background: var(--danger); }
+        .card-age .c-icon { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+        .card-age .progress-fill { background: var(--info); }
+
+        .apply-btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; background: #222; color: #666; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #333; pointer-events: none; }
+        .apply-btn.active { background: linear-gradient(135deg, var(--primary), #4338ca); color: white; border: none; pointer-events: auto; box-shadow: 0 5px 20px rgba(93, 95, 239, 0.4); animation: pulse 2s infinite; }
+
+        /* ============================
+           STYLES FOR SYSTEM 2 (LEVELS) 
+           ============================ */
+        .my-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 15px; background: linear-gradient(180deg, rgba(93, 95, 239, 0.15), transparent); border-radius: 16px; margin-bottom: 20px; }
+        .stat-box { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 12px; text-align: center; border: 1px solid rgba(255,255,255,0.05); }
+        .stat-val { font-weight: 900; font-size: 16px; color: var(--primary); }
+        .stat-lbl { font-size: 11px; color: #aaa; margin-top: 2px; }
+
+        .xp-container { padding: 0 5px; margin-bottom: 20px; }
+        .xp-header { display: flex; justify-content: space-between; font-size: 12px; color: #ccc; margin-bottom: 5px; font-weight: bold; }
+        .xp-track { height: 8px; background: #222; border-radius: 20px; overflow: hidden; border: 1px solid #333; }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #a855f7); width: 0%; transition: width 1s ease; border-radius: 20px; box-shadow: 0 0 10px var(--primary); }
+
+        .levels-list { display: flex; flex-direction: column; gap: 20px; }
+        
+        .lvl-card { background: var(--card-bg); border-radius: 18px; border: 1px solid var(--locked); position: relative; overflow: hidden; transition: 0.3s; }
+        .lvl-card.active { border-color: var(--primary); box-shadow: 0 0 20px rgba(93, 95, 239, 0.15); transform: scale(1.01); z-index: 2; }
+        .lvl-card.active .lvl-badge { background: var(--primary); color: #fff; }
+        
+        .lvl-card.elite { border-color: var(--gold); background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(21, 30, 50, 1)); }
+        .lvl-card.elite .lvl-badge { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold); }
+
+        .lvl-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .lvl-info { display: flex; align-items: center; gap: 12px; }
+        .lvl-badge { width: 35px; height: 35px; background: #333; border-radius: 10px; display: grid; place-items: center; font-weight: 900; font-size: 16px; color: #777; transition: 0.3s; }
+        .lvl-name { font-weight: 800; font-size: 16px; }
+        
+        .lvl-body { padding: 15px; }
+        .features { margin: 0; padding: 0; list-style: none; }
+        .features li { font-size: 13px; color: #ccc; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .features li i { color: var(--success); font-size: 14px; }
+        
+        /* --- التصحيح المهم: لون النصوص للأرقام --- */
+        .req-text-lvl { 
+            font-size: 13px; 
+            color: #fff; /* لون أبيض واضح */
+            margin-top: 15px; 
+            padding-top: 10px; 
+            border-top: 1px solid rgba(255,255,255,0.1); 
+            display: flex; 
+            gap: 15px; 
+            flex-wrap: wrap; 
+            font-weight: bold;
+        }
+        .req-item-lvl { display: flex; align-items: center; gap: 5px; }
+
+        .lock-screen { position: absolute; inset: 0; background: rgba(11, 17, 32, 0.85); display: flex; align-items: center; justify-content: center; flex-direction: column; backdrop-filter: blur(2px); z-index: 5; }
+        .lvl-card.active .lock-screen { display: none; }
+
+        .verify-btn-lvl { width: 100%; padding: 14px; background: linear-gradient(135deg, #f59e0b, #d97706); border: none; border-radius: 12px; color: #fff; font-weight: 800; font-size: 15px; margin-top: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 5px 15px rgba(245, 158, 11, 0.3); animation: pulse 2s infinite; }
+
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+
+        /* Loader */
+        .loader-overlay { position: fixed; inset: 0; background: var(--bg-body); z-index: 2000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.5s; }
+        .loader-overlay.hide { opacity: 0; pointer-events: none; }
+
+        /* ============================
+           STYLES FOR SYSTEM 3 (BADGES) 
+           ============================ */
+        .badges-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); /* 3 شارات في الصف */
+            gap: 12px;
+            padding: 10px;
+        }
+
+        .badge-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            padding: 15px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: 0.3s;
+            opacity: 0.5; /* مطفي افتراضياً */
+            filter: grayscale(1);
+        }
+
+        /* الشارة المفتوحة */
+        .badge-item.unlocked {
+            opacity: 1;
+            filter: grayscale(0);
+            transform: scale(1.02);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        .badge-icon-box {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: grid; place-items: center;
+            font-size: 24px; margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .badge-name { font-size: 11px; font-weight: 800; color: #eee; margin-bottom: 2px; }
+        .badge-lvl { font-size: 9px; color: #aaa; font-family: monospace; }
+
+        /* --- فئات الندرة (Rarity Tiers) --- */
+
+        /* 1. برونزي (Levels 1-5) */
+        .tier-bronze .badge-icon-box {
+            background: linear-gradient(135deg, #cd7f32, #a05a2c);
+            box-shadow: 0 0 10px rgba(205, 127, 50, 0.3);
+            border: 2px solid #eecfa1;
+            color: #fff;
+        }
+
+        /* 2. فضي (Levels 6-10) */
+        .tier-silver .badge-icon-box {
+            background: linear-gradient(135deg, #c0c0c0, #7f8c8d);
+            box-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+            border: 2px solid #fff;
+            color: #fff;
+        }
+
+        /* 3. ذهبي (Levels 11-15) */
+        .tier-gold .badge-icon-box {
+            background: linear-gradient(135deg, #ffd700, #f39c12);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+            border: 2px solid #fff8dc;
+            color: #000;
+        }
+        .tier-gold.unlocked { border: 1px solid rgba(255, 215, 0, 0.3); }
+
+        /* 4. ماسي (Levels 16-19) */
+        .tier-diamond .badge-icon-box {
+            background: linear-gradient(135deg, #00eaff, #0072ff);
+            box-shadow: 0 0 25px rgba(0, 234, 255, 0.5);
+            border: 2px solid #e0ffff;
+            color: #fff;
+        }
+        .tier-diamond.unlocked .badge-icon-box { animation: shine 3s infinite; }
+
+        /* 5. خرافي (Level 20 - GOD MODE) */
+        .tier-mythical .badge-icon-box {
+            background: linear-gradient(135deg, #ff0055, #5D5FEF);
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.6), 0 0 60px rgba(93, 95, 239, 0.4);
+            border: 2px solid #fff;
+            color: #fff;
+        }
+        .tier-mythical.unlocked {
+            border: 1px solid #ff0055;
+            background: linear-gradient(180deg, rgba(255,0,85,0.1), transparent);
+        }
+        .tier-mythical.unlocked .badge-icon-box { animation: pulse-mythic 1.5s infinite alternate; }
+
+        @keyframes pulse-mythic { from { transform: scale(1); box-shadow: 0 0 20px #ff0055; } to { transform: scale(1.1); box-shadow: 0 0 40px #ff0055, 0 0 10px #fff; } }
+        @keyframes shine { 0% { filter: brightness(1); } 50% { filter: brightness(1.3); } 100% { filter: brightness(1); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="loader-overlay" id="pageLoader">
+        <i class="fa-solid fa-chart-pie fa-spin fa-2x" style="color:var(--primary); margin-bottom:15px"></i>
+        <div style="font-size:14px; color:#aaa">جاري تحميل البيانات...</div>
+    </div>
+
+    <div class="main-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="main-title">المركز الرسمي</div>
+    </div>
+
+    <div class="tabs-container">
+        <div class="tab-btn active" onclick="switchTab('verification')" id="tab-v">
+            <i class="fa-solid fa-certificate"></i> شروط التوثيق
+        </div>
+        <div class="tab-btn" onclick="switchTab('levels')" id="tab-l">
+            <i class="fa-solid fa-trophy"></i> سلم المجد
+        </div>
+        <div class="tab-btn" onclick="switchTab('badges')" id="tab-b">
+            <i class="fa-solid fa-shield-halved"></i> معرض الشارات
+        </div>
+    </div>
+
+    <div id="view-verification" class="view-section active">
+        <div class="hero">
+            <div class="badge-icon"><i class="fa-solid fa-medal"></i></div>
+            <h1>شروط التوثيق</h1>
+            <p>يجب تحقيق جميع الشروط التالية لفتح زر التقديم</p>
+        </div>
+
+        <div class="criteria-card card-views">
+            <div class="c-header">
+                <div class="c-left">
+                    <div class="c-icon"><i class="fa-solid fa-eye"></i></div>
+                    <div class="c-info"><h3>المشاهدات</h3><span>مطلوب 10 مليون</span></div>
+                </div>
+                <div class="c-percent" id="perc-views">0%</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="bar-views"></div></div>
+            <div class="status-text"><span id="txt-views">0</span> / 10,000,000</div>
+        </div>
+
+        <div class="criteria-card card-followers">
+            <div class="c-header">
+                <div class="c-left">
+                    <div class="c-icon"><i class="fa-solid fa-users"></i></div>
+                    <div class="c-info"><h3>المتابعين (حقيقي)</h3><span>مطلوب 50 ألف</span></div>
+                </div>
+                <div class="c-percent" id="perc-subs">0%</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="bar-subs"></div></div>
+            <div class="status-text"><span id="txt-subs">0</span> / 50,000</div>
+        </div>
+
+        <div class="criteria-card card-likes">
+            <div class="c-header">
+                <div class="c-left">
+                    <div class="c-icon"><i class="fa-solid fa-heart"></i></div>
+                    <div class="c-info"><h3>تفاعل الجمهور</h3><span>مطلوب 1000 لايك</span></div>
+                </div>
+                <div class="c-percent" id="perc-likes">0%</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="bar-likes"></div></div>
+            <div class="status-text"><span id="txt-likes">0</span> / 1,000</div>
+        </div>
+
+        <div class="criteria-card card-age">
+            <div class="c-header">
+                <div class="c-left">
+                    <div class="c-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div class="c-info"><h3>أقدمية الحساب</h3><span>مطلوب 90 يوم (3 شهور)</span></div>
+                </div>
+                <div class="c-percent" id="perc-age">0%</div>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="bar-age"></div></div>
+            <div class="status-text"><span id="txt-age">0</span> / 90 يوم</div>
+        </div>
+
+        <button id="applyBtn" class="apply-btn" onclick="submitEliteRequest()">
+            <i class="fa-solid fa-lock"></i> الشروط غير مكتملة
+        </button>
+    </div>
+
+    <div id="view-levels" class="view-section">
+        <div class="my-stats">
+            <div class="stat-box">
+                <div class="stat-val" id="lvl-views">0</div>
+                <div class="stat-lbl">مشاهدات</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" id="lvl-subs">0</div>
+                <div class="stat-lbl">متابعين</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-val" id="lvl-likes">0</div>
+                <div class="stat-lbl">تفاعل</div>
+            </div>
+        </div>
+
+        <div class="xp-container">
+            <div class="xp-header">
+                <span>التقدم للمستوى التالي</span>
+                <span id="xpPercentage">0%</span>
+            </div>
+            <div class="xp-track"><div class="xp-fill" id="xpBar"></div></div>
+        </div>
+
+        <div class="levels-list" id="levelsContainer">
+            </div>
+    </div>
+
+    <div id="view-badges" class="view-section">
+        <div class="hero" style="background:none; padding:10px;">
+            <h1 style="font-size:20px;">معرض الشارات</h1>
+            <p>أوسمة النخبة التي تظهر في ملفك الشخصي</p>
+        </div>
+        <div class="badges-container" id="badgesContainer">
+            </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // --- Firebase Config ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.appspot.com",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(), db = firebase.firestore();
+
+        // --- Constants ---
+        const TARGETS = { VIEWS: 10000000, SUBS: 50000, LIKES: 1000, DAYS: 90 };
+
+        const LEVELS = [
+            { id: 1, name: "مبتدئ", req: {v:0, s:0, l:0}, feats: ["إنشاء حساب", "الإعجاب والتعليق", "نشر منشورات نصية"] },
+            { id: 2, name: "هاوي", req: {v:1000, s:10, l:50}, feats: ["تغيير صورة الغلاف", "إضافة بايو (Bio)"] },
+            { id: 3, name: "كاتب", req: {v:5000, s:50, l:100}, feats: ["نشر بوستات طويلة", "استخدام الهاشتاج"] },
+            { id: 4, name: "مصور", req: {v:10000, s:100, l:300}, feats: ["رفع 4 صور في البوست", "جودة صور عالية"] },
+            { id: 5, name: "صانع فيديو", req: {v:25000, s:200, l:500}, feats: ["رفع فيديوهات قصيرة", "مشاهدة عداد المشاهدات"] },
+            { id: 6, name: "متفاعل", req: {v:50000, s:500, l:1000}, feats: ["إرسال ملصقات", "الرد على التعليقات"] },
+            { id: 7, name: "نجم صاعد", req: {v:100000, s:1000, l:2500}, feats: ["تثبيت بوست في البروفايل", "ظهور في الاقتراحات"] },
+            { id: 8, name: "شبح", req: {v:250000, s:2500, l:5000}, feats: ["تفعيل وضع الشبح 👻", "تصفح خفي"] },
+            { id: 9, name: "مؤثر", req: {v:500000, s:5000, l:10000}, feats: ["إطار مميز للصورة", "أولوية في الدعم"] },
+            { id: 10, name: "النخبة (Elite)", req: {v:1000000, s:10000, l:20000}, isVerifyLevel: true, feats: ["🏅 العلامة الزرقاء (التوثيق)", "حماية ضد البلاغات", "دعم فني VIP"] },
+            { id: 11, name: "محترف", req: {v:2000000, s:20000, l:30000}, feats: ["رفع فيديوهات طويلة", "جودة HD"] },
+            { id: 12, name: "فنان", req: {v:3000000, s:30000, l:40000}, feats: ["تلوين الاسم في التعليقات", "ثيمات خاصة"] },
+            { id: 13, name: "قائد", req: {v:4000000, s:40000, l:50000}, feats: ["إنشاء مجموعات", "الإشراف على المحتوى"] },
+            { id: 14, name: "VIP", req: {v:5000000, s:50000, l:60000}, feats: ["إطار ذهبي", "بدون إعلانات"] },
+            { id: 15, name: "مليونير", req: {v:7000000, s:60000, l:80000}, feats: ["استقبال الهدايا", "محفظة العملات"] },
+            { id: 16, name: "زعيم", req: {v:9000000, s:70000, l:100000}, feats: ["شارة الزعيم", "نشر روابط خارجية"] },
+            { id: 17, name: "سفير", req: {v:12000000, s:80000, l:150000}, feats: ["تواصل مباشر مع المطور", "تجربة التحديثات"] },
+            { id: 18, name: "أسطورة", req: {v:15000000, s:90000, l:200000}, feats: ["مساحة غير محدودة", "فيديوهات 4K"] },
+            { id: 19, name: "حاكم", req: {v:18000000, s:100000, l:300000}, feats: ["مدير أعمال", "حماية قانونية"] },
+            { id: 20, name: "GOD MODE", req: {v:20000000, s:150000, l:500000}, feats: ["👑 شريك رسمي", "نسبة من الأرباح", "التحكم في التريند"] }
+        ];
+
+        const BADGES_LIST = [
+            { lvl: 1, name: "بداية الرحلة", icon: "fa-shoe-prints", tier: "tier-bronze" },
+            { lvl: 2, name: "مستكشف", icon: "fa-compass", tier: "tier-bronze" },
+            { lvl: 3, name: "مدون", icon: "fa-pen-nib", tier: "tier-bronze" },
+            { lvl: 4, name: "مصور", icon: "fa-camera", tier: "tier-bronze" },
+            { lvl: 5, name: "صانع محتوى", icon: "fa-video", tier: "tier-bronze" },
+            { lvl: 6, name: "ناشط", icon: "fa-bolt", tier: "tier-silver" },
+            { lvl: 7, name: "نجم صاعد", icon: "fa-star-half-stroke", tier: "tier-silver" },
+            { lvl: 8, name: "الشبح", icon: "fa-ghost", tier: "tier-silver" },
+            { lvl: 9, name: "مؤثر", icon: "fa-bullhorn", tier: "tier-silver" },
+            { lvl: 10, name: "النخبة (Elite)", icon: "fa-certificate", tier: "tier-silver" },
+            { lvl: 11, name: "محترف", icon: "fa-briefcase", tier: "tier-gold" },
+            { lvl: 12, name: "فنان", icon: "fa-palette", tier: "tier-gold" },
+            { lvl: 13, name: "قائد", icon: "fa-users-gear", tier: "tier-gold" },
+            { lvl: 14, name: "VIP", icon: "fa-crown", tier: "tier-gold" },
+            { lvl: 15, name: "مليونير", icon: "fa-sack-dollar", tier: "tier-gold" },
+            { lvl: 16, name: "الزعيم", icon: "fa-chess-king", tier: "tier-diamond" },
+            { lvl: 17, name: "سفير", icon: "fa-globe", tier: "tier-diamond" },
+            { lvl: 18, name: "أسطورة", icon: "fa-dragon", tier: "tier-diamond" },
+            { lvl: 19, name: "الحاكم", icon: "fa-scale-balanced", tier: "tier-diamond" },
+            { lvl: 20, name: "GOD MODE", icon: "fa-hand-holding-medical", tier: "tier-mythical" }
+        ];
+
+        // --- Auth Listener ---
+        auth.onAuthStateChanged(user => {
+            if(user) {
+                loadAllUserStats(user.uid);
+            } else {
+                location.href = "index.html";
+            }
+        });
+
+        // --- Main Data Loading Function ---
+        async function loadAllUserStats(uid) {
+            try {
+                // 1. جلب بيانات المستخدم
+                const userDoc = await db.collection('users').doc(uid).get();
+                const userData = userDoc.data() || {};
+
+                // 2. حساب المتابعين (الحقيقي)
+                let realSubs = userData.followersCount || 0;
+                if(realSubs === 0) {
+                    const subsSnap = await db.collection('users').doc(uid).collection('followers').get();
+                    realSubs = subsSnap.size;
+                }
+
+                // 3. حساب العمر
+                let createdAt = userData.createdAt ? userData.createdAt.toDate() : new Date();
+                let now = new Date();
+                let diffTime = Math.abs(now - createdAt);
+                let accountDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
+                // 4. حساب المشاهدات واللايكات
+                const postsSnap = await db.collection('posts').where('uid', '==', uid).get();
+                let totalViews = 0;
+                let totalLikes = 0;
+
+                postsSnap.forEach(doc => {
+                    const p = doc.data();
+                    totalViews += (p.views || 0);
+                    if (p.likes) totalLikes += Object.keys(p.likes).length;
+                });
+
+                // --- تحديث واجهة نظام التوثيق ---
+                updateVerificationUI(totalViews, realSubs, totalLikes, accountDays);
+
+                // --- تحديث واجهة نظام المستويات ---
+                updateLevelsUI(totalViews, realSubs, totalLikes, userData.isVerified);
+
+                // --- حساب المستوى الحالي ورسم الشارات ---
+                let currentLevel = 0;
+                LEVELS.forEach(lvl => {
+                    if (totalViews >= lvl.req.v && realSubs >= lvl.req.s && totalLikes >= lvl.req.l) {
+                        currentLevel = lvl.id;
+                    }
+                });
+                renderBadgesGallery(currentLevel);
+
+                // إخفاء اللودر
+                document.getElementById('pageLoader').classList.add('hide');
+
+            } catch (e) {
+                console.error(e);
+                alert("حدث خطأ أثناء تحميل البيانات");
+            }
+        }
+
+        // --- UI Logic: Tabs ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`view-${tabId}`).classList.add('active');
+            
+            if(tabId === 'verification') document.getElementById('tab-v').classList.add('active');
+            else if(tabId === 'levels') document.getElementById('tab-l').classList.add('active');
+            else if(tabId === 'badges') document.getElementById('tab-b').classList.add('active');
+        }
+
+        // --- UI Logic: Verification ---
+        function updateVerificationUI(views, subs, likes, days) {
+            updateCard('views', views, TARGETS.VIEWS);
+            updateCard('subs', subs, TARGETS.SUBS);
+            updateCard('likes', likes, TARGETS.LIKES);
+            updateCard('age', days, TARGETS.DAYS);
+
+            const btn = document.getElementById('applyBtn');
+            if (views >= TARGETS.VIEWS && subs >= TARGETS.SUBS && likes >= TARGETS.LIKES && days >= TARGETS.DAYS) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-check-circle"></i> تقديم طلب التوثيق الآن';
+                btn.onclick = submitEliteRequest;
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-solid fa-lock"></i> الشروط غير مكتملة';
+                btn.onclick = null;
+            }
+        }
+
+        function updateCard(id, current, target) {
+            const perc = Math.min(100, (current / target) * 100);
+            document.getElementById(`bar-${id}`).style.width = `${perc}%`;
+            document.getElementById(`perc-${id}`).innerText = `${perc.toFixed(1)}%`;
+            document.getElementById(`txt-${id}`).innerText = formatNumber(current);
+        }
+
+        // --- UI Logic: Levels ---
+        function updateLevelsUI(v, s, l, alreadyVerified) {
+            document.getElementById('lvl-views').innerText = formatNumber(v);
+            document.getElementById('lvl-subs').innerText = formatNumber(s);
+            document.getElementById('lvl-likes').innerText = formatNumber(l);
+
+            const container = document.getElementById('levelsContainer');
+            container.innerHTML = "";
+            let nextLevelReq = null;
+
+            LEVELS.forEach((lvl, idx) => {
+                const isUnlocked = (v >= lvl.req.v && s >= lvl.req.s && l >= lvl.req.l);
+                if (!isUnlocked && !nextLevelReq) nextLevelReq = lvl.req;
+
+                let cardClass = `lvl-card ${isUnlocked ? 'active' : ''} ${lvl.isVerifyLevel ? 'elite' : ''}`;
+                
+                let btnHtml = "";
+                if (lvl.isVerifyLevel && isUnlocked && !alreadyVerified) {
+                    btnHtml = `<button class="verify-btn-lvl" onclick="requestLevelVerification()"><i class="fa-solid fa-paper-plane"></i> تقديم طلب التوثيق للإدارة</button>`;
+                } else if (lvl.isVerifyLevel && alreadyVerified) {
+                    btnHtml = `<div style="text-align:center; color:var(--success); margin-top:10px; font-weight:bold; background:rgba(16, 185, 129, 0.1); padding:10px; border-radius:10px;"><i class="fa-solid fa-check-double"></i> تم التوثيق بنجاح</div>`;
+                }
+
+                let featsHtml = lvl.feats.map(f => `<li><i class="fa-solid fa-star"></i> ${f}</li>`).join('');
+
+                container.innerHTML += `
+                <div class="${cardClass}">
+                    ${!isUnlocked ? `<div class="lock-screen"><i class="fa-solid fa-lock" style="font-size:24px; color:#aaa; margin-bottom:5px"></i><span style="font-size:12px; color:#aaa">مغلق</span></div>` : ''}
+                    
+                    <div class="lvl-header">
+                        <div class="lvl-info">
+                            <div class="lvl-badge">${lvl.id}</div>
+                            <div class="lvl-name">${lvl.name}</div>
+                        </div>
+                        ${isUnlocked ? '<i class="fa-solid fa-unlock" style="color:var(--success)"></i>' : ''}
+                    </div>
+
+                    <div class="lvl-body">
+                        <ul class="features">${featsHtml}</ul>
+                        ${btnHtml}
+                        <div class="req-text-lvl">
+                            <div class="req-item-lvl"><i class="fa-solid fa-eye" style="color:var(--primary)"></i> ${formatNumber(lvl.req.v)}</div>
+                            <div class="req-item-lvl"><i class="fa-solid fa-users" style="color:var(--success)"></i> ${formatNumber(lvl.req.s)}</div>
+                            <div class="req-item-lvl"><i class="fa-solid fa-heart" style="color:var(--danger)"></i> ${formatNumber(lvl.req.l)}</div>
+                        </div>
+                    </div>
+                </div>`;
+            });
+
+            if (nextLevelReq) {
+                const vP = Math.min(100, (v / nextLevelReq.v) * 100);
+                const sP = Math.min(100, (s / nextLevelReq.s) * 100);
+                const lP = Math.min(100, (l / nextLevelReq.l) * 100);
+                const avg = (vP + sP + lP) / 3;
+                document.getElementById('xpBar').style.width = `${avg}%`;
+                document.getElementById('xpPercentage').innerText = `${avg.toFixed(1)}%`;
+            } else {
+                document.getElementById('xpBar').style.width = `100%`;
+                document.getElementById('xpPercentage').innerText = `MAX`;
+            }
+        }
+
+        // --- UI Logic: Badges (Corrected) ---
+        function renderBadgesGallery(userLevel) {
+            const container = document.getElementById('badgesContainer');
+            if(!container) return;
+            
+            container.innerHTML = "";
+            
+            BADGES_LIST.forEach(b => {
+                const isUnlocked = userLevel >= b.lvl;
+                
+                let html = `
+                <div class="badge-item ${b.tier} ${isUnlocked ? 'unlocked' : ''}">
+                    <div class="badge-icon-box">
+                        <i class="fa-solid ${isUnlocked ? b.icon : 'fa-lock'}"></i>
+                    </div>
+                    <div class="badge-name">${b.name}</div>
+                    <div class="badge-lvl">LVL ${b.lvl}</div>
+                </div>`;
+                
+                container.innerHTML += html;
+            });
+        }
+
+        // --- Requests ---
+        async function submitEliteRequest() {
+            const user = auth.currentUser;
+            if(!user) return;
+            const existing = await db.collection('verification_requests').doc(user.uid).get();
+            if(existing.exists) { alert("الطلب قيد المراجعة بالفعل!"); return; }
+
+            if(confirm("تأكيد إرسال الطلب؟")) {
+                const btn = document.getElementById('applyBtn');
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري...';
+                
+                const uData = await db.collection('users').doc(user.uid).get();
+                await db.collection('verification_requests').doc(user.uid).set({
+                    uid: user.uid,
+                    name: uData.data().name,
+                    email: uData.data().email,
+                    photoURL: uData.data().profilePic || "",
+                    type: "ELITE_FULL_CRITERIA",
+                    stats: {
+                        views: document.getElementById('txt-views').innerText,
+                        followers: document.getElementById('txt-subs').innerText,
+                        likes: document.getElementById('txt-likes').innerText,
+                        age: document.getElementById('txt-age').innerText
+                    },
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> تم الإرسال';
+                btn.style.background = "#10b981";
+                alert("تم رفع الطلب بنجاح ✅");
+            }
+        }
+
+        async function requestLevelVerification() {
+            const user = auth.currentUser;
+            if(!user) return;
+            const existing = await db.collection('verification_requests').doc(user.uid).get();
+            if(existing.exists) { alert("طلبك قيد المراجعة حالياً ⏳"); return; }
+
+            if(confirm("إرسال طلب التوثيق (مستوى النخبة)؟")) {
+                const uData = await db.collection('users').doc(user.uid).get();
+                await db.collection('verification_requests').doc(user.uid).set({
+                    uid: user.uid,
+                    name: uData.data().name,
+                    email: uData.data().email,
+                    photoURL: uData.data().profilePic || "",
+                    type: "LEVEL_10_ELITE",
+                    stats: {
+                        views: document.getElementById('lvl-views').innerText,
+                        subs: document.getElementById('lvl-subs').innerText,
+                        likes: document.getElementById('lvl-likes').innerText
+                    },
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                alert("تم الإرسال بنجاح! 🎉");
+                location.reload();
+            }
+        }
+
+        // --- Helpers ---
+        function formatNumber(num) {
+            if(!num) return '0';
+            if(num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if(num >= 1000) return (num / 1000).toFixed(1) + 'k';
+            return num.toString();
+        }
+    </script>
+</body>
+</html>

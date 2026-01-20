@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NABD - تعديل الملف الشخصي</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+        /* الستايل الجديد المطور */
+        :root {
+            --primary-color: #7c3aed;
+            --uranium-green: #3fff00;
+            --bg-dark: #0d0d0f;
+            --card-bg: #16161a;
+            --input-bg: #1f1f23;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        /* الهيدر */
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 20px 15px;
+            border-bottom: 1px solid #1f1f23;
+            position: sticky;
+            top: 0;
+            background: rgba(13, 13, 15, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .header i {
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--uranium-green);
+            margin-left: 15px;
+            transition: 0.3s;
+        }
+
+        .header i:hover { transform: scale(1.2); }
+
+        .header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 0 auto 40px;
+            padding: 0 15px;
+        }
+
+        /* منطقة الغلاف والأفاتار */
+        .cover-area {
+            height: 160px;
+            background: linear-gradient(180deg, rgba(124, 58, 237, 0.2), transparent), 
+                        url('https://www.transparenttextures.com/patterns/carbon-fibre.png');
+            background-color: #1a1a1e;
+            position: relative;
+            border-radius: 0 0 25px 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .avatar-edit {
+            width: 115px;
+            height: 115px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-dark);
+            position: absolute;
+            bottom: -55px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            font-weight: 900;
+            background: #25252b;
+            color: var(--uranium-green);
+            background-size: cover;
+            background-position: center;
+            cursor: pointer;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 0 20px rgba(63, 255, 0, 0.1);
+        }
+
+        .avatar-edit:hover {
+            transform: translateX(-50%) scale(1.05);
+            box-shadow: 0 0 30px rgba(63, 255, 0, 0.3);
+        }
+
+        .camera-icon {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: var(--uranium-green);
+            color: #000;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            border: 3px solid var(--bg-dark);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* نموذج التعديل */
+        .edit-form {
+            margin-top: 75px;
+            padding: 25px;
+            background: var(--card-bg);
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            color: #888;
+            font-weight: 600;
+            font-size: 13px;
+            margin-right: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1px solid #2a2a30;
+            background: var(--input-bg);
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: var(--uranium-green);
+            background: #25252b;
+            box-shadow: 0 0 15px rgba(63, 255, 0, 0.05);
+        }
+
+        .form-group textarea {
+            min-height: 110px;
+            resize: none;
+        }
+
+        /* الأزرار */
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 16px;
+            border: none;
+            background: var(--uranium-green);
+            color: #000;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 8px 20px rgba(63, 255, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(63, 255, 0, 0.3);
+            filter: brightness(1.1);
+        }
+
+        .save-btn:active { transform: scale(0.97); }
+
+        .save-btn:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* الرسائل والأنيميشن */
+        .message {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 14px;
+            border-radius: 12px;
+            display: none;
+            font-weight: 600;
+            font-size: 14px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .success { background: rgba(63, 255, 0, 0.1); color: var(--uranium-green); border: 1px solid rgba(63, 255, 0, 0.2); }
+        .error { background: rgba(255, 85, 85, 0.1); color: #ff5555; border: 1px solid rgba(255, 85, 85, 0.2); }
+        .loading { background: rgba(255, 255, 255, 0.05); color: #ccc; border: 1px solid rgba(255, 255, 255, 0.1); }
+
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-top-color: #000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+
+<body>
+
+<div class="header">
+    <i class="fa-solid fa-arrow-right" onclick="history.back()"></i>
+    <h2>تعديل الملف الشخصي</h2>
+</div>
+
+<div class="container">
+    <div class="cover-area">
+        <div class="avatar-edit" id="avatarEdit">
+            U
+            <i class="fa-solid fa-camera camera-icon"></i>
+        </div>
+    </div>
+
+    <div class="edit-form">
+        <div id="statusMessage" class="message"></div>
+
+        <div class="form-group">
+            <label>الاسم الكامل</label>
+            <input type="text" id="nameInput" placeholder="أدخل اسمك الكامل">
+        </div>
+
+        <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="usernameInput" placeholder="مثال: user123">
+        </div>
+
+        <div class="form-group">
+            <label>النبذة (Bio)</label>
+            <textarea id="bioInput" placeholder="أخبرنا عن نفسك..."></textarea>
+        </div>
+
+        <div class="form-group">
+            <label><i class="fa-solid fa-briefcase"></i> العمل</label>
+            <input type="text" id="workInput" placeholder="مثال: مهندس برمجيات">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fa-solid fa-graduation-cap"></i> الدراسة</label>
+            <input type="text" id="eduInput" placeholder="مثال: جامعة القاهرة">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fa-solid fa-location-dot"></i> الموقع / السكن</label>
+            <input type="text" id="locInput" placeholder="مثال: مصر، القاهرة">
+        </div>
+
+        <div class="form-group">
+            <label><i class="fa-solid fa-link"></i> رابط أو موقع</label>
+            <input type="text" id="webInput" placeholder="رابط موقعك أو حساب آخر">
+        </div>
+        <button class="save-btn" id="saveBtn" onclick="saveProfile()">
+            حفظ التعديلات
+        </button>
+    </div>
+</div>
+
+<input type="file" id="fileInput" hidden accept="image/*">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+    apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+    authDomain: "pools-e4381.firebaseapp.com",
+    projectId: "pools-e4381",
+    storageBucket: "pools-e4381.firebasestorage.app",
+    messagingSenderId: "339799216046",
+    appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
+
+const avatarEdit = document.getElementById("avatarEdit");
+const fileInput = document.getElementById("fileInput");
+const statusMessage = document.getElementById("statusMessage");
+const saveBtn = document.getElementById("saveBtn");
+
+// تعريف الحقول الأساسية
+const nameInput = document.getElementById("nameInput");
+const usernameInput = document.getElementById("usernameInput");
+const bioInput = document.getElementById("bioInput");
+
+// تعريف الحقول الجديدة في الجافاسكريبت
+const workInput = document.getElementById("workInput");
+const eduInput = document.getElementById("eduInput");
+const locInput = document.getElementById("locInput");
+const webInput = document.getElementById("webInput");
+
+let currentUser = null;
+let uploadedImageUrl = null;
+
+auth.onAuthStateChanged(user => {
+    if (!user) {
+        showMsg("يجب تسجيل الدخول أولاً ❌", "error");
+        setTimeout(() => window.location.href = "index.html", 2000);
+        return;
+    }
+    currentUser = user;
+    loadProfile();
+});
+
+async function loadProfile() {
+    try {
+        const doc = await db.collection("users").doc(currentUser.uid).get();
+        
+        if (!doc.exists) {
+            await db.collection("users").doc(currentUser.uid).set({
+                name: currentUser.displayName || "",
+                email: currentUser.email || "",
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            return;
+        }
+
+        const data = doc.data();
+        
+        // تعبئة البيانات الأساسية
+        nameInput.value = data.name || "";
+        usernameInput.value = data.username || "";
+        bioInput.value = data.bio || "";
+
+        // تعبئة البيانات الجديدة إذا وجدت
+        workInput.value = data.work || "";
+        eduInput.value = data.education || "";
+        locInput.value = data.location || "";
+        webInput.value = data.website || "";
+
+        if (data.profilePic) {
+            avatarEdit.style.backgroundImage = `url('${data.profilePic}')`;
+            avatarEdit.innerText = "";
+            uploadedImageUrl = data.profilePic;
+        } else {
+            avatarEdit.innerText = (data.name || "U")[0].toUpperCase();
+        }
+    } catch (error) {
+        console.error("Load error:", error);
+        showMsg("خطأ في تحميل البيانات", "error");
+    }
+}
+
+avatarEdit.onclick = () => {
+    if (!currentUser) {
+        showMsg("يجب تسجيل الدخول ❌", "error");
+        return;
+    }
+    fileInput.click();
+};
+
+fileInput.onchange = async () => {
+    if (!currentUser) return;
+    const file = fileInput.files[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        showMsg("اختر صورة فقط", "error");
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        showMsg("الصورة كبيرة جداً (حد أقصى 5MB)", "error");
+        return;
+    }
+
+    showMsg("جاري الرفع...", "loading");
+    saveBtn.disabled = true;
+
+    try {
+        const fileName = `profile_${currentUser.uid}_${Date.now()}.jpg`;
+        const storageRef = storage.ref().child(`profile_pics/${currentUser.uid}/${fileName}`);
+        await storageRef.put(file);
+        const url = await storageRef.getDownloadURL();
+        uploadedImageUrl = url;
+
+        await db.collection("users").doc(currentUser.uid).update({
+            profilePic: url,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        avatarEdit.style.backgroundImage = `url('${url}')`;
+        avatarEdit.innerText = "";
+        showMsg("تم رفع الصورة ✅", "success");
+        saveBtn.disabled = false;
+    } catch (error) {
+        console.error("Upload error:", error);
+        showMsg("فشل الرفع: " + error.message, "error");
+        saveBtn.disabled = false;
+    }
+};
+
+async function saveProfile() {
+    if (!currentUser) {
+        showMsg("يجب تسجيل الدخول ❌", "error");
+        return;
+    }
+    
+    // جلب القيم من جميع الحقول
+    const name = nameInput.value.trim();
+    const username = usernameInput.value.trim();
+    const bio = bioInput.value.trim();
+    const work = workInput.value.trim();
+    const education = eduInput.value.trim();
+    const location = locInput.value.trim();
+    const website = webInput.value.trim();
+
+    if (!name) {
+        showMsg("أدخل الاسم", "error");
+        nameInput.focus();
+        return;
+    }
+    if (name.length < 2) {
+        showMsg("الاسم قصير جداً", "error");
+        nameInput.focus();
+        return;
+    }
+
+    saveBtn.disabled = true;
+    showMsg("جاري الحفظ...", "loading");
+
+    const data = {
+        name: name,
+        username: username || "",
+        bio: bio || "",
+        // إضافة الحقول الجديدة للكائن الذي سيتم حفظه
+        work: work,
+        education: education,
+        location: location,
+        website: website,
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (uploadedImageUrl) {
+        data.profilePic = uploadedImageUrl;
+    }
+
+    try {
+        // الحفظ في قاعدة البيانات
+        await db.collection("users").doc(currentUser.uid).set(data, { merge: true });
+        showMsg("تم الحفظ بنجاح ✅", "success");
+        setTimeout(() => window.location.href = "profile.html", 1500);
+    } catch (error) {
+        console.error("Save error:", error);
+        showMsg("فشل الحفظ: " + error.message, "error");
+        saveBtn.disabled = false;
+    }
+}
+
+function showMsg(msg, type) {
+    statusMessage.className = `message ${type}`;
+    statusMessage.innerHTML = type === 'loading' 
+        ? msg + ' <span class="spinner"></span>' 
+        : msg;
+    statusMessage.style.display = "block";
+
+    if (type !== 'loading') {
+        setTimeout(() => statusMessage.style.display = "none", 3000);
+    }
+}
+</script>
+
+</body>
+</html>
