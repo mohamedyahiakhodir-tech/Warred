@@ -1895,7 +1895,7 @@ body, button, input, textarea {
     width: auto;
     min-width: 280px;
 }
-call-btn {
+.call-btn {
     width: 50px; 
     height: 50px;
     border-radius: 50%; /* دائرة كاملة */
@@ -1939,14 +1939,17 @@ call-btn {
     box-shadow: 0 5px 20px rgba(239, 68, 68, 0.4);
     margin-left: 10px;
 }
-
 #incomingCallControls {
     position: absolute !important;
     bottom: 80px !important;
-    left: 0; right: 0;
-    display: flex; justify-content: space-evenly;
-    z-index: 2000;
+    left: 0; 
+    right: 0;
+    display: flex; 
+    justify-content: space-evenly;
+    z-index: 2000 !important; /* رقم عالي عشان يظهر فوق الفيديو والخلفية */
+    pointer-events: auto; /* لضمان قبول اللمس */
 }
+
 
 .call-btn.accept {
     width: 70px !important; height: 70px !important; font-size: 28px;
@@ -2832,6 +2835,26 @@ function handleSwipe() {
     height: 300px; color: #64748b; gap: 15px;
 }
 .empty-icon { font-size: 50px; opacity: 0.3; }
+/* ستايل لرسائل الرد السريع عشان تتميز عن الشات العادي */
+.message.quick-reply {
+    background: #e1ffc7; /* لون مخضر فاتح */
+    color: #075e54;
+    font-style: italic;
+    border: 1px solid #25d366;
+    font-size: 13px;
+    padding: 8px 15px;
+    border-radius: 15px;
+    align-self: center; /* تيجي في نص الشات */
+    margin: 10px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* لو الوضع الليلي */
+body.dark-mode .message.quick-reply {
+    background: #1f2c34;
+    color: #00e5ff;
+    border: 1px solid #00e5ff;
+}
 
 
     </style>
@@ -3380,9 +3403,36 @@ auth.onAuthStateChanged(async user => {
 
         if(chatId) {
             await loadChatDetails(); 
+            const targetMsgId = params.get("highlightMsg");
+
+    if (targetMsgId) {
+        console.log("جاي من بحث، رايح للرسالة رقم:", targetMsgId);
+        
+        // لو فيه رسالة مستهدفة، نأخر التحميل العادي ونشغل نظام الأرشيف فوراً
+        setTimeout(() => {
+            handleSearchResultClick(targetMsgId); // دي الدالة اللي بتجيب القديم والجديد
+        }, 500); // تأخير بسيط عشان نتأكد إن user ID جاهز
+        
+        // ملاحظة: مش هنشغل loadMessages العادية عشان منعملش تداخل
+    } else {
+        // لو مفيش بحث، حمل آخر 20 رسالة بشكل طبيعي
+        loadMessages();
+    }
+ 
             loadMessages();
             setupTypingListener();
             listenForIncomingCalls();
+            // فحص هل جايين من بحث ولا لأ
+const highlightMsgId = params.get("highlightMsg");
+
+if (highlightMsgId) {
+    // لو فيه ID رسالة، نفعل دالة البحث والقفز فوراً
+    // بس نديها وقت ثانية عشان الداتابيز تكون حملت
+    setTimeout(() => {
+        handleSearchResultClick(highlightMsgId); 
+    }, 1000);
+}
+
         }
     } else {
         window.location.href = 'login.html';
@@ -3392,29 +3442,48 @@ auth.onAuthStateChanged(async user => {
 // ================= تعديل منطق الكتابة (Fix Typing) =================
 const msgInput = document.getElementById("messageInput");
 
+// متغير لتتبع حالة الكتابة الحالية لمنع التكرار
+let isTypingStatus = false; 
+
 msgInput.addEventListener('input', () => {
     if(chatId && currentUserId) {
-        // التعديل: استخدام arrayUnion في حقل 'typing' ليتوافق مع القائمة الخارجية
-        playKeySound(); 
-        db.collection("chats").doc(chatId).update({ 
-            typing: firebase.firestore.FieldValue.arrayUnion(currentUserId) 
-        }).catch(err => {
-            // لو الملف لسه مفيش فيه حقل typing، نستخدم set مع merge
-            db.collection("chats").doc(chatId).set({ 
-                typing: firebase.firestore.FieldValue.arrayUnion(currentUserId) 
-            }, { merge: true });
-        });
+        const val = msgInput.value.trim();
+        
+        // لو الحقل فضي (مسح الكلام)، نلغي الحالة فوراً
+        if (val === '') {
+            clearTimeout(typingTimeout);
+            if (isTypingStatus) {
+                isTypingStatus = false;
+                db.collection("chats").doc(chatId).update({ 
+                    typing: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
+                }).catch(()=>{});
+            }
+            return;
+        }
 
+        playKeySound(); 
+
+        // لو هو مش متسجل إنه بيكتب، نسجله (مرة واحدة بس عشان نوفر نت)
+        if (!isTypingStatus) {
+            isTypingStatus = true;
+            db.collection("chats").doc(chatId).update({ 
+                typing: firebase.firestore.FieldValue.arrayUnion(currentUserId) 
+            }).catch(()=>{});
+        }
+
+        // ريستارت للعداد مع كل حرف
         clearTimeout(typingTimeout);
         
-        // بعد 3 ثواني من التوقف عن الكتابة، احذف الاسم
+        // بعد 3 ثواني من آخر حرف، نلغي الحالة
         typingTimeout = setTimeout(() => { 
+            isTypingStatus = false;
             db.collection("chats").doc(chatId).update({ 
                 typing: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
-            }); 
+            }).catch(()=>{});
         }, 3000);
     }
 });
+
 
        function setupTypingListener() {
     db.collection("chats").doc(chatId).onSnapshot(doc => {
@@ -4935,24 +5004,24 @@ if (vibrationInterval) {
 
 // 4. رفض المكالمة
 async function rejectCall() {
-    stopSmartRingtone();
+    console.log("Rejecting call..."); // للتأكد إن الزرار استجاب
 
-    // وقف أي صوت شغال
-['ringtoneIn', 'ringtoneOut'].forEach(id => { 
-    var el = document.getElementById(id); 
-    if(el) { el.pause(); el.currentTime = 0; } 
-});
-if (navigator.vibrate) navigator.vibrate(0); // وقف الهز
+    // 1. وقف الاهتزاز فوراً
+    if (navigator.vibrate) navigator.vibrate(0);
+    if (typeof vibrationInterval !== 'undefined' && vibrationInterval) {
+        clearInterval(vibrationInterval);
+        vibrationInterval = null;
+    }
 
-    // ضيف الجزء ده في أول السطر في الدوال دي
-if (vibrationInterval) {
-    clearInterval(vibrationInterval); // وقف التكرار
-    navigator.vibrate(0); // وقف الهز الحالي فوراً
-    vibrationInterval = null; // تصفير المتغير
-}
-
-    ringIn.pause(); ringIn.currentTime = 0;
-    await endCall(true); // true يعني احذف الدوك من الداتابيز
+    // 2. وقف الصوت بالقوة
+    const rIn = document.getElementById('ringtoneIn');
+    if(rIn) { 
+        rIn.pause(); 
+        rIn.currentTime = 0; 
+    }
+    
+    // 3. استدعاء إنهاء المكالمة وحذفها من الداتابيز
+    await endCall(true); 
 }
 
 // 5. إنهاء المكالمة (مشترك)
@@ -6698,8 +6767,108 @@ async function performFullSearch(query) {
 }
 
 // دالة التعامل مع الضغط على النتيجة
+// ================================================================
+// 🔥 نظام البحث المدمج (للبحث الداخلي + القفز للرسائل القديمة) 🔥
+// ================================================================
+
+let chatSearchTimer; // متغير لتأخير البحث
+
+// 1. فتح/غلق نافذة البحث داخل الشات
+function toggleChatSearch() {
+    const overlay = document.getElementById('searchOverlay');
+    const input = document.getElementById('searchInputField');
+    
+    if (overlay.style.display === 'flex') {
+        overlay.style.display = 'none';
+        input.value = ''; // تنظيف
+        document.getElementById('searchResults').innerHTML = '';
+    } else {
+        overlay.style.display = 'flex';
+        input.focus();
+    }
+}
+
+// 2. دالة البحث الفعلي (داخل الشات)
+async function doSearch(query) {
+    const list = document.getElementById('searchResults');
+    
+    if (!query || query.trim() === '') {
+        list.innerHTML = '';
+        return;
+    }
+
+    // تنظيف المؤقت القديم
+    clearTimeout(chatSearchTimer);
+
+    // الانتظار قليلاً قبل البحث (توفير للأداء)
+    chatSearchTimer = setTimeout(async () => {
+        list.innerHTML = '<div style="text-align:center; color:#00e5ff; padding:10px;">جاري البحث... <i class="fa-solid fa-spinner fa-spin"></i></div>';
+
+        try {
+            // البحث في قاعدة البيانات (داخل الشات الحالي فقط)
+            // بنستخدم الفهرس اللي عملناه (text)
+            const snapshot = await db.collection("chats").doc(chatId).collection("messages")
+                .where('text', '>=', query)
+                .where('text', '<=', query + '\uf8ff')
+                .limit(20) // هات 20 نتيجة
+                .get();
+
+            let html = '';
+            
+            if (snapshot.empty) {
+                list.innerHTML = '<div style="text-align:center; color:#777; padding:20px;">لا توجد نتائج</div>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const msg = doc.data();
+                if(msg.type === 'deleted') return;
+
+                // تلوين الكلمة
+                const highlightedText = msg.text.replace(new RegExp(`(${query})`, 'gi'), 
+                    `<span style="background:#00e5ff; color:#000; padding:0 2px; border-radius:2px;">$1</span>`
+                );
+                
+                const dateStr = msg.createdAt ? new Date(msg.createdAt.toMillis()).toLocaleDateString('ar-EG') : '';
+
+                // عند الضغط: نستدعي الدالة القوية اللي هتجيب الرسالة حتى لو في الأرشيف
+                html += `
+                <div class="search-result-item" onclick="handleSearchResultClick('${doc.id}')" 
+                     style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                    
+                    <div style="font-size:13px; color:#fff; margin-bottom:4px;">
+                        ${highlightedText}
+                    </div>
+                    <div style="font-size:10px; color:#aaa; display:flex; justify-content:space-between;">
+                        <span>${msg.uid === currentUserId ? 'أنت' : 'الطرف الآخر'}</span>
+                        <span>${dateStr}</span>
+                    </div>
+                </div>`;
+            });
+
+            list.innerHTML = html;
+
+        } catch (e) {
+            console.error(e);
+            list.innerHTML = '<div style="text-align:center; color:red;">حدث خطأ</div>';
+        }
+    }, 600);
+}
+
+// 3. الدالة المدمجة القوية (التعامل مع نتيجة البحث)
+// دي النسخة اللي أنت بعتها + الإضافة الصغيرة عشان تقفل بحث الشات
 async function handleSearchResultClick(msgId) {
-    document.getElementById('fullSearchOverlay').style.display = 'none';
+    
+    // 👇 (الإضافة الوحيدة) إغلاق أي نوافذ بحث مفتوحة 👇
+    const fullSearch = document.getElementById('fullSearchOverlay');
+    const chatSearch = document.getElementById('searchOverlay');
+    
+    if(fullSearch) fullSearch.style.display = 'none'; // لو جاي من بره
+    if(chatSearch) chatSearch.style.display = 'none'; // لو جاي من جوه
+    // 👆 (نهاية الإضافة) 👆
+
+    
+    // --- بداية الكود الأصلي بتاعك ---
     
     // لو الرسالة موجودة قدامنا (حديثة)، نروح لها علطول
     const el = document.getElementById('msg_' + msgId);
@@ -6752,7 +6921,7 @@ async function handleSearchResultClick(msgId) {
         oldestDoc = allDocs[0]; // أقدم رسالة فوق
         newestArchivedDoc = allDocs[allDocs.length - 1]; // أحدث رسالة تحت
 
-        // 6. عرض الرسايل
+        // 6. عرض الرسايل (مع زر الخروج من الأرشيف)
         container.innerHTML = `
             <div id="archiveAlert" style="position:sticky; top:10px; z-index:50; text-align:center; opacity:0.8;">
                 <button onclick="exitArchiveMode()" style="background:#00e5ff; color:#000; border:none; padding:5px 15px; border-radius:20px; font-weight:bold; font-size:12px; cursor:pointer;">
@@ -6771,7 +6940,7 @@ async function handleSearchResultClick(msgId) {
             const msg = doc.data();
             const isMe = msg.uid === currentUserId;
             const u = userCache[msg.uid] || { name: 'مستخدم', color: '#555', char: 'U', profilePic: null };
-            html += buildMessageHTML(msg, doc.id, u, isMe);
+            html += buildMessageHTML(msg, doc.id, u); // ⚠️ تأكد أن دالة buildMessageHTML عندك بتاخد (msg, id, u)
         });
 
         container.insertAdjacentHTML('beforeend', html);
@@ -6790,6 +6959,7 @@ async function handleSearchResultClick(msgId) {
         showToast("حدث خطأ");
     }
 }
+
 async function loadMoreNewerMessages() {
     if (isLoadingNewer || !newestArchivedDoc || !isArchiveMode) return;
     
@@ -7657,6 +7827,39 @@ function saveTokenToFirestore(token) {
     });
 }
 
+// هذا الكود يوضع في صفحة chat.html وليس هنا
+// للتعامل مع التمرير للرسالة المطلوبة
+
+function checkHighlight() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const highlightWord = urlParams.get('highlight');
+
+    if (highlightWord) {
+        // البحث في الرسائل المحملة
+        // هذه طريقة مبسطة، يفضل البحث في DOM بعد رسم الرسائل
+        setTimeout(() => {
+            // نبحث عن أي عنصر يحتوي على النص
+            // (بافتراض أن الرسائل لها كلاس .msg-content أو ما شابه)
+            const messages = document.querySelectorAll('.message-text'); // غير الكلاس حسب كودك
+            
+            for (let msg of messages) {
+                if (msg.innerText.toLowerCase().includes(highlightWord.toLowerCase())) {
+                    
+                    // 1. تلوين الكلمة
+                    const regex = new RegExp(`(${highlightWord})`, 'gi');
+                    msg.innerHTML = msg.innerHTML.replace(regex, '<span style="background:yellow; color:black; font-weight:bold;">$1</span>');
+                    
+                    // 2. التمرير إليها
+                    msg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    // وميض بسيط لتمييز الرسالة
+                    msg.parentElement.style.animation = "flashHighlight 2s";
+                    break; // نقف عند أول نتيجة (أو يمكنك إكمال الباقي)
+                }
+            }
+        }, 1000); // تأخير بسيط لضمان تحميل الرسائل
+    }
+}
 
     </script>
     
@@ -7828,17 +8031,6 @@ function saveTokenToFirestore(token) {
     </div>
 </div>
 
-
-<audio id="ringtoneOut" loop preload="auto">
-    <source src="./sounds/ring_out.mp3" type="audio/mp3">
-</audio>
-
-<audio id="ringtoneIn" loop>
-    <source src="Https://firebasestorage.googleapis.com/v0/b/pools-e4381.firebasestorage.app/o/sounds%2Fmixkit-happy-bells-notification-937.wav?alt=media&token=3422aeb0-bf76-4670-83aa-5ba59fff7fe5" type="audio/wav">
-</audio>
-
-
-<audio id="callEndSound"><source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg"></audio>
 <div id="customBlockModal" class="confirm-modal-overlay">
     <div class="confirm-modal">
         <div class="modal-icon-box">

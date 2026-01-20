@@ -1687,7 +1687,146 @@
 .g-btn.accept { background: #10b981; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); animation: shake 1.2s infinite; }
 
 @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(0, 229, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); } }
+/* ================= تصميم قائمة البحث المنبثقة (مصحح وشغال 100%) ================= */
+.search-results-popup {
+    /* Fixed: عشان تثبت على الشاشة مهما عملت سكرول */
+    position: fixed;
+    
+    /* ظبط المسافة دي براحتك (ده اللي بينزلها تحت شريط البحث) */
+    /* لو لقيتها مغطية الشريط زود الرقم، لو بعيدة قلله */
+    top: 130px; 
+    left: 50%;
+    transform: translateX(-50%);
+    
+    width: 94%; /* عرض مناسب للموبايل */
+    max-width: 500px;
+    max-height: 50vh; /* تاخد نص الشاشة بس عشان تعرف تشوف */
+    
+    /* لون غامق عشان الكلام يبان والقصص ما تظهرش من تحتها */
+    background: #111111; 
+    
+    /* حدود ذهبية عشان الشياكة */
+    border: 1px solid #FFD700;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.9); /* ظل تقيل */
+    
+    /* 🔥 الرقم ده هو اللي بيخليها تظهر فوق القصص 🔥 */
+    z-index: 9999999 !important;
+    
+    overflow-y: auto; /* عشان لو النتايج كتير تعمل سكرول */
+    display: none; /* مخفية في البداية */
+}
 
+/* لما تفتح */
+.search-results-popup.active {
+    display: block !important;
+    animation: slideDown 0.3s ease-out;
+}
+
+/* حركة ناعمة للظهور */
+@keyframes slideDown {
+    from { opacity: 0; transform: translate(-50%, -20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+
+/* تنسيق إضافي عشان شكل القصص ما يأثرش */
+.stories-section {
+    /* ده بيخلي القصص طبقة أقل من البحث */
+    position: relative;
+    z-index: 1; 
+}
+
+
+/* تنسيق العناصر جوه القائمة */
+.search-result-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 15px; margin: 5px 10px;
+    border-radius: 12px; cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.search-result-item:active { background: rgba(255, 215, 0, 0.15); }
+
+/* تلوين الكلمة */
+.highlight-text {
+    background-color: #FFD700;
+    color: #000;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-weight: bold;
+}
+
+/* زرار الإغلاق في شريط البحث */
+#closeSearchBtn {
+    z-index: 10;
+    padding: 10px;
+}
+
+/* تلوين الكلمة اللي بتبحث عنها */
+.highlight-text {
+    background: #FFD700;
+    color: #000;
+    padding: 0 3px;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* تمييز الكلمة المبحوث عنها */
+.highlight-text { 
+    color: #1a1a1a; 
+    background: #FFD700; 
+    font-weight: bold; 
+    padding: 0 4px; 
+    border-radius: 4px; 
+}
+
+/* الأفاتار في البحث */
+.search-res-avatar {
+    width: 45px; height: 45px;
+    border-radius: 14px;
+    background-size: cover; background-position: center;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    flex-shrink: 0;
+}
+
+/* تفاصيل النص */
+.search-res-info {
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    overflow: hidden;
+}
+
+.search-res-name {
+    color: #fff; font-size: 14px; font-weight: bold;
+    margin-bottom: 4px;
+}
+
+.search-res-snippet {
+    color: #a0a0a0; font-size: 12px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* تلوين الكلمة المبحوث عنها */
+.highlight-text {
+    color: #FFD700; /* ذهبي */
+    font-weight: bold;
+    background: rgba(255, 215, 0, 0.15);
+    padding: 0 2px;
+    border-radius: 4px;
+}
+
+/* هيدر القائمة (عدد النتائج) */
+.search-header-count {
+    padding: 5px 20px 10px;
+    color: var(--accent-color);
+    font-size: 12px;
+    font-weight: bold;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    margin-bottom: 5px;
+    display: flex; justify-content: space-between;
+}
 
     </style>
 </head>
@@ -1714,13 +1853,14 @@
             </div>
         </div>
     </header>
-
-    <div id="searchContainer" class="search-wrapper">
-        <div class="search-input-box">
-            <i class="fa-solid fa-magnifying-glass search-icon-inside"></i>
-            <input type="text" placeholder="بحث في المحادثات..." oninput="searchChats(this.value)">
-        </div>
+<div id="searchContainer" class="search-wrapper">
+    <div class="search-input-box">
+        <i class="fa-solid fa-magnifying-glass search-icon-inside"></i>
+        <input type="text" id="globalSearchInput" placeholder="بحث عن رسالة أو شخص..." oninput="handleGlobalSearch(this.value)">
+        <i id="closeSearchBtn" class="fa-solid fa-xmark" style="position:absolute; left:15px; top:50%; transform:translateY(-50%); color:#777; cursor:pointer; display:none;" onclick="closeSearchPopup()"></i>
     </div>
+</div>
+
 
     <div id="storiesContainer" class="stories-section" style="display:none;">
         <div class="stories-title">القصص</div>
@@ -1918,6 +2058,8 @@
         let isStoryPaused = false;
         let storyDuration = 5000;
 let areGesturesSetup = false; 
+let searchDebounceTimer;
+
 
         const notificationAudio = document.getElementById('notificationSound');
 
@@ -2971,57 +3113,84 @@ function closeStoryViewers() {
         }
 
         function loadChats(userId) {
-            db.collection("chats").where("users", "array-contains", userId).onSnapshot(async snap => {
-                let tempChats = [];
-                for (const doc of snap.docs) {
-                    const d = doc.data();
-                    if (d.deletedBy && d.deletedBy.includes(userId)) continue;
+    // استخدمنا orderBy عشان الترتيب يكون أسرع ومن السيرفر مباشرة لو متاح
+    db.collection("chats")
+      .where("users", "array-contains", userId)
+      .onSnapshot(async snap => {
+        let tempChats = [];
+        for (const doc of snap.docs) {
+            const d = doc.data();
+            
+            // تخطي المحادثات المحذوفة من قبلك
+            if (d.deletedBy && d.deletedBy.includes(userId)) continue;
 
-                    let chatName = "مستخدم", chatAvatar = defaultAvatar, isVerified = false, otherUid = null, isGroup = (d.type === 'GROUP'); 
-                    if (isGroup) { chatName = d.name; } 
-                    else {
-                        otherUid = d.users.find(u => u !== userId);
-                        if(otherUid) {
-                            const u = usersCache[otherUid] || await fetchAndCacheUser(otherUid);
-                            chatName = u.name; chatAvatar = u.avatar; isVerified = u.isVerified;
-                        }
-                    }
+            // === إصلاح منطق المرسل ===
+            // بنتأكد إن المقارنة بين نصوص (Strings) عشان نتفادى مشاكل الأنواع
+            const lastSenderId = d.lastSender ? d.lastSender.toString() : "";
+            const currentUserId = userId.toString();
+            const amISender = lastSenderId === currentUserId;
 
-                    let previewMsg = d.lastMessage || 'بدء المحادثة';
-                    let isMedia = false;
-                    if(previewMsg.includes('http') || previewMsg === 'صورة' || previewMsg === 'image') {
-                        previewMsg = '<i class="fa-solid fa-camera"></i> صورة'; isMedia = true;
-                    }
-                    let isTyping = (d.typing && d.typing.includes(otherUid));
-
-                    tempChats.push({
-                        id: doc.id, name: chatName, avatar: chatAvatar, isGroup,
-                        lastMsg: previewMsg, isMedia, isTyping,
-                        time: d.lastMessageTime ? moment(d.lastMessageTime.toDate()).fromNow(true) : '',
-                        timestamp: d.lastMessageTime ? d.lastMessageTime.toMillis() : 0,
-                        otherUid, isOnline: isGroup ? true : (usersCache[otherUid]?.isOnline || false),
-                        amISender: d.lastSender === userId, isSeen: d.seen === true,        
-                        unreadCount: d.unreadCount || 0, isArchived: d.archivedBy && d.archivedBy.includes(userId),
-                        isBlocked: d.blockedBy && d.blockedBy.includes(userId), isVerified,
-                        isPinned: d.pinnedBy && d.pinnedBy.includes(userId),
-                        isMuted: d.mutedBy && d.mutedBy.includes(userId),
-                        isRequest: !isGroup && d.lastSender !== userId && !friendUids.has(otherUid)
-                    });
+            let chatName = "مستخدم", chatAvatar = defaultAvatar, isVerified = false, otherUid = null, isGroup = (d.type === 'GROUP'); 
+            
+            if (isGroup) { 
+                chatName = d.name || "مجموعة"; 
+            } else {
+                otherUid = d.users.find(u => u !== userId);
+                if(otherUid) {
+                    // بنجيب البيانات من الكاش ولو مش موجودة بنجيبها ونحدث الواجهة بعدين
+                    const u = usersCache[otherUid] || await fetchAndCacheUser(otherUid);
+                    chatName = u.name; chatAvatar = u.avatar; isVerified = u.isVerified;
                 }
-                // ترتيب المحادثات: المثبت أولاً ثم الأحدث
-                tempChats.sort((a, b) => {
-                    if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-                    return b.timestamp - a.timestamp;
-                });
-                allChats = tempChats;
-                                allChats = tempChats;
-                // --- إضافة هذا السطر لحفظ المحادثات في الذاكرة ---
-                sessionStorage.setItem('cached_allChats', JSON.stringify(allChats));
-                renderList();
+            }
 
+            let previewMsg = d.lastMessage || 'بدء المحادثة';
+            let isMedia = false;
+            // تحسين اكتشاف الميديا
+            if(d.lastMessage && (d.lastMessage.includes('http') || d.lastMessage === 'صورة' || d.lastMessage === 'image' || d.type === 'image')) {
+                previewMsg = '<i class="fa-solid fa-camera"></i> صورة'; isMedia = true;
+            }
+            
+            let isTyping = (d.typing && d.typing.includes(otherUid));
+
+            tempChats.push({
+                id: doc.id, 
+                name: chatName, 
+                avatar: chatAvatar, 
+                isGroup,
+                lastMsg: previewMsg, 
+                isMedia, 
+                isTyping,
+                time: d.lastMessageTime ? moment(d.lastMessageTime.toDate()).fromNow(true) : '',
+                timestamp: d.lastMessageTime ? d.lastMessageTime.toMillis() : 0,
+                otherUid, 
+                isOnline: isGroup ? true : (usersCache[otherUid]?.isOnline || false),
                 
+                // === هنا التعديل المهم ===
+                amISender: amISender, 
+                // حماية: لو العداد مش موجود نخليه صفر
+                unreadCount: d.unreadCount || 0, 
+                
+                isSeen: d.seen === true,        
+                isArchived: d.archivedBy && d.archivedBy.includes(userId),
+                isBlocked: d.blockedBy && d.blockedBy.includes(userId), 
+                isVerified,
+                isPinned: d.pinnedBy && d.pinnedBy.includes(userId),
+                isMuted: d.mutedBy && d.mutedBy.includes(userId),
+                isRequest: !isGroup && d.lastSender !== userId && !friendUids.has(otherUid)
             });
         }
+        
+        // الترتيب: المثبت الأول، ثم الأحدث وقتاً
+        tempChats.sort((a, b) => {
+            if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+            return b.timestamp - a.timestamp;
+        });
+        
+        allChats = tempChats;
+        sessionStorage.setItem('cached_allChats', JSON.stringify(allChats));
+        renderList();
+    });
+}
 
         async function fetchAndCacheUser(uid) {
     // لو البيانات موجودة في الكاش وحديثة (أقل من دقيقة) نرجعها
@@ -3123,8 +3292,11 @@ function renderList() {
         let bottomContent = c.isTyping ? `<div class="typing-indicator">جاري الكتابة...</div>` : `<div class="last-message-wrapper">${(!c.isBlocked && c.amISender && c.isSeen) ? `<div class="read-blue-dot"></div>` : ''}<div class="last">${c.lastMsg}</div></div>`;
         
         // البادج يظهر فقط إذا كان هناك رسائل غير مقروءة وأنا لست المرسل
-        let unreadHTML = (!c.amISender && c.unreadCount > 0) ? `<div class="unread-badge">${c.unreadCount}</div>` : '';
-
+        let unreadHTML = '';
+if (!c.amISender && c.unreadCount > 0 && !c.isBlocked) {
+    unreadHTML = `<div class="unread-badge">${c.unreadCount}</div>`;
+} 
+//
         el.className = 'chat';
         if (c.isPinned) el.classList.add('pinned-chat');
 
@@ -3340,18 +3512,44 @@ function resetUnreadCount(chatId) {
         }
 
         function monitorIncomingMessages(uid) {
-            db.collection('chats').where('users', 'array-contains', uid).onSnapshot(s => {
-                s.docChanges().forEach(c => {
-                    if (c.type === 'modified') {
-                        const d = c.doc.data();
-                        if (d.lastSender !== uid && d.unreadCount > 0 && !(d.mutedBy && d.mutedBy.includes(uid))) {
-                            if(notificationAudio) notificationAudio.play().catch(()=>{});
-                            vibrate();
-                        }
-                    }
-                });
-            });
-        }
+    db.collection('chats')
+      .where('users', 'array-contains', uid)
+      .onSnapshot(snapshot => {
+        snapshot.docChanges().forEach(change => {
+            // نراقب التعديل (رسالة جديدة في شات موجود) أو الإضافة (شات جديد)
+            if (change.type === 'modified' || change.type === 'added') {
+                const data = change.doc.data();
+
+                // ============================================================
+                // 🔥 الإصلاح هنا: منطق "منع" الإشعار عن المرسل 🔥
+                // ============================================================
+                
+                // 1. إذا كان "آخر مرسل" هو أنا (صاحب الحساب الحالي)، اخرج فوراً (لا تشغل صوت)
+                if (data.lastSender === uid) return;
+
+                // 2. إذا كان عدد الرسائل غير المقروءة صفر، اخرج (لا يوجد جديد)
+                if (!data.unreadCount || data.unreadCount <= 0) return;
+
+                // 3. إذا كان الشات مكتوماً من قبلي، اخرج
+                if (data.mutedBy && data.mutedBy.includes(uid)) return;
+
+                // ============================================================
+                // إذا وصلنا هنا، فهذا يعني أن الرسالة من "شخص آخر" وليست مكتومة
+                // ============================================================
+                
+                if (notificationAudio) {
+                    notificationAudio.currentTime = 0; // إعادة الصوت من البداية لضمان تكراره مع الرسائل السريعة
+                    notificationAudio.play().catch(err => {
+                        // متصفحات حديثة قد تمنع الصوت إذا لم يتفاعل المستخدم مع الصفحة
+                        console.log("Audio autoplay blocked:", err);
+                    });
+                }
+                
+                vibrate(); // هزاز للموبايل
+            }
+        });
+    });
+}
 
         function searchChats(val) {
             val = val.toLowerCase();
@@ -3927,6 +4125,321 @@ function renderPollSticker(question, option1, option2) {
 
 // تشغيل الرادار فوراً عند استدعاء الملف
 initGlobalCallListener();
+// ================= نظام البحث المطور (Fixed Logic) =================
+// متغير لتخزين وقت الكتابة عشان منعملش بحث مع كل حرف ونرهق السيرفر (Debounce)
+// متغير لتخزين وقت الكتابة (عشان الأداء)
+
+async function handleGlobalSearch(query) {
+    const list = document.getElementById('searchResultsList'); // تأكد إن ده ID قائمة النتايج في الـ HTML
+    const modal = document.getElementById('searchResultsModal'); // نافذة البحث
+    const closeBtn = document.getElementById('closeSearchBtn');
+
+    // إظهار/إخفاء زر الإغلاق
+    if (closeBtn) closeBtn.style.display = query.length > 0 ? 'block' : 'none';
+
+    // لو مفيش نص، نضف ونخرج
+    if (!query || query.trim() === "") {
+        list.innerHTML = '';
+        if (modal) modal.classList.remove('active');
+        return;
+    }
+
+    // إظهار النافذة وعلامة التحميل
+    if (modal) modal.classList.add('active');
+    list.innerHTML = `
+        <div style="text-align:center; padding:20px; color:#00e5ff;">
+            جاري البحث في كل المحادثات... <i class="fa-solid fa-spinner fa-spin"></i>
+        </div>`;
+
+    clearTimeout(searchDebounceTimer);
+
+    // تأخير التنفيذ قليلاً (Debounce) لعدم إرهاق السيرفر
+    searchDebounceTimer = setTimeout(async () => {
+        try {
+            const lowerQuery = query.toLowerCase();
+            let resultsHTML = "";
+            let foundCount = 0;
+
+            // =========================================================
+            // 🔥 البحث العميق: استخدام Collection Group Query 🔥
+            // هذا الأمر يبحث في كل الـ Collections التي اسمها "messages" في الداتابيز
+            // =========================================================
+            
+            // 1. بحث مبدئي باستخدام قدرات فايربيس (لتقليل البيانات)
+            // ملاحظة: هذا يتطلب Index كما شرحت سابقاً، لكنه الأسرع
+            const snapshot = await db.collectionGroup('messages')
+                .where('text', '>=', query)
+                .where('text', '<=', query + '\uf8ff')
+                .limit(20) // هات 20 نتيجة كحد أقصى عشان السرعة
+                .get();
+
+            // 2. معالجة النتائج
+            // نحتاج مصفوفة عشان نستخدم await جوه اللوب
+            const promises = snapshot.docs.map(async (doc) => {
+                const msg = doc.data();
+                
+                // تجاهل الرسائل المحذوفة
+                if (msg.type === 'deleted') return;
+
+                // 🔐 الأمان: لازم نتأكد إن الرسالة دي تبع شات أنا موجود فيه
+                // بنجيب الـ ID بتاع الشات الأب (Parent)
+                const chatRef = doc.ref.parent.parent;
+                const chatId = chatRef.id;
+
+                // نجيب بيانات الشات عشان نتأكد إننا أعضاء فيه + نجيب الصورة والاسم
+                // (ممكن نستخدم الكاش allChats لو الرسالة من شات حديث، أو نجيبها من السيرفر لو قديم)
+                let chatData = allChats.find(c => c.id === chatId);
+                
+                // لو الشات مش موجود في القائمة الحالية (يعني قديم جداً)، نجيبه من السيرفر
+                if (!chatData) {
+                    const chatDoc = await chatRef.get();
+                    if (chatDoc.exists) {
+                        const d = chatDoc.data();
+                        // تأكد إن أنا في قائمة المستخدمين (Security Check)
+                        if (d.users && d.users.includes(currentUser.uid)) {
+                            // تحديد الطرف الآخر
+                            const otherUid = d.users.find(u => u !== currentUser.uid);
+                            // جلب بياناته
+                            const uDoc = await db.collection('users').doc(otherUid).get();
+                            const uData = uDoc.data() || {};
+                            
+                            chatData = {
+                                id: chatId,
+                                name: uData.name || "مستخدم",
+                                avatar: uData.profilePic || defaultAvatar,
+                                isGroup: d.type === 'GROUP',
+                                otherUid: otherUid
+                            };
+                        }
+                    }
+                }
+
+                if (chatData) {
+                    foundCount++;
+                    
+                    // تلوين الكلمة
+                    const highlightedText = msg.text.replace(new RegExp(`(${query})`, 'gi'), 
+                        `<span style="background:#00e5ff; color:#000; padding:0 3px; border-radius:2px;">$1</span>`
+                    );
+
+                    const dateStr = msg.createdAt ? new Date(msg.createdAt.toMillis()).toLocaleDateString('ar-EG') : '';
+
+                    resultsHTML += `
+                    <div class="search-result-item" onclick="openChatFromSearch('${chatData.id}', '${chatData.name}', '${chatData.otherUid}', '${doc.id}')" 
+                         style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+                        
+                        <div style="width:45px; height:45px; border-radius:50%; background-image:url('${chatData.avatar}'); background-size:cover; border:1px solid rgba(255,255,255,0.1);"></div>
+                        
+                        <div style="flex:1; overflow:hidden;">
+                            <div style="color:#fff; font-weight:bold; font-size:14px; display:flex; justify-content:space-between;">
+                                <span>${chatData.name}</span>
+                                <span style="font-size:10px; color:#555; font-weight:normal;">${dateStr}</span>
+                            </div>
+                            <div style="color:#94a3b8; font-size:12px; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                                ${highlightedText}
+                            </div>
+                        </div>
+                    </div>`;
+                }
+            });
+
+            await Promise.all(promises);
+
+            // 3. العرض النهائي
+            if (foundCount === 0) {
+                list.innerHTML = `<div style="text-align:center; padding:40px; color:#777;">لا توجد نتائج لـ "${query}"</div>`;
+            } else {
+                list.innerHTML = `<div style="padding:10px; font-size:11px; color:#00e5ff;">تم العثور على ${foundCount} نتيجة</div>` + resultsHTML;
+            }
+
+        } catch (e) {
+            console.error(e);
+            // لو الفهرس (Index) ناقص، فايربيس هيديك لينك في الكونسول، لازم تضغط عليه
+            if(e.message.includes('index')) {
+                list.innerHTML = `<div style="color:orange; padding:20px; text-align:center;">⚠️ يرجى إنشاء الفهرس من الرابط في الكونسول (للمطور)</div>`;
+            } else {
+                list.innerHTML = `<div style="color:#ff3b30; padding:20px; text-align:center;">حدث خطأ في البحث</div>`;
+            }
+        }
+    }, 800);
+}
+
+// دالة الانتقال للشات مع التمرير للرسالة (زي الواتساب)
+function openChatFromSearch(chatId, name, uid, msgId) {
+    // بنروح لصفحة الشات وبنبعت معاها ID الرسالة عشان نعملها Highlight
+    // هنستخدم 'highlight' في الرابط
+    const url = `chat.html?chatId=${chatId}&name=${encodeURIComponent(name)}&uid=${uid}&highlightMsg=${msgId}`;
+    window.location.href = url;
+}
+
+
+// دالة الرسم (فصلناها عشان نستخدمها مرتين)
+function renderSearchResults(results, query, isFinal) {
+    const list = document.getElementById('searchResultsList');
+    
+    if (results.length === 0 && isFinal) {
+        list.innerHTML = `<div style="padding:30px; text-align:center; color:#777;">لا توجد نتائج</div>`;
+        return;
+    }
+
+    let html = `<div style="padding:10px 15px; font-size:12px; color:#aaa; border-bottom:1px solid rgba(255,255,255,0.1);">
+                    تم العثور على <span style="color:#FFD700">${results.length}</span> نتيجة
+                    ${!isFinal ? '<i class="fa-solid fa-spinner fa-spin" style="float:left"></i>' : ''}
+                </div>`;
+
+    results.forEach(c => {
+        let snippet = c.lastMsg;
+        // تلوين الكلمة
+        const regex = new RegExp(`(${query})`, 'gi');
+        const displayHTML = snippet.replace(regex, '<span style="background:#FFD700; color:#000;">$1</span>');
+        
+        // أيقونة توضح إن دي رسالة قديمة
+        const icon = c.isOldMessage ? '<i class="fa-solid fa-clock-rotate-left" style="color:#888; font-size:10px;"></i> أرشيف:' : '';
+
+        html += `
+        <div class="search-result-item" onclick="openChat('${c.id}', '${encodeURIComponent(c.name)}', '${c.isGroup ? 'GROUP' : c.otherUid}', false)" 
+             style="display:flex; align-items:center; gap:12px; padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); cursor:pointer;">
+            
+            <div style="width:40px; height:40px; border-radius:12px; background-image:url('${c.avatar}'); background-size:cover;"></div>
+            
+            <div style="flex:1;">
+                <div style="color:#fff; font-weight:bold; font-size:14px;">${c.name}</div>
+                <div style="color:#aaa; font-size:12px; margin-top:2px;">
+                    ${icon} ${displayHTML}
+                </div>
+            </div>
+        </div>`;
+    });
+
+    list.innerHTML = html;
+}
+
+function performSearchLogic(query) {
+    const modal = document.getElementById('searchResultsModal');
+    const listContainer = document.getElementById('searchResultsList');
+
+    if (!listContainer || !modal) return;
+
+    listContainer.innerHTML = ''; // تنظيف القديم
+
+    // حماية: التأكد من وجود البيانات
+    if (!allChats || allChats.length === 0) {
+        listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#777;">جاري تحميل المحادثات...</div>`;
+        modal.classList.add('active'); // إجبار القائمة على الظهور
+        return;
+    }
+
+    try {
+        // === عملية البحث ===
+        const results = allChats.filter(chat => {
+            // حماية ضد القيم الفارغة
+            const name = (chat.name || "").toLowerCase();
+            
+            // تنظيف الرسالة وتحويلها لنص إجبارياً لمنع الأخطاء
+            let rawMsg = String(chat.lastMsg || "");
+            
+            // لو الرسالة كود HTML نحولها لنص عادي للبحث
+            if (rawMsg.includes('<')) {
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = rawMsg;
+                rawMsg = tempDiv.textContent || tempDiv.innerText || "";
+            }
+            rawMsg = rawMsg.toLowerCase();
+
+            return name.includes(query) || rawMsg.includes(query);
+        });
+
+        // === عرض النتائج ===
+        if (results.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:30px; color:#888;">
+                    <i class="fa-solid fa-magnifying-glass" style="font-size:24px; margin-bottom:10px; opacity:0.5;"></i>
+                    <br>لا توجد نتائج لـ "${query}"
+                </div>`;
+        } else {
+            // هيدر العدد
+            listContainer.innerHTML = `
+                <div style="padding:10px 15px; font-size:12px; color:#aaa; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:5px;">
+                    تم العثور على <span style="color:#FFD700">${results.length}</span> نتيجة
+                </div>
+            `;
+
+            results.forEach(chat => {
+                let snippet = String(chat.lastMsg || "رسالة"); // حماية
+                
+                // تحسين شكل النص لو كان ميديا
+                if (snippet.includes('<') || snippet.includes('fa-camera')) {
+                     snippet = "صورة / وسائط";
+                }
+
+                let foundInMsg = snippet.toLowerCase().includes(query);
+                let displayHTML = snippet;
+
+                // تلوين الكلمة (Highlight)
+                if (foundInMsg) {
+                    try {
+                        const regex = new RegExp(`(${query})`, 'gi');
+                        displayHTML = snippet.replace(regex, '<span class="highlight-text">$1</span>');
+                    } catch(e) { displayHTML = snippet; }
+                }
+
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                
+                // الانتقال للشات عند الضغط
+                item.onclick = () => {
+                    vibrate();
+                    closeSearchPopup();
+                    const targetUrl = (chat.isRequest ? 'request_view.html' : 'chat.html') + 
+                                      `?chatId=${chat.id}&name=${encodeURIComponent(chat.name)}&uid=${chat.isGroup ? 'GROUP' : chat.otherUid}`;
+                    location.href = targetUrl;
+                };
+
+                item.innerHTML = `
+                    <div class="search-res-avatar" style="background-image: url('${chat.avatar}'); width:40px; height:40px; border-radius:12px; background-size:cover;"></div>
+                    <div class="search-res-info" style="flex:1;">
+                        <div class="search-res-name" style="color:#fff; font-weight:bold; font-size:14px;">
+                            ${chat.name} 
+                            ${chat.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#38bdf8; font-size:10px;"></i>' : ''}
+                        </div>
+                        <div class="search-res-snippet" style="color:#aaa; font-size:12px; margin-top:2px;">
+                            ${foundInMsg ? '<i class="fa-solid fa-turn-up" style="color:#FFD700; font-size:10px; margin-left:5px;"></i>' : ''} 
+                            ${displayHTML}
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+    } catch (err) {
+        console.error("Search Error:", err);
+        listContainer.innerHTML = `<div style="text-align:center; color:red;">حدث خطأ في البحث</div>`;
+    }
+
+    // إظهار القائمة أخيراً
+    modal.classList.add('active');
+    
+    // تفعيل الغلق عند الضغط بالخارج
+    setTimeout(() => {
+        document.addEventListener('click', closeSearchOnClickOutside);
+    }, 100);
+}
+
+function closeSearchPopup() {
+    const modal = document.getElementById('searchResultsModal');
+    if(modal) modal.classList.remove('active');
+    document.removeEventListener('click', closeSearchOnClickOutside);
+}
+
+function closeSearchOnClickOutside(e) {
+    const modal = document.getElementById('searchResultsModal');
+    const input = document.getElementById('globalSearchInput');
+    
+    // إذا ضغط المستخدم في أي مكان غير المودال وغير مربع البحث
+    if (modal && input && !modal.contains(e.target) && e.target !== input) {
+        closeSearchPopup();
+    }
+}
 
 
     </script>
@@ -4030,6 +4543,10 @@ initGlobalCallListener();
     <source src="./sounds/ring_in.wav" type="audio/wav">
 </audio>
 <script src="global-call.js"></script>
+
+<div id="searchResultsModal" class="search-results-popup">
+    <div id="searchResultsList"></div>
+</div>
 
 
 </body>
