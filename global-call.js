@@ -1,21 +1,61 @@
 // ============================================================
-// 📡 الرادار العالمي للمكالمات (النسخة الاحترافية - UI Generator)
+// 📡 الرادار العالمي - (نسخة الإصلاح النهائي للتعليق)
 // ============================================================
 
-// تعريف الصوت
 const globalRingIn = new Audio("https://firebasestorage.googleapis.com/v0/b/pools-e4381.firebasestorage.app/o/sounds%2Fmixkit-happy-bells-notification-937.wav?alt=media&token=3422aeb0-bf76-4670-83aa-5ba59fff7fe5");
 globalRingIn.loop = true;
 
 let globalCallDocPath = null;
 let targetChatId = null;
+let isDismissed = false; 
+let vibrationInterval = null; 
 
-// دالة التشغيل الذاتي
-(function initGlobalListener() {
-    // التأكد من تحميل الفايربيس أولاً
-    if (typeof firebase === 'undefined') {
-        console.error("انتظر.. لم يتم تحميل الفايربيس بعد.");
-        return;
+// ============================================================
+// 🛑 دالة الطوارئ (وقف كل شيء) - أهم دالة
+// ============================================================
+function stopEverything() {
+    // 1. وقف الصوت
+    globalRingIn.pause();
+    globalRingIn.currentTime = 0;
+
+    // 2. وقف الزن المتكرر
+    if (vibrationInterval) {
+        clearInterval(vibrationInterval);
+        vibrationInterval = null;
     }
+
+    // 3. وقف اهتزاز الموبايل الحالي
+    if (navigator.vibrate) navigator.vibrate(0);
+
+    // 4. إخفاء الإشعار
+    const banner = document.getElementById('callNotificationBanner');
+    if (banner) {
+        banner.classList.remove('active');
+        setTimeout(() => banner.remove(), 300);
+    }
+}
+
+// ============================================================
+// 🔓 كود فك حظر الصوت
+// ============================================================
+function unlockAudio() {
+    globalRingIn.play().then(() => {
+        globalRingIn.pause();
+        globalRingIn.currentTime = 0;
+    }).catch((e) => {});
+    if (navigator.vibrate) navigator.vibrate(0);
+    document.body.removeEventListener('click', unlockAudio);
+    document.body.removeEventListener('touchstart', unlockAudio);
+}
+document.body.addEventListener('click', unlockAudio, { once: true });
+document.body.addEventListener('touchstart', unlockAudio, { once: true });
+
+
+// ============================================================
+// 📡 الرادار والمراقبة
+// ============================================================
+(function initGlobalListener() {
+    if (typeof firebase === 'undefined') return;
 
     firebase.auth().onAuthStateChanged(user => {
         if (!user) return; 
@@ -23,7 +63,7 @@ let targetChatId = null;
         const db = firebase.firestore();
         const currentUserId = user.uid;
 
-        console.log("📡 الرادار الاحترافي يعمل...");
+        console.log("📡 الرادار يعمل (نظام منع التعليق)...");
 
         db.collectionGroup('calls')
             .where('status', '==', 'ringing')
@@ -31,24 +71,46 @@ let targetChatId = null;
                 snapshot.docChanges().forEach(change => {
                     const callData = change.doc.data();
                     
-                    // حالة اتصال جديد
+                    // 1. حالة اتصال جديد
                     if (change.type === 'added') {
                         if (callData.callerId !== currentUserId) {
                             const callDocRef = change.doc.ref;
                             targetChatId = callDocRef.parent.parent.id;
                             globalCallDocPath = callDocRef.path;
+                            isDismissed = false; 
 
-                            // 🔥 هنا السر: استدعاء الدالة التي ترسم الشكل الاحترافي
-                            showGlobalCallUI(callData);
+                            db.collection('users').doc(callData.callerId).get()
+                            .then(userDoc => {
+                                let realName = "مستخدم نبض";
+                                let realAvatar = "";
+                                if (userDoc.exists) {
+                                    const u = userDoc.data();
+                                    realName = u.name || "مستخدم نبض";
+                                    realAvatar = u.profilePic || "";
+                                }
+                                callData.callerName = realName;
+                                callData.callerAvatar = realAvatar;
+                                showHeadsUpNotification(callData);
+                            })
+                            .catch(() => showHeadsUpNotification(callData));
                         }
                     }
 
-                    // حالة إلغاء الاتصال
-                    if (change.type === 'modified' || change.type === 'removed') {
+                    // 2. حالة التعديل (حد رد أو كنسل)
+                    if (change.type === 'modified') {
                         if (globalCallDocPath === change.doc.ref.path) {
+                            // لو الحالة مبقتش "ringing" (يعني بقت rejected, ended, picked...)
                             if (!callData || callData.status !== 'ringing') {
-                                hideGlobalCallUI();
+                                stopEverything(); // 🛑 وقف فوراً
                             }
+                        }
+                    }
+
+                    // 3. حالة الحذف (الطرف التاني قفل الخط وحذف الملف)
+                    if (change.type === 'removed') {
+                        // لو الملف المحذوف هو نفس ملف مكالمتنا
+                        if (globalCallDocPath === change.doc.ref.path) {
+                            stopEverything(); // 🛑 وقف فوراً
                         }
                     }
                 });
@@ -57,81 +119,127 @@ let targetChatId = null;
 })();
 
 // ============================================================
-// 🎨 دالة رسم الشكل الاحترافي (بديل الـ confirm)
+// 🎨 رسم الإشعار
 // ============================================================
-function showGlobalCallUI(data) {
-    // 1. لو النافذة مش موجودة، نصنعها بالكود
-    if (!document.getElementById('globalCallModal')) {
-        const modalHTML = `
-        <div id="globalCallModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:99999; flex-direction:column; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
-            
-            <div style="width:120px; height:120px; border-radius:50%; background:#1e293b; background-size:cover; background-position:center; border:3px solid #00e5ff; margin-bottom:20px; box-shadow:0 0 30px rgba(0,229,255,0.3); animation: pulse 2s infinite;" id="g_avatar"></div>
-            
-            <h2 id="g_name" style="color:#fff; margin-bottom:5px; font-family:'Cairo'; font-size:24px; text-shadow:0 2px 10px rgba(0,0,0,0.5);">مستخدم</h2>
-            <p style="color:#00e5ff; margin-bottom:50px; font-family:'Cairo'; font-size:16px;">📞 مكالمة واردة...</p>
-            
-            <div style="display:flex; gap:40px;">
-                <button onclick="rejectGlobalCall()" style="width:70px; height:70px; border-radius:50%; background:#ff3b30; border:none; color:#fff; font-size:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 15px rgba(255, 59, 48, 0.4);">
-                    <i class="fa-solid fa-phone-slash"></i>
-                </button>
-                
-                <button onclick="acceptGlobalCall()" style="width:70px; height:70px; border-radius:50%; background:#10b981; border:none; color:#fff; font-size:28px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 15px rgba(16, 185, 129, 0.4); animation: shake 1.2s infinite;">
-                    <i class="fa-solid fa-phone"></i>
-                </button>
+function showHeadsUpNotification(data) {
+    if (isDismissed) return;
+
+    // تأمين: نوقف أي حاجة قديمة الأول عشان مفيش صوتين يشتغلوا فوق بعض
+    stopEverything();
+
+    if (!document.getElementById('callNotificationBanner')) {
+        const bannerHTML = `
+        <div id="callNotificationBanner" class="call-banner-container">
+            <div class="banner-content">
+                <div class="b-avatar" id="b_avatar"></div>
+                <div class="b-info">
+                    <h4 id="b_name">...</h4>
+                    <span id="b_type">📞 مكالمة واردة</span>
+                </div>
+                <div class="b-actions">
+                    <button class="b-btn reject" onclick="rejectGlobalCall()"><i class="fa-solid fa-phone-slash"></i></button>
+                    <button class="b-btn accept" onclick="acceptGlobalCall()"><i class="fa-solid fa-phone"></i></button>
+                </div>
             </div>
+            <div class="swipe-area" id="swipeArea"><div class="swipe-indicator"></div></div>
         </div>
-        
         <style>
-            @keyframes pulse { 0% {box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7);} 70% {box-shadow: 0 0 0 20px rgba(0, 229, 255, 0);} 100% {box-shadow: 0 0 0 0 rgba(0, 229, 255, 0);} }
-            @keyframes shake { 0% {transform: rotate(0deg);} 25% {transform: rotate(10deg);} 50% {transform: rotate(0deg);} 75% {transform: rotate(-10deg);} 100% {transform: rotate(0deg);} }
+            .call-banner-container {
+                position: fixed; top: -150px; left: 10px; right: 10px;
+                background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(15px);
+                border-radius: 16px; padding: 12px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+                border: 1px solid rgba(255,255,255,0.1);
+                z-index: 999999;
+                transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                display: flex; flex-direction: column;
+            }
+            .call-banner-container.active { top: 15px; }
+            .banner-content { display: flex; align-items: center; gap: 12px; }
+            .b-avatar { width: 48px; height: 48px; border-radius: 50%; background:#333; background-size:cover; border:2px solid #00e5ff; flex-shrink:0; }
+            .b-info { flex: 1; overflow: hidden; }
+            .b-info h4 { color: #fff; margin:0; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+            .b-info span { color: #00e5ff; font-size:12px; animation: blink 1s infinite; }
+            .b-actions { display: flex; gap: 10px; }
+            .b-btn { width: 42px; height: 42px; border-radius: 50%; border:none; color:#fff; font-size:18px; cursor:pointer; display:grid; place-items:center; }
+            .b-btn.reject { background: #ff3b30; }
+            .b-btn.accept { background: #10b981; animation: pulse 1.5s infinite; }
+            .swipe-area { padding-top: 10px; cursor: grab; }
+            .swipe-indicator { width: 40px; height: 4px; background: rgba(255,255,255,0.2); border-radius: 10px; margin: 0 auto; }
+            @keyframes blink { 50% { opacity: 0.5; } }
+            @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); } }
         </style>
         `;
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        document.body.insertAdjacentHTML('beforeend', bannerHTML);
+        setupSwipeGesture(); 
     }
 
-    // 2. تحديث البيانات
-    const modal = document.getElementById('globalCallModal');
-    const avatarEl = document.getElementById('g_avatar');
-    const nameEl = document.getElementById('g_name');
+    const banner = document.getElementById('callNotificationBanner');
+    const avatarEl = document.getElementById('b_avatar');
+    const nameEl = document.getElementById('b_name');
+    const typeEl = document.getElementById('b_type');
 
     nameEl.innerText = data.callerName || "مستخدم نبض";
-    if (data.callerAvatar) {
-        avatarEl.style.backgroundImage = `url('${data.callerAvatar}')`;
-    } else {
-        avatarEl.style.backgroundImage = 'none';
-        avatarEl.innerHTML = '<i class="fa-solid fa-user" style="color:#fff; font-size:50px; display:flex; justify-content:center; align-items:center; height:100%;"></i>';
-    }
+    typeEl.innerText = data.isVideo ? "📹 فيديو وارد..." : "📞 مكالمة واردة...";
+    if (data.callerAvatar) avatarEl.style.backgroundImage = `url('${data.callerAvatar}')`;
 
-    // 3. إظهار النافذة وتشغيل الصوت
-    modal.style.display = 'flex';
-    
+    setTimeout(() => banner.classList.add('active'), 100);
+
     globalRingIn.currentTime = 0;
-    globalRingIn.play().catch(e => console.log("Sound blocked need interaction"));
-    
-    if (navigator.vibrate) navigator.vibrate([1000, 500, 1000]);
+    globalRingIn.play().catch(()=>{});
+
+    // تشغيل الزن (زنة كل ثانيتين)
+    if (navigator.vibrate) {
+        navigator.vibrate(500); 
+        vibrationInterval = setInterval(() => {
+            navigator.vibrate(500);
+        }, 2000);
+    }
 }
 
-function hideGlobalCallUI() {
-    const modal = document.getElementById('globalCallModal');
-    if (modal) modal.style.display = 'none';
-    
-    globalRingIn.pause();
-    if (navigator.vibrate) navigator.vibrate(0);
+// ============================================================
+// 🤐 دالة الكتم المحلي (عند السحب)
+// ============================================================
+window.dismissCallLocal = function() {
+    stopEverything(); // وقف الصوت والاهتزاز فقط محلياً
+    isDismissed = true; // عشان ميرنش تاني لنفس المكالمة
+    console.log("🔕 تم كتم المكالمة");
 }
 
-// تعريف الدوال بشكل عالمي (Window) عشان زرار HTML يشوفها
+// ============================================================
+// 🟢 دالة الرد
+// ============================================================
 window.acceptGlobalCall = function() {
-    globalRingIn.pause();
-    if (navigator.vibrate) navigator.vibrate(0);
-    // نقل المستخدم للشات مع تفعيل الرد
+    stopEverything(); // وقف الصوت قبل الانتقال
     window.location.href = `chat.html?chatId=${targetChatId}&answer=true`;
 }
 
+// ============================================================
+// 🔴 دالة الرفض (الإصلاح هنا)
+// ============================================================
 window.rejectGlobalCall = function() {
+    // 1. وقف الصوت والزن فوراً عشان المستخدم ميحسش بتعليق
+    stopEverything();
+
+    // 2. ابعت الأمر للسيرفر
     if (globalCallDocPath) {
-        firebase.firestore().doc(globalCallDocPath).update({
-            status: 'rejected'
-        });
+        firebase.firestore().doc(globalCallDocPath).update({ status: 'rejected' })
+        .catch(err => console.log("Error rejecting:", err));
     }
-    hideGlobalCallUI();
+}
+
+function setupSwipeGesture() {
+    const banner = document.getElementById('callNotificationBanner');
+    let startY = 0;
+    banner.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive: true});
+    banner.addEventListener('touchmove', e => {
+        const currentY = e.touches[0].clientY;
+        if (currentY - startY < 0) banner.style.transform = `translateY(${currentY - startY}px)`;
+    }, {passive: true});
+    banner.addEventListener('touchend', e => {
+        if (e.changedTouches[0].clientY < startY - 30) dismissCallLocal();
+        else banner.style.transform = 'translateY(0)';
+    }, {passive: true});
+    const indicator = document.getElementById('swipeArea');
+    if(indicator) indicator.onclick = dismissCallLocal;
 }
