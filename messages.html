@@ -125,29 +125,12 @@
 .sidebar-item i { width: 30px; text-align: center; color: var(--accent-color); font-size: 20px; }
 
         /* ================= القصص (Stories - FB Style) ================= */
-        .stories-section {
-            padding: 10px 0 15px 0;
-            border-bottom: 1px solid var(--card-border);
-            margin-bottom: 5px;
-        }
-        .stories-title { padding: 0 20px 10px; font-weight: 700; font-size: 14px; color: var(--text-secondary); }
-        
+      
         .stories-scroll {
             display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 0 15px;
         }
 
-        /* الكارت المستطيل للقصة */
-        .story-card {
-            position: relative;
-            width: 105px; height: 170px;
-            border-radius: 12px;
-            overflow: hidden;
-            flex-shrink: 0;
-            cursor: pointer;
-            background-color: #2a2a2a;
-            transition: transform 0.2s;
-            border: 1px solid var(--card-border);
-        }
+
         .story-card:active { transform: scale(0.97); }
 
         /* صورة القصة الخلفية */
@@ -159,14 +142,7 @@
         .story-card:hover .story-card-bg { transform: scale(1.05); }
 
         /* الأفاتار الصغير */
-        .story-card-avatar {
-            position: absolute; top: 8px; left: 8px;
-            width: 34px; height: 34px;
-            border-radius: 50%;
-            border: 3px solid var(--accent-color);
-            background-size: cover; background-position: center;
-            z-index: 2;
-        }
+
 
         /* اسم المستخدم */
         .story-card-name {
@@ -195,17 +171,7 @@
             display: flex; align-items: flex-end; justify-content: center;
             padding-bottom: 10px;
         }
-        /* زر الزائد */
-        .add-story-btn-circle {
-            position: absolute; top: -18px; left: 50%; transform: translateX(-50%);
-            width: 36px; height: 36px;
-            background: var(--accent-color);
-            border: 3px solid #1e1e1e;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 18px;
-            z-index: 5;
-        }
+
 
         /* === انيميشن التحميل (السبينر) === */
         .uploading-spinner {
@@ -723,17 +689,7 @@
             z-index: 2;
         }
 
-        /* --- اسم المستخدم --- */
-        .story-card-name {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            padding: 20px 6px 6px 6px;
-            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
-            color: #fff; 
-            font-size: 10px; /* تصغير الخط */
-            font-weight: bold;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            text-align: right; z-index: 2;
-        }
+
 
         /* === تعديلات كارت "إضافة قصة" ليناسب الحجم الجديد === */
         .my-story-card {
@@ -1828,11 +1784,234 @@
     display: flex; justify-content: space-between;
 }
 
+/* تنسيق أيقونة "تمت المشاهدة" بصورة الشخص */
+.seen-avatar-icon {
+    width: 15px; 
+    height: 15px;
+    border-radius: 50%;
+    background-size: cover; 
+    background-position: center;
+    border: 1px solid #000; /* حدود سودة عشان تفصلها عن الخلفية */
+    box-shadow: 0 0 2px rgba(255,255,255,0.3);
+    margin-left: 5px; /* مسافة بينها وبين الكلام */
+    display: inline-block;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+/* تنسيق الـ Checkbox المخصص */
+.delete-checkbox-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+
+.delete-checkbox-container input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    height: 20px;
+    width: 20px;
+    background-color: #333;
+    border: 2px solid #555;
+    border-radius: 4px;
+    position: relative;
+    transition: 0.2s;
+}
+
+.delete-checkbox-container input:checked ~ .checkmark {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.delete-checkbox-container input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* ================= شريط المتصلين السريع (معدل) ================= */
+.quick-users-section {
+    padding: 10px 0 5px 0;
+    margin-bottom: 5px;
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    background: transparent; /* خلفية شفافة */
+}
+
+.quick-users-title {
+    padding: 0 20px 8px;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.quick-users-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding: 0 15px;
+    align-items: flex-start; /* إصلاح مشكلة التمدد */
+}
+.quick-users-scroll::-webkit-scrollbar { display: none; }
+
+/* العنصر بالكامل */
+.quick-user-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    width: 55px; /* عرض ثابت صغير */
+    min-width: 55px; /* منع الانكماش */
+    flex-shrink: 0;
+}
+
+.quick-user-item:active { transform: scale(0.95); transition: 0.2s; }
+
+/* حاوية الصورة */
+.quick-avatar-wrapper {
+    position: relative;
+    width: 50px;  /* حجم الدائرة */
+    height: 50px; /* حجم الدائرة */
+    margin-bottom: 5px;
+}
+
+/* الصورة نفسها */
+.quick-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid rgba(255, 215, 0, 0.3); /* إطار ذهبي */
+    background-color: #2a2a2a;
+}
+
+/* اللمبة الخضراء */
+.quick-online-dot {
+    position: absolute;
+    bottom: 1px;
+    right: 1px;
+    width: 14px;
+    height: 14px;
+    background-color: #4ade80;
+    border: 2px solid #000; /* حدود سوداء لتبرز اللمبة */
+    border-radius: 50%;
+    z-index: 5;
+    box-shadow: 0 0 5px rgba(74, 222, 128, 0.8);
+}
+
+/* الاسم */
+.quick-user-name {
+    font-size: 10px;
+    color: #e0e0e0;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    font-weight: 600;
+}
+/* ================== تحسينات الحجم (Compact Design) ================== */
+
+/* 1. قسم القصص: تقليل الهوامش */
+.stories-section {
+    padding: 8px 0 5px 0; /* تقليل المسافات العلوية والسفلية */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 0;
+}
+
+.stories-title {
+    padding: 0 15px 5px; /* تقريب العنوان من القصص */
+    font-size: 12px;
+    margin-bottom: 0;
+}
+
+/* 2. تصغير كارت القصة نفسه (هذا هو المؤثر الأكبر) */
+.story-card {
+    width: 75px;   /* تصغير العرض (كان 85) */
+    height: 115px; /* تصغير الطول (كان 135) - سيوفر مساحة كبيرة */
+    border-radius: 9px;
+    margin-bottom: 5px; /* مسافة صغيرة تحت الكارت */
+}
+
+/* تعديل حجم زر الإضافة والاسم داخل القصة الصغيرة */
+.add-story-btn-circle {
+    width: 24px; height: 24px; top: -12px; font-size: 12px;
+}
+.story-card-name {
+    padding: 15px 4px 4px 4px; font-size: 9px;
+}
+.story-card-avatar {
+    width: 24px; height: 24px; top: 4px; left: 4px;
+}
+
+/* 3. قسم نشط الآن: تقليل الهوامش */
+.quick-users-section {
+    padding: 5px 0; /* تقليل المسافة الكلية */
+    margin-bottom: 2px;
+    border-bottom: 1px solid var(--card-border);
+}
+
+.quick-users-title {
+    padding: 0 15px 5px;
+    font-size: 12px;
+    margin-bottom: 0;
+}
+
+/* 4. تصغير دوائر المتصلين */
+.quick-users-scroll {
+    gap: 10px; /* تقريب الأشخاص من بعضهم */
+    padding: 0 12px;
+}
+
+.quick-user-item {
+    width: 50px; /* تصغير المساحة المحجوزة لكل شخص */
+    min-width: 50px;
+}
+
+.quick-avatar-wrapper {
+    width: 44px;  /* تصغير الدائرة (كانت 50) */
+    height: 44px;
+    margin-bottom: 2px;
+}
+
+.quick-online-dot {
+    width: 11px; height: 11px; /* تصغير اللمبة لتتناسب مع الدائرة */
+    border-width: 1.5px;
+}
+
+.quick-user-name {
+    font-size: 9px; /* تصغير الخط */
+    margin-top: 0;
+}
+
     </style>
 </head>
 
 <body>
-    <audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3" preload="auto"></audio>
 
     <header class="main-header">
         <div id="menuBtn" class="icon-btn" onclick="vibrate(); toggleSidebar()">
@@ -1861,13 +2040,19 @@
     </div>
 </div>
 
-
-    <div id="storiesContainer" class="stories-section" style="display:none;">
-        <div class="stories-title">القصص</div>
-        <div class="stories-scroll" id="storiesList">
+<div id="storiesContainer" class="stories-section" style="display:none;">
+    <div class="stories-title">القصص</div>
+    <div class="stories-scroll" id="storiesList">
         </div>
-    </div>
-    
+</div>
+
+<div id="quickUsersContainer" class="quick-users-section" style="display:none;">
+    <div class="quick-users-title">نشط الآن</div>
+    <div class="quick-users-scroll" id="quickUsersList">
+        </div>
+</div>
+
+
    
     <div id="storyViewer">
         <div class="story-blur-bg" id="storyBlurBg"></div>
@@ -3112,32 +3297,34 @@ function closeStoryViewers() {
             });
         }
 
-        function loadChats(userId) {
-    // استخدمنا orderBy عشان الترتيب يكون أسرع ومن السيرفر مباشرة لو متاح
+        // استبدل دالة loadChats القديمة بهذه الدالة المحسنة
+function loadChats(userId) {
     db.collection("chats")
       .where("users", "array-contains", userId)
       .onSnapshot(async snap => {
         let tempChats = [];
+        
+        // 1. خريطة لمنع التكرار (Map لتخزين أحدث شات لكل مستخدم)
+        let uniqueChatsMap = new Map();
+
         for (const doc of snap.docs) {
             const d = doc.data();
             
-            // تخطي المحادثات المحذوفة من قبلك
+            // تخطي المحادثات التي قمت بحذفها (Soft Delete)
             if (d.deletedBy && d.deletedBy.includes(userId)) continue;
 
-            // === إصلاح منطق المرسل ===
-            // بنتأكد إن المقارنة بين نصوص (Strings) عشان نتفادى مشاكل الأنواع
             const lastSenderId = d.lastSender ? d.lastSender.toString() : "";
-            const currentUserId = userId.toString();
-            const amISender = lastSenderId === currentUserId;
+            const currentUserIdStr = userId.toString();
+            const amISender = lastSenderId === currentUserIdStr;
 
             let chatName = "مستخدم", chatAvatar = defaultAvatar, isVerified = false, otherUid = null, isGroup = (d.type === 'GROUP'); 
             
             if (isGroup) { 
                 chatName = d.name || "مجموعة"; 
+                // المجموعات لا تحتاج فلترة تكرار بنفس طريقة الأفراد
             } else {
                 otherUid = d.users.find(u => u !== userId);
                 if(otherUid) {
-                    // بنجيب البيانات من الكاش ولو مش موجودة بنجيبها ونحدث الواجهة بعدين
                     const u = usersCache[otherUid] || await fetchAndCacheUser(otherUid);
                     chatName = u.name; chatAvatar = u.avatar; isVerified = u.isVerified;
                 }
@@ -3145,14 +3332,21 @@ function closeStoryViewers() {
 
             let previewMsg = d.lastMessage || 'بدء المحادثة';
             let isMedia = false;
-            // تحسين اكتشاف الميديا
-            if(d.lastMessage && (d.lastMessage.includes('http') || d.lastMessage === 'صورة' || d.lastMessage === 'image' || d.type === 'image')) {
-                previewMsg = '<i class="fa-solid fa-camera"></i> صورة'; isMedia = true;
+            if(d.lastMessage && (d.lastMessage.includes('http') || d.lastMessage === 'صورة' || d.lastMessage === 'video' || d.type === 'image')) {
+                previewMsg = '<i class="fa-solid fa-camera"></i> صورة / وسائط'; isMedia = true;
+            } else if (d.lastMessage && d.lastMessage.includes('voice_notes')) {
+                previewMsg = '<i class="fa-solid fa-microphone"></i> رسالة صوتية';
             }
             
+            // التعامل مع الرسائل المحذوفة في المعاينة الخارجية
+            if (d.lastMessage === '🚫 تم حذف رسالة' || d.lastMessage === '🚫 أنت حذفت هذه الرسالة') {
+                 previewMsg = '<i class="fa-solid fa-ban"></i> تم حذف رسالة';
+            }
+
             let isTyping = (d.typing && d.typing.includes(otherUid));
 
-            tempChats.push({
+            // إنشاء كائن الشات
+            const chatObj = {
                 id: doc.id, 
                 name: chatName, 
                 avatar: chatAvatar, 
@@ -3164,12 +3358,8 @@ function closeStoryViewers() {
                 timestamp: d.lastMessageTime ? d.lastMessageTime.toMillis() : 0,
                 otherUid, 
                 isOnline: isGroup ? true : (usersCache[otherUid]?.isOnline || false),
-                
-                // === هنا التعديل المهم ===
                 amISender: amISender, 
-                // حماية: لو العداد مش موجود نخليه صفر
                 unreadCount: d.unreadCount || 0, 
-                
                 isSeen: d.seen === true,        
                 isArchived: d.archivedBy && d.archivedBy.includes(userId),
                 isBlocked: d.blockedBy && d.blockedBy.includes(userId), 
@@ -3177,8 +3367,28 @@ function closeStoryViewers() {
                 isPinned: d.pinnedBy && d.pinnedBy.includes(userId),
                 isMuted: d.mutedBy && d.mutedBy.includes(userId),
                 isRequest: !isGroup && d.lastSender !== userId && !friendUids.has(otherUid)
-            });
+            };
+
+            // 🔥🔥 المنطق الذكي لمنع التكرار 🔥🔥
+            if (isGroup) {
+                tempChats.push(chatObj); // المجموعات تضاف كما هي
+            } else {
+                // للأشخاص: نتأكد هل هذا الشخص موجود في القائمة مسبقاً؟
+                if (uniqueChatsMap.has(otherUid)) {
+                    const existing = uniqueChatsMap.get(otherUid);
+                    // لو الشات الحالي أحدث من الموجود، نستبدله
+                    if (chatObj.timestamp > existing.timestamp) {
+                        uniqueChatsMap.set(otherUid, chatObj);
+                    }
+                } else {
+                    // أول مرة نشوف الشخص ده، نضيف الشات
+                    uniqueChatsMap.set(otherUid, chatObj);
+                }
+            }
         }
+        
+        // تحويل الـ Map إلى مصفوفة
+        uniqueChatsMap.forEach(value => tempChats.push(value));
         
         // الترتيب: المثبت الأول، ثم الأحدث وقتاً
         tempChats.sort((a, b) => {
@@ -3289,13 +3499,32 @@ function renderList() {
         if (c.isPinned) statusIconsHTML += `<i class="fa-solid fa-thumbtack" style="color:var(--accent-color); font-size:10px; margin-left:4px;"></i>`;
         if (c.isMuted) statusIconsHTML += `<i class="fa-solid fa-bell-slash" style="color:#777; font-size:10px; margin-left:4px;"></i>`;
 
-        let bottomContent = c.isTyping ? `<div class="typing-indicator">جاري الكتابة...</div>` : `<div class="last-message-wrapper">${(!c.isBlocked && c.amISender && c.isSeen) ? `<div class="read-blue-dot"></div>` : ''}<div class="last">${c.lastMsg}</div></div>`;
+        // حددنا علامة المشاهدة (صورة الشخص)
+const seenIcon = (!c.isBlocked && c.amISender && c.isSeen) 
+    ? `<div class="seen-avatar-icon" style="background-image: url('${c.avatar}')"></div>` 
+    : '';
+
+// حطينا العلامة جنب الرسالة
+let bottomContent = c.isTyping 
+    ? `<div class="typing-indicator">جاري الكتابة...</div>` 
+    : `<div class="last-message-wrapper" style="display:flex; align-items:center;">
+          ${seenIcon}
+          <div class="last" style="margin-right:5px;">${c.lastMsg}</div>
+       </div>`;
         
         // البادج يظهر فقط إذا كان هناك رسائل غير مقروءة وأنا لست المرسل
         let unreadHTML = '';
-if (!c.amISender && c.unreadCount > 0 && !c.isBlocked) {
-    unreadHTML = `<div class="unread-badge">${c.unreadCount}</div>`;
-} 
+
+        if (!c.amISender && !c.isBlocked) {
+            if (c.unreadCount > 0) {
+                // حالة 1: فيه رسايل جديدة فعلاً -> اظهر الرقم الأحمر
+                unreadHTML = `<div class="unread-badge">${c.unreadCount}</div>`;
+            } else if (!c.isSeen) {
+                // حالة 2: مفيش رسايل جديدة بس أنا عملتها "غير مقروءة" يدويًا -> اظهر نقطة زرقاء
+                // الكلاس read-blue-dot موجود بالفعل في ملف CSS الخاص بك
+                unreadHTML = `<div class="read-blue-dot"></div>`;
+            }
+        }
 //
         el.className = 'chat';
         if (c.isPinned) el.classList.add('pinned-chat');
@@ -3412,6 +3641,8 @@ if (!c.amISender && c.unreadCount > 0 && !c.isBlocked) {
         // 3. إضافة العناصر للصفحة (مهم جداً عشان الشات يظهر)
         wrapper.appendChild(el);
         list.appendChild(wrapper);
+        renderQuickActiveUsers(); 
+
 
     }); // دي قفلة الـ forEach (مهمة جداً)
 } // دي قفلة دالة renderList (مهمة جداً)
@@ -3469,20 +3700,85 @@ function resetUnreadCount(chatId) {
             ref.update({ archivedBy: op }); showToast(selectedChatData.isArchived ? "تم إلغاء الأرشفة" : "تمت الأرشفة"); closeOptions();
         }
 
-        function deleteChatAction() {
-    // نقوم بإضافة المستخدم لقائمة المحذوفين + تصفير العداد له
-    db.collection('chats').doc(selectedChatId).update({
-        deletedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
-        // اختيارية: إذا كنت تريد إخفاء التنبيهات أيضاً
-        unreadCount: 0 
-    }).then(() => {
-        showToast("تم حذف المحادثة");
-        closeOptions();
-        // إذا كنا داخل الشات، نعود للخلف
-        if(currentView === 'chat') showSection('inbox');
-    });
+        // 1. الدالة دي بتشتغل لما تدوس "حذف" من القائمة (بتفتح النافذة بس)
+function deleteChatAction() {
+    closeOptions(); // نقفل قائمة الخيارات
+    
+    // إظهار نافذة التأكيد الخاصة بنا
+    document.getElementById('deleteConfirmationModal').style.display = 'flex';
+    
+    // تصفير الـ Checkbox كل مرة تفتح فيها النافذة
+    document.getElementById('deleteForEveryoneCheck').checked = false;
 }
 
+// 2. دالة إغلاق النافذة
+function closeDeleteModal() {
+    document.getElementById('deleteConfirmationModal').style.display = 'none';
+}
+
+// 3. الدالة اللي بتنفذ الحذف فعلياً
+async function confirmDeleteChat() {
+    const isDeleteForEveryone = document.getElementById('deleteForEveryoneCheck').checked;
+    
+    closeDeleteModal(); 
+    showToast("جاري الحذف...");
+
+    try {
+        const chatRef = db.collection('chats').doc(selectedChatId);
+
+        if (isDeleteForEveryone) {
+            // ==========================================
+            // 🔥 الحل لمشكلة الحذف للجميع 🔥
+            // لازم نحذف الرسايل الأول قبل ما نحذف وثيقة الشات
+            // ==========================================
+            
+            // 1. هات كل الرسايل اللي جوه الشات
+            const messagesSnapshot = await chatRef.collection('messages').get();
+            
+            // 2. اعمل Batch عشان تحذفهم مرة واحدة (أسرع وأوفر)
+            const batch = db.batch();
+            messagesSnapshot.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+            
+            // 3. نفذ حذف الرسايل
+            await batch.commit();
+
+            // 4. دلوقتي احذف الشات نفسه بأمان
+            await chatRef.delete();
+            
+            showToast("تم حذف المحادثة ومحتواها نهائياً 🗑️");
+
+        } else {
+            // ==========================================
+            // 🔹 الحل لمشكلة الحذف من عندي 🔹
+            // بنسجل "وقت الحذف" عشان ما نعرضش الرسايل القديمة تاني
+            // ==========================================
+            
+            // بنعمل Object عشان نخزن فيه تاريخ الحذف الخاص بيك أنت بس
+            const updateData = {
+                deletedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid), // عشان يختفي من القائمة
+                unreadCount: 0 
+            };
+
+            // الحتة دي مهمة جداً: بنسجل إنك مسحت الشات "دلوقتي"
+            // الكود ده معناه: clearedAt.USER_ID = ServerTimestamp
+            updateData[`clearedAt.${currentUser.uid}`] = firebase.firestore.FieldValue.serverTimestamp();
+
+            await chatRef.update(updateData);
+
+            showToast("تم مسح المحتوى وإخفاء المحادثة ✅");
+        }
+
+        if (currentView === 'chat') showSection('inbox');
+        // تحديث القائمة عشان التغيير يظهر فوراً
+        renderList(); 
+
+    } catch (error) {
+        console.error("Error deleting:", error);
+        showToast("حدث خطأ أثناء الحذف");
+    }
+}
 
         function toggleMuteAction() {
             const ref = db.collection('chats').doc(selectedChatId);
@@ -3490,8 +3786,30 @@ function resetUnreadCount(chatId) {
             ref.update({ mutedBy: op }); closeOptions();
         }
 
-        function toggleReadAction() { db.collection('chats').doc(selectedChatId).update({ seen: !selectedChatData.isSeen }); closeOptions(); }
-        
+        function toggleReadAction() {
+    const ref = db.collection('chats').doc(selectedChatId);
+    
+    // لو الشات فيه رسايل (العداد أكبر من 0) أو هو حالياً "غير مقروء" (seen = false)
+    // يبقى لما نضغط عليه عايزين نخليه "مقروء"
+    if (selectedChatData.unreadCount > 0 || !selectedChatData.isSeen) {
+        // تحويل إلى مقروء
+        ref.update({ 
+            seen: true, 
+            unreadCount: 0 
+        });
+        showToast("تم التعليم كمقروء ✅");
+    } else {
+        // العكس: هو حالياً مقروء، إحنا عايزين نعلمه "غير مقروء" للتذكير
+        ref.update({ 
+            seen: false 
+            // مش بنغير العداد، بنسيبه 0 زي ما هو، بس بنغير الحالة
+        });
+        showToast("تم التعليم كغير مقروء 🔵");
+    }
+    closeOptions();
+}
+
+
          function hideLogoutModal() { document.getElementById('logoutModal').classList.remove('active'); }
         function performLogout() { sessionStorage.clear(); auth.signOut().then(() => location.href = 'index.html'); }
         
@@ -4441,6 +4759,105 @@ function closeSearchOnClickOutside(e) {
     }
 }
 
+// ================= وظيفة شريط المتصلين السريع =================
+
+function renderQuickActiveUsers() {
+    const list = document.getElementById('quickUsersList');
+    const container = document.getElementById('quickUsersContainer');
+    
+    // إخفاء الشريط إذا لم نكن في الصفحة الرئيسية
+    if (currentView !== 'inbox') {
+        container.style.display = 'none';
+        return;
+    }
+
+    let peopleMap = new Map();
+
+    // 1. تجميع الأصدقاء
+    friendUids.forEach(uid => {
+        if (usersCache[uid]) {
+            peopleMap.set(uid, usersCache[uid]);
+        }
+    });
+
+    // 2. تجميع من راسلتهم (من قائمة الشات)
+    allChats.forEach(chat => {
+        if (!chat.isGroup && chat.otherUid) {
+            // نأخذ البيانات من الكاش أو من بيانات الشات نفسها كبديل
+            const cachedUser = usersCache[chat.otherUid];
+            const userData = cachedUser || {
+                uid: chat.otherUid,
+                name: chat.name,
+                avatar: chat.avatar,
+                isVerified: chat.isVerified,
+                isOnline: chat.isOnline // نعتمد على بيانات الشات المحدثة
+            };
+            peopleMap.set(chat.otherUid, userData);
+        }
+    });
+
+    let peopleArray = Array.from(peopleMap.values());
+
+    // 3. الترتيب: المتصلين أولاً
+    peopleArray.sort((a, b) => {
+        // التحقق من حالة الاتصال الحقيقية (بما في ذلك إعداداتي أنا)
+        const aOnline = a.isOnline && window.isOnlineFeatureEnabled;
+        const bOnline = b.isOnline && window.isOnlineFeatureEnabled;
+        
+        if (aOnline === bOnline) return 0;
+        return aOnline ? -1 : 1;
+    });
+
+    if (peopleArray.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'flex';
+    list.innerHTML = '';
+
+    peopleArray.forEach(user => {
+        if(user.uid === currentUser.uid) return;
+
+        const item = document.createElement('div');
+        item.className = 'quick-user-item';
+        
+        // شرط ظهور اللمبة الخضراء:
+        // 1. المستخدم أونلاين
+        // 2. أنا مفعل الظهور (window.isOnlineFeatureEnabled)
+        const isReallyOnline = user.isOnline && window.isOnlineFeatureEnabled;
+        const dotDisplay = isReallyOnline ? 'block' : 'none';
+        
+        const firstName = user.name.split(' ')[0]; // الاسم الأول فقط
+
+        item.innerHTML = `
+            <div class="quick-avatar-wrapper">
+                <div class="quick-avatar-img" style="background-image: url('${user.avatar || defaultAvatar}');"></div>
+                <div class="quick-online-dot" style="display: ${dotDisplay};"></div>
+            </div>
+            <div class="quick-user-name">${firstName}</div>
+        `;
+
+        item.onclick = () => {
+            vibrate();
+            // البحث عن شات موجود لفتحه
+            const existingChat = allChats.find(c => !c.isGroup && c.otherUid === user.uid);
+            
+            if (existingChat) {
+                // فتح الشات الموجود
+                openChat(existingChat.id, encodeURIComponent(existingChat.name), user.uid, false);
+            } else {
+                // فتح شات جديد
+                // نستخدم خدعة بسيطة: نرسل 'new' كـ ID ليقوم النظام بمعالجته
+                const url = `chat.html?chatId=new&name=${encodeURIComponent(user.name)}&uid=${user.uid}`;
+                location.href = url;
+            }
+        };
+
+        list.appendChild(item);
+    });
+}
+
 
     </script>
     
@@ -4542,12 +4959,33 @@ function closeSearchOnClickOutside(e) {
 <audio id="ringtoneIn" loop preload="none">
     <source src="./sounds/ring_in.wav" type="audio/wav">
 </audio>
-<script src="global-call.js"></script>
+
 
 <div id="searchResultsModal" class="search-results-popup">
     <div id="searchResultsList"></div>
 </div>
+<div id="deleteConfirmationModal" class="custom-modal" style="z-index: 50000;">
+    <div class="modal-box" style="text-align: right;">
+        <h3 style="color:#fff; margin-bottom:10px;">حذف المحادثة</h3>
+        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">هل أنت متأكد من حذف هذه المحادثة؟</p>
+        
+        <label class="delete-checkbox-container">
+            <input type="checkbox" id="deleteForEveryoneCheck">
+            <span class="checkmark"></span>
+            <span style="color:#fff; font-size:14px;">الحذف من كلا الطرفين</span>
+        </label>
 
+        <div class="modal-actions" style="flex-direction: row; gap: 10px; margin-top: 20px;">
+            <button onclick="closeDeleteModal()" class="btn-dark" style="flex:1;">إلغاء</button>
+            <button onclick="confirmDeleteChat()" class="btn-yes" style="flex:1; background:#ef4444;">حذف</button>
+        </div>
+    </div>
+</div>
+
+<script src="sounds-manager.js"></script>
+<script src="global-notifications.js"></script>
+<script src="global-call.js"></script>
 
 </body>
 </html>
+

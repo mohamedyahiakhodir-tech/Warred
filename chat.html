@@ -47,14 +47,54 @@
     overflow: hidden;   /* منع سكرول المتصفح الخارجي */
 }
 
+/* ================= تصميم الخلفية الاحترافية (Cyan Tech Vibes) ================= */
+/* ================= تصميم الخلفية الاحترافي (Aurora Tech) ================= */
+/* ================= تصميم الخلفية الاحترافية (Cyan Tech Vibes) ================= */
 body {
-    display: flex;              /* تحويل الجسم لحاوية مرنة */
-    flex-direction: column;     /* ترتيب العناصر فوق بعض */
-    background-color: #0b1121;
-    /* ... باقي خلفيتك وألوانك زي ما هي ... */
-    background-image: ...; /* سيب الخلفية زي ما كانت عندك */
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    
+    /* 1. اللون الأساسي (كحلي غامق جداً عشان يبرز السيان) */
+    background-color: #050b14;
+
+    /* 2. طبقات الخلفية (تدرجات + نمط) */
+    background-image: 
+        /* بقعة ضوء سيان (Cyan) قوية في الزاوية العلوية الشمال */
+        radial-gradient(circle at 0% 0%, rgba(0, 229, 255, 0.15) 0%, transparent 60%),
+        
+        /* بقعة ضوء زرقاء (Blue) في الزاوية السفلية اليمين */
+        radial-gradient(circle at 100% 100%, rgba(41, 121, 255, 0.10) 0%, transparent 60%),
+        
+        /* نمط هندسي خفيف جداً (شبكة مائلة) ليعطي عمق احترافي */
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 40px),
+        repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 40px);
+
+    background-attachment: fixed; /* تثبيت الخلفية عشان الرسائل تتحرك فوقها بنعومة */
+    display: flex;
+    flex-direction: column;
 }
 
+/* ================= لمسة إضافية (اختياري) ================= */
+/* إضافة "توهج" متحرك ببطء شديد في الخلفية لزيادة الجاذبية */
+body::before {
+    content: '';
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw; height: 100vh;
+    background: radial-gradient(circle, rgba(0, 229, 255, 0.03), transparent 70%);
+    z-index: -1; /* خلف كل العناصر */
+    pointer-events: none;
+    animation: breatheGlow 8s infinite alternate ease-in-out;
+}
+
+/* أنيميشن التنفس للضوء الخلفي */
+@keyframes breatheGlow {
+    0% { opacity: 0.5; transform: translate(-50%, -50%) scale(0.8); }
+    100% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+}
 
 .chat-header { 
     /* التثبيت والمكان */
@@ -289,23 +329,19 @@ body {
         .icon-btn.audio { color: #fff; }
 
         /* ================= جسم الشات ================= */
-       .chat-body { 
-    flex: 1; overflow-y: auto; padding: 20px 15px; 
-    display: flex; flex-direction: column; gap: 20px; width: 100%; 
-    /* تم حذف scroll-behavior */
-    padding-bottom: 90px;
+.chat-body { 
+    flex: 1; 
+    overflow-y: auto; 
+    padding: 20px 15px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+    width: 100%; 
+    
+    /* 🔥 التعديل هنا: زودنا المسافة السفلية جداً عشان الرسائل تترفع فوق الفوتر */
+    padding-bottom: 160px !important; 
 }
 
-@keyframes messagePop {
-    0% { 
-        opacity: 0; 
-        transform: translateY(20px) scale(0.95); 
-    }
-    100% { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
-    }
-}
 
         .msg-row { display: flex; width: 100%; align-items: flex-end; gap: 10px; position: relative; animation: fadeInSlide 0.3s ease; }
         .msg-row.sender { justify-content: flex-end; }
@@ -2855,6 +2891,227 @@ body.dark-mode .message.quick-reply {
     color: #00e5ff;
     border: 1px solid #00e5ff;
 }
+/* تصميم أيقونة السين (صورة الشخص) */
+.seen-avatar-icon {
+    width: 16px;            /* حجم صغير مثل ماسنجر */
+    height: 16px;
+    border-radius: 50%;     /* دائري تماماً */
+    background-size: cover;
+    background-position: center;
+    display: inline-block;
+    border: 1px solid #fff; /* حدود بيضاء صغيرة لفصلها عن الخلفية */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    vertical-align: middle;
+    margin-right: 2px;
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: popIn 0.3s ease; /* حركة ظهور ناعمة */
+}
+
+@keyframes popIn {
+    from { transform: scale(0); }
+    to { transform: scale(1); }
+}
+
+/* حالة الرسالة (إخفاء العين القديمة إذا ظهرت الصورة) */
+.msg-status.seen-eye i {
+    display: none; /* نخفي الأيقونة لو الصورة موجودة */
+}
+
+/* تنسيق أيقونة الصورة الصغيرة (Seen Avatar) */
+/* ✅ هذا الكود يوضع داخل وسم <style> */
+
+.seen-avatar-icon {
+    width: 16px !important;       /* إجبار الحجم */
+    height: 16px !important;
+    border-radius: 50%;
+    
+    /* صورة افتراضية لو الصورة محملتش */
+    background-color: #999;       
+    background-size: cover;
+    background-position: center;
+    
+    display: inline-block;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    
+    /* حركة ظهور */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    margin-right: 3px;
+    vertical-align: middle;
+}
+
+@keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* إخفاء أيقونة العين القديمة لو الصورة ظهرت */
+.hidden-eye {
+    display: none !important;
+}
+
+/* تعديل حاوية الميتا (الوقت والأيقونة) لتكون متناسقة */
+.msg-meta-row {
+    min-height: 16px; /* ارتفاع ثابت عشان الرسالة متهزش لما الأيقونة تظهر وتختفي */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+/* ================= 1. حاوية الهيدر الرئيسية ================= */
+.chat-header {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    height: 72px; /* ارتفاع ملموم وشيك */
+    margin: 0 10px;
+    padding: 0 12px;
+    
+    /* الخلفية الزجاجية الاحترافية (Dark Aurora Glass) */
+    background: rgba(15, 23, 42, 0.85); /* لون كحلي غامق شفاف */
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    
+    border-radius: 24px; /* تدوير ناعم */
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4); /* ظل عميق */
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden; /* ضمان عدم خروج أي عنصر */
+}
+
+/* ================= 2. القسم الأيمن (زر الرجوع + الصورة + الاسم) ================= */
+.header-right-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1; /* يأخذ المساحة المتاحة ليدفع الأزرار لليسار */
+    min-width: 0; /* 🔥 سر الماسنجر: يسمح للنص بالانكماش */
+}
+
+/* زر الرجوع */
+.back-btn {
+    font-size: 18px; color: #cbd5e1;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
+    flex-shrink: 0; /* يمنع الانكماش */
+}
+.back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+/* ================= 3. تصميم الصورة (Avatar) ================= */
+.user-avatar-container {
+    position: relative;
+    width: 48px; height: 48px; /* حجم مثالي */
+    flex-shrink: 0; /* يمنع الصورة من الانبعاج */
+    border-radius: 50%;
+    padding: 2px;
+    
+    /* حلقة متدرجة أنيقة (بدل التوهج المبالغ فيه) */
+    background: linear-gradient(135deg, #00e5ff, #3b82f6); 
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.2);
+    cursor: pointer;
+}
+
+.header-avatar {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background-color: #0f172a;
+    background-size: cover; background-position: center;
+    border: 2px solid #0f172a; /* فاصل بين الصورة والإطار */
+}
+
+.online-status {
+    position: absolute; bottom: 0; left: 0;
+    width: 12px; height: 12px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 2px solid #0f172a;
+}
+
+/* ================= 4. النصوص والاسم (Messenger Style) ================= */
+/* 1. تعديل صندوق الاسم ليكون عائماً في المنتصف */
+.header-info {
+    position: absolute; /* خروج من الترتيب العادي */
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%); /* السحر اللي بيجيبه في النص بالظبط */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* توسيط العناصر رأسياً */
+    justify-content: center; /* توسيط العناصر أفقياً */
+    
+    width: max-content; /* العرض على قد الكلام */
+    max-width: 50%; /* عشان لو الاسم طويل ما يغطيش ع الزراير */
+    margin: 0 !important; /* إلغاء أي هوامش قديمة */
+    z-index: 10;
+}
+
+/* 2. تنسيق الاسم نفسه */
+.header-info h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Cairo', sans-serif;
+    
+    /* توسيط النص */
+    text-align: center;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    
+    /* قص النص الزائد */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* 3. تنسيق حالة الاتصال (نشط الآن) */
+.status-text {
+    font-size: 11px; /* تصغير الخط سنة عشان الشياكة */
+    font-weight: 500;
+    color: #94a3b8;
+    text-align: center; /* توسيط النص */
+    margin-top: 1px;
+    display: block;
+    width: 100%;
+}
+
+/* 4. تعديل القسم اليمين (عشان يلم نفسه بعد ما الاسم خرج منه) */
+.header-right-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* مش محتاجين flex: 1 هنا خلاص لأن الاسم خرج */
+}
+
+
+/* ================= 5. أزرار الاتصال (اليسار) ================= */
+.header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0; /* يمنع الأزرار من الاختفاء لو الاسم طويل */
+    margin-right: 10px; /* مسافة تفصلهم عن الاسم */
+}
+
+.icon-btn {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex; align-items: center; justify-content: center;
+    color: #cbd5e1; font-size: 18px;
+    cursor: pointer; transition: 0.3s;
+}
+.icon-btn:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
 
 
     </style>
@@ -2905,32 +3162,36 @@ body.dark-mode .message.quick-reply {
         </div>
     </div>
 
-    <div class="chat-header">
-        <div class="header-right-section">
-            <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
-            <div class="user-avatar-container" onclick="openProfile()">
-                <div id="headerImage" class="header-avatar"></div>
-                <div class="online-status"></div>
-            </div>
-            <div class="header-info">
-                <h3 id="headerNameWrapper">
-                    <span id="headerName">...</span>
-                    <span id="headerVerify"></span>
-                  <i id="headerMuteIcon" class="fa-solid fa-bell-slash" style="display:none; color:#8b5cf6; font-size:14px; margin-right:8px;" title="تم كتم الإشعارات"></i>
-
-                </h3>
-                <span id="headerStatus" class="status-text">نشط الآن</span>
-                <span id="typingIndicator" class="typing-text">يكتب...</span>
-            </div>
+ <div class="chat-header">
+    
+    <div class="header-right-section">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        
+        <div class="user-avatar-container" onclick="openProfile()">
+            <div id="headerImage" class="header-avatar"></div>
+            <div class="online-status"></div>
         </div>
-      <div class="header-actions">
-    <div class="icon-btn video" onclick="playUiSound('click'); initiateVideoCallUI()">
-        <i class="fa-solid fa-video"></i>
+        
+        <div class="header-info">
+            <h3 id="headerNameWrapper">
+                <span id="headerName">مستخدم Wareed </span>
+                <span id="headerVerify"></span> <i id="headerMuteIcon" class="fa-solid fa-bell-slash" style="display:none; color:#8b5cf6; font-size:12px; margin-right:5px;"></i>
+            </h3>
+            <span id="headerStatus" class="status-text">نشط الآن</span>
+            <span id="typingIndicator" class="typing-text">يكتب...</span>
+        </div>
     </div>
-    <div class="icon-btn audio" onclick="playUiSound('click'); initiateCall()">
-        <i class="fa-solid fa-phone"></i>
+
+    <div class="header-actions">
+        <div class="icon-btn video" onclick="playUiSound('click'); initiateVideoCallUI()">
+            <i class="fa-solid fa-video"></i>
+        </div>
+        <div class="icon-btn audio" onclick="playUiSound('click'); initiateCall()">
+            <i class="fa-solid fa-phone"></i>
+        </div>
     </div>
 </div>
+
 
     </div>
 
@@ -3440,17 +3701,16 @@ if (highlightMsgId) {
 });
 
 // ================= تعديل منطق الكتابة (Fix Typing) =================
+// 🔥🔥🔥 التعديل الثالث: تحسين مستمع الكتابة 🔥🔥🔥
 const msgInput = document.getElementById("messageInput");
-
-// متغير لتتبع حالة الكتابة الحالية لمنع التكرار
 let isTypingStatus = false; 
 
 msgInput.addEventListener('input', () => {
     if(chatId && currentUserId) {
-        const val = msgInput.value.trim();
+        const val = msgInput.value; // شيلنا trim مؤقتاً عشان نحسب المسافات ككتابة لو حابب، أو رجعها
         
-        // لو الحقل فضي (مسح الكلام)، نلغي الحالة فوراً
-        if (val === '') {
+        // 1. لو الصندوق فضي تماماً -> الغي الكتابة فوراً
+        if (val.trim() === '') {
             clearTimeout(typingTimeout);
             if (isTypingStatus) {
                 isTypingStatus = false;
@@ -3463,7 +3723,7 @@ msgInput.addEventListener('input', () => {
 
         playKeySound(); 
 
-        // لو هو مش متسجل إنه بيكتب، نسجله (مرة واحدة بس عشان نوفر نت)
+        // 2. لو هو مش متسجل إنه بيكتب -> سجله
         if (!isTypingStatus) {
             isTypingStatus = true;
             db.collection("chats").doc(chatId).update({ 
@@ -3471,18 +3731,20 @@ msgInput.addEventListener('input', () => {
             }).catch(()=>{});
         }
 
-        // ريستارت للعداد مع كل حرف
+        // 3. ريستارت للعداد (لو بطل كتابة لمدة 3 ثواني نمسحه)
         clearTimeout(typingTimeout);
         
-        // بعد 3 ثواني من آخر حرف، نلغي الحالة
         typingTimeout = setTimeout(() => { 
-            isTypingStatus = false;
-            db.collection("chats").doc(chatId).update({ 
-                typing: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
-            }).catch(()=>{});
+            if (isTypingStatus) { // تأكد إنه لسه الحالة true قبل ما تمسح
+                isTypingStatus = false;
+                db.collection("chats").doc(chatId).update({ 
+                    typing: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
+                }).catch(()=>{});
+            }
         }, 3000);
     }
 });
+
 
 
        function setupTypingListener() {
@@ -3652,6 +3914,9 @@ async function confirmUpload() {
             document.getElementById('replyText').innerText = currentReply.text;
             document.getElementById('messageInput').focus();
             closeContextMenu();
+            // استدعي دالة تغيير الحجم عشان تعمل حساب شريط الرد
+autoResize(document.getElementById('messageInput'));
+
         }
         function cancelReply() { currentReply = null; document.getElementById('replyBar').style.display = 'none'; }
 
@@ -3671,86 +3936,153 @@ function closeDeleteModal() {
 }
 
 // 3. تنفيذ الحذف الفعلي (تحديث الرسالة في الداتابيز)
+// 3. تنفيذ الحذف (حذف المحتوى + تحديث الشات الخارجي)
+// 3. تنفيذ الحذف الفعلي (حذف نهائي للمستند ليختفي عند الجميع)
+// دالة حذف الرسالة (تحويلها لنص "تم الحذف")
 async function performDelete() {
     if(!selectedMsgId) return;
     
-    // 1. إغلاق النافذة فوراً لتحسين الاستجابة
-    closeDeleteModal();
+    closeDeleteModal(); // قفل النافذة
     
     try {
         const msgRef = db.collection("chats").doc(chatId).collection("messages").doc(selectedMsgId);
         
-        // 2. استخدام set مع merge لضمان عدم حدوث خطأ لو الحقل مش موجود
-        await msgRef.set({
-            type: 'deleted',          // تغيير النوع لمحذوف
-            text: '',                 // مسح النص
-            fileUrl: null,            // حذف رابط الملف إن وجد
-            reaction: firebase.firestore.FieldValue.delete() // حذف أي تفاعلات
-        }, { merge: true });
+        // 🔥 هنا التعديل: بنحدث الرسالة مش بنمسحها
+        // عشان يظهر مكانها "🚫 تم حذف الرسالة"
+        await msgRef.update({
+            type: 'deleted',           // تغيير النوع
+            text: '',                  // مسح النص الأصلي
+            fileUrl: firebase.firestore.FieldValue.delete(), // حذف المرفقات
+            reaction: firebase.firestore.FieldValue.delete() // حذف التفاعلات
+        });
 
-        showToast("تم حذف الرسالة 🗑️");
+        showToast("تم حذف محتوى الرسالة 🗑️");
         
+        // تحديث الرسالة الخارجية لو كانت هي الأخيرة
+        updateLastMessageAfterDelete();
+
     } catch(e) {
-        console.error("خطأ في الحذف:", e);
-        showToast("حدث خطأ، تأكد من اتصالك");
+        console.error("خطأ:", e);
+        showToast("حدث خطأ في الحذف");
     }
 }
+
+// ============================================================
+// 🔥 دالة تحديث الشات الخارجي (الجزء الإضافي) 🔥
+// (ضع هذه الدالة تحت performDelete مباشرة)
+// ============================================================
+async function updateLastMessageAfterDelete() {
+    try {
+        // بنجيب آخر رسالة موجودة في الشات دلوقتي (عشان نتأكد هي المحذوفة ولا لأ)
+        const snapshot = await db.collection("chats").doc(chatId).collection("messages")
+            .orderBy("createdAt", "desc")
+            .limit(1)
+            .get();
+
+        if (!snapshot.empty) {
+            const lastMsg = snapshot.docs[0].data();
+            let previewText = "";
+
+            // تحديد النص اللي هيظهر بره بناءً على نوع الرسالة الأخيرة
+            if (lastMsg.type === 'deleted') {
+                previewText = "🚫 تم حذف رسالة"; // ده اللي هيظهر بره لو آخر رسالة محذوفة
+            } else if (lastMsg.type === 'image') {
+                previewText = "📷 صورة";
+            } else if (lastMsg.type === 'video') {
+                previewText = "🎥 فيديو";
+            } else if (lastMsg.type === 'audio') {
+                previewText = "🎤 رسالة صوتية";
+            } else if (lastMsg.type === 'file') {
+                previewText = "📁 ملف";
+            } else {
+                previewText = lastMsg.text; // لو نص عادي
+            }
+            
+            // تحديث وثيقة الشات الرئيسية (اللي بتظهر في القائمة بره)
+            await db.collection("chats").doc(chatId).update({
+                lastMessage: previewText
+                // مش هنحدث الوقت (lastMessageTime) عشان ترتيب الشات ميبوظش
+            });
+        }
+    } catch(e) { 
+        console.log("خطأ تحديث الواجهة الخارجية", e); 
+    }
+}
+
 
    async function getUser(uid) { if(userCache[uid]) return userCache[uid]; try { const d = await db.collection('users').doc(uid).get(); const data = d.data() || {}; userCache[uid] = { name: data.name || "مستخدم", char: (data.name || 'U')[0].toUpperCase(), color: data.color || "#5D5FEF", isVerified: data.isVerified === true, profilePic: data.profilePic || null }; } catch(e) { userCache[uid] = { name: "مستخدم", char: "U", color: "#555", isVerified: false, profilePic: null }; } return userCache[uid]; }
         
         let headerUnsubscribe = null; // متغير عالمي عشان نلغي الاستماع القديم
+// 1. دالة مساعدة لقص الاسم (توضع قبل updateHeader)
+// دالة ذكية لتنظيف الاسم واختصار (توضع قبل updateHeader)
+function getShortName(fullName) {
+    if (!fullName) return "مستخدم";
 
+    // 1. حذف الإيموجي والرموز (يقبل فقط الحروف والأرقام والمسافات)
+    // هذا السطر هو الذي سيحذف القلب 🖤 من الهيدر
+    let cleanName = fullName.replace(/[^\p{L}\p{N}\s]/gu, '').replace(/\s+/g, ' ').trim();
+
+    // 2. تقسيم الاسم إلى كلمات
+    const parts = cleanName.split(' ');
+
+    // 3. لو الاسم كلمة واحدة أو كلمتين، اعرضهم
+    if (parts.length <= 2) return cleanName;
+
+    // 4. لو أكثر، خذ أول كلمتين فقط
+    return `${parts[0]} ${parts[1]}`;
+}
+
+// 2. تحديث دالة الهيدر لاستخدام الاسم القصير
 async function updateHeader(uid) {
     if (!uid) return;
 
-    // 1. إلغاء المستمع القديم (عشان لو خرجت ودخلت شات تاني ميعملش تداخل)
     if (headerUnsubscribe) headerUnsubscribe();
 
-    // 2. الاستماع الفوري لتحديثات الطرف الآخر
     headerUnsubscribe = db.collection('users').doc(uid).onSnapshot(doc => {
         if (!doc.exists) return;
         const u = doc.data();
 
-        // ============================================================
-        // 1. تحديث الكاش (مهم جداً لعلامة العين الزرقاء واسم الراسل)
-        // ============================================================
+        // تحديث الكاش
         userCache[uid] = {
-            ...userCache[uid], // نحافظ على أي داتا قديمة
+            ...userCache[uid],
             name: u.name || "مستخدم",
             profilePic: u.profilePic || null,
             color: u.color || "#555",
             char: (u.name || 'U')[0].toUpperCase(),
-            lastSeen: u.lastSeen, // بنحتاجه لحساب الأونلاين
-            privacy: u.privacy || {} // 🔥 تخزين إعدادات الخصوصية الجديدة
+            lastSeen: u.lastSeen,
+            privacy: u.privacy || {}
         };
 
-        // ============================================================
-        // 2. تحديث الاسم والصورة في الهيدر
-        // ============================================================
-        const displayName = u.name || "مستخدم";
+        // 🔥 هنا التعديل: استخدام الاسم القصير بدلاً من الكامل
+        const rawName = u.name || "مستخدم";
+        const displayName = getShortName(rawName); // سيأخذ أول اسمين فقط
         
         // تحديث النصوص
         const headerNameEl = document.getElementById("headerName");
-        if(headerNameEl) headerNameEl.innerText = displayName;
+        if(headerNameEl) {
+            headerNameEl.innerText = displayName;
+            
+            // إضافة خاصية لضبط اتجاه النص تلقائياً (عربي يمين / إنجليزي يسار)
+            // هذا يحل مشكلة لخبطة الأسماء الإنجليزية
+            headerNameEl.style.direction = "auto"; 
+            headerNameEl.style.unicodeBidi = "plaintext";
+        }
         
+        // (باقي الكود كما هو...)
         const callNameEl = document.getElementById("callName"); 
-        if(callNameEl) callNameEl.innerText = displayName; // تحديث اسم شاشة الاتصال
+        if(callNameEl) callNameEl.innerText = displayName; // تحديث شاشة الاتصال أيضاً
 
-        // تحديث الصورة
         const hImg = document.getElementById("headerImage");
-        const callAvatar = document.getElementById("callAvatar"); // صورة شاشة الاتصال
+        const callAvatar = document.getElementById("callAvatar");
 
         if (u.profilePic) {
-            // -- لو فيه صورة --
             if(hImg) {
                 hImg.style.backgroundImage = `url('${u.profilePic}')`;
                 hImg.innerText = ''; 
                 hImg.style.backgroundColor = 'transparent';
             }
             if(callAvatar) callAvatar.style.backgroundImage = `url('${u.profilePic}')`;
-
         } else {
-            // -- لو مفيش صورة (حرف ورقم) --
             if(hImg) {
                 hImg.style.backgroundImage = 'none';
                 hImg.style.backgroundColor = u.color || '#555';
@@ -3762,58 +4094,32 @@ async function updateHeader(uid) {
             }
         }
 
-        // ============================================================
-        // 3. تحديث حالة الاتصال (Online Status) + تطبيق الخصوصية 🔥
-        // ============================================================
+        // تحديث الحالة (الأونلاين)
         const statusElement = document.getElementById("headerStatus");
         const onlineIndicator = document.querySelector(".online-status");
 
         if (u.lastSeen) {
-            
-            // 🔥 فحص إعدادات الخصوصية (هل أخفى ظهوره؟) 🔥
             const isHidden = u.privacy && u.privacy.hideLastSeen;
-
             if (isHidden) {
-                // لو مفعل الخصوصية: نخفي الحالة ونطفي النقطة الخضراء
-                if(statusElement) {
-                    statusElement.innerText = ""; 
-                    statusElement.style.display = 'none'; 
-                }
-                if(onlineIndicator) {
-                    onlineIndicator.style.backgroundColor = "transparent"; 
-                    onlineIndicator.style.boxShadow = "none";
-                }
-            } 
-            else {
-                // لو مش مفعل الخصوصية: نحسب الوقت عادي
+                if(statusElement) { statusElement.innerText = ""; statusElement.style.display = 'none'; }
+                if(onlineIndicator) { onlineIndicator.style.backgroundColor = "transparent"; onlineIndicator.style.boxShadow = "none"; }
+            } else {
                 if(statusElement) statusElement.style.display = 'block';
-                
                 const statusText = formatLastSeen(u.lastSeen);
                 if(statusElement) statusElement.innerText = statusText;
 
                 if (statusText === 'نشط الآن') {
-                    // حالة الأونلاين (أخضر)
                     if(statusElement) statusElement.style.color = "#10b981";
-                    if(onlineIndicator) {
-                        onlineIndicator.style.backgroundColor = "#10b981";
-                        onlineIndicator.style.boxShadow = "0 0 8px #10b981";
-                    }
+                    if(onlineIndicator) { onlineIndicator.style.backgroundColor = "#10b981"; onlineIndicator.style.boxShadow = "0 0 8px #10b981"; }
                 } else {
-                    // حالة الأوفلاين (رمادي)
                     if(statusElement) statusElement.style.color = "#94a3b8";
-                    if(onlineIndicator) {
-                        onlineIndicator.style.backgroundColor = "#94a3b8"; 
-                        onlineIndicator.style.boxShadow = "none";
-                    }
+                    if(onlineIndicator) { onlineIndicator.style.backgroundColor = "#94a3b8"; onlineIndicator.style.boxShadow = "none"; }
                 }
             }
         } else {
-            // لو مفيش lastSeen أصلاً
             if(statusElement) statusElement.innerText = "";
             if(onlineIndicator) onlineIndicator.style.backgroundColor = "transparent";
         }
-        
-
     });
 }
 
@@ -3942,6 +4248,17 @@ if (d.uid !== currentUserId) {
         let lastDate = null; // لمقارنة التواريخ (للفواصل)
 
         let destructQueue = []; // 👈 ضيف السطر ده قبل بداية الـ Loop
+// 1. كود تحديد آخر رسالة مقروءة (من الجديد للقديم)
+let lastSeenMsgId = null;
+const allDocs = snap.docs;
+for (let i = allDocs.length - 1; i >= 0; i--) {
+    const d = allDocs[i].data();
+    // بندور على أول رسالة بتاعتي وتكون seen ومش ممسوحة
+    if (d.uid === currentUserId && d.seen === true && d.type !== 'deleted') {
+        lastSeenMsgId = allDocs[i].id;
+        break; // أول ما نلاقيها نوقف تدوير
+    }
+}
 
                     snap.forEach(doc => {
                         
@@ -4028,37 +4345,23 @@ if (d.uid !== currentUserId) {
             <span id="timer_${doc.id}">تدمير خلال: ${Math.ceil(msg.selfDestruct)}ث</span>
         </div>`;
     }
-
-    // ================= 5. (الجديد) نظام العين =================
+    // ================= 5. نظام السين الجديد (صورة الشخص) =================
     let eyeHtml = '';
-    if (isMe && msg.type !== 'deleted') {
+    
+    // الشرط: الرسالة بتاعتي + مش محذوفة + اتشافت (seen = true)
+    if (isMe && msg.type !== 'deleted' && msg.seen) {
         
-        // 1. حساب حالة الأونلاين الحالية من الكاش المحدث
-        let isUserOnline = false;
-        // نستخدم u.lastSeen المحدثة من دالة updateHeader
-        if (u && u.lastSeen) {
-            const now = new Date();
-            const lastSeenDate = u.lastSeen.toDate ? u.lastSeen.toDate() : new Date(u.lastSeen);
-            // لو فاتح في آخر 60 ثانية يعتبر أونلاين
-            if ((now - lastSeenDate) / 1000 < 65) {
-                isUserOnline = true;
-            }
-        }
-
-        // 2. تحديد لون العين
-        if (msg.seen) {
-            // 🟢 شافها
-            eyeHtml = '<i class="fa-solid fa-eye eye-green status-eye" title="تمت المشاهدة"></i>';
-        } 
-        else if (isUserOnline) { 
-            // 🔵 هو فاتح التطبيق (أونلاين) بس لسه ما شافش الرسالة دي تحديداً
-            eyeHtml = '<i class="fa-solid fa-eye eye-blue status-eye" title="وصلت (متصل الآن)"></i>';
-        } 
-        else {
-            // ⚫ قافل التطبيق خالص
-            eyeHtml = '<i class="fa-solid fa-eye eye-dark status-eye" title="غير متصل"></i>';
+        // 1. نجيب بيانات الطرف الآخر من الكاش (عشان نعرض صورته هو مش صورتي)
+        const otherUser = userCache[cachedOtherUserId]; 
+        const otherPic = otherUser ? (otherUser.profilePic || otherUser.avatar) : '';
+        
+        // 2. لو فيه صورة، نجهز الـ HTML
+        if (otherPic) {
+            // بنستخدم نفس كلاس الـ CSS اللي عملناه المرة اللي فاتت
+            eyeHtml = `<div class="seen-avatar-icon" style="background-image: url('${otherPic}'); width:14px; height:14px; margin-right:5px; border-color:rgba(255,255,255,0.3);"></div>`;
         }
     }
+
     // ========================================================
 
     const timeText = msg.createdAt ? formatTime(msg.createdAt) : "";
@@ -4388,11 +4691,23 @@ async function loadMoreHistory() {
 
         // استبدل دالة الإرسال القديمة بدي فوراً
 async function sendMessage() { 
+    
     playUiSound('sent');
     const inp = document.getElementById("messageInput"); 
     const val = inp.value.trim(); 
     
     if(!val) return; 
+        // ضيف الجزء ده في بداية دالة الإرسال
+    if (isTypingStatus) {
+        isTypingStatus = false;
+        clearTimeout(typingTimeout); // الغي العداد عشان ميمسحش تاني بعدين
+        
+        // امسح اسمك من قائمة "يكتب" فوراً في الداتابيز
+        db.collection("chats").doc(chatId).update({ 
+            typing: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
+        }).catch(()=>{});
+    }
+
 
     // إعداد بيانات الرسالة
     let msgPayload = { 
@@ -4420,7 +4735,7 @@ async function sendMessage() {
             sender: currentReply.sender 
         }; 
     }
-    
+    await ensureChatActive();
     // الإرسال لفايربيس (إضافة الرسالة للكولكشن)
     await db.collection("chats").doc(chatId).collection("messages").add(msgPayload); 
     
@@ -5538,21 +5853,29 @@ function autoResize(textarea) {
 }
 
 // دالة تكبير الصندوق + رفع الرسائل لفوق (Messenger Style)
+// دالة تكبير الصندوق + رفع الرسائل لفوق بمسافة آمنة
 function autoResize(textarea) {
     // 1. إعادة ضبط الارتفاع عشان نحسب صح
     textarea.style.height = 'auto';
     textarea.style.height = textarea.scrollHeight + 'px';
 
-    // 2. تحديث مسافة الشات من تحت عشان المربع ما يغطيش الرسايل
+    // 2. تحديث مسافة الشات من تحت بناءً على ارتفاع الفوتر الحالي
     const footer = document.querySelector('.chat-footer');
     const chatBody = document.getElementById('chatContainer');
+    const replyBar = document.getElementById('replyBar'); // شريط الرد لو موجود
     
     if (footer && chatBody) {
-        // بنشوف ارتفاع الفوتر الجديد كام، وبنزود عليه شوية (20px)
-        const newPadding = footer.clientHeight + 20;
-        chatBody.style.paddingBottom = newPadding + 'px';
+        // بنحسب ارتفاع الفوتر + مسافة البعد عن القاع (20px) + مسافة أمان زيادة (40px)
+        let totalPadding = footer.clientHeight + 60;
         
-        // 3. نزل الشاشة لأخر رسالة فوراً
+        // لو شريط الرد مفتوح، نزود ارتفاعه هو كمان عشان مياكلش الرسايل
+        if (replyBar && replyBar.style.display === 'flex') {
+            totalPadding += 50; 
+        }
+
+        chatBody.style.paddingBottom = totalPadding + 'px';
+        
+        // 3. نزل الشاشة لأخر رسالة عشان يشوف اللي بيكتبه
         scrollToBottom();
     }
 }
@@ -6320,23 +6643,45 @@ function playUiSound(type) {
 }
 
     // 1. دالة تحديد لون العين (ضعها في آخر الملف)
-function getEyeStatusHTML(msg, isMe) {
+// دالة تحديد حالة الرسالة (نظام الماسنجر الدقيق)
+function getEyeStatusHTML(msg, isMe, isLastSeenMessage) {
+    // 1. لو الرسالة مش بتاعتي أو محذوفة -> ولا حاجة
     if (!isMe || msg.type === 'deleted') return '';
 
-    // أ) خضراء: تم التحديث في الداتابيز
+    // 2. حالة المشاهدة (Seen)
     if (msg.seen) {
-        return '<i class="fa-solid fa-eye eye-green status-eye" title="تمت المشاهدة"></i>';
-    } 
-    
-    // ب) زرقاء: المستخدم نشط الآن (حسب الهيدر)
-    const headerStatus = document.getElementById('headerStatus');
-    if (headerStatus && (headerStatus.innerText.includes('نشط') || headerStatus.innerText.includes('متصل'))) {
-        return '<i class="fa-solid fa-eye eye-blue status-eye" title="وصلت (متصل الآن)"></i>';
+        // الشرط: لازم تكون هي آخر رسالة اتشافت (عشان منكررش الصورة)
+        if (isLastSeenMessage) {
+            
+            // نجيب صورة الطرف الآخر من الكاش
+            let otherPic = 'https://i.ibb.co/tZ5tPqB/default-avatar.png'; // صورة احتياطية
+            
+            // نحاول نجيب الصورة الحقيقية
+            if (cachedOtherUserId && userCache[cachedOtherUserId]) {
+                otherPic = userCache[cachedOtherUserId].profilePic || otherPic;
+            }
+
+            // إرجاع كود الصورة
+            return `<div class="seen-avatar-icon" style="background-image: url('${otherPic}');" title="شوهد"></div>`;
+        } else {
+            // لو اتشافت بس فيه رسالة بعدها اتشافت -> نخليها فاضية (نضيف كلاس الماسنجر)
+            return ''; 
+        }
     }
 
-    // ج) رمادي: غير متصل
-    return '<i class="fa-solid fa-eye eye-dark status-eye" title="تم الإرسال"></i>';
+    // 3. حالة الوصول (Delivered) - لم تشاهد بعد
+    // (نظهر علامة الصح عادي)
+    const headerStatus = document.getElementById('headerStatus');
+    const isOnline = headerStatus && (headerStatus.innerText.includes('نشط') || headerStatus.innerText.includes('متصل'));
+    
+    if (isOnline) {
+        return '<i class="fa-solid fa-circle-check" style="color:#3b82f6; font-size:12px;"></i>'; // أزرق مصمت
+    } else {
+        return '<i class="fa-regular fa-circle-check" style="color:rgba(255,255,255,0.3); font-size:12px;"></i>'; // مفرغ
+    }
 }
+
+
 // 2. دالة بناء شكل الرسالة (ضعها في آخر الملف)
 function buildMessageHTML(msg, id, u) {
     const isMe = msg.uid === currentUserId;
@@ -6372,7 +6717,10 @@ function buildMessageHTML(msg, id, u) {
     }
 
     // العين والوقت
-    const eyeHtml = getEyeStatusHTML(msg, isMe);
+    // 3. بنبعت المتغير الثالث للدالة
+// نمرر الـ ID اللي لقطناه فوق للدالة
+const eyeHtml = getEyeStatusHTML(msg, isMe, (doc.id === lastSeenMsgId));
+
     const timeText = msg.createdAt ? formatTime(msg.createdAt) : "";
     const avatar = `<div class="msg-user-avatar" style="background-image:url('${u.profilePic}');">${u.char}</div>`;
 
@@ -6560,7 +6908,19 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 // دالة لجلب بيانات الطرف الآخر من وثيقة الشات مباشرة
+// استبدل دالة loadChatDetails القديمة بهذه النسخة المحسنة
 async function loadChatDetails() {
+    // 1. محاولة التقاط الـ UID من رابط الصفحة فوراً كخطة بديلة
+    // (لأنك لما بتحذف الشات، البيانات بتتمسح، فلازم نجيبها من الرابط)
+    const urlUid = params.get("uid");
+    
+    if (urlUid && urlUid !== 'undefined' && urlUid !== 'null') {
+        cachedOtherUserId = urlUid;
+        // تحديث الهيدر فوراً بالبيانات من الرابط حتى لو الشات محذوف
+        updateHeader(urlUid);
+        listenForBlockStatus();
+    }
+
     if (!chatId || !currentUserId) return;
 
     try {
@@ -6570,35 +6930,35 @@ async function loadChatDetails() {
             const data = chatDoc.data();
             let otherUserId = null;
 
-            // السيناريو 1: إذا كان نظامك يستخدم مصفوفة users (وهذا الأفضل)
             if (data.users && Array.isArray(data.users)) {
                 otherUserId = data.users.find(id => id !== currentUserId);
             }
-            // السيناريو 2: إذا كان نظامك يعتمد على ownerId و peerId (أو مسميات أخرى)
-            // عدل المسميات هنا حسب الداتابيز عندك
             else if (data.participants) {
                  otherUserId = data.participants.find(id => id !== currentUserId);
             }
-            // السيناريو 3: التخمين البسيط بناء على آخر مرسل ومستقبل (أقل دقة)
             else {
-                // محاولة استنتاج الطرف الآخر إذا لم يكن هناك مصفوفة صريحة
                 if (data.senderId && data.senderId !== currentUserId) otherUserId = data.senderId;
                 else if (data.sentTo && data.sentTo !== currentUserId) otherUserId = data.sentTo;
             }
 
-            // إذا وجدنا الشخص الآخر، نحدث الهيدر فوراً
+            // لو البيانات موجودة في الداتابيز، نحدث المتغير للتأكيد
             if (otherUserId) {
-                cachedOtherUserId = otherUserId; // حفظه في المتغير العام
-                updateHeader(otherUserId); // استدعاء دالة تحديث الهيدر
+                cachedOtherUserId = otherUserId; 
+                updateHeader(otherUserId);
                 listenForBlockStatus();
-            } else {
-                console.log("لم يتم العثور على ID الطرف الآخر في وثيقة الشات");
             }
+        } else {
+            // 🔥 هنا النقطة المهمة: الشات محذوف (Doc doesn't exist)
+            console.log("الشات محذوف أو جديد، نعتمد على ID من الرابط:", cachedOtherUserId);
+            
+            // لو معانا الآيدي من الرابط (من أول خطوة)، الدالة هتكمل عادي
+            // ودالة ensureChatActive هتقدر تستخدمه لإعادة إنشاء الشات
         }
     } catch (e) {
         console.error("خطأ في جلب تفاصيل الشات:", e);
     }
 }
+
 // ================= أكواد تشغيل قائمة البروفايل الجديدة =================
 // 1. زر تشغيل البحث (بيتحط في القائمة)
 // ================================================================
@@ -6716,7 +7076,13 @@ async function performFullSearch(query) {
             // 2. الفلترة داخل الكود (لأن فايربيس معندوش بحث بالنص الجزئي)
             snapshot.forEach(doc => {
                 const msg = doc.data();
-                
+                // 4. لو الرسالة دي مش بتاعتي، ولسه ماتشافتش، والصفحة مفتوحة.. علم عليها seen
+if (!isMe && !msg.seen && document.visibilityState === 'visible') {
+    db.collection("chats").doc(chatId).collection("messages").doc(doc.id).update({
+        seen: true
+    }).catch(()=>{});
+}
+
                 // نتجاهل الرسائل المحذوفة ورسائل النظام
                 if (msg.type === 'deleted' || msg.type === 'system') return;
                 
@@ -6988,8 +7354,24 @@ async function loadMoreNewerMessages() {
                 let html = "";
                 snap.forEach(doc => {
                     const msg = doc.data();
-                    const isMe = msg.uid === currentUserId;
-                    const u = userCache[msg.uid] || { name: 'مستخدم', color: '#555', char: 'U', profilePic: null };
+const isMe = msg.uid === currentUserId;
+// 2. فحص هل دي الرسالة المختارة؟
+const isTheLastSeenOne = (doc.id === lastSeenMsgId);
+
+// 🔥🔥 هذا هو الكود السحري الجديد 🔥🔥
+// إذا كانت الرسالة ليست لي (واردة) + ولم تتم رؤيتها + والنافذة مفتوحة
+if (!isMe && !msg.seen && document.visibilityState === 'visible') {
+    // قم بتحديثها في قاعدة البيانات لتصبح "مقروءة"
+    db.collection("chats").doc(chatId).collection("messages").doc(doc.id).update({
+        seen: true
+    }).catch(err => console.log("Error marking seen:", err));
+    
+    // (اختياري) تحديث عداد الرسائل غير المقروءة في الشات الرئيسي ليكون 0
+    if(chatId) {
+        db.collection("chats").doc(chatId).update({ unreadCount: 0 });
+    }
+}
+
                     html += buildMessageHTML(msg, doc.id, u, isMe);
                 });
 
@@ -7860,6 +8242,42 @@ function checkHighlight() {
         }, 1000); // تأخير بسيط لضمان تحميل الرسائل
     }
 }
+// 🔥🔥🔥 التعديل الثاني: تنظيف الحالة عند غلق الصفحة 🔥🔥🔥
+window.addEventListener("beforeunload", function() {
+    if (chatId && currentUserId && isTypingStatus) {
+        // محاولة إرسال أمر الحذف قبل ما المتصفح يقفل بلحظة
+        db.collection("chats").doc(chatId).update({ 
+            typing: firebase.firestore.FieldValue.arrayRemove(currentUserId) 
+        });
+    }
+});
+
+// دالة خاصة لضمان وجود المحادثة وإحيائها لو كانت محذوفة
+// دالة التأكد من وجود الشات قبل الإرسال
+async function ensureChatActive() {
+    // لو مفيش آيدي للطرف التاني، نحاول نجيبه من الرابط
+    if (!cachedOtherUserId) {
+        const urlUid = new URLSearchParams(location.search).get("uid");
+        if (urlUid && urlUid !== 'null') cachedOtherUserId = urlUid;
+    }
+
+    if (!chatId || !currentUserId || !cachedOtherUserId) return;
+
+    try {
+        // إعادة إنشاء/تحديث ملف الشات الرئيسي
+        await db.collection("chats").doc(chatId).set({
+            users: [currentUserId, cachedOtherUserId], // إعادة تسجيل الأطراف
+            type: 'DIRECT',
+            deletedBy: [],   // إلغاء الحذف
+            archivedBy: [],  // إلغاء الأرشفة
+            lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+    } catch (error) {
+        console.log("Chat check error:", error);
+    }
+}
+
 
     </script>
     
@@ -7879,7 +8297,7 @@ function checkHighlight() {
         </div>
     </div>
 </div>
-<
+
 <audio id="ringtoneOut" loop preload="auto">
     <source src="./sounds/ring_out.mp3" type="audio/mp3">
 </audio>
@@ -7989,7 +8407,7 @@ function checkHighlight() {
     </div>
 </div>
 
-<<div id="mediaGalleryOverlay" class="media-gallery-overlay" style="display:none;">
+<div id="mediaGalleryOverlay" class="media-gallery-overlay" style="display:none;">
     <div class="mg-header">
         <div class="mg-close-btn" onclick="closeMediaGallery()">
             <i class="fa-solid fa-arrow-right"></i>
@@ -8112,4 +8530,3 @@ function checkHighlight() {
 
 
 </body>
-</html>
