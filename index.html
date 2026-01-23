@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="manifest" href="manifest.json">
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4634861441378149"
-     crossorigin="anonymous"></script>
+    <link rel="manifest" href="manifest.json">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4634861441378149" crossorigin="anonymous"></script>
     <title>Wareed - تسجيل الدخول</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
 
     <style>
-        /* نفس الستايل القديم بالظبط مع إضافات بسيطة */
+        /* --- نفس التصميم الاحترافي القديم --- */
         :root {
             --bg-color: #0d0d0f; --card-color: #161616; --primary-color: #00C6FF;
             --primary-gradient: linear-gradient(135deg, #00C6FF 0%, #0072FF 100%);
@@ -38,10 +37,10 @@
         .loading-logo span { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: 2px; }
         @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
         .progress-container { width: 200px; height: 6px; background-color: #222; border-radius: 10px; overflow: hidden; position: relative; }
-        .progress-bar { height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 10px; animation: fillProgress 2.5s ease-out forwards; }
+        .progress-bar { height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 10px; animation: fillProgress 1.5s ease-out forwards; }
         @keyframes fillProgress { 0% { width: 0%; } 100% { width: 100%; } }
 
-        /* النوافذ المنبثقة (Modals) */
+        /* النوافذ المنبثقة */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center;
@@ -60,10 +59,11 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #333; color: #fff; font-weight: bold; cursor: pointer; }
         .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; }
-        .btn-full { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; }
+        .btn-full { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-full:active { transform: scale(0.98); }
 
-        /* باقي التنسيقات */
-        #main-content { display: none; width: 100%; padding: 20px; align-items: center; justify-content: center; }
+        /* المحتوى الرئيسي */
+        #main-content { display: none; width: 100%; padding: 20px; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; }
         .auth-card { background: var(--card-color); width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 24px; border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; position: relative; overflow: hidden; animation: fadeIn 0.8s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         .logo-area { margin-bottom: 30px; display: inline-flex; align-items: center; gap: 10px; font-size: 32px; font-weight: 900; color: #fff; }
@@ -84,7 +84,7 @@
         .switch-link span { color: var(--primary-color); font-weight: 700; cursor: pointer; text-decoration: underline; }
         .forgot-pass-link { display: block; text-align: left; font-size: 12px; color: #777; margin-top: 5px; margin-bottom: 15px; cursor: pointer; transition: 0.3s; }
         .forgot-pass-link:hover { color: var(--primary-color); }
-        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 25px; border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 100; white-space: nowrap; border: 1px solid var(--border-color); }
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 25px; border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 6000; white-space: nowrap; border: 1px solid var(--border-color); }
         #toast.show { opacity: 1; bottom: 50px; }
     </style>
 </head>
@@ -103,7 +103,7 @@
         <div class="modal-card">
             <div class="modal-icon"><i class="fa-solid fa-lock-open"></i></div>
             <div class="modal-title">نسيت كلمة المرور؟</div>
-            <div class="modal-desc">ولا يهمك! اكتب إيميلك وهنبعتلك رابط تعمل باسورد جديد.</div>
+            <div class="modal-desc">اكتب إيميلك وهنبعتلك رابط تعمل باسورد جديد.</div>
             <div class="input-group">
                 <input type="email" id="resetEmail" class="custom-input" placeholder="البريد الإلكتروني">
                 <i class="fa-solid fa-envelope input-icon"></i>
@@ -112,17 +112,6 @@
                 <button class="btn-cancel" onclick="closeModal('forgotModal')">إلغاء</button>
                 <button class="btn-confirm" onclick="confirmReset()">إرسال الرابط</button>
             </div>
-        </div>
-    </div>
-
-    <div class="modal-overlay" id="verifyModal">
-        <div class="modal-card">
-            <div class="modal-icon"><i class="fa-solid fa-envelope-circle-check"></i></div>
-            <div class="modal-title">أكد بريدك الإلكتروني</div>
-            <div class="modal-desc">بعتنالك رابط تفعيل على الإيميل بتاعك. لازم تدوس عليه عشان تقدر تدخل التطبيق.</div>
-            
-            <button class="btn-full" onclick="closeModal('verifyModal'); toggleForms();">تمام، هروح أفعله</button>
-            <div style="margin-top:10px; font-size:12px; color:#777;">لم يصلك؟ <span onclick="resendVerification()" style="color:var(--primary-color); cursor:pointer;">إعادة الإرسال</span></div>
         </div>
     </div>
 
@@ -191,79 +180,75 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        let userIsLoggedIn = false;
+        // --- أدوات الصوت والواجهة ---
         function playClick() { document.getElementById("clickSound").play().catch(()=>{}); }
         function playSuccess() { document.getElementById("successSound").play().catch(()=>{}); }
-
-        // إدارة المودال (نوافذ)
+        
         function openModal(id) {
-            if(id === 'forgotModal') document.getElementById('resetEmail').value = document.getElementById('loginEmail').value;
+            if(id === 'forgotModal') document.getElementById('resetEmail').value = document.getElementById('loginEmail').value || '';
             document.getElementById(id).style.display = "flex";
         }
         function closeModal(id) { document.getElementById(id).style.display = "none"; }
+        
+        function showToast(msg) {
+            const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
 
-        // إعادة إرسال رابط التفعيل
-        function resendVerification() {
-            if(auth.currentUser) {
-                auth.currentUser.sendEmailVerification()
-                .then(() => showToast("✅ تم إرسال الرابط مرة أخرى"))
-                .catch((e) => showToast("❌ انتظر قليلاً قبل المحاولة مجدداً"));
+        // --- Gatekeeper الذكي (مفتوح للكل) ---
+        auth.onAuthStateChanged((user) => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainContent = document.getElementById('main-content');
+
+            if (user) {
+                // ✅ المستخدم موجود؟ يدخل فوراً مهما كانت حالته
+                window.location.href = "home.html";
+            } else {
+                // ❌ مفيش مستخدم؟ أظهر الفورم
+                if (loadingScreen.style.display !== 'none') {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                        mainContent.style.display = 'flex';
+                        setTimeout(() => mainContent.style.opacity = '1', 50);
+                    }, 500);
+                }
             }
-        }
+        });
 
-        function confirmReset() {
-            playClick();
-            const email = document.getElementById('resetEmail').value;
-            if(!email) return showToast("⚠️ اكتب الإيميل الأول");
-            const btn = document.querySelector('.btn-confirm');
-            const originalText = btn.innerText;
-            btn.innerText = "جاري الإرسال..."; btn.disabled = true;
+        // --- Actions ---
 
-            auth.sendPasswordResetEmail(email)
-                .then(() => {
-                    closeModal('forgotModal'); playSuccess();
-                    showToast("✅ تم إرسال الرابط! راجع بريدك");
-                    btn.innerText = originalText; btn.disabled = false;
-                })
-                .catch((error) => {
-                    showToast("❌ الإيميل ده مش متسجل عندنا");
-                    btn.innerText = originalText; btn.disabled = false;
-                });
-        }
-
-        // --- تسجيل الدخول (مع التحقق من التفعيل) ---
+        // 1. تسجيل الدخول
         async function loginAction() {
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPass').value;
             const btn = document.getElementById('loginBtn');
+
             if (!email || !pass) return showToast("⚠️ يرجى ملء البيانات");
             btn.innerText = "جاري التحقق..."; btn.disabled = true;
 
             try {
-                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
-                const user = userCredential.user;
-
-                // هام: التحقق هل الإيميل مفعل ولا لأ
-                if (user.emailVerified) {
-                    playSuccess(); showToast("✅ تم الدخول بنجاح");
-                    setTimeout(() => window.location.href = "home.html", 1000);
-                } else {
-                    showToast("⚠️ يجب تفعيل بريدك الإلكتروني أولاً");
-                    openModal('verifyModal'); // اظهار نافذة التنبيه
-                    auth.signOut(); // نخرجه تاني عشان ميبقاش دخل
-                    btn.innerText = "تسجيل الدخول"; btn.disabled = false;
-                }
-            } catch (e) { 
-                showToast("❌ بيانات غير صحيحة"); btn.innerText = "تسجيل الدخول"; btn.disabled = false; 
+                // الدخول العادي بدون شروط
+                await auth.signInWithEmailAndPassword(email, pass);
+                playSuccess(); showToast("✅ تم الدخول بنجاح");
+                // التوجيه تلقائي من onAuthStateChanged
+            } catch (e) {
+                console.error(e);
+                let msg = "❌ بيانات غير صحيحة";
+                if(e.code === 'auth/user-not-found') msg = "❌ الحساب غير موجود";
+                if(e.code === 'auth/wrong-password') msg = "❌ كلمة المرور خطأ";
+                showToast(msg); 
+                btn.innerText = "تسجيل الدخول"; btn.disabled = false;
             }
         }
 
-        // --- إنشاء حساب (مع إرسال رابط التفعيل) ---
+        // 2. إنشاء حساب (بشكل احترافي بس مفتوح)
         async function signupAction() {
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
             const pass = document.getElementById('regPass').value;
             const btn = document.getElementById('regBtn');
+
             if (!name || !email || !pass) return showToast("⚠️ املأ الحقول المطلوبة");
             if (pass.length < 6) return showToast("⚠️ كلمة المرور قصيرة");
             btn.innerText = "جاري الإنشاء..."; btn.disabled = true;
@@ -272,67 +257,60 @@
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 const user = cred.user;
                 
-                // 1. تحديث الاسم
                 await user.updateProfile({ displayName: name });
                 
-                // 2. إرسال رابط التفعيل للإيميل
-                await user.sendEmailVerification();
+                // هنبعت الإيميل كإجراء روتيني بس مش هنظهر نافذة منع
+                user.sendEmailVerification().catch(()=>{});
 
-                // 3. حفظ البيانات
-                await db.collection('users').doc(user.uid).set({ uid: user.uid, name: name, email: email, points: 0, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+                await db.collection('users').doc(user.uid).set({ 
+                    uid: user.uid, name: name, email: email, points: 0, 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp() 
+                });
                 
-                playSuccess(); 
-                // 4. إظهار نافذة "روح فعل حسابك" بدل ما ندخله علطول
-                openModal('verifyModal');
+                playSuccess(); showToast("✅ تم إنشاء الحساب");
+                // التوجيه تلقائي
                 
-                btn.innerText = "إنشاء الحساب"; btn.disabled = false;
-            } catch (e) { showToast("❌ حدث خطأ"); btn.innerText = "إنشاء الحساب"; btn.disabled = false; }
+            } catch (e) { 
+                let msg = "❌ حدث خطأ";
+                if(e.code === 'auth/email-already-in-use') msg = "❌ البريد مسجل بالفعل";
+                showToast(msg); 
+                btn.innerText = "إنشاء الحساب"; btn.disabled = false; 
+            }
         }
 
-        // باقي الدوال المساعدة
-        function togglePasswordVisibility(inputId, icon) {
-            playClick(); const input = document.getElementById(inputId);
-            if (input.type === "password") { input.type = "text"; icon.classList.remove("fa-eye"); icon.classList.add("fa-eye-slash"); }
-            else { input.type = "password"; icon.classList.remove("fa-eye-slash"); icon.classList.add("fa-eye"); }
+        // --- Helpers ---
+        function confirmReset() {
+            const email = document.getElementById('resetEmail').value;
+            if(!email) return showToast("⚠️ اكتب الإيميل");
+            
+            const btn = document.querySelector('#forgotModal .btn-confirm');
+            btn.innerText = "جاري الإرسال..."; btn.disabled = true;
+
+            auth.sendPasswordResetEmail(email)
+                .then(() => { closeModal('forgotModal'); showToast("✅ تم الإرسال"); btn.innerText="إرسال"; btn.disabled=false; })
+                .catch(() => { showToast("❌ خطأ في الإيميل"); btn.innerText="إرسال"; btn.disabled=false; });
+        }
+
+        function togglePasswordVisibility(id, icon) {
+            const inp = document.getElementById(id);
+            if (inp.type === "password") { inp.type = "text"; icon.classList.replace("fa-eye", "fa-eye-slash"); }
+            else { inp.type = "password"; icon.classList.replace("fa-eye-slash", "fa-eye"); }
         }
         function validateEmail(input) {
             const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            if (regex.test(input.value)) { input.classList.add("valid"); input.classList.remove("invalid"); }
-            else { input.classList.add("invalid"); input.classList.remove("valid"); }
-            if(input.value === "") input.classList.remove("invalid", "valid");
+            input.classList.toggle("valid", regex.test(input.value));
+            input.classList.toggle("invalid", !regex.test(input.value) && input.value !== "");
         }
         function validatePass(input) {
-            if (input.value.length >= 6) { input.classList.add("valid"); input.classList.remove("invalid"); }
-            else { input.classList.add("invalid"); input.classList.remove("valid"); }
-            if(input.value === "") input.classList.remove("invalid", "valid");
+            input.classList.toggle("valid", input.value.length >= 6);
+            input.classList.toggle("invalid", input.value.length < 6 && input.value !== "");
         }
         function toggleForms() {
-            const login = document.getElementById('loginForm');
-            const signup = document.getElementById('signupForm');
-            if (login.style.display === 'none') { login.style.display = 'block'; signup.style.display = 'none'; }
-            else { login.style.display = 'none'; signup.style.display = 'block'; }
+            const l = document.getElementById('loginForm');
+            const s = document.getElementById('signupForm');
+            l.style.display = l.style.display==='none' ? 'block' : 'none';
+            s.style.display = s.style.display==='none' ? 'block' : 'none';
         }
-        function showToast(msg) {
-            const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
-        }
-
-        auth.onAuthStateChanged(user => { 
-            // نتأكد إنه مسجل + إنه مفعل حسابه
-            if (user && user.emailVerified) { userIsLoggedIn = true; } 
-            else { userIsLoggedIn = false; }
-        });
-
-        window.addEventListener('load', function() {
-            setTimeout(function() {
-                document.getElementById('loading-screen').style.opacity = '0';
-                setTimeout(function() {
-                    document.getElementById('loading-screen').style.display = 'none';
-                    if (userIsLoggedIn) window.location.href = "home.html";
-                    else document.getElementById('main-content').style.display = 'flex';
-                }, 500); 
-            }, 2500);
-        });
     </script>
 </body>
 </html>
