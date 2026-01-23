@@ -2008,6 +2008,568 @@
     margin-top: 0;
 }
 
+/* إصلاح الطبقات */
+.side-menu {
+    z-index: 20000 !important; /* القائمة فوق كل شيء */
+}
+
+/* رفع زر الحذف وكرة التنقل */
+.uranium-orb, #deleteZone {
+    z-index: 20002 !important;
+}
+
+/* التأكد من أن الخلفية السوداء أقل منهم */
+.overlay-bg, .popup-backdrop {
+    z-index: 10000 !important;
+}
+
+/* رفع القوائم السفلية */
+.bottom-sheet {
+    z-index: 10001 !important;
+}
+
+
+#storyArchiveModal .modal-box {
+    /* أسود رمادي فخم جداً */
+    background: rgba(12, 12, 12, 0.95) !important;
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    
+    /* حدود ذهبية خافتة جداً */
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-top: 1px solid rgba(255, 215, 0, 0.4); /* لمعة ذهبية من فوق */
+    
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
+    
+    /* ... باقي الخصائص زي ما هي (border-radius, width, etc) */
+    border-radius: 25px;
+    width: 95%;
+    max-width: 450px;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: slideUpFade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 2. الهيدر (العنوان) */
+#storyArchiveModal .archive-header {
+    padding: 18px 24px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.2), transparent);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+#storyArchiveModal h3 {
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); /* نص متدرج فضي في موف */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+
+/* 3. الشبكة (Grid) */
+#archiveGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px; /* مسافة متناسقة */
+    padding: 15px;
+    overflow-y: auto;
+    /* إخفاء السكرول بار */
+    scrollbar-width: none; 
+}
+#archiveGrid::-webkit-scrollbar { display: none; }
+
+/* 4. كارت القصة (الوحدة الواحدة) */
+.archive-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #1a1a1a;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid transparent;
+}
+
+/* تأثير عند الضغط */
+.archive-item:active {
+    transform: scale(0.92);
+    border-color: var(--accent-color);
+}
+
+/* الصورة أو الفيديو المصغر */
+.archive-media {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+/* تأثير زووم خفيف للصورة */
+.archive-item:hover .archive-media {
+    transform: scale(1.1);
+}
+
+/* طبقة تظليل عشان الكلام يبان */
+.archive-item::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%);
+    pointer-events: none;
+}
+
+/* 5. زر الحذف (مطور) */
+.archive-delete-btn {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    width: 32px;
+    height: 32px;
+    background: rgba(30, 30, 30, 0.6);
+    backdrop-filter: blur(5px);
+    border-radius: 10px; /* مربع بحواف دائرية أشيك */
+    display: flex; align-items: center; justify-content: center;
+    color: #ff5555;
+    font-size: 14px;
+    z-index: 10;
+    border: 1px solid rgba(255, 85, 85, 0.2);
+    transition: all 0.2s ease;
+    opacity: 0.8;
+}
+
+.archive-item:hover .archive-delete-btn {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.archive-delete-btn:active {
+    background: #ff4444;
+    color: #fff;
+    transform: scale(0.9);
+}
+
+/* 6. التاريخ (Badge) */
+.archive-date-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 10px;
+    font-weight: 700;
+    z-index: 5;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    background: rgba(255,255,255,0.1);
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ================= 🎥 تصميم عارض الميديا السينمائي 🎥 ================= */
+
+.archive-viewer-overlay {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    /* خلفية مموهة بدل الأسود الكاتم */
+    background: rgba(5, 5, 5, 0.92);
+    backdrop-filter: blur(15px); 
+    -webkit-backdrop-filter: blur(15px);
+    z-index: 60000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    animation: fadeInViewer 0.3s ease forwards;
+}
+
+@keyframes fadeInViewer {
+    from { opacity: 0; backdrop-filter: blur(0px); }
+    to { opacity: 1; backdrop-filter: blur(15px); }
+}
+
+/* حاوية المحتوى (الصورة/الفيديو) */
+.archive-viewer-content {
+    max-width: 95%;
+    max-height: 85%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 16px;
+    /* ظل ملون خفيف ورا الفيديو */
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    
+    transform: scale(0.9);
+    animation: zoomInMedia 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes zoomInMedia {
+    to { transform: scale(1); }
+}
+
+/* زر الإغلاق العائم */
+.archive-close-btn {
+    position: absolute;
+    top: 40px;
+    left: 30px;
+    color: #fff;
+    font-size: 22px;
+    background: rgba(255, 255, 255, 0.1);
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 60001;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: all 0.2s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+.archive-close-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: rotate(90deg);
+}
+
+.archive-close-btn:active {
+    background: var(--accent-color);
+    transform: scale(0.9);
+}
+
+/* رسالة فارغ */
+.empty-archive {
+    grid-column: span 3;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #666; padding: 60px 0; gap: 15px;
+}
+.empty-archive i {
+    font-size: 50px;
+    background: linear-gradient(45deg, #333, #555);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    opacity: 0.5;
+}
+/* ================= 💜 ثيم الموف الملكي (Royal Mauve) 💜 ================= */
+
+/* 1. النافذة الرئيسية */
+#storyArchiveModal .modal-box {
+    /* خلفية سوداء عميقة مع لمسة موف خفيفة جداً في التدرج */
+    background: linear-gradient(160deg, #181020, #000000) !important;
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    
+    /* حدود موف غامق شيك */
+    border: 1px solid rgba(126, 34, 206, 0.3); /* موف متوسط للبرواز كله */
+    border-top: 2px solid #7e22ce; /* خط موف صريح وقوي من فوق */
+    border-bottom: 1px solid #581c87; /* موف غامق من تحت للظل */
+    
+    /* توهج موف (Glow) هادي جداً */
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.95), /* ظل عمق */
+        0 0 30px rgba(126, 34, 206, 0.15), /* هالة موف خارجية */
+        inset 0 0 20px rgba(126, 34, 206, 0.05); /* لمعة داخلية */
+    
+    border-radius: 24px;
+    width: 95%; max-width: 450px; height: 80vh;
+    display: flex; flex-direction: column; overflow: hidden;
+    animation: slideUpFade 0.4s ease;
+}
+
+/* 2. العناصر الداخلية (المربعات) */
+.archive-item {
+    position: relative; width: 100%; aspect-ratio: 9/16;
+    
+    /* خلفية شفافة بلمسة موف */
+    background: rgba(126, 34, 206, 0.03); 
+    
+    border-radius: 12px; overflow: hidden; cursor: pointer;
+    /* برواز موف رفيع جداً */
+    border: 1px solid rgba(126, 34, 206, 0.15);
+    
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+/* لما تضغط على الصورة تنور موف */
+.archive-item:active {
+    transform: scale(0.96);
+    border-color: #a855f7; /* تنور موف فاتح */
+    box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+}
+
+/* 3. العناوين والنصوص */
+#storyArchiveModal h3 {
+    /* تدرج لوني موف في فضي (Metallic Mauve) */
+    background: linear-gradient(to right, #e9d5ff, #c084fc, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+    font-size: 22px;
+    filter: drop-shadow(0 0 2px rgba(126, 34, 206, 0.4));
+}
+
+/* أيقونة الإغلاق */
+#storyArchiveModal .fa-xmark {
+    color: #d8b4fe !important; /* موف فاتح */
+    text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
+    transition: 0.3s;
+}
+#storyArchiveModal .fa-xmark:active {
+    transform: scale(0.9) rotate(90deg);
+    color: #fff !important;
+}
+/* ================= شبكة العرض (Grid) ================= */
+#archiveGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 15px;
+    overflow-y: auto;
+    padding-bottom: 60px; /* مساحة زيادة تحت عشان القائمة لو فتحت في آخر صف */
+}
+
+/* 1. الكارت الرئيسي (الحاوية) - شيلنا منه القص */
+.archive-item {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+    cursor: pointer;
+    z-index: 1; /* طبقة عادية */
+    transition: transform 0.2s;
+}
+
+/* كلاس هنضيفه بالجافاسكريبت لما القائمة تفتح عشان يرفع الكارت فوق اخواته */
+.archive-item.active-zindex {
+    z-index: 1000 !important; /* رقم عالي جداً عشان يغطي على اللي جنبه */
+}
+
+.archive-item:active {
+    transform: scale(0.96);
+}
+
+/* 2. غلاف الميديا (الجديد) - ده المسؤول عن الشكل الدائري والقص */
+.archive-media-wrapper {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden; /* ده بيقص الصورة بس */
+    border: 1px solid rgba(126, 34, 206, 0.2);
+    position: relative;
+    background: #000;
+}
+
+/* الصورة نفسها */
+.archive-media {
+    width: 100%; height: 100%; object-fit: cover; opacity: 0.9;
+}
+
+/* 3. زر الثلاث نقط (بره غلاف الميديا عشان يبقى حر) */
+.archive-more-btn {
+    position: absolute;
+    top: 8px; left: 8px;
+    width: 28px; height: 28px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 14px;
+    z-index: 10;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 4. القائمة المنبثقة (Dropdown) - حرة طليقة */
+.archive-menu {
+    position: absolute;
+    top: 40px; /* تحت الزرار */
+    left: 0;   /* محاذاة لليسار */
+    
+    width: 140px; /* عرض أكبر شوية */
+    background: rgba(30, 25, 40, 0.95); /* موف غامق جداً */
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 12px;
+    
+    display: none;
+    flex-direction: column;
+    
+    /* أهم سطر: ده اللي بيخليها تظهر فوق العناصر التانية */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
+    z-index: 2000; 
+    
+    animation: menuPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes menuPop {
+    from { opacity: 0; transform: translateY(-10px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.archive-menu.show { display: flex; }
+
+/* عناصر القائمة */
+.archive-menu-item {
+    padding: 12px 15px;
+    font-size: 13px; color: #fff; font-weight: 600;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.archive-menu-item:last-child { border-bottom: none; }
+.archive-menu-item:active { background: var(--accent-color); }
+/* ================= 🎬 مشغل الفيديو الاحترافي (Custom Player) ================= */
+
+/* حاوية المشغل */
+.custom-video-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/* الفيديو نفسه */
+.custom-video-element {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    cursor: pointer;
+}
+
+/* زر التشغيل العملاق في المنتصف */
+.center-play-btn {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px; height: 70px;
+    background: rgba(139, 92, 246, 0.4); /* موف شفاف */
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    pointer-events: none; /* عشان الضغطة تيجي ع الفيديو */
+    transition: 0.3s;
+    opacity: 1;
+}
+
+/* إخفاء الزر لما الفيديو يشتغل */
+.custom-video-wrapper.playing .center-play-btn {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.5);
+}
+
+/* شريط التحكم السفلي (Control Bar) */
+.video-controls-bar {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%;
+    padding: 20px 15px 15px;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    opacity: 1;
+    transition: 0.3s;
+}
+
+/* إخفاء الشريط لو مفيش حركة ماوس (اختياري) */
+.custom-video-wrapper.hide-controls .video-controls-bar {
+    opacity: 0;
+}
+
+/* زر التشغيل الصغير */
+.ctrl-btn {
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 5px;
+    transition: 0.2s;
+}
+.ctrl-btn:hover { color: var(--accent-color); }
+
+/* شريط التقدم (Progress Bar) */
+.video-progress-container {
+    flex: 1;
+    position: relative;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+/* الخط الملون اللي بيتحرك */
+.video-progress-fill {
+    height: 100%;
+    background: var(--accent-color); /* اللون الموف */
+    width: 0%;
+    border-radius: 5px;
+    position: relative;
+    transition: width 0.1s linear;
+}
+
+/* الكورة اللي في آخر الشريط */
+.video-progress-fill::after {
+    content: '';
+    position: absolute;
+    right: -6px; top: 50%; transform: translateY(-50%);
+    width: 12px; height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+/* التوقيت */
+.video-time {
+    color: #ddd;
+    font-size: 12px;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+/* ================= تصميم حالة النشاط (زي الماسنجر) ================= */
+.status-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px; /* رجعناها لازقة في الصورة عشان الحجم الصغير */
+    
+    background: #000;
+    color: #4ade80; /* أخضر */
+    
+    font-size: 9px; 
+    font-weight: 800;
+    font-family: sans-serif; /* خط بسيط للأرقام */
+    
+    padding: 1px 4px; /* حواف ضيقة جداً */
+    border-radius: 6px;
+    border: 2px solid #1a1a1a;
+    z-index: 10;
+    min-width: 18px; /* عرض ثابت صغير */
+    text-align: center;
+}
+
+
+/* نقطة الأونلاين العادية (للمستخدمين المتصلين حالياً) */
+.active-dot-online {
+    position: absolute; 
+    bottom: -2px; 
+    right: -2px; 
+    width: 13px; 
+    height: 13px; 
+    background: #4ade80; 
+    border: 2px solid var(--bg-deep); 
+    border-radius: 50%; 
+    z-index: 5;
+}
+
     </style>
 </head>
 
@@ -2121,11 +2683,22 @@
     
     <div class="sidebar-scroll-area">
         
+        
         <div class="sidebar-item" onclick="vibrate(); toggleMyActivity()">
             <i class="fa-solid fa-ghost"></i> 
             <span id="activityText">حالة النشاط: ظاهر</span>
             <div id="activityDot" style="width:12px; height:12px; border-radius:50%; background:#4ade80; margin-right:auto;"></div>
         </div>
+<div class="sidebar-item" onclick="toggleAppSounds()">
+    <i id="soundIcon" class="fa-solid fa-volume-high"></i> 
+    <span id="soundText">أصوات التطبيق</span>
+    <div id="soundToggle" class="toggle-switch active" style="margin-right:auto;">
+        <div class="toggle-knob"></div>
+    </div>
+</div>
+<div class="sidebar-item" onclick="openStoryArchive()">
+    <i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i> أرشيف القصص
+</div>
 
         <div class="sidebar-item" onclick="vibrate(); showSection('inbox')">
             <i class="fa-solid fa-comments"></i> الدردشات
@@ -2435,7 +3008,10 @@ function drawStoriesUI(groups) {
         const storiesMap = {};
 
         snapshot.docs.forEach(doc => {
+            
             const d = doc.data();
+            if (d.isArchived === true) return; 
+
             if(!storiesMap[d.uid]) storiesMap[d.uid] = [];
             storiesMap[d.uid].push({ id: doc.id, ...d });
     
@@ -2610,15 +3186,22 @@ let contentHTML = lastStory.type === 'video'
             const container = document.getElementById('storyDynamicOptions');
             container.innerHTML = '';
 
-            if (isMe) {
-                container.innerHTML += `
-                    <div class="story-opt-item danger" onclick="confirmDeleteStory()">
-                        <i class="fa-solid fa-trash"></i> حذف القصة
-                    </div>
-                    <div class="story-opt-item" onclick="closeStoryOptions()">
-                        <i class="fa-solid fa-gear"></i> إعدادات القصة
-                    </div>`;
-            } else {
+            // داخل دالة openStoryOptions في حالة (isMe)
+if (isMe) {
+    container.innerHTML = `
+        <div class="story-opt-item" onclick="archiveCurrentStoryManual()">
+            <i class="fa-solid fa-box-archive" style="color: #f59e0b;"></i> 
+            <span>أرشفة الآن (إخفاء)</span>
+        </div>
+
+        <div style="height:1px; background:rgba(255,255,255,0.1); margin:5px 0;"></div>
+
+        <div class="story-opt-item danger" onclick="confirmDeleteStory()">
+            <i class="fa-solid fa-trash-can"></i> <span>حذف نهائي</span>
+        </div>
+    `;
+}
+else {
                 container.innerHTML += `
                     <div class="story-opt-item" onclick="muteUserStories('${user.uid}')">
                         <i class="fa-solid fa-bell-slash"></i> كتم قصص ${user.name}
@@ -3403,55 +3986,42 @@ function loadChats(userId) {
 }
 
         async function fetchAndCacheUser(uid) {
-    // لو البيانات موجودة في الكاش وحديثة (أقل من دقيقة) نرجعها
-    // لكن للأمان سنقوم بالحساب كل مرة أو الاعتماد على Listener
-    
-    // ... (الجزء الخاص بـ if usersCache هذا سنتركه كما هو، لكن سنعدل الحساب بالأسفل)
-
     try {
         const doc = await db.collection("users").doc(uid).get();
         if (doc.exists) {
             const d = doc.data();
             
-            // === [تعديل هام جداً] ===
-            // حساب الأونلاين بناءً على الوقت (5 دقائق = 300000 ميللي ثانية)
+            // حساب الأونلاين (زي الكود القديم)
             let isOnlineCalculated = false;
-            
-            if (d.online === true && d.showActivity !== false) {
-                if (d.lastSeen) {
-                    const lastSeenTime = d.lastSeen.toMillis();
-                    const currentTime = Date.now();
-                    const diff = currentTime - lastSeenTime;
-                    
-                    // لو الفرق أقل من 5 دقائق يعتبر أونلاين
-                    if (diff < 300000) { 
-                        isOnlineCalculated = true;
-                    }
-                } else {
-                    // لو معندوش وقت بس عنده online=true (حالات قديمة)
-                    isOnlineCalculated = true; 
+            let lastSeenMillis = 0; // متغير جديد لحفظ الوقت
+
+            if (d.lastSeen) {
+                lastSeenMillis = d.lastSeen.toMillis();
+                const diff = Date.now() - lastSeenMillis;
+                if (d.online === true && d.showActivity !== false && diff < 300000) { 
+                    isOnlineCalculated = true;
                 }
+            } else if (d.online === true) {
+                isOnlineCalculated = true; 
             }
             
-            // تطبيق شرط "هل أنا مفعل حالة النشاط؟" عشان أشوف الناس
-            const realOnline = isOnlineCalculated && myActivityVisible;
-
+            // حفظ البيانات
             usersCache[uid] = { 
                 uid, 
                 name: d.name || "مستخدم", 
                 avatar: d.profilePic || d.avatarUrl || defaultAvatar, 
                 isVerified: d.isVerified === true, 
-                isOnline: realOnline // القيمة المحسوبة الجديدة
+                isOnline: isOnlineCalculated && myActivityVisible,
+                lastSeen: lastSeenMillis // 🔥 حفظنا الوقت هنا 🔥
             };
-            // ده السطر اللي بيحفظ بيانات الناس في الذاكرة
-sessionStorage.setItem('cached_users_data', JSON.stringify(usersCache));
-
-            return usersCache[uid];
             
+            sessionStorage.setItem('cached_users_data', JSON.stringify(usersCache));
+            return usersCache[uid];
         }
     } catch (e) {}
-    return { uid, name: 'مجهول', avatar: defaultAvatar, isOnline: false };
+    return { uid, name: 'مجهول', avatar: defaultAvatar, isOnline: false, lastSeen: 0 };
 }
+
 
 function renderList() {
     const list = document.getElementById("list");
@@ -3525,20 +4095,42 @@ let bottomContent = c.isTyping
                 unreadHTML = `<div class="read-blue-dot"></div>`;
             }
         }
-//
-        el.className = 'chat';
-        if (c.isPinned) el.classList.add('pinned-chat');
+let otherUserData = c.isGroup ? null : usersCache[c.otherUid];
+    let statusBadgeHTML = ''; // ده المتغير اللي هيشيل النتيجة (يا نقطة خضراء يا وقت)
 
-        // بناء HTML العنصر
-        el.innerHTML = `
-            <div class="avatar-container" id="avatar-${c.id}">
-                <div class="avatar" style="background-image:url('${c.avatar}')"></div>
-                <div class="active-dot" style="background:${c.isOnline && window.isOnlineFeatureEnabled ? '#4ade80' : '#777'}"></div>
-            </div>
-            <div class="info">
-                <div class="top-row"><div class="name">${displayName}</div><div class="time">${statusIconsHTML} ${c.time}</div></div>
-                <div class="bottom-row">${bottomContent}${unreadHTML}</div>
-            </div>`;
+    // 2. (جديد) منطق عرض الحالة المتطور
+    if (c.isGroup) {
+        // المجموعات ملهاش حالة أونلاين
+        statusBadgeHTML = ''; 
+    } else if (c.isOnline && window.isOnlineFeatureEnabled) {
+        // لو الشخص أونلاين وأنت مفعل الظهور: أظهر النقطة الخضراء
+        statusBadgeHTML = `<div class="active-dot-online"></div>`;
+    } else if (otherUserData && otherUserData.lastSeen && window.isOnlineFeatureEnabled) {
+        // لو أوفلاين بس عنده وقت ظهور مسجل: احسب الوقت
+        // دالة getShortLastSeen إحنا لسه ضايفينها فوق
+        const timeText = getShortLastSeen(otherUserData.lastSeen);
+        
+        if (timeText) {
+            // لو الوقت موجود وقصير (أقل من 3 أيام)، أظهر الكبسولة السوداء
+            statusBadgeHTML = `<div class="status-badge">${timeText}</div>`;
+        }
+    }
+       el.className = 'chat';
+    if (c.isPinned) el.classList.add('pinned-chat');
+
+    el.innerHTML = `
+        <div class="avatar-container" id="avatar-${c.id}">
+            <div class="avatar" style="background-image:url('${c.avatar}')"></div>
+            
+            ${statusBadgeHTML}
+            
+        </div>
+        <div class="info">
+            <div class="top-row"><div class="name">${displayName}</div><div class="time">${statusIconsHTML} ${c.time}</div></div>
+            <div class="bottom-row">${bottomContent}${unreadHTML}</div>
+        </div>`;
+
+
 
         // =======================================================
         // أ) منطق الضغط على الصورة (يفتح المعاينة فقط)
@@ -4857,6 +5449,469 @@ function renderQuickActiveUsers() {
         list.appendChild(item);
     });
 }
+// 1. دالة الأرشفة اليدوية (تحول القصة للأرشيف فوراً)
+function archiveCurrentStoryManual() {
+    if(!confirm("هل تريد أرشفة القصة؟ ستختفي من العامة وتظهر في أرشيفك فقط.")) return;
+
+    const group = storyGroups[currentGroupIndex];
+    const story = group.stories[currentStoryIndex];
+    
+    // تحديث قاعدة البيانات: نضيف حقل isArchived = true
+    db.collection('stories').doc(story.id).update({
+        isArchived: true
+    }).then(() => {
+        showToast("تمت الأرشفة بنجاح ✅");
+        closeStoryOptions();
+        closeStory(); // إغلاق العارض
+        renderStories(); // تحديث الشريط الرئيسي لإخفاء القصة
+    }).catch(err => console.error(err));
+}
+// ================= وظائف الأرشيف الجديدة (عرض + معاينة) =================
+
+// ================= وظائف الأرشيف المحدثة (إعادة نشر + قائمة) =================
+
+// ================= وظائف الأرشيف المحدثة (القائمة الخارجية) =================
+
+function openStoryArchive() {
+    toggleSidebar(); 
+    document.getElementById('storyArchiveModal').style.display = 'flex';
+    const grid = document.getElementById('archiveGrid');
+    
+    grid.innerHTML = '<div style="grid-column:span 3; text-align:center; padding:50px; color:var(--accent-color);"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:30px;"></i></div>';
+
+    db.collection('stories')
+      .where('uid', '==', currentUser.uid)
+      .orderBy('createdAt', 'desc')
+      .get()
+      .then(snapshot => {
+          grid.innerHTML = '';
+          const now = Date.now();
+          let count = 0;
+
+          snapshot.forEach(doc => {
+              const d = doc.data();
+              const timeData = d.createdAt || d.timestamp;
+              if (!timeData) return;
+
+              const storyTime = timeData.toMillis();
+              const isExpired = (now - storyTime) > (24 * 60 * 60 * 1000);
+              
+              if (isExpired || d.isArchived === true) {
+                  count++;
+                  
+                  let mediaContent = d.type === 'video' 
+                      ? `<video src="${d.url}#t=0.1" class="archive-media" preload="metadata" muted></video>` 
+                      : `<img src="${d.url}" class="archive-media" loading="lazy">`;
+
+                  const dateObj = new Date(storyTime);
+                  const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+
+                  const item = document.createElement('div');
+                  item.className = 'archive-item';
+                  item.id = `arch-item-${doc.id}`; // ID مميز للكارت كله
+
+                  // 🔥 الهيكل الجديد: غلاف للصورة + زر وقائمة بره الغلاف 🔥
+                  item.innerHTML = `
+                      <div class="archive-media-wrapper">
+                          ${mediaContent}
+                          <div class="archive-date-badge" style="position:absolute; bottom:0; right:0; width:100%; padding:20px 5px 5px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; font-size:10px; text-align:right;">${dateStr}</div>
+                      </div>
+                      
+                      <div class="archive-more-btn" onclick="event.stopPropagation(); toggleArchiveMenu('${doc.id}')">
+                          <i class="fa-solid fa-ellipsis"></i>
+                      </div>
+
+                      <div id="menu-${doc.id}" class="archive-menu">
+                          <div class="archive-menu-item" onclick="event.stopPropagation(); repostFromArchive('${d.url}', '${d.type}', '${doc.id}')">
+                              <i class="fa-solid fa-retweet"></i> إعادة نشر
+                          </div>
+                          <div class="archive-menu-item danger" style="color:#ff5555;" onclick="event.stopPropagation(); deleteFromArchive('${doc.id}', '${d.url}')">
+                              <i class="fa-solid fa-trash-can"></i> حذف نهائي
+                          </div>
+                      </div>
+                  `;
+                  
+                  item.onclick = () => { viewArchivedStory(d.url, d.type); };
+                  grid.appendChild(item);
+              }
+          });
+
+          if(count === 0) {
+              grid.innerHTML = `<div class="empty-archive"><i class="fa-solid fa-box-open"></i><span>الأرشيف فارغ</span></div>`;
+          }
+      }).catch(err => {
+          console.error(err);
+      });
+      
+    // إضافة مستمع لإغلاق القوائم عند الضغط في أي مكان
+    document.addEventListener('click', closeAllArchiveMenus);
+}
+
+// --- تعديل دالة فتح القائمة (السر هنا) ---
+function toggleArchiveMenu(docId) {
+    const menu = document.getElementById(`menu-${docId}`);
+    const parentItem = document.getElementById(`arch-item-${docId}`);
+    const isVisible = menu.classList.contains('show');
+    
+    // 1. اقفل أي قائمة تانية ورجع الطبقات لوضعها الطبيعي
+    closeAllArchiveMenus();
+    
+    // 2. لو مكنتش مفتوحة، افتحها وارفع الكارت ده فوق الكل
+    if (!isVisible) {
+        menu.classList.add('show');
+        parentItem.classList.add('active-zindex'); // ده الكلاس اللي بيرفع الكارت
+    }
+}
+
+// --- تعديل دالة الإغلاق ---
+function closeAllArchiveMenus() {
+    // إخفاء كل القوائم
+    document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
+    // إرجاع ترتيب الطبقات (z-index) لطبيعته
+    document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('active-zindex'));
+}
+
+
+// --- دالة إغلاق كل القوائم (المعدلة) ---
+function closeAllArchiveMenus() {
+    // إخفاء القوائم
+    document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
+    // إزالة كلاس الـ z-index العالي من كل الكروت
+    document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('active-menu'));
+}
+
+// (وباقي الدوال زي repostFromArchive و deleteFromArchive زي ما هي من الرد السابق)
+
+
+// --- دالة إغلاق كل القوائم ---
+function closeAllArchiveMenus() {
+    document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
+}
+
+// --- دالة إعادة النشر (Repost) ---
+function repostFromArchive(url, type, originalId) {
+    // إخفاء القائمة
+    closeAllArchiveMenus();
+    
+    if(!confirm("هل تريد إعادة نشر هذه القصة لتظهر للعامة لمدة 24 ساعة؟")) return;
+
+    showToast("جاري إعادة النشر...");
+
+    // إضافة قصة جديدة بنفس البيانات
+    db.collection('stories').add({
+        uid: currentUser.uid,
+        url: url,
+        type: type,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(), // وقت جديد
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(), // عشان الترتيب
+        viewers: [], // تصفير المشاهدات
+        isArchived: false // تظهر للعامة
+    }).then(() => {
+        showToast("تم إعادة النشر بنجاح! 🎉");
+        closeStoryArchive(); // قفل الأرشيف عشان يشوف القصة الجديدة
+        renderStories(); // تحديث الشريط
+    }).catch(err => {
+        console.error(err);
+        showToast("حدث خطأ");
+    });
+}
+// ================= وظائف المشغل الاحترافي =================
+
+// متغير لتخزين الفيديو الحالي عشان نعرف نتحكم فيه
+let currentVideoPlayer = null;
+
+// ================= وظائف المشغل الاحترافي (مع التحكم في الشريط) =================
+
+function viewArchivedStory(url, type) {
+    vibrate();
+    const viewer = document.getElementById('archiveFullViewer');
+    const container = document.getElementById('archiveViewerContainer');
+    
+    viewer.style.display = 'flex';
+    container.innerHTML = ''; 
+
+    if (type === 'video') {
+        // بناء المشغل الاحترافي HTML
+        container.innerHTML = `
+            <div class="custom-video-wrapper" id="customVideoWrapper">
+                <video src="${url}" class="custom-video-element" id="customVideoEl" playsinline></video>
+                
+                <div class="center-play-btn">
+                    <i class="fa-solid fa-play"></i>
+                </div>
+
+                <div class="video-controls-bar" onclick="event.stopPropagation()">
+                    <i class="fa-solid fa-play ctrl-btn" id="playPauseBtn"></i>
+                    
+                    <div class="video-time" id="currentTimeDisplay">00:00</div>
+                    
+                    <div class="video-progress-container" id="progressBarContainer">
+                        <div class="video-progress-fill" id="progressBarFill"></div>
+                    </div>
+                    
+                    <div class="video-time" id="durationDisplay">00:00</div>
+                    
+                    <i class="fa-solid fa-volume-high ctrl-btn" id="muteBtn"></i>
+                </div>
+            </div>
+        `;
+
+        // تعريف العناصر
+        const wrapper = document.getElementById('customVideoWrapper');
+        const video = document.getElementById('customVideoEl');
+        const playBtn = document.getElementById('playPauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const progressContainer = document.getElementById('progressBarContainer');
+        const progressFill = document.getElementById('progressBarFill');
+        const currTime = document.getElementById('currentTimeDisplay');
+        const durTime = document.getElementById('durationDisplay');
+
+        // تشغيل تلقائي
+        video.play().then(() => {
+            wrapper.classList.add('playing');
+            playBtn.className = "fa-solid fa-pause ctrl-btn";
+        }).catch(() => {
+            playBtn.className = "fa-solid fa-play ctrl-btn";
+        });
+
+        // 1. وظيفة التشغيل/الإيقاف
+        const togglePlay = () => {
+            if (video.paused) {
+                video.play();
+                wrapper.classList.add('playing');
+                playBtn.className = "fa-solid fa-pause ctrl-btn";
+                document.querySelector('.center-play-btn i').className = "fa-solid fa-play";
+            } else {
+                video.pause();
+                wrapper.classList.remove('playing');
+                playBtn.className = "fa-solid fa-play ctrl-btn";
+                document.querySelector('.center-play-btn i').className = "fa-solid fa-pause";
+            }
+        };
+
+        video.addEventListener('click', togglePlay);
+        playBtn.addEventListener('click', togglePlay);
+
+        // 2. تحديث شريط التقدم (تلقائي مع الفيديو)
+        let isDragging = false; // متغير عشان نعرف احنا بنسحب ولا لأ
+
+        video.addEventListener('timeupdate', () => {
+            if (!isDragging) { // لو المستخدم مش بيسحب الشريط، حدثه عادي
+                const percent = (video.currentTime / video.duration) * 100;
+                progressFill.style.width = `${percent}%`;
+                currTime.innerText = formatTime(video.currentTime);
+            }
+            if(video.duration) durTime.innerText = formatTime(video.duration);
+        });
+
+        // 3. 🔥 منطق السحب والتحكم (Scrubbing Logic) 🔥
+        
+        const updateScrub = (e) => {
+            const rect = progressContainer.getBoundingClientRect();
+            // دعم الماوس واللمس (Touch)
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            
+            // حساب المكان النسبي للضغط داخل الشريط
+            let pos = (clientX - rect.left) / rect.width;
+            
+            // التأكد إن القيمة بين 0 و 1
+            pos = Math.max(0, Math.min(1, pos));
+            
+            // تحديث شكل الشريط فوراً (Visual Feedback)
+            progressFill.style.width = `${pos * 100}%`;
+            
+            // تحديث وقت الفيديو فوراً
+            if (video.duration) {
+                video.currentTime = pos * video.duration;
+                currTime.innerText = formatTime(video.currentTime);
+            }
+        };
+
+        // عند بداية الضغط أو اللمس
+        const startDrag = (e) => {
+            isDragging = true;
+            updateScrub(e); // تحديث فوري لمكان الضغطة
+        };
+
+        // عند التحريك (السحب)
+        const doDrag = (e) => {
+            if (isDragging) {
+                e.preventDefault(); // منع سحب الصفحة
+                updateScrub(e);
+            }
+        };
+
+        // عند رفع اليد
+        const stopDrag = () => {
+            if (isDragging) {
+                isDragging = false;
+                // لو الفيديو كان واقف شغله (اختياري)
+                if(video.paused) togglePlay(); 
+            }
+        };
+
+        // إضافة المستمعين (للموبايل والكمبيوتر)
+        progressContainer.addEventListener('mousedown', startDrag);
+        progressContainer.addEventListener('touchstart', startDrag, {passive: false});
+
+        document.addEventListener('mousemove', doDrag);
+        document.addEventListener('touchmove', doDrag, {passive: false});
+
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+
+
+        // 4. كتم الصوت
+        muteBtn.addEventListener('click', () => {
+            video.muted = !video.muted;
+            muteBtn.className = video.muted ? "fa-solid fa-volume-xmark ctrl-btn" : "fa-solid fa-volume-high ctrl-btn";
+        });
+
+        // عند انتهاء الفيديو
+        video.addEventListener('ended', () => {
+            wrapper.classList.remove('playing');
+            playBtn.className = "fa-solid fa-arrow-rotate-right ctrl-btn"; 
+        });
+
+    } else {
+        // لو صورة (زي ما هي)
+        const img = document.createElement('img');
+        img.src = url;
+        img.className = 'archive-viewer-content';
+        container.appendChild(img);
+    }
+}
+
+// دالة مساعدة لتنسيق الوقت
+function formatTime(seconds) {
+    if (!seconds || isNaN(seconds)) return "00:00";
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+}
+
+// تحديث دالة الإغلاق
+function closeArchiveViewer() {
+    const viewer = document.getElementById('archiveFullViewer');
+    const container = document.getElementById('archiveViewerContainer');
+    
+    const vid = container.querySelector('video');
+    if(vid) {
+        vid.pause();
+        vid.src = ""; 
+    }
+    
+    viewer.style.display = 'none';
+    container.innerHTML = '';
+}
+
+
+// تحديث دالة الإغلاق عشان توقف الفيديو صح
+function closeArchiveViewer() {
+    const viewer = document.getElementById('archiveFullViewer');
+    const container = document.getElementById('archiveViewerContainer');
+    
+    // إيقاف أي فيديو شغال
+    const vid = container.querySelector('video');
+    if(vid) {
+        vid.pause();
+        vid.src = ""; // تفريغ المصدر لتوفير الذاكرة
+    }
+    
+    viewer.style.display = 'none';
+    container.innerHTML = '';
+}
+
+// --- دالة إغلاق المعاينة ---
+function closeArchiveViewer() {
+    const viewer = document.getElementById('archiveFullViewer');
+    const container = document.getElementById('archiveViewerContainer');
+    
+    // إيقاف الفيديو لو شغال قبل القفل
+    const vid = container.querySelector('video');
+    if(vid) vid.pause();
+    
+    viewer.style.display = 'none';
+    container.innerHTML = '';
+}
+
+// 2. دالة حذف قصة من الأرشيف
+function deleteFromArchive(docId, fileUrl) {
+    if(!confirm("هل أنت متأكد من حذف هذه القصة نهائياً من الأرشيف؟")) return;
+
+    vibrate();
+    
+    // 1. حذف العنصر من الشاشة فوراً (لتحسين تجربة المستخدم)
+    const el = document.getElementById(`arch-${docId}`);
+    if(el) {
+        el.style.opacity = '0';
+        el.style.transform = 'scale(0.8)';
+        setTimeout(() => el.remove(), 300);
+    }
+
+    // 2. الحذف من قاعدة البيانات
+    db.collection('stories').doc(docId).delete().then(() => {
+        // 3. محاولة حذف الملف من التخزين (Storage) لتوفير المساحة
+        if(fileUrl) {
+            try {
+                firebase.storage().refFromURL(fileUrl).delete().catch(e => console.log("File delete error (ignore):", e));
+            } catch(e){}
+        }
+        showToast("تم الحذف من الأرشيف 🗑️");
+    }).catch(error => {
+        console.error("Error removing document: ", error);
+        showToast("خطأ في الحذف");
+        // لو فشل الحذف نرجع العنصر تاني (اختياري)
+        if(el) openStoryArchive(); 
+    });
+}
+
+
+// 3. إغلاق نافذة الأرشيف
+function closeStoryArchive() {
+    document.getElementById('storyArchiveModal').style.display = 'none';
+}
+
+// دالة تحويل الوقت لنص قصير (زي: 5د - 2س - 1ي)
+function getShortLastSeen(timestamp) {
+    if (!timestamp) return '';
+    
+    const now = Date.now();
+    const diff = now - timestamp;
+    
+    // حساب الوحدات
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+
+    // 1. لو أقل من دقيقة
+    if (minutes < 1) return 'الآن';
+
+    // 2. الدقائق (من 1د لـ 59د)
+    if (minutes < 60) {
+        return `${minutes} د`;
+    }
+
+    // 3. الساعات (من 1س لـ 23س)
+    if (hours < 24) {
+        return `${hours} س`;
+    }
+
+    // 4. الأيام (من 1ي لـ 6ي)
+    if (days < 7) {
+        return `${days} ي`;
+    }
+
+    // 5. الأسابيع (1أ، 2أ، إلخ..)
+    // ممكن نخليه يظهر لحد 4 أسابيع وبعدين يختفي
+    if (weeks <= 4) {
+        return `${weeks} أ`;
+    }
+    
+    return ''; // لو عدى شهر يختفي
+}
+
 
 
     </script>
@@ -4982,10 +6037,113 @@ function renderQuickActiveUsers() {
     </div>
 </div>
 
-<script src="sounds-manager.js"></script>
 <script src="global-notifications.js"></script>
 <script src="global-call.js"></script>
+<script>
+(function() {
+    // 1. إعدادات الصوت (تحميل الحالة المحفوظة)
+    // لو مفيش قيمة محفوظة، بنعتبره شغال (true)
+    window.appSoundsEnabled = localStorage.getItem('nabd_app_sounds') !== 'false';
+
+    // 2. تعريف الأصوات
+    const clickSound = new Audio('./sounds/click.mp3');
+    clickSound.volume = 0.6; 
+
+    // 3. تحديث شكل الزرار عند فتح الصفحة
+    function updateSoundUI() {
+        const icon = document.getElementById('soundIcon');
+        const toggle = document.getElementById('soundToggle');
+        
+        if(icon && toggle) {
+            if (window.appSoundsEnabled) {
+                icon.className = "fa-solid fa-volume-high";
+                toggle.classList.add('active');
+            } else {
+                icon.className = "fa-solid fa-volume-xmark";
+                toggle.classList.remove('active');
+            }
+        }
+    }
+    // تشغيل تحديث الواجهة فوراً
+    document.addEventListener('DOMContentLoaded', updateSoundUI);
+
+    // 4. دالة التبديل (تستخدم عند الضغط على الزر)
+    window.toggleAppSounds = function() {
+        // عكس الحالة
+        window.appSoundsEnabled = !window.appSoundsEnabled;
+        
+        // حفظ في الذاكرة
+        localStorage.setItem('nabd_app_sounds', window.appSoundsEnabled);
+        
+        // تحديث الشكل
+        updateSoundUI();
+        
+        // تشغيل صوت تأكيد بسيط لو فعلته
+        if(window.appSoundsEnabled) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(()=>{});
+        }
+    };
+
+    // 5. المراقب العام للنقر (Global Click Listener)
+    const clickableSelectors = [
+        'button', 'a', '.icon-btn', '.nav-item', '.sidebar-item', 
+        '.story-card', '.chat', '.floating-fab', '.sheet-action', 
+        '.action-btn', '.mic-btn', '.send-btn-inside', 
+        '.np-input-trigger', '.search-result-item', '.quick-user-item', 
+        '[onclick]'
+    ];
+
+    document.addEventListener('click', function(e) {
+        // 🔥 الشرط الأهم: لو الصوت مقفول، اخرج فوراً وما تشغلش حاجة
+        if (!window.appSoundsEnabled) return;
+
+        // استثناء: زرار الصوت نفسه (عشان ميعلقش صوت وهو بيقفل)
+        if (e.target.closest('[onclick="toggleAppSounds()"]')) return;
+
+        const target = e.target.closest(clickableSelectors.join(','));
+        if (target) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(() => {});
+        }
+    }, true);
+
+    // 6. تعديل دالة التشغيل اليدوية (لو بتستخدمها في حتة تانية)
+    const originalPlaySound = window.playSound;
+    window.playSound = function(name) {
+        if (!window.appSoundsEnabled) return; // منع التشغيل لو مكتوم
+        
+        // لو عندك دالة playSound قديمة، استدعيها، لو مفيش شغل الكود ده
+        if (typeof originalPlaySound === 'function') {
+            originalPlaySound(name);
+        }
+    };
+
+})();
+</script>
+<div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
+    <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; ">
+        
+        <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: #fff; margin: 0;">🗂️ أرشيف القصص</h3>
+            <i class="fa-solid fa-xmark" onclick="closeStoryArchive()" style="color: #fff; font-size: 20px; cursor: pointer;"></i>
+        </div>
+
+        <div id="archiveGrid" style="flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+            </div>
+
+    </div>
+</div>
+
+<div id="archiveFullViewer" class="archive-viewer-overlay" onclick="closeArchiveViewer()">
+    <div class="archive-close-btn">
+        <i class="fa-solid fa-xmark"></i>
+    </div>
+    <div id="archiveViewerContainer" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; pointer-events: none;">
+        </div>
+</div>
+
+
 
 </body>
 </html>
-

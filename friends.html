@@ -17,154 +17,120 @@
             --bg-color: #0d0d0f;
             --card-color: #161616;
             --primary-solid: #5D5FEF;
+            --primary-gradient: linear-gradient(135deg, #5D5FEF, #7879F1);
             --text-color: #eee;
             --secondary-text: #aaa;
             --border-color: #2a2a2a;
             --danger-color: #ff453a;
+            --success-color: #34c759;
+            --gold-color: #ffb400; /* لون المفضلة */
         }
         body { background: var(--bg-color); color: var(--text-color); margin: 0; font-family: "Cairo", sans-serif; padding-bottom: 90px; overflow-x: hidden; }
         
         /* === Header === */
-        .header { display: flex; align-items: center; padding: 15px 20px; background: rgba(13, 13, 15, 0.98); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; }
+        .header { display: flex; align-items: center; padding: 15px 20px; background: rgba(13, 13, 15, 0.98); border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
         .header h2 { margin: 0; font-size: 18px; flex: 1; text-align: center; font-weight: 700; }
-        .back-btn { font-size: 20px; cursor: pointer; color: var(--primary-solid); padding: 5px; }
+        .back-btn { font-size: 20px; cursor: pointer; color: var(--primary-solid); padding: 5px; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
 
-        /* === Search Bar === */
-        .search-container { padding: 15px 15px 5px 15px; width: 100%; }
+        /* === Search & Filter === */
+        .top-controls { padding: 15px; position: sticky; top: 60px; z-index: 90; background: var(--bg-color); }
+        
         .search-box {
-            width: 100%; 
-            background: #202022; 
-            border: 1px solid var(--border-color);
-            color: #fff; 
-            padding: 0 15px; 
-            height: 45px; 
-            border-radius: 12px;
-            font-family: "Cairo"; 
-            display: flex; align-items: center; gap: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            width: 100%; background: #202022; border: 1px solid var(--border-color);
+            color: #fff; padding: 0 15px; height: 45px; border-radius: 12px;
+            font-family: "Cairo"; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 15px;
         }
-        .search-box input { 
-            background: transparent; border: none; color: white; 
-            width: 100%; height: 100%; font-size: 14px; font-weight: 600; font-family: "Cairo";
-        }
+        .search-box input { background: transparent; border: none; color: white; width: 100%; height: 100%; font-size: 14px; font-weight: 600; }
 
-        /* === زر طلبات الصداقة الجديد === */
-        .requests-banner {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 12px 15px; margin: 10px 15px;
-            background: #202022; border-radius: 15px;
-            cursor: pointer; transition: 0.2s;
-            border: 1px solid var(--border-color);
+        /* فلاتر الترتيب (جديد) */
+        .filter-chips { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .filter-chips::-webkit-scrollbar { display: none; }
+        .chip {
+            padding: 6px 16px; background: var(--card-color); border: 1px solid var(--border-color);
+            border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--secondary-text);
+            cursor: pointer; white-space: nowrap; transition: 0.3s;
         }
-        .requests-banner:active { background: #2a2a2c; transform: scale(0.98); }
-        
-        .req-info { display: flex; align-items: center; gap: 15px; }
-        .req-icon-circle {
-            width: 45px; height: 45px; border-radius: 50%;
-            background: rgba(93, 95, 239, 0.15); color: var(--primary-solid);
-            display: grid; place-items: center; font-size: 20px;
-            position: relative;
-        }
-        .req-label { font-weight: bold; font-size: 15px; color: #fff; }
-        .req-sub { font-size: 12px; color: var(--secondary-text); }
-        
-        .req-badge {
-            position: absolute; top: -2px; right: -2px;
-            background: var(--danger-color); color: white;
-            font-size: 11px; font-weight: bold;
-            min-width: 18px; height: 18px;
-            padding: 0 4px; border-radius: 9px;
-            border: 2px solid #202022; display: flex; align-items: center; justify-content: center;
-            display: none; 
-        }
-        
-        .req-arrow { color: var(--secondary-text); font-size: 14px; }
-        
-        /* === Friend Item Card === */
-        .friend-list { padding: 10px 15px; min-height: 300px; }
-        .friends-count-label { padding: 0 20px; font-size: 13px; color: var(--secondary-text); margin-bottom: 5px; display: block; font-weight: bold; }
+        .chip.active { background: var(--primary-solid); color: #fff; border-color: var(--primary-solid); }
 
+        /* === Friend Item Card (المحسن) === */
+        .friend-list { padding: 0 15px; min-height: 300px; }
+        
         .friend-item { 
             display: flex; align-items: center; gap: 12px;
-            padding: 12px; 
-            border-bottom: 1px solid var(--border-color); 
-            background: var(--card-color); 
-            margin-bottom: 10px; 
-            border-radius: 12px;
-            width: 100%; transition: 0.2s; position: relative;
+            padding: 12px; border-bottom: 1px solid var(--border-color); 
+            background: var(--card-color); margin-bottom: 10px; 
+            border-radius: 16px; width: 100%; transition: 0.2s; position: relative;
+            animation: fadeInUp 0.4s ease forwards; opacity: 0; transform: translateY(10px);
         }
-        .friend-item:active { background: #222; transform: scale(0.99); }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
         .friend-avatar { 
-            width: 50px; height: 50px; 
-            min-width: 50px; min-height: 50px;
-            border-radius: 50%; 
-            background: #333; 
+            width: 55px; height: 55px; min-width: 55px; min-height: 55px;
+            border-radius: 50%; background: #333; 
             background-size: cover; background-position: center; 
-            display: grid; place-items: center; 
-            font-weight: bold; font-size: 20px; 
-            flex-shrink: 0; border: 1px solid #333;
-            overflow: hidden;
+            display: grid; place-items: center; border: 2px solid #333;
+            position: relative; overflow: visible;
         }
+
+        .online-dot {
+            position: absolute; bottom: 2px; right: 2px;
+            width: 14px; height: 14px; background-color: var(--success-color);
+            border: 2px solid var(--card-color); border-radius: 50%;
+            display: none; box-shadow: 0 0 8px rgba(52, 199, 89, 0.5); z-index: 5;
+        }
+        .online-dot.active { display: block; }
         
         .friend-info { flex: 1; overflow: hidden; }
+        .friend-name-row { display: flex; align-items: center; gap: 5px; }
         .friend-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .friend-mutual { font-size: 11px; color: var(--secondary-text); margin-top: 2px; }
+        
+        /* أيقونة المفضلة */
+        .fav-star { font-size: 12px; color: var(--gold-color); display: none; }
+        .fav-star.active { display: block; }
 
-        .more-btn { 
-            width: 40px; height: 40px; border-radius: 50%; 
+        .friend-status { font-size: 11px; color: var(--secondary-text); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+        .friend-status.online { color: var(--success-color); font-weight: bold; }
+        
+        /* أزرار الإجراءات السريعة */
+        .item-actions { display: flex; gap: 5px; }
+        .icon-btn { 
+            width: 35px; height: 35px; border-radius: 50%; 
             display: grid; place-items: center; color: var(--secondary-text); 
-            cursor: pointer; font-size: 18px; transition: 0.2s; flex-shrink: 0;
+            background: rgba(255,255,255,0.05); cursor: pointer; transition: 0.2s;
         }
-        .more-btn:active { background: rgba(255,255,255,0.1); color: white; }
+        .icon-btn:active { transform: scale(0.9); }
+        .icon-btn.chat-quick { color: var(--primary-solid); background: rgba(93, 95, 239, 0.1); }
+        
+        /* === Skeleton Loading (هيكل التحميل) === */
+        .skeleton-item { display: flex; align-items: center; gap: 12px; padding: 12px; margin-bottom: 10px; background: var(--card-color); border-radius: 16px; }
+        .sk-avatar { width: 55px; height: 55px; border-radius: 50%; background: #222; animation: pulse 1.5s infinite; }
+        .sk-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .sk-line { height: 10px; background: #222; border-radius: 5px; animation: pulse 1.5s infinite; }
+        .w-50 { width: 50%; } .w-30 { width: 30%; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
 
         /* === Bottom Action Sheet === */
-        .sheet-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 998; display: none;
-            backdrop-filter: blur(3px); opacity: 0; transition: opacity 0.3s;
-        }
-        .sheet-overlay.active { display: block; opacity: 1; }
-
-        .action-sheet {
-            position: fixed; bottom: -100%; left: 0; width: 100%;
-            background: #1c1c1e; border-radius: 20px 20px 0 0;
-            z-index: 999; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            padding-bottom: 30px; border-top: 1px solid #333;
-            max-height: 85vh; overflow-y: auto;
-        }
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 998; display: none; backdrop-filter: blur(3px); }
+        .sheet-overlay.active { display: block; }
+        .action-sheet { position: fixed; bottom: -100%; left: 0; width: 100%; background: #1c1c1e; border-radius: 20px 20px 0 0; z-index: 999; transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); padding-bottom: 30px; border-top: 1px solid #333; }
         .action-sheet.active { bottom: 0; }
-
         .sheet-handle { width: 40px; height: 4px; background: #444; border-radius: 10px; margin: 12px auto; }
         .sheet-header { text-align: center; padding: 10px 20px 20px; border-bottom: 1px solid #2a2a2a; }
-        .sheet-avatar { 
-            width: 70px; height: 70px; 
-            border-radius: 50%; margin: 0 auto 10px; 
-            background-size: cover; background-position: center; 
-            border: 2px solid #333; 
-            display: grid; place-items: center; font-size: 24px; font-weight: bold; color: #fff; overflow: hidden;
-        }
+        .sheet-avatar { width: 70px; height: 70px; border-radius: 50%; margin: 0 auto 10px; background-size: cover; border: 2px solid var(--primary-solid); }
         .sheet-name { font-size: 18px; font-weight: 800; color: white; }
-        .sheet-date { font-size: 12px; color: var(--secondary-text); margin-top: 5px; }
-
-        .sheet-options { padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .sheet-btn {
-            width: 100%; padding: 16px; background: #2c2c2e; border: none;
-            display: flex; align-items: center; gap: 15px; border-radius: 12px; 
-            color: #eee; font-size: 15px; font-family: "Cairo"; font-weight: 600; 
-            cursor: pointer; text-align: right;
-        }
-        .sheet-btn:active { background: #3a3a3c; transform: scale(0.98); }
-        .sheet-btn i { width: 25px; text-align: center; font-size: 18px; }
+        .sheet-btn { width: 100%; padding: 16px; background: #2c2c2e; border: none; display: flex; align-items: center; gap: 15px; border-radius: 12px; color: #eee; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        .sheet-btn.gold { color: var(--gold-color); background: rgba(255, 180, 0, 0.1); }
         .sheet-btn.danger { color: #ff453a; background: rgba(255, 69, 58, 0.1); }
-        .sheet-btn.unblock { color: #34c759; background: rgba(52, 199, 89, 0.1); }
 
         /* === Bottom Nav === */
         .bottom-nav { position: fixed; bottom: 0; width: 100%; background: var(--card-color); display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid var(--border-color); z-index: 900; }
         .nav-item { font-size: 22px; color: var(--secondary-text); cursor: pointer; transition: 0.2s; }
         .nav-item.active { color: var(--primary-solid); transform: translateY(-2px); }
-        
-        .empty-state { text-align: center; padding: 50px 20px; color: var(--secondary-text); }
+
+        /* Badge Styles */
+        .requests-badge { background: var(--danger-color); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-right: auto; display: none; }
     </style>
 </head>
 <body>
@@ -172,33 +138,28 @@
     <div class="header">
         <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
         <h2>قائمة الأصدقاء</h2>
-        <div style="width: 20px;"></div>
+        <div class="requests-badge" id="headerReqBadge" onclick="location.href='friend_requests.html'">0</div>
     </div>
 
-    <div class="search-container">
+    <div class="top-controls">
         <div class="search-box">
             <i class="fa-solid fa-magnifying-glass" style="color: #666;"></i>
-            <input type="text" id="searchInput" placeholder="بحث عن أصدقاء..." onkeyup="filterFriends()">
+            <input type="text" id="searchInput" placeholder="بحث عن صديق..." onkeyup="filterFriends()">
+        </div>
+
+        <div class="filter-chips">
+            <div class="chip active" onclick="setFilter('all', this)">الكل <span id="countAll" style="opacity:0.7; font-size:10px">(0)</span></div>
+            <div class="chip" onclick="setFilter('online', this)">متصل الآن <span id="countOnline" style="opacity:0.7; font-size:10px">(0)</span></div>
+            <div class="chip" onclick="setFilter('favorites', this)">المفضلة ⭐</div>
         </div>
     </div>
-
-    <div class="requests-banner" onclick="location.href='friend_requests.html'"> <div class="req-info">
-            <div class="req-icon-circle">
-                <i class="fa-solid fa-user-plus"></i>
-                <div class="req-badge" id="mainReqBadge">0</div>
-            </div>
-            <div>
-                <div class="req-label">طلبات الصداقة</div>
-                <div class="req-sub">عرض الطلبات الواردة</div>
-            </div>
-        </div>
-        <i class="fa-solid fa-chevron-left req-arrow"></i>
-    </div>
-
-    <span class="friends-count-label" id="friendsCount">جاري التحميل...</span>
 
     <div class="friend-list" id="friendsListContainer">
-        <div style="text-align: center; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+        <div id="loadingSkeleton">
+            <div class="skeleton-item"><div class="sk-avatar"></div><div class="sk-lines"><div class="sk-line w-50"></div><div class="sk-line w-30"></div></div></div>
+            <div class="skeleton-item"><div class="sk-avatar"></div><div class="sk-lines"><div class="sk-line w-50"></div><div class="sk-line w-30"></div></div></div>
+            <div class="skeleton-item"><div class="sk-avatar"></div><div class="sk-lines"><div class="sk-line w-50"></div><div class="sk-line w-30"></div></div></div>
+        </div>
     </div>
 
     <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
@@ -209,12 +170,15 @@
             <div class="sheet-name" id="sheetName"></div>
             <div class="sheet-date" id="sheetDate"></div>
         </div>
-        <div class="sheet-options">
-            <button class="sheet-btn" onclick="goToChat()">
-                <i class="fa-brands fa-facebook-messenger"></i> مراسلة
+        <div class="sheet-options" style="padding: 15px;">
+            <button class="sheet-btn gold" id="favBtn" onclick="toggleFavorite()">
+                <i class="fa-solid fa-star"></i> <span id="favText">إضافة للمفضلة</span>
             </button>
-            <button class="sheet-btn danger" id="blockBtn" onclick="toggleBlockUser()">
-                <i class="fa-solid fa-user-slash"></i> <span id="blockBtnText">حظر الملف الشخصي</span>
+            <button class="sheet-btn" onclick="goToChat()">
+                <i class="fa-brands fa-facebook-messenger"></i> بدء المحادثة
+            </button>
+            <button class="sheet-btn" onclick="location.href='profile.html?uid='+selectedFriendUid">
+                <i class="fa-solid fa-user"></i> عرض الملف الشخصي
             </button>
             <button class="sheet-btn danger" onclick="unfriendUser()">
                 <i class="fa-solid fa-user-xmark"></i> إلغاء الصداقة
@@ -233,6 +197,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
         const firebaseConfig = {
@@ -241,173 +206,268 @@
             projectId: "pools-e4381",
             storageBucket: "pools-e4381.appspot.com",
             messagingSenderId: "339799216046",
-            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f",
+            databaseURL: "https://pools-e4381-default-rtdb.firebaseio.com"
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(), db = firebase.firestore();
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const rtdb = firebase.database();
 
-        // === الصورة الافتراضية (موحدة لكل الصفحات) ===
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
         let currentUserUid = null;
+        let friendsData = []; // تخزين الأصدقاء محلياً للفلترة
+        let currentFilter = 'all'; // الفلتر الحالي
+
+        // متغيرات الشيت
         let selectedFriendUid = null;
         let selectedFriendName = "";
-        let isCurrentFriendBlocked = false;
+        let isFavorite = false;
 
         auth.onAuthStateChanged(user => {
             if (user) {
                 currentUserUid = user.uid;
-                loadFriendsList();
-                checkFriendRequests();
+                loadFriends();
+                checkReqCount();
             } else {
                 location.href = "index.html";
             }
         });
 
-        // 🔥 دالة تحديث عداد الطلبات 🔥
-        function checkFriendRequests() {
-            db.collection('users').doc(currentUserUid).collection('friendRequests')
-                .onSnapshot(snap => {
-                    const badge = document.getElementById('mainReqBadge');
-                    if(snap.size > 0) {
-                        badge.style.display = 'flex';
-                        badge.innerText = snap.size > 9 ? '9+' : snap.size;
-                    } else {
-                        badge.style.display = 'none';
-                    }
-                });
-        }
-
-        function loadFriendsList() {
-            const listContainer = document.getElementById('friendsListContainer');
-            const countLabel = document.getElementById('friendsCount');
-
+        // --- تحميل الأصدقاء ---
+        function loadFriends() {
             db.collection("users").doc(currentUserUid).collection("friends")
                 .onSnapshot(async (snapshot) => {
-                    const count = snapshot.size;
-                    countLabel.innerText = `${count} صديقاً`;
-
-                    if (count === 0) {
-                        listContainer.innerHTML = `<div class="empty-state"><i class="fa-solid fa-user-group"></i><p>لا يوجد أصدقاء بعد.</p></div>`;
+                    document.getElementById('loadingSkeleton').style.display = 'none';
+                    const listContainer = document.getElementById('friendsListContainer');
+                    
+                    if (snapshot.empty) {
+                        listContainer.innerHTML = `<div class="empty-state"><i class="fa-solid fa-user-group" style="font-size:40px;margin-bottom:10px"></i><p>أضف أصدقاء لتبدأ المحادثة!</p></div>`;
                         return;
                     }
 
-                    listContainer.innerHTML = ''; 
-
-                    for (const doc of snapshot.docs) {
-                        const friendId = doc.id;
-                        const friendRelData = doc.data();
+                    friendsData = []; // تصفير القائمة
+                    
+                    // جلب البيانات ومعالجتها
+                    const promises = snapshot.docs.map(async (doc) => {
+                        const fid = doc.id;
+                        const relData = doc.data();
+                        const userDoc = await db.collection("users").doc(fid).get();
+                        const uData = userDoc.data() || {};
                         
-                        const userDoc = await db.collection("users").doc(friendId).get();
-                        const userData = userDoc.data() || {};
-                        
-                        const name = userData.name || "مستخدم مجهول";
-                        // هنا التعديل: استخدام الصورة الافتراضية إذا لم توجد صورة
-                        const pic = userData.profilePic || userData.avatarUrl || defaultAvatar;
-                        const sinceDate = friendRelData.acceptedAt ? moment(friendRelData.acceptedAt.toDate()).format('D MMMM YYYY') : 'غير معروف';
+                        return {
+                            uid: fid,
+                            name: uData.name || "مستخدم",
+                            pic: uData.profilePic || defaultAvatar,
+                            since: relData.acceptedAt ? moment(relData.acceptedAt.toDate()).format('D MMM YYYY') : '',
+                            isFav: relData.isFavorite || false, // هل هو مفضل؟
+                            status: 'offline', // الافتراضي
+                            lastSeen: uData.lastSeen
+                        };
+                    });
 
-                        const div = document.createElement('div');
-                        div.className = 'friend-item';
-                        div.setAttribute('data-name', name.toLowerCase()); 
-                        
-                        div.onclick = function() { location.href = `profile.html?uid=${friendId}`; };
-
-                        div.innerHTML = `
-                            <div class="friend-avatar" style="background-image:url('${pic}'); background-color:transparent;"></div>
-                            <div class="friend-info">
-                                <div class="friend-name">${name}</div>
-                                <div class="friend-mutual">منذ ${moment(friendRelData.acceptedAt?.toDate()).fromNow()}</div>
-                            </div>
-                            <div class="more-btn" onclick="event.stopPropagation(); openSheet('${friendId}', '${name}', '${pic}', '${sinceDate}')">
-                                <i class="fa-solid fa-ellipsis"></i>
-                            </div>
-                        `;
-                        listContainer.appendChild(div);
-                    }
+                    friendsData = await Promise.all(promises);
+                    renderFriends(); // رسم القائمة
+                    startLiveStatus(); // تشغيل المراقبة الحية
                 });
         }
 
-        function filterFriends() {
-            const input = document.getElementById('searchInput').value.toLowerCase();
-            const items = document.querySelectorAll('.friend-item');
-            items.forEach(item => {
-                const name = item.getAttribute('data-name');
-                item.style.display = name.includes(input) ? 'flex' : 'none';
+        // --- رسم القائمة بناءً على الفلتر ---
+        function renderFriends() {
+            const listContainer = document.getElementById('friendsListContainer');
+            listContainer.innerHTML = '';
+            
+            // ترتيب: المفضلة أولاً، ثم حسب الاسم
+            let filtered = friendsData.sort((a, b) => (b.isFav === true) - (a.isFav === true));
+
+            // تطبيق الفلتر
+            if (currentFilter === 'online') {
+                filtered = filtered.filter(f => f.status === 'online');
+            } else if (currentFilter === 'favorites') {
+                filtered = filtered.filter(f => f.isFav);
+            }
+
+            // تحديث العدادات
+            document.getElementById('countAll').innerText = `(${friendsData.length})`;
+            document.getElementById('countOnline').innerText = `(${friendsData.filter(f => f.status === 'online').length})`;
+
+            if(filtered.length === 0) {
+                listContainer.innerHTML = `<div class="empty-state"><p>لا توجد نتائج.</p></div>`;
+                return;
+            }
+
+            filtered.forEach(friend => {
+                const div = document.createElement('div');
+                div.className = 'friend-item';
+                div.onclick = () => openSheet(friend);
+                
+                div.innerHTML = `
+                    <div class="friend-avatar" style="background-image:url('${friend.pic}')">
+                        <div class="online-dot ${friend.status === 'online' ? 'active' : ''}" id="dot-${friend.uid}"></div>
+                    </div>
+                    <div class="friend-info">
+                        <div class="friend-name-row">
+                            <div class="friend-name">${friend.name}</div>
+                            <i class="fa-solid fa-star fav-star ${friend.isFav ? 'active' : ''}"></i>
+                        </div>
+                        <div class="friend-status ${friend.status === 'online' ? 'online' : ''}" id="txt-${friend.uid}">
+                            ${getStatusText(friend)}
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <div class="icon-btn chat-quick" onclick="event.stopPropagation(); quickChat('${friend.uid}', '${friend.name}')">
+                            <i class="fa-brands fa-facebook-messenger"></i>
+                        </div>
+                        <div class="icon-btn" onclick="event.stopPropagation(); openSheet({uid:'${friend.uid}', name:'${friend.name}', pic:'${friend.pic}', since:'${friend.since}', isFav:${friend.isFav}})">
+                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(div);
             });
         }
 
-        async function openSheet(uid, name, pic, date) {
-            selectedFriendUid = uid;
-            selectedFriendName = name;
-            document.getElementById('sheetName').innerText = name;
-            document.getElementById('sheetDate').innerText = `أصدقاء منذ ${date}`;
-            
-            // ضبط الصورة في الشيت (القائمة السفلية)
-            const imgDiv = document.getElementById('sheetImg');
-            imgDiv.innerHTML = ''; // تفريغ المحتوى القديم
-            imgDiv.style.backgroundImage = `url('${pic}')`;
-            imgDiv.style.backgroundColor = 'transparent';
+        // --- مراقبة الحالة (Realtime) ---
+        function startLiveStatus() {
+            friendsData.forEach(friend => {
+                rtdb.ref('/status/' + friend.uid).on('value', snap => {
+                    const val = snap.val();
+                    const newState = (val && val.state === 'online') ? 'online' : 'offline';
+                    
+                    // تحديث المصفوفة المحلية
+                    friend.status = newState;
+                    if(val && val.last_changed) friend.lastSeen = val.last_changed;
 
-            await checkBlockStatus();
+                    // تحديث الـ DOM مباشرة للأداء
+                    const dot = document.getElementById(`dot-${friend.uid}`);
+                    const txt = document.getElementById(`txt-${friend.uid}`);
+                    
+                    if(dot && txt) {
+                        if(newState === 'online') {
+                            dot.classList.add('active');
+                            txt.classList.add('online');
+                            txt.innerText = 'نشط الآن';
+                        } else {
+                            dot.classList.remove('active');
+                            txt.classList.remove('online');
+                            txt.innerText = getShortLastSeen(friend.lastSeen);
+                        }
+                    }
+                    
+                    // تحديث عداد الأونلاين في الفلتر
+                    document.getElementById('countOnline').innerText = `(${friendsData.filter(f => f.status === 'online').length})`;
+                });
+            });
+        }
+
+        function getShortLastSeen(timestamp) {
+            if (!timestamp) return 'غير متصل';
+            if (typeof timestamp === 'object') timestamp = timestamp.toMillis(); // لو جاي من فايرستور
+            
+            const diff = Date.now() - timestamp;
+            const mins = Math.floor(diff / 60000);
+            
+            if (mins < 1) return 'نشط الآن';
+            if (mins < 60) return `منذ ${mins} دقيقة`;
+            if (mins < 1440) return `منذ ${Math.floor(mins/60)} ساعة`;
+            return `منذ ${Math.floor(mins/1440)} يوم`;
+        }
+
+        // --- التحكم في الفلاتر ---
+        window.setFilter = (type, el) => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            currentFilter = type;
+            renderFriends();
+        };
+
+        // --- البحث ---
+        window.filterFriends = () => {
+            const q = document.getElementById('searchInput').value.toLowerCase();
+            const items = document.querySelectorAll('.friend-item');
+            items.forEach(item => {
+                const name = item.querySelector('.friend-name').innerText.toLowerCase();
+                item.style.display = name.includes(q) ? 'flex' : 'none';
+            });
+        };
+
+        // --- Action Sheet Logic ---
+        window.openSheet = (friend) => {
+            selectedFriendUid = friend.uid;
+            selectedFriendName = friend.name;
+            isFavorite = friend.isFav;
+
+            document.getElementById('sheetName').innerText = friend.name;
+            document.getElementById('sheetDate').innerText = `صديق منذ ${friend.since}`;
+            document.getElementById('sheetImg').style.backgroundImage = `url('${friend.pic}')`;
+            
+            // تحديث زر المفضلة
+            updateFavBtnUI();
+
             document.getElementById('sheetOverlay').classList.add('active');
             document.getElementById('actionSheet').classList.add('active');
-        }
+        };
 
-        function closeSheet() {
+        window.closeSheet = () => {
             document.getElementById('sheetOverlay').classList.remove('active');
             document.getElementById('actionSheet').classList.remove('active');
+        };
+
+        // --- نظام المفضلة ---
+        window.toggleFavorite = async () => {
+            isFavorite = !isFavorite;
+            updateFavBtnUI();
+            
+            try {
+                // تحديث في الداتابيز
+                await db.collection('users').doc(currentUserUid).collection('friends').doc(selectedFriendUid).update({
+                    isFavorite: isFavorite
+                });
+                // التحديث المحلي
+                const fIndex = friendsData.findIndex(f => f.uid === selectedFriendUid);
+                if(fIndex > -1) friendsData[fIndex].isFav = isFavorite;
+                renderFriends(); // إعادة الرسم
+            } catch(e) { console.error(e); }
+        };
+
+        function updateFavBtnUI() {
+            const btn = document.getElementById('favBtn');
+            const txt = document.getElementById('favText');
+            if (isFavorite) {
+                btn.style.background = "rgba(255, 180, 0, 0.2)";
+                btn.style.color = "#ffb400";
+                txt.innerText = "إزالة من المفضلة";
+            } else {
+                btn.style.background = "#2c2c2e";
+                btn.style.color = "#eee";
+                txt.innerText = "إضافة للمفضلة";
+            }
         }
 
-        async function checkBlockStatus() {
-            const blockBtn = document.getElementById('blockBtn');
-            try {
-                const blockDoc = await db.collection('users').doc(currentUserUid).collection('blocked_users').doc(selectedFriendUid).get();
-                isCurrentFriendBlocked = blockDoc.exists;
-                if (isCurrentFriendBlocked) {
-                    blockBtn.classList.remove('danger'); blockBtn.classList.add('unblock');
-                    blockBtn.innerHTML = `<i class="fa-solid fa-user-check"></i> <span>رفع الحظر عن ${selectedFriendName}</span>`;
-                } else {
-                    blockBtn.classList.remove('unblock'); blockBtn.classList.add('danger');
-                    blockBtn.innerHTML = `<i class="fa-solid fa-user-slash"></i> <span>حظر الملف الشخصي</span>`;
-                }
-            } catch (e) { console.error(e); }
-        }
+        // --- وظائف أخرى ---
+        window.quickChat = (uid, name) => {
+            const cid = [currentUserUid, uid].sort().join("_");
+            db.collection("chats").doc(cid).set({ users: [currentUserUid, uid] }, {merge:true});
+            location.href = `chat.html?chatId=${cid}&name=${encodeURIComponent(name)}&uid=${uid}`;
+        };
+        
+        window.goToChat = () => quickChat(selectedFriendUid, selectedFriendName);
 
-        async function goToChat() {
-            if(!selectedFriendUid) return;
-            const cid = [currentUserUid, selectedFriendUid].sort().join("_");
-            const nameEnc = encodeURIComponent(selectedFriendName);
-            try {
-                await db.collection("chats").doc(cid).set({ users: [currentUserUid, selectedFriendUid] }, {merge:true});
-                location.href = `chat.html?chatId=${cid}&name=${nameEnc}&uid=${selectedFriendUid}`;
-            } catch (error) { console.error(error); alert("خطأ"); }
-        }
+        window.unfriendUser = async () => {
+            if(!confirm("هل أنت متأكد من إلغاء الصداقة؟")) return;
+            const batch = db.batch();
+            batch.delete(db.collection("users").doc(currentUserUid).collection("friends").doc(selectedFriendUid));
+            batch.delete(db.collection("users").doc(selectedFriendUid).collection("friends").doc(currentUserUid));
+            await batch.commit();
+            closeSheet();
+        };
 
-        async function toggleBlockUser() {
-            if (!selectedFriendUid) return;
-            const blockRef = db.collection('users').doc(currentUserUid).collection('blocked_users').doc(selectedFriendUid);
-            try {
-                if (isCurrentFriendBlocked) {
-                    await blockRef.delete(); alert(`تم رفع الحظر.`); isCurrentFriendBlocked = false;
-                } else {
-                    if (!confirm(`هل أنت متأكد من حظر ${selectedFriendName}؟`)) return;
-                    await blockRef.set({ blockedAt: firebase.firestore.FieldValue.serverTimestamp(), name: selectedFriendName });
-                    alert(`تم الحظر.`); isCurrentFriendBlocked = true;
-                }
-                closeSheet();
-            } catch (error) { alert("خطأ."); }
-        }
-
-        async function unfriendUser() {
-            if (!selectedFriendUid) return;
-            if (!confirm(`إزالة ${selectedFriendName} من الأصدقاء؟`)) return;
-            try {
-                const batch = db.batch();
-                batch.delete(db.collection("users").doc(currentUserUid).collection("friends").doc(selectedFriendUid));
-                batch.delete(db.collection("users").doc(selectedFriendUid).collection("friends").doc(currentUserUid));
-                await batch.commit();
-                closeSheet();
-            } catch (error) { alert("خطأ."); }
+        function checkReqCount() {
+            db.collection('users').doc(currentUserUid).collection('friendRequests').onSnapshot(snap => {
+                const b = document.getElementById('headerReqBadge');
+                if(snap.size > 0) { b.style.display='inline-block'; b.innerText=snap.size; } 
+                else b.style.display='none';
+            });
         }
     </script>
 </body>

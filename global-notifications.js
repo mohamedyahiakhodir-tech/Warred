@@ -1,12 +1,48 @@
 /* ==================================================
    ملف الإشعارات الموحد (Global Notifications System)
-   Fixed Version: Instant Injection + Debugging
+   Engine: Same as Global Call (Unlocked Audio) 🚀
    ================================================== */
 
 (function() {
-    console.log("🔔 Global Notifications System: Started");
+    // 1. منع التكرار (زي ملف الاتصال)
+    if (window.self !== window.top) return; 
+    if (window.isGlobalNotificationsActive) return; 
+    window.isGlobalNotificationsActive = true;
 
-    // 1. حقن تصميم CSS للإشعار
+    console.log("🔔 Global Notifications: Active");
+
+    // ============================================================
+    // 🔊 الخطوة 1: التعريف العام (الربط المباشر)
+    // ============================================================
+    // عرفنا الصوت هنا عشان يفضل موجود في الذاكرة زي الرنة بالظبط
+    const notifSound = new Audio("./sounds/incoming.mp3"); 
+
+    // ============================================================
+    // 🔓 الخطوة 2: فك الحظر (The Unlock Hack)
+    // ============================================================
+    function unlockAudioAndVibro() {
+        // بنشغل الصوت لحظة ونقفله عشان ناخذ التصريح
+        notifSound.play().then(() => {
+            notifSound.pause();
+            notifSound.currentTime = 0;
+        }).catch((e) => {});
+
+        // بنشغل الاهتزاز لحظة عشان ناخذ التصريح
+        if (navigator.vibrate) navigator.vibrate(0);
+
+        // بنشيل المستمعين عشان الكود ده يتنفذ مرة واحدة بس
+        document.body.removeEventListener('click', unlockAudioAndVibro);
+        document.body.removeEventListener('touchstart', unlockAudioAndVibro);
+    }
+
+    // أول ما تلمس الشاشة، النظام "بيسخن" ويجهز نفسه
+    document.body.addEventListener('click', unlockAudioAndVibro, { once: true });
+    document.body.addEventListener('touchstart', unlockAudioAndVibro, { once: true });
+
+
+    // ============================================================
+    // 🎨 حقن CSS
+    // ============================================================
     const style = document.createElement('style');
     style.innerHTML = `
         #msgBanner {
@@ -31,12 +67,11 @@
     `;
     document.head.appendChild(style);
 
-    // 2. دالة بدء النظام وحقن HTML (معدلة لتعمل فوراً)
+    // ============================================================
+    // 🛠️ دالة البدء
+    // ============================================================
     function initSystem() {
-        // منع التكرار لو اشتغلت مرتين
         if (document.getElementById('msgBanner')) return;
-
-        console.log("🔔 Global Notifications System: Injecting HTML");
 
         const bannerHTML = `
             <div id="bannerAvatar" class="banner-avatar"></div>
@@ -52,59 +87,66 @@
         bannerDiv.innerHTML = bannerHTML;
         document.body.appendChild(bannerDiv);
         
-        // تشغيل مراقب الفايربيس
         initGlobalListener();
     }
 
-    // 🔥 التصحيح: التأكد من حالة الصفحة قبل التشغيل 🔥
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initSystem);
     } else {
-        // لو الصفحة حملت خلاص، شغل النظام فوراً
         initSystem();
     }
 
-    // 3. دالة إظهار الإشعار (متاحة عالمياً)
+    // ============================================================
+    // 🔔 الخطوة 3: التشغيل المباشر (زي الرنة)
+    // ============================================================
     window.showGlobalBanner = function(name, text, pic, chatId, otherUid) {
-        console.log("🔔 Showing Banner for:", name);
         const banner = document.getElementById('msgBanner');
-        
-        if(!banner) {
-            console.error("❌ Banner element not found!");
-            return;
+        if(!banner) return;
+
+        // 1. تشغيل الصوت فوراً (لأننا أخدنا الإذن خلاص في الخطوة 2)
+        notifSound.currentTime = 0;
+        notifSound.play().catch((err) => console.log("Sound blocked:", err));
+
+        // 2. تشغيل الاهتزاز بقوة (زي الرنة)
+        if (navigator.vibrate) {
+            navigator.vibrate([200, 100, 200]); 
         }
 
-        // تعبئة البيانات
+        // 3. عرض البانر
         document.getElementById('bannerName').innerText = name || "رسالة جديدة";
         document.getElementById('bannerText').innerText = text;
         const finalPic = pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         document.getElementById('bannerAvatar').style.backgroundImage = `url('${finalPic}')`;
 
-        // عند الضغط
         banner.onclick = () => {
-            console.log("🔔 Banner Clicked -> Going to chat");
             window.location.href = `chat.html?chatId=${chatId}&name=${encodeURIComponent(name)}&uid=${otherUid}`;
         };
 
-        // إظهار
-        banner.classList.add('visible');
-        
-        // اهتزاز
-        if(navigator.vibrate) navigator.vibrate(100);
+        if (banner.classList.contains('visible')) {
+            banner.style.transform = "translateX(-50%) scale(1.05)";
+            setTimeout(() => banner.style.transform = "translateX(-50%) scale(1)", 100);
+            return;
+        }
 
-        // إخفاء تلقائي
+        banner.classList.add('visible');
         setTimeout(() => { banner.classList.remove('visible'); }, 4000);
     };
 
-    // 4. مراقب الرسائل (Global Listener)
+    // ============================================================
+    // 📡 المراقب
+    // ============================================================
+    let unsubscribe = null;
+    let chatsTimestamps = {}; 
+
     function initGlobalListener() {
         const checkAuth = setInterval(() => {
             if (typeof firebase !== 'undefined' && firebase.auth()) {
                 clearInterval(checkAuth);
                 firebase.auth().onAuthStateChanged(user => {
                     if (user) {
-                        console.log("🔔 Global Listener: User Authenticated");
                         startListening(user.uid);
+                    } else {
+                        if (unsubscribe) unsubscribe();
                     }
                 });
             }
@@ -115,73 +157,76 @@
 
     function startListening(myUid) {
         const db = firebase.firestore();
-        let isFirstRun = true; 
+        if (unsubscribe) unsubscribe();
 
-        db.collection('chats')
+        unsubscribe = db.collection('chats')
           .where('users', 'array-contains', myUid)
           .onSnapshot(snapshot => {
             
-            // تجاهل التحميل الأولي (الرسائل القديمة)
-            if(isFirstRun) { 
-                isFirstRun = false; 
-                return; 
-            }
-
             snapshot.docChanges().forEach(async change => {
-                if (change.type === 'modified') {
-                    const data = change.doc.data();
-                    const chatId = change.doc.id;
+                const data = change.doc.data();
+                const chatId = change.doc.id;
+                
+                let msgTime = 0;
+                if (data.lastMessageTime && data.lastMessageTime.toMillis) {
+                    msgTime = data.lastMessageTime.toMillis();
+                } else {
+                    msgTime = Date.now();
+                }
 
-                    // فحوصات الأمان
-                    if (data.lastSender === myUid) return;
-                    if (!data.unreadCount || data.unreadCount <= 0) return;
-                    
-                    // منع الإشعار لو أنا جوه نفس الشات حالياً
-                    if (window.location.href.includes(`chatId=${chatId}`)) return;
-                    
-                    if (data.mutedBy && data.mutedBy.includes(myUid)) return;
+                if (!chatsTimestamps[chatId]) {
+                    chatsTimestamps[chatId] = msgTime; 
+                    return; 
+                }
 
-                    console.log("🔔 New Message Detected!");
+                const otherUid = data.users.find(u => u !== myUid);
+                let senderName = "مستخدم";
+                let senderPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-                    // تجهيز البيانات
-                    const otherUid = data.users.find(u => u !== myUid);
-                    let senderName = "مستخدم";
-                    let senderPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
-                    if (usersCacheForBanner[otherUid]) {
-                        senderName = usersCacheForBanner[otherUid].name;
-                        senderPic = usersCacheForBanner[otherUid].pic;
+                if (usersCacheForBanner[otherUid]) {
+                    senderName = usersCacheForBanner[otherUid].name;
+                    senderPic = usersCacheForBanner[otherUid].pic;
+                } else {
+                    if(data.isGroup) {
+                        senderName = data.name; 
                     } else {
-                        if(data.isGroup) {
-                            senderName = data.name; 
-                        } else {
-                            // محاولة سريعة
-                            db.collection('users').doc(otherUid).get().then(doc => {
-                                if(doc.exists) {
-                                    const u = doc.data();
-                                    usersCacheForBanner[otherUid] = { name: u.name, pic: u.profilePic || senderPic };
-                                }
-                            });
-                        }
+                        db.collection('users').doc(otherUid).get().then(doc => {
+                            if(doc.exists) {
+                                const u = doc.data();
+                                usersCacheForBanner[otherUid] = { name: u.name, pic: u.profilePic || senderPic };
+                            }
+                        });
                     }
+                }
+
+                // --- (1) حالة رسالة جديدة ---
+                if (msgTime > chatsTimestamps[chatId]) {
+                    chatsTimestamps[chatId] = msgTime;
+
+                    if (window.location.href.includes(`chatId=${chatId}`)) return; 
+                    if (data.mutedBy && data.mutedBy.includes(myUid)) return;
 
                     let msgText = data.lastMessage;
                     if (msgText.includes('http') && !msgText.includes(' ')) msgText = "📷 صورة/ملف";
 
-                    // 🔥 1. تشغيل الصوت من sounds-manager.js 🔥
-                    if (typeof playSound === 'function') {
-                        console.log("🔔 Playing Sound: incoming");
-                        playSound('incoming');
-                    } else {
-                        console.warn("⚠️ playSound function not found!");
-                    }
-
-                    // 🔥 2. إظهار البانر العلوي 🔥
+                    // 🔥 تشغيل النظام
                     window.showGlobalBanner(senderName, msgText, senderPic, chatId, otherUid);
 
-                    // 🔥 3. تشغيل الكرة (لو موجودة) 🔥
+                    // تشغيل الكرة (لو موجودة)
                     if (typeof triggerUraniumAlert === 'function') {
                         triggerUraniumAlert(`${senderName}: ${msgText}`, {name: senderName, pic: senderPic}, false);
+                    }
+                } 
+                
+                // --- (2) حالة جاري الكتابة (الكرة فقط) ---
+                else {
+                    const typingMap = data.typingStatus || {};
+                    const now = Date.now();
+                    
+                    if (typingMap[otherUid] && (now - typingMap[otherUid] < 5000)) {
+                        if (typeof triggerUraniumAlert === 'function') {
+                            triggerUraniumAlert(`${senderName} يكتب الآن... ✍️`, {name: senderName, pic: senderPic}, true);
+                        }
                     }
                 }
             });
