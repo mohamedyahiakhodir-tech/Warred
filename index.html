@@ -37,7 +37,7 @@
         .loading-logo span { font-size: 32px; font-weight: 900; color: #fff; letter-spacing: 2px; }
         @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
         .progress-container { width: 200px; height: 6px; background-color: #222; border-radius: 10px; overflow: hidden; position: relative; }
-        .progress-bar { height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 10px; animation: fillProgress 1.5s ease-out forwards; }
+        .progress-bar { height: 100%; width: 0%; background: var(--primary-gradient); border-radius: 10px; animation: fillProgress 1s ease-out forwards; }
         @keyframes fillProgress { 0% { width: 0%; } 100% { width: 100%; } }
 
         /* النوافذ المنبثقة */
@@ -59,8 +59,6 @@
         .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
         .btn-cancel { flex: 1; padding: 12px; border-radius: 10px; border: none; background: #333; color: #fff; font-weight: bold; cursor: pointer; }
         .btn-confirm { flex: 1; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; }
-        .btn-full { width: 100%; padding: 12px; border-radius: 10px; border: none; background: var(--primary-gradient); color: #fff; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-full:active { transform: scale(0.98); }
 
         /* المحتوى الرئيسي */
         #main-content { display: none; width: 100%; padding: 20px; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.5s ease; }
@@ -93,9 +91,7 @@
     <audio id="successSound" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
 
     <div id="loading-screen">
-        <div class="loading-logo">
-            <i class="fa-solid fa-heart-pulse"></i> <span>Wareed</span>
-        </div>
+        <div class="loading-logo"><i class="fa-solid fa-heart-pulse"></i> <span>Wareed</span></div>
         <div class="progress-container"><div class="progress-bar"></div></div>
     </div>
 
@@ -183,28 +179,26 @@
         // --- أدوات الصوت والواجهة ---
         function playClick() { document.getElementById("clickSound").play().catch(()=>{}); }
         function playSuccess() { document.getElementById("successSound").play().catch(()=>{}); }
-        
         function openModal(id) {
             if(id === 'forgotModal') document.getElementById('resetEmail').value = document.getElementById('loginEmail').value || '';
             document.getElementById(id).style.display = "flex";
         }
         function closeModal(id) { document.getElementById(id).style.display = "none"; }
-        
         function showToast(msg) {
             const t = document.getElementById('toast'); t.innerText = msg; t.classList.add('show');
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // --- Gatekeeper الذكي (مفتوح للكل) ---
+        // --- نظام المرور الحر (بدون تفتيش) ---
         auth.onAuthStateChanged((user) => {
             const loadingScreen = document.getElementById('loading-screen');
             const mainContent = document.getElementById('main-content');
 
             if (user) {
-                // ✅ المستخدم موجود؟ يدخل فوراً مهما كانت حالته
+                // ✅ فيه مستخدم؟ يدخل فوراً بدون أي سؤال
                 window.location.href = "home.html";
             } else {
-                // ❌ مفيش مستخدم؟ أظهر الفورم
+                // ❌ مفيش؟ خبي اللودنج واظهر الفورم
                 if (loadingScreen.style.display !== 'none') {
                     loadingScreen.style.opacity = '0';
                     setTimeout(() => {
@@ -218,7 +212,7 @@
 
         // --- Actions ---
 
-        // 1. تسجيل الدخول
+        // 1. تسجيل الدخول (دخول مباشر)
         async function loginAction() {
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPass').value;
@@ -228,10 +222,11 @@
             btn.innerText = "جاري التحقق..."; btn.disabled = true;
 
             try {
-                // الدخول العادي بدون شروط
+                // تسجيل الدخول العادي
                 await auth.signInWithEmailAndPassword(email, pass);
                 playSuccess(); showToast("✅ تم الدخول بنجاح");
-                // التوجيه تلقائي من onAuthStateChanged
+                
+                // التوجيه هيحصل تلقائي عن طريق onAuthStateChanged
             } catch (e) {
                 console.error(e);
                 let msg = "❌ بيانات غير صحيحة";
@@ -242,7 +237,7 @@
             }
         }
 
-        // 2. إنشاء حساب (بشكل احترافي بس مفتوح)
+        // 2. إنشاء حساب (بدون انتظار أي حاجة)
         async function signupAction() {
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
@@ -250,7 +245,7 @@
             const btn = document.getElementById('regBtn');
 
             if (!name || !email || !pass) return showToast("⚠️ املأ الحقول المطلوبة");
-            if (pass.length < 6) return showToast("⚠️ كلمة المرور قصيرة");
+            if (pass.length < 6) return showToast("⚠️ كلمة المرور قصيرة (6 أحرف)");
             btn.innerText = "جاري الإنشاء..."; btn.disabled = true;
 
             try {
@@ -259,18 +254,23 @@
                 
                 await user.updateProfile({ displayName: name });
                 
-                // هنبعت الإيميل كإجراء روتيني بس مش هنظهر نافذة منع
+                // بنبعت الإيميل "في الخلفية" كـ Best Practice (لو حبيت ترجع النظام بعدين)
+                // لكن المستخدم مش هيحس بحاجة وهيدخل علطول
                 user.sendEmailVerification().catch(()=>{});
 
                 await db.collection('users').doc(user.uid).set({ 
-                    uid: user.uid, name: name, email: email, points: 0, 
+                    uid: user.uid, 
+                    name: name, 
+                    email: email, 
+                    points: 0, 
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() 
                 });
                 
                 playSuccess(); showToast("✅ تم إنشاء الحساب");
-                // التوجيه تلقائي
+                // التوجيه هيحصل تلقائي
                 
             } catch (e) { 
+                console.error(e);
                 let msg = "❌ حدث خطأ";
                 if(e.code === 'auth/email-already-in-use') msg = "❌ البريد مسجل بالفعل";
                 showToast(msg); 
@@ -280,21 +280,29 @@
 
         // --- Helpers ---
         function confirmReset() {
+            playClick();
             const email = document.getElementById('resetEmail').value;
-            if(!email) return showToast("⚠️ اكتب الإيميل");
+            if(!email) return showToast("⚠️ اكتب الإيميل الأول");
             
             const btn = document.querySelector('#forgotModal .btn-confirm');
             btn.innerText = "جاري الإرسال..."; btn.disabled = true;
 
             auth.sendPasswordResetEmail(email)
-                .then(() => { closeModal('forgotModal'); showToast("✅ تم الإرسال"); btn.innerText="إرسال"; btn.disabled=false; })
-                .catch(() => { showToast("❌ خطأ في الإيميل"); btn.innerText="إرسال"; btn.disabled=false; });
+                .then(() => {
+                    closeModal('forgotModal'); playSuccess();
+                    showToast("✅ تم إرسال الرابط! راجع بريدك");
+                    btn.innerText = "إرسال الرابط"; btn.disabled = false;
+                })
+                .catch((error) => {
+                    showToast("❌ الإيميل ده مش مسجل");
+                    btn.innerText = "إرسال الرابط"; btn.disabled = false;
+                });
         }
 
-        function togglePasswordVisibility(id, icon) {
-            const inp = document.getElementById(id);
-            if (inp.type === "password") { inp.type = "text"; icon.classList.replace("fa-eye", "fa-eye-slash"); }
-            else { inp.type = "password"; icon.classList.replace("fa-eye-slash", "fa-eye"); }
+        function togglePasswordVisibility(inputId, icon) {
+            playClick(); const input = document.getElementById(inputId);
+            if (input.type === "password") { input.type = "text"; icon.classList.remove("fa-eye"); icon.classList.add("fa-eye-slash"); }
+            else { input.type = "password"; icon.classList.remove("fa-eye-slash"); icon.classList.add("fa-eye"); }
         }
         function validateEmail(input) {
             const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -306,10 +314,13 @@
             input.classList.toggle("invalid", input.value.length < 6 && input.value !== "");
         }
         function toggleForms() {
-            const l = document.getElementById('loginForm');
-            const s = document.getElementById('signupForm');
-            l.style.display = l.style.display==='none' ? 'block' : 'none';
-            s.style.display = s.style.display==='none' ? 'block' : 'none';
+            const login = document.getElementById('loginForm');
+            const signup = document.getElementById('signupForm');
+            if (login.style.display === 'none') {
+                login.style.display = 'block'; signup.style.display = 'none';
+            } else {
+                login.style.display = 'none'; signup.style.display = 'block';
+            }
         }
     </script>
 </body>
