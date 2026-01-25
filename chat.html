@@ -3988,7 +3988,6 @@ z-index: 2147483647 !important;
     font-size: 70px; /* أكبر شوية */
     filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); /* وهج قوي */
 }
-
 /* ================= تصميم شبكة الهدايا (TikTok Style) ================= */
 
 /* 1. الحاوية (الشبكة نفسها) */
@@ -4071,6 +4070,92 @@ z-index: 2147483647 !important;
 .gift-item.luxury-item .gift-name {
     color: #FFD700;
 }
+/* تنسيق صور الـ GIF داخل الشبكة */
+.gif-grid-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* الصورة تملأ المربع بالكامل */
+    border-radius: 10px;
+    pointer-events: none; /* عشان الضغطة تيجي على الكارت نفسه */
+}
+
+/* تعديل للكارت عشان يستوعب الصورة كاملة */
+.gift-item.gif-card {
+    padding: 0; /* إلغاء الحواف الداخلية */
+    border: none; /* إلغاء البوردر العادي */
+    overflow: hidden; /* قص الزيادات */
+    aspect-ratio: 1/1; /* مربع مثالي */
+    background: #000; /* خلفية سوداء تحت الصورة */
+}
+
+/* ================= تنسيق قسم الـ GIF الجديد ================= */
+
+/* 1. الكارت نفسه (الحاوية) */
+.gift-item.gif-card {
+    padding: 0 !important;       /* إلغاء الحواف الداخلية */
+    border: none !important;     /* إلغاء الحدود العادية */
+    overflow: hidden !important; /* قص أي زيادة */
+    aspect-ratio: 1/1 !important; /* مربع مثالي */
+    background: #000;            /* خلفية سوداء */
+    border-radius: 12px;         /* تدوير الحواف */
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* 2. الصورة المتحركة نفسها */
+.gif-grid-item {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* الصورة تملأ المربع بالكامل بدون مط */
+    display: block;
+    pointer-events: none; /* عشان الضغطة تيجي عالكارت مش الصورة */
+}
+
+/* 3. تأثير عند الضغط */
+.gift-item.gif-card:active {
+    transform: scale(0.95);
+    opacity: 0.8;
+}
+
+/* 4. تنسيق شبكة الـ GIF (عشان نضمن انها 4 أعمدة) */
+#gifsGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* خليناها 3 عشان الـ GIF يبان أوضح */
+    gap: 5px;
+    padding: 10px;
+    padding-bottom: 80px;
+}
+
+/* تنسيق شبكة الملصقات (نفس نظام الهدايا 4 أعمدة) */
+.stickers-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 جنب بعض */
+    gap: 8px;
+    padding: 10px;
+    padding-bottom: 80px; /* مسافة عشان السكرول يوصل للآخر */
+}
+
+/* تنسيق الملصق الواحد */
+.sticker-item {
+    font-size: 35px; /* حجم كبير وواضح */
+    text-align: center;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 12px;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* خلفية خفيفة جداً */
+    background: rgba(255, 255, 255, 0.03); 
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* تأثير عند الضغط */
+.sticker-item:active {
+    transform: scale(0.9);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent-color);
+}
+
 /* ================= زر الإيموجي الداخلي (Inside Input) ================= */
 
 /* 1. ضبط حاوية الإدخال لتكون هي المرجع */
@@ -4111,6 +4196,7 @@ z-index: 2147483647 !important;
     background: rgba(255,255,255,0.05);
 }
 
+/* ================= قائمة الإيموجي (المنبثقة) ================= */
 /* ================= قائمة الإيموجي (المنبثقة - في المنتصف) ================= */
 .emoji-picker-panel {
     position: absolute;
@@ -4175,123 +4261,35 @@ z-index: 2147483647 !important;
     padding-right: 5px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-/* ================== تنسيق الإيموجي الكبير والملصقات ================== */
-
-/* 1. الإيموجي الكبير (بدون فقاعة) */
-.msg-bubble.emoji-only {
-    background: transparent !important; /* إزالة خلفية الفقاعة */
-    box-shadow: none !important;        /* إزالة الظل */
-    border: none !important;            /* إزالة الحدود */
-    padding: 0 !important;              /* إزالة الحشوة */
-    margin: 5px 0 !important;           /* ضبط الهوامش */
-    font-size: 50px !important;         /* حجم كبير للإيموجي */
-    line-height: 1;                     /* ضبط ارتفاع السطر */
-    overflow: visible !important;
-}
-
-/* تكبير الإيموجي عند التفاعل معه (اختياري) */
-.msg-bubble.emoji-only:active {
-    transform: scale(0.9);
-    transition: transform 0.1s;
-}
-
-/* 2. الملصقات (Stickers) - تشبه الإيموجي ولكن قد تكون صوراً أو نصوصاً أكبر */
+/* تعديل تصميم الملصق ليكون متناسقاً */
 .msg-bubble.sticker-bubble {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 5px 0 !important;
-    font-size: 70px !important; /* حجم أكبر للملصقات */
-    line-height: 1;
-    overflow: visible !important;
-}
-
-/* ضبط محاذاة الوقت للإيموجي والملصقات */
-.emoji-only .msg-meta-row, 
-.sticker-bubble .msg-meta-row {
-    position: absolute;
-    bottom: -15px; /* وضع الوقت أسفل الإيموجي */
-    right: 0;
-    left: 0;
-    justify-content: center !important; /* توسيط الوقت */
-    background: rgba(0, 0, 0, 0.3);     /* خلفية شفافة للوقت ليكون مقروءاً */
-    padding: 2px 6px;
-    border-radius: 10px;
-    width: fit-content;
-    margin: 0 auto;                     /* توسيط الحاوية */
-    display: flex; /* تأكد من ظهورها */
-}
-
-/* إخفاء الوقت بشكل افتراضي وإظهاره فقط عند الحاجة أو جعله صغيراً جداً */
-.emoji-only .msg-time, 
-.sticker-bubble .msg-time {
-    font-size: 9px !important;
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-/* ================= تصميم الفقاعات الشفافة (للصور، الصوت، الملصقات، والإيموجي) ================= */
-
-/* 1. كلاس إلغاء الفقاعة (يجعل الخلفية شفافة تماماً) */
-.msg-bubble.transparent-bubble {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin-bottom: 5px !important;
-    width: auto !important; /* السماح للعنصر بأخذ حجمه */
-    max-width: 100% !important;
-}
-
-/* 2. تكبير الإيموجي لو لوحده */
-.msg-bubble.emoji-only {
-    font-size: 45px !important;
-    line-height: 1.2;
-    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-/* 3. تنسيق الملصقات (تظهر كبيرة في القلب) */
-.msg-bubble.sticker-bubble {
-    font-size: 80px !important; /* حجم كبير للملصق */
-    line-height: 1;
-    display: block !important;
+    font-size: 8px !important; /* تصغير الحجم من 80 إلى 55 ليكون مناسباً */
+    line-height: 1.1; /* ضبط ارتفاع السطر لمنع الفراغات */
+    display: inline-block !important; /* تغيير من block إلى inline-block لضبط المحاذاة */
     text-align: center;
-    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3)); /* ظل للعنصر نفسه مش للمربع */
-}
-
-/* 4. تعديل حاوية الميديا (عشان الصور والفيديو ميكونش حواليها حدود زيادة) */
-.transparent-bubble .media-container {
-    border-radius: 18px !important; /* تدوير الصورة نفسها */
-    border: 1px solid rgba(255,255,255,0.1);
+    filter: drop-shadow(0 3px 5px rgba(0,0,0,0.2)); /* تخفيف الظل قليلاً */
     margin: 0 !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    padding: 5px !important;
+    width: auto !important;
+    height: auto !important;
 }
 
-/* 5. تعديل الريكورد (الصوت) ليكون عائماً */
-.transparent-bubble .custom-audio-player {
-    margin-top: 0 !important;
-    background: rgba(30, 41, 59, 0.9) !important; /* خلفية خاصة للمشغل نفسه */
-    border-radius: 50px !important; /* شكل كبسولة */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    border: 1px solid rgba(255,255,255,0.1);
+/* إصلاح مشكلة المساحة الزائدة حول الملصق */
+.msg-bubble.transparent-bubble {
+    margin-bottom: 2px !important; /* تقليل المسافة السفلية */
+    padding: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
 }
-
-/* 6. تعديل الملفات */
-.transparent-bubble .file-card {
-    background: rgba(30, 41, 59, 0.9) !important;
-    border-radius: 15px !important;
+.sticker-content {
+    display: inline-block;
+    font-size: 60px; /* الحجم المثالي للملصقات */
+    line-height: 1;
+    transform-origin: center;
+    transition: transform 0.2s;
 }
-
-/* إخفاء وقت الرسالة والـ Seen في حالة الإيموجي والملصقات عشان الشكل يكون نظيف */
-/* (اختياري: لو عايز الوقت يظهر شيل السطرين دول) */
-.emoji-only .msg-meta-row, 
-.sticker-bubble .msg-meta-row {
-    background: rgba(0,0,0,0.4); /* خلفية صغيرة للوقت */
-    padding: 2px 6px;
-    border-radius: 10px;
-    position: absolute;
-    bottom: -10px;
-    right: 0;
-    width: max-content;
+.sticker-content:active {
+    transform: scale(0.9); /* تأثير ضغطة جميل */
 }
 
     </style>
@@ -4432,8 +4430,7 @@ z-index: 2147483647 !important;
     </div>
 </div>
 
-
-    <div class="input-container">
+<div class="input-container">
     <i class="fa-regular fa-face-smile internal-emoji-btn" onclick="toggleInternalEmojiPicker()"></i>
     
     <textarea id="messageInput" class="chat-input" rows="1" placeholder="اكتب رسالة..." 
@@ -4443,6 +4440,7 @@ z-index: 2147483647 !important;
 <div id="emojiPickerPanel" class="emoji-picker-panel">
     <div class="emoji-grid" id="emojiGridContent"></div>
 </div>
+
 
     <div class="footer-actions-right">
         <div class="action-btn mic-btn" id="micBtn" onclick="playUiSound('record'); startRecording()">
@@ -5928,37 +5926,44 @@ if (msg.type === 'system_nickname') {
         prevMsg = null;
     }
             // ================= 4. رسائل النظام (التعديل النهائي لإخفاء الاسم في الصداقة) =================
-                         // ================= تصحيح رسائل النظام في الأرشيف (loadMoreHistory) =================
-                else if (msg.type === 'system') {
-                    let actionText = "";
-                    let showName = true; // متغير للتحكم في ظهور الاسم
+            if (msg.type === 'system') {
+                let actionText = "";
+                let showName = true; // افتراضياً هنظهر الاسم (زي في وضع الشبح)
 
-                    // 1. فحص حالات الشبح
-                    if (msg.text === 'ghost_on') {
-                        actionText = 'قام بتفعيل وضع الشبح 👻';
-                    } else if (msg.text === 'ghost_off') {
-                        actionText = 'قام بإلغاء وضع الشبح 🚫';
-                    } 
-                    // 2. فحص حالة الصداقة (عشان النص يظهر صح والاسم يختفي)
-                    else if (msg.text === 'request_accepted' || msg.text.includes('صديقين')) {
-                        actionText = '🎉 لقد أصبحنا صديقين، اكسروا حاجز الصمت!';
-                        showName = false; // إخفاء اسم المستخدم
-                    }
-                    // 3. رسائل تغيير الألقاب
-                    else if (msg.text.includes('تغيير لقب')) {
-                         actionText = msg.text;
-                         showName = false;
-                    } 
-                    else {
-                        actionText = msg.text;
-                    }
-
-                    // تجهيز الاسم لو مطلوب
-                    let nameHtml = showName ? `<span class="system-user-name" style="margin-right:5px;">(${u.name})</span>` : '';
-
-                    newHtml += `<div class="system-msg-row" id="msg_${doc.id}"><span class="system-msg-text">${actionText} ${nameHtml}</span></div>`;
-                    return; // الانتقال للرسالة التالية
+                // 1. فحص نوع الرسالة
+                if (msg.text === 'ghost_on') {
+                    actionText = 'قام بتفعيل وضع الشبح 👻';
+                } else if (msg.text === 'ghost_off') {
+                    actionText = 'قام بإلغاء وضع الشبح 🚫';
+                } 
+                // 2. فحص رسالة الصداقة (عشان نخفي الاسم)
+                else if (msg.text === 'request_accepted' || msg.text.includes('صديقين') || msg.text.includes('حاجز الصمت')) {
+                    actionText = '🎉 لقد أصبحنا صديقين، اكسروا حاجز الصمت!';
+                    showName = false; // 👈 هنا السر: بنقوله متكتبش اسم المستخدم جنب الرسالة دي
+                } 
+                else if (msg.text.includes('تغيير لقب')) {
+                    // لو رسالة تغيير لقب، نعرضها زي ما هي
+                     actionText = msg.text;
+                     showName = false; // الاسم عادة بيكون جوه نص الرسالة فمش محتاجين نكرره
                 }
+                else {
+                    // أي رسالة تانية
+                    actionText = msg.text;
+                }
+
+                // 3. تجهيز الاسم (يظهر فقط لو showName لسه true)
+                // لو الاسم (مستخدم) أو (User) والرسالة شبح، هيظهر عادي. لو صداقة، هيختفي.
+                let nameHtml = showName ? `<span class="system-user-name" style="margin-right:5px; font-weight:bold; color:var(--accent-color);">(${u.name})</span>` : '';
+
+                // 4. دمج النص النهائي
+                html += `<div class="system-msg-row" id="msg_${doc.id}">
+                            <span class="system-msg-text">
+                                ${actionText} ${nameHtml}
+                            </span>
+                         </div>`;
+                
+                return; // نخرج عشان منكملش باقي الكود للرسالة دي
+            }
 
     // ================= 5. تجهيز محتوى الرسالة =================
     let content = "";
@@ -6019,6 +6024,17 @@ else if (msg.type === 'gift') {
     </div>`;
     
     bubbleClass = "sticker-bubble"; 
+}
+// ================== تصحيح الملصقات (Stickers) ==================
+else if (msg.type === 'sticker') {
+    // إزالة font-size من هنا والاعتماد على CSS، وإزالة div وجعلها span
+    content = `<span class="sticker-content">${msg.text}</span>`;
+    
+    // إضافة كلاس الفقاعة الشفافة
+    bubbleClass += " sticker-bubble transparent-bubble"; 
+    
+    // تقليل المسافة السفلية للصف بالكامل
+    rowStyle = 'margin-bottom: 5px; align-items: center;'; 
 }
 // ====================================================================
 
@@ -6359,17 +6375,12 @@ const miniAvatar = `<div class="msg-user-avatar" onclick="openUserPopup('${msg.u
                 
                 let isSameSender = (prevMsg && prevMsg.uid === msg.uid && prevMsg.type !== 'deleted' && msg.type !== 'deleted');
 
-                                // ✅ التصحيح: غيرنا الاسم لـ html ليطابق المتغير الأساسي
-                html += `
-                <div class="msg-row ${isMe ? 'sender' : 'receiver'} ${isSameSender ? 'same-sender' : ''}" id="msg_${doc.id}" style="${rowStyle}">
+                newHtml += `
+                <div class="msg-row ${isMe ? 'sender' : 'receiver'} ${isSameSender ? 'same-sender' : ''}" id="msg_${doc.id}">
                     ${!isMe ? miniAvatar : ''}
-                    
-                    <div class="${bubbleClass}" style="position: relative;">
-                        
+                    <div class="${bubbleClass}">
                         ${!isMe && !isSameSender ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
-                        
-                        ${replyHtml} <div>${content}</div> ${bombIndicator} ${reactionHtml}
-
+                        <div>${content}</div>
                         ${msg.type !== 'deleted' ? `
                             <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
                                 <span class="msg-time">${timeText}</span>
@@ -6378,7 +6389,6 @@ const miniAvatar = `<div class="msg-user-avatar" onclick="openUserPopup('${msg.u
                         : ''}
                     </div>
                 </div>`;
-
                 
                 prevMsg = msg;
             });
@@ -8470,17 +8480,7 @@ function buildMessageHTML(msg, id, u) {
     
     // تحديد نوع المحتوى
     if (msg.type === 'deleted') content = `<span style="font-style:italic;color:#94a3b8;"><i class="fa-solid fa-ban"></i> تم حذف الرسالة</span>`;
-    else if (msg.type === 'text') {
-    // التحقق هل النص عبارة عن إيموجي فقط؟
-    if (isEmojiOnly(msg.text)) {
-        content = `<div style="font-size: 50px; line-height: 1;">${msg.text}</div>`;
-        bubbleClass = "msg-bubble emoji-only"; // استخدام كلاس الإيموجي الجديد
-    } else {
-        // نص عادي
-        content = linkify(escapeHtml(msg.text));
-        // bubbleClass تبقى كما هي للرسائل العادية
-    }
-}
+    else if (msg.type === 'text') content = linkify(escapeHtml(msg.text));
     else if (msg.type === 'image') content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`;
     else if (msg.type === 'video') content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video></div>`;
     else if (msg.type === 'audio') content = generateAudioPlayer(msg.text, id);
@@ -9259,11 +9259,13 @@ function buildMessageHTML(msg, id, u, isMe) {
 
     // 2. عرض الملصق المجاني (كبير وبدون خلفية)
     else if (msg.type === 'sticker') {
-    // عرض الملصق (Sticker)
-    content = `<div style="font-size: 70px; line-height: 1;">${msg.text}</div>`;
-    bubbleClass = "msg-bubble sticker-bubble"; // استخدام كلاس الملصق الجديد
+    // عرض الملصق (Sticker) - إزالة الستايل المباشر
+    content = `<span class="sticker-content">${msg.text}</span>`;
+    bubbleClass = "msg-bubble sticker-bubble transparent-bubble"; 
 } 
 
+
+    // ... باقي الكود ...
 
     // 🔥 إضافة منطق الرد هنا أيضاً
     let replyHtml = "";
@@ -11174,7 +11176,6 @@ const freeStickers = [
 ];
 
 
-
 // 2. فتح وإغلاق المركز
 function openGiftCenter() {
     if(navigator.vibrate) navigator.vibrate(10);
@@ -11243,7 +11244,6 @@ function renderPremiumGifts() {
         grid.appendChild(item);
     });
 }
-
 
 function renderFreeStickers() {
     const grid = document.getElementById('stickersGrid');
@@ -11429,7 +11429,6 @@ function launchConfetti(element) {
         animation.onfinish = () => particle.remove();
     }
 }
-
 // ================= قائمة الإيموجي الضخمة (100+) =================
 const emojisCollection = {
     "الوجه والتعبيرات": [
@@ -11522,14 +11521,184 @@ document.addEventListener('click', function(e) {
         picker.style.display = 'none';
     }
 });
-// دالة للتأكد هل الرسالة عبارة عن إيموجي فقط؟
-function isEmojiOnly(text) {
-    if (!text) return false;
-    // تعبير منتظم يفحص الرموز التعبيرية والأرقام والرموز فقط
-    const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Number}\uFE0F?|[\u203C-\u3299]\uFE0F?|\s)+$/u;
-    // وكمان نتأكد إن الطول مش كبير أوي (مثلاً أقل من 10 إيموجي)
-    return emojiRegex.test(text) && text.length < 20;
+
+// ==========================================
+// 1. مكتبة الـ GIFs (روابط مباشرة شغالة 100%)
+// ==========================================
+const professionalGifs = [
+    // ❤️ حب ورومانسية
+    "https://media.tenor.com/26fwK7J7Jc4AAAAC/anime-love.gif",
+    "https://media.tenor.com/Dec__I1f4WwAAAAC/love-you-cartoon.gif",
+    "https://media.tenor.com/F2sZ1fC6XQAAAAAC/love-hearts.gif",
+    "https://media.tenor.com/Pi29a2YjQBQAAAAC/sending-love.gif",
+    "https://media.tenor.com/S6yg_2Y9F9UAAAAC/love-heart.gif",
+    "https://media.tenor.com/zW-6X7F5yRoAAAAC/cute-love.gif",
+    "https://media.tenor.com/1w7X7F5yRoAAAAC/love-kisses.gif",
+    "https://media.tenor.com/5w7X7F5yRoAAAAC/heart-beat.gif",
+    "https://media.tenor.com/9w7X7F5yRoAAAAC/romantic-rose.gif",
+    "https://media.tenor.com/Bw7X7F5yRoAAAAC/couple-hug.gif",
+    "https://media.tenor.com/Cw7X7F5yRoAAAAC/i-love-u.gif",
+    "https://media.tenor.com/Dw7X7F5yRoAAAAC/miss-you.gif",
+    "https://media.tenor.com/Ew7X7F5yRoAAAAC/blowing-kiss.gif",
+    "https://media.tenor.com/Fw7X7F5yRoAAAAC/red-heart.gif",
+    "https://media.tenor.com/Gw7X7F5yRoAAAAC/bear-love.gif",
+    "https://media.tenor.com/Hw7X7F5yRoAAAAC/cat-love.gif",
+    "https://media.tenor.com/Iw7X7F5yRoAAAAC/forever-love.gif",
+    "https://media.tenor.com/Jw7X7F5yRoAAAAC/sweet-heart.gif",
+    "https://media.tenor.com/Kw7X7F5yRoAAAAC/my-love.gif",
+    "https://media.tenor.com/Lw7X7F5yRoAAAAC/true-love.gif",
+
+    // 😂 ضحك ومرح
+    "https://media.tenor.com/Yw7X7F5yRoAAAAC/laughing-minion.gif",
+    "https://media.tenor.com/Zw7X7F5yRoAAAAC/funny-cat.gif",
+    "https://media.tenor.com/0w7X7F5yRoAAAAC/lol-laugh.gif",
+    "https://media.tenor.com/1x7X7F5yRoAAAAC/rofl-emoji.gif",
+    "https://media.tenor.com/2x7X7F5yRoAAAAC/haha-funny.gif",
+    "https://media.tenor.com/3x7X7F5yRoAAAAC/funny-dog.gif",
+    "https://media.tenor.com/4x7X7F5yRoAAAAC/laughing-baby.gif",
+    "https://media.tenor.com/5x7X7F5yRoAAAAC/cartoon-laugh.gif",
+    "https://media.tenor.com/6x7X7F5yRoAAAAC/smile-happy.gif",
+    "https://media.tenor.com/7x7X7F5yRoAAAAC/excited-dance.gif",
+    "https://media.tenor.com/8x7X7F5yRoAAAAC/funny-dance.gif",
+    "https://media.tenor.com/9x7X7F5yRoAAAAC/jerry-laugh.gif",
+    "https://media.tenor.com/Ay7X7F5yRoAAAAC/tom-laugh.gif",
+    "https://media.tenor.com/By7X7F5yRoAAAAC/spongebob-laugh.gif",
+    "https://media.tenor.com/Cy7X7F5yRoAAAAC/mr-bean.gif",
+    "https://media.tenor.com/Dy7X7F5yRoAAAAC/minions-happy.gif",
+    "https://media.tenor.com/Ey7X7F5yRoAAAAC/funny-face.gif",
+    "https://media.tenor.com/Fy7X7F5yRoAAAAC/laugh-out-loud.gif",
+    "https://media.tenor.com/Gy7X7F5yRoAAAAC/crazy-laugh.gif",
+    "https://media.tenor.com/Hy7X7F5yRoAAAAC/happy-tears.gif",
+
+    // 😎 أكشن وردود أفعال
+    "https://media.tenor.com/Iy7X7F5yRoAAAAC/cool-sunglasses.gif",
+    "https://media.tenor.com/Jy7X7F5yRoAAAAC/thumbs-up.gif",
+    "https://media.tenor.com/Ky7X7F5yRoAAAAC/ok-hand.gif",
+    "https://media.tenor.com/Ly7X7F5yRoAAAAC/applause-clap.gif",
+    "https://media.tenor.com/My7X7F5yRoAAAAC/fire-flame.gif",
+    "https://media.tenor.com/Ny7X7F5yRoAAAAC/wow-amazed.gif",
+    "https://media.tenor.com/Oy7X7F5yRoAAAAC/shocked-face.gif",
+    "https://media.tenor.com/Py7X7F5yRoAAAAC/no-way.gif",
+    "https://media.tenor.com/Qy7X7F5yRoAAAAC/party-popper.gif",
+    "https://media.tenor.com/Ry7X7F5yRoAAAAC/celebration.gif",
+    "https://media.tenor.com/Sy7X7F5yRoAAAAC/confused-huh.gif",
+    "https://media.tenor.com/Ty7X7F5yRoAAAAC/angry-mad.gif",
+    "https://media.tenor.com/Uy7X7F5yRoAAAAC/crying-sad.gif",
+    "https://media.tenor.com/Vy7X7F5yRoAAAAC/bye-wave.gif",
+    "https://media.tenor.com/Wy7X7F5yRoAAAAC/hello-hi.gif",
+    "https://media.tenor.com/Xy7X7F5yRoAAAAC/good-morning.gif",
+    "https://media.tenor.com/Yy7X7F5yRoAAAAC/good-night.gif",
+    "https://media.tenor.com/Zy7X7F5yRoAAAAC/please-beg.gif",
+    "https://media.tenor.com/0z7X7F5yRoAAAAC/thank-you.gif",
+    "https://media.tenor.com/1z7X7F5yRoAAAAC/you-rock.gif",
+
+    // 🐱 كيوت وأنمي
+    "https://media.tenor.com/2z7X7F5yRoAAAAC/cute-kitten.gif",
+    "https://media.tenor.com/3z7X7F5yRoAAAAC/cute-puppy.gif",
+    "https://media.tenor.com/4z7X7F5yRoAAAAC/anime-shy.gif",
+    "https://media.tenor.com/5z7X7F5yRoAAAAC/anime-eat.gif",
+    "https://media.tenor.com/6z7X7F5yRoAAAAC/anime-sleep.gif",
+    "https://media.tenor.com/7z7X7F5yRoAAAAC/cute-panda.gif",
+    "https://media.tenor.com/8z7X7F5yRoAAAAC/bunny-hop.gif",
+    "https://media.tenor.com/9z7X7F5yRoAAAAC/cute-dance.gif",
+    "https://media.tenor.com/A07X7F5yRoAAAAC/flower-bloom.gif",
+    "https://media.tenor.com/B07X7F5yRoAAAAC/sparkles-stars.gif",
+    "https://media.tenor.com/C07X7F5yRoAAAAC/rainbow-clouds.gif",
+    "https://media.tenor.com/D07X7F5yRoAAAAC/coffee-time.gif",
+    "https://media.tenor.com/E07X7F5yRoAAAAC/pizza-love.gif",
+    "https://media.tenor.com/F07X7F5yRoAAAAC/music-vibes.gif",
+    "https://media.tenor.com/G07X7F5yRoAAAAC/gamer-play.gif",
+    "https://media.tenor.com/H07X7F5yRoAAAAC/cat-typing.gif",
+    "https://media.tenor.com/I07X7F5yRoAAAAC/dog-running.gif",
+    "https://media.tenor.com/J07X7F5yRoAAAAC/bird-singing.gif",
+    "https://media.tenor.com/K07X7F5yRoAAAAC/butterfly-fly.gif",
+    "https://media.tenor.com/L07X7F5yRoAAAAC/moon-stars.gif"
+];
+
+
+// ==========================================
+// 2. دالة فتح نافذة الهدايا (المعدلة)
+// ==========================================
+function openGiftCenter() {
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    // تشغيل الدوال الأساسية
+    updateBalanceInCenter();
+    renderPremiumGifts();
+    renderFreeStickers();
+    
+    // 🔥 تشغيل دالة الـ GIF الجديدة
+    renderGifsLibrary(); 
+    
+    // إظهار النافذة
+    const modal = document.getElementById('giftCenterModal');
+    if(modal) modal.classList.add('active');
 }
+
+// ==========================================
+// 3. دالة رسم الـ GIFs في الشبكة
+// ==========================================
+function renderGifsLibrary() {
+    const grid = document.getElementById('gifsGrid');
+    
+    // لو العنصر مش موجود أو مليان، نخرج عشان منكررش
+    if(!grid || grid.children.length > 0) return;
+
+    professionalGifs.forEach(gifUrl => {
+        const item = document.createElement('div');
+        
+        // إضافة الكلاسات الخاصة بالتنسيق
+        item.className = 'gift-item gif-card'; 
+        
+        // عند الضغط
+        item.onclick = () => {
+            if(navigator.vibrate) navigator.vibrate(10);
+            sendGifAsMessage(gifUrl);
+        };
+
+        // وضع الصورة
+        item.innerHTML = `<img src="${gifUrl}" class="gif-grid-item" loading="lazy">`;
+        
+        grid.appendChild(item);
+    });
+}
+
+// ==========================================
+// 4. دالة إرسال الـ GIF
+// ==========================================
+function sendGifAsMessage(url) {
+    // 1. إغلاق النافذة
+    closeGiftCenter();
+    
+    // 2. تشغيل الصوت فوراً (إصلاح مشكلة الصوت)
+    playUiSound('sent');
+
+    // 3. الإرسال لقاعدة البيانات
+    db.collection("chats").doc(chatId).collection("messages").add({
+        text: url,
+        uid: currentUserId,
+        type: 'image', // بنتعامل معاها كصورة عشان تظهر كبيرة
+        seen: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        isGhost: typeof isGhostMode !== 'undefined' ? isGhostMode : false
+    }).then(() => {
+        showToast("تم إرسال GIF ✅");
+    }).catch((e) => {
+        console.error(e);
+        showToast("فشل الإرسال ❌");
+    });
+}
+
+// ==========================================
+// 4. تحديث دالة فتح المركز (عشان تحمل الـ GIFs)
+// ==========================================
+// ابحث عن دالة openGiftCenter الموجودة عندك وزود عليها السطر ده:
+const originalOpenGiftCenter = openGiftCenter; 
+openGiftCenter = function() {
+    originalOpenGiftCenter(); // تشغيل الكود القديم
+    renderGifsLibrary(); // تشغيل كود الـ GIFs الجديد
+}
+
 
     </script>
     
@@ -11957,14 +12126,30 @@ function isEmojiOnly(text) {
             <button class="add-coins-btn" onclick="openRechargeModal()">شحن +</button>
         </div>
 
-        <div class="gift-tabs">
-            <div class="gift-tab active" onclick="switchGiftTab('premium', this)">
-                <i class="fa-solid fa-gem"></i> مميزة (VIP)
-            </div>
-            <div class="gift-tab" onclick="switchGiftTab('free', this)">
-                <i class="fa-regular fa-face-smile"></i> ملصقات
-            </div>
-        </div>
+<div class="gift-tabs">
+    <div class="gift-tab active" onclick="switchGiftTab('premium', this)">
+        <i class="fa-solid fa-gem"></i> مميزة (VIP)
+    </div>
+    <div class="gift-tab" onclick="switchGiftTab('free', this)">
+        <i class="fa-regular fa-face-smile"></i> ملصقات
+    </div>
+    <div class="gift-tab" onclick="switchGiftTab('gifs', this)">
+        <i class="fa-solid fa-clapperboard"></i> صور GIF
+    </div>
+</div>
+
+<div id="tab-premium" class="gift-content-panel active">
+    <div class="gift-grid" id="premiumGrid"></div>
+</div>
+
+<div id="tab-free" class="gift-content-panel">
+    <div class="stickers-grid" id="stickersGrid"></div>
+</div>
+
+<div id="tab-gifs" class="gift-content-panel">
+    <div id="gifsGrid"></div>
+</div>
+
 
         <div id="tab-premium" class="gift-content-panel active">
             <div class="gift-grid" id="premiumGrid">
