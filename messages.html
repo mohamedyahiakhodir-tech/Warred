@@ -5880,6 +5880,55 @@ function getShortLastSeen(timestamp) {
     
     return ''; // لو أكثر من 3 أيام منظهرش حاجة عشان الزحمة
 }
+// 1. دالة تثبيت الرسالة (توضع داخل زرار في القائمة context menu)
+async function pinMessage() {
+    // التأكد من وجود رسالة مختارة
+    if(!selectedMsgId || !selectedMsgData) return;
+    
+    // تحديد النص اللي هيظهر (لو صورة نكتب "صورة" وهكذا)
+    let previewText = selectedMsgData.text;
+    if(selectedMsgData.type === 'image') previewText = '📷 صورة';
+    else if(selectedMsgData.type === 'video') previewText = '🎥 فيديو';
+    else if(selectedMsgData.type === 'audio') previewText = '🎤 مقطع صوتي';
+
+    // الحفظ في الداتابيز
+    await db.collection('chats').doc(chatId).update({
+        pinnedMessage: {
+            text: previewText,
+            id: selectedMsgId
+        }
+    });
+    
+    showToast("تم تثبيت الرسالة 📌");
+    closeContextMenu(); // إغلاق القائمة
+}
+
+// 2. مراقب عشان يظهر الشريط لما يكون فيه رسالة مثبتة
+db.collection('chats').doc(chatId).onSnapshot(doc => {
+    const data = doc.data();
+    const pinBar = document.getElementById('pinnedMsgBar');
+    const pinText = document.getElementById('pinnedMsgText');
+
+    if(data && data.pinnedMessage) {
+        // إظهار الشريط
+        pinBar.style.display = 'block';
+        pinText.innerText = data.pinnedMessage.text;
+        
+        // حفظ الآيدي في متغير عشان نعرف نروحله
+        window.pinnedMsgId = data.pinnedMessage.id;
+    } else {
+        // إخفاء الشريط لو مفيش رسالة مثبتة
+        pinBar.style.display = 'none';
+    }
+});
+
+// 3. دالة القفز للرسالة عند الضغط على الشريط
+function jumpToPinned() {
+    if(window.pinnedMsgId) {
+        // نستخدم دالة البحث القوية اللي عملناها عشان تجيب الرسالة حتى لو قديمة
+        handleSearchResultClick(window.pinnedMsgId);
+    }
+}
 
 
     </script>
@@ -6111,6 +6160,13 @@ function getShortLastSeen(timestamp) {
         </div>
 </div>
 
+</div> 
+    <div id="pinnedMsgBar" style="display:none; position:absolute; top:75px; left:10px; right:10px; background:rgba(30, 41, 59, 0.95); padding:8px; border-radius:10px; border-left:3px solid #f59e0b; z-index:90; cursor:pointer;" onclick="jumpToPinned()">
+        <div style="font-size:11px; color:#f59e0b; font-weight:bold;">رسالة مثبتة <i class="fa-solid fa-thumbtack"></i></div>
+        <div id="pinnedMsgText" style="font-size:12px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"></div>
+    </div>
+
+    <div class="chat-body" id="chatContainer">
 
 
 </body>

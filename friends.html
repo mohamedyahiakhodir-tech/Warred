@@ -23,9 +23,9 @@
             --secondary-text: #aaa;
             --border-color: #2a2a2a;
             --danger-color: #ff453a;
-            --success-color: #34c759;
+            --success-color: #4ade80; /* لون الأونلاين الجديد من كود الدردشة */
             --gold-color: #ffb400;
-            --verified-color: #3897f0; /* لون التوثيق */
+            --verified-color: #3897f0;
             --input-bg: #202022;
         }
 
@@ -36,10 +36,10 @@
             font-family: "Cairo", sans-serif; 
             padding-bottom: 90px; 
             overflow-x: hidden; 
-            overscroll-behavior-y: contain; /* لمنع سحب المتصفح نفسه */
+            overscroll-behavior-y: contain;
         }
         
-        /* === مؤشر السحب للتحديث (Pull to Refresh) === */
+        /* === مؤشر السحب للتحديث === */
         #pullIndicator {
             position: fixed; top: -50px; left: 0; width: 100%; height: 50px;
             display: flex; align-items: center; justify-content: center;
@@ -122,28 +122,28 @@
             position: relative; overflow: visible !important;
         }
 
+        /* لمبة الأونلاين الجديدة (نفس ستايل الدردشة) */
         .online-dot {
-            position: absolute; bottom: 2px; right: 2px;
-            width: 14px; height: 14px; background-color: var(--success-color);
-            border: 2px solid var(--card-color); border-radius: 50%;
-            display: none; box-shadow: 0 0 8px rgba(52, 199, 89, 0.6); z-index: 5;
+            position: absolute; bottom: 0; right: 0;
+            width: 14px; height: 14px; 
+            background-color: var(--success-color);
+            border: 2px solid var(--card-color); 
+            border-radius: 50%;
+            display: none; 
+            z-index: 5;
+            box-shadow: 0 0 5px rgba(74, 222, 128, 0.8);
         }
-        .online-dot.active { display: block; animation: pulse-green 2s infinite; }
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); }
-            70% { box-shadow: 0 0 0 5px rgba(52, 199, 89, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
-        }
+        .online-dot.active { display: block; }
         
         .friend-info { flex: 1; overflow: hidden; }
         .friend-name-row { display: flex; align-items: center; gap: 6px; }
         .friend-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         
-        .verified-badge { color: var(--verified-color); font-size: 14px; } /* علامة التوثيق */
+        .verified-badge { color: var(--verified-color); font-size: 14px; }
         .fav-star { font-size: 12px; color: var(--gold-color); display: none; filter: drop-shadow(0 0 5px rgba(255, 180, 0, 0.5)); }
         .fav-star.active { display: block; }
 
-        .friend-status { font-size: 11px; color: var(--secondary-text); margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+        .friend-status { font-size: 11px; color: var(--secondary-text); margin-top: 4px; display: flex; align-items: center; gap: 4px; font-weight: 600; }
         .friend-status.online { color: var(--success-color); font-weight: bold; }
         
         .item-actions { display: flex; gap: 8px; }
@@ -201,6 +201,9 @@
         .nav-item { font-size: 22px; color: var(--secondary-text); cursor: pointer; transition: 0.2s; }
         .nav-item.active { color: var(--primary-solid); transform: translateY(-2px); }
         .empty-state { text-align: center; padding: 50px 20px; color: var(--secondary-text); }
+        
+        #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid #444; color: #fff; padding: 12px 25px; border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 10000; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        #toast.show { opacity: 1; bottom: 110px; }
     </style>
 </head>
 <body>
@@ -209,14 +212,16 @@
         <i id="pullIcon" class="fa-solid fa-rotate-right"></i>
     </div>
 
-    <div class="header">
+           <div class="header">
         <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
         <h2>قائمة الأصدقاء</h2>
-        <div class="header-req-btn" onclick="location.href='friend_requests.html'">
-            <i class="fa-solid fa-user-plus" style="font-size:20px; color:var(--text-color)"></i>
-            <div class="requests-badge" id="headerReqBadge">0</div>
+        
+        <div class="header-req-btn" onclick="location.href='notifications.html'" style="position: relative;">
+            <i class="fa-regular fa-bell" style="font-size:20px; color:var(--text-color)"></i>
+            <div class="requests-badge" id="headerNotifBadge" style="display:none; top: -2px; right: -2px;">0</div>
         </div>
     </div>
+
 
     <div class="top-controls">
         <div class="search-box">
@@ -274,19 +279,26 @@
             </button>
         </div>
     </div>
+    
+    <div id="toast"><i class="fa-solid fa-info-circle"></i> <span>تم الإجراء!</span></div>
 
-    <div class="bottom-nav">
+     <div class="bottom-nav">
         <div class="nav-item" onclick="location.href='home.html'"><i class="fa-solid fa-house"></i></div>
         <div class="nav-item active"><i class="fa-solid fa-users"></i></div>
         <div class="nav-item" onclick="location.href='create_post.html'"><i class="fa-solid fa-plus-circle"></i></div>
-        <div class="nav-item" onclick="location.href='notifications.html'"><i class="fa-regular fa-bell"></i></div>
+        
+        <div class="nav-item" onclick="location.href='friend_requests.html'" style="position: relative;">
+            <i class="fa-solid fa-user-plus"></i>
+            <div class="requests-badge" id="headerReqBadge" style="top: -5px; right: 2px;">0</div>
+        </div>
+
         <div class="nav-item" onclick="location.href='profile.html'"><i class="fa-regular fa-user"></i></div>
     </div>
+
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
     <script>
         // === Firebase Config ===
@@ -296,13 +308,11 @@
             projectId: "pools-e4381",
             storageBucket: "pools-e4381.appspot.com",
             messagingSenderId: "339799216046",
-            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f",
-            databaseURL: "https://pools-e4381-default-rtdb.firebaseio.com"
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
         };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const rtdb = firebase.database();
 
         // === Variables ===
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -315,32 +325,43 @@
         let selectedFriendName = "";
         let isFavorite = false;
         let isVerified = false;
+        let myActivityVisible = true; // الحالة الافتراضية
 
         // Pull to Refresh Vars
         let touchstartY = 0;
-        let touchendY = 0;
         const pullIndicator = document.getElementById('pullIndicator');
         const pullIcon = document.getElementById('pullIcon');
 
-        // === Init ===
-        auth.onAuthStateChanged(user => {
+        function showToast(msg) { 
+            const t = document.getElementById('toast'); 
+            t.querySelector('span').innerText = msg; 
+            t.classList.add('show'); 
+            setTimeout(() => t.classList.remove('show'), 2000); 
+        }
+        auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUserUid = user.uid;
-                // 1. محاولة التحميل من الكاش أولاً (السرعة القصوى)
+                
+                // ... أكوادك القديمة ...
+                
                 loadFromCache();
-                // 2. التحميل الفعلي من السيرفر
-                loadFriends();
-                checkReqCount();
+                loadFriends(); 
+                startPresenceSystem();
+                checkReqCount(); // دالة طلبات الصداقة القديمة
+                
+                // 🔥 ضيف السطر ده هنا: تشغيل نظام الإشعارات
+                startNotificationListener(); 
+
+                setInterval(() => renderFriends(), 60000);
             } else {
                 location.href = "index.html";
             }
         });
 
-        // === Caching System (نظام الكاش) ===
+        // === Caching System ===
         function loadFromCache() {
             const cachedData = localStorage.getItem('nabd_friends_cache');
             if (cachedData) {
-                console.log("Loading from cache...");
                 friendsData = JSON.parse(cachedData);
                 renderFriends();
                 document.getElementById('loadingSkeleton').style.display = 'none';
@@ -353,83 +374,141 @@
 
         // === Core Functions ===
 
+        // تحميل الأصدقاء ومراقبة التغييرات
         function loadFriends() {
+            // الاستماع لقائمة الأصدقاء
             db.collection("users").doc(currentUserUid).collection("friends")
                 .onSnapshot(async (snapshot) => {
                     document.getElementById('loadingSkeleton').style.display = 'none';
                     const listContainer = document.getElementById('friendsListContainer');
                     
                     if (snapshot.empty) {
-                        listContainer.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fa-solid fa-user-group" style="font-size:50px; margin-bottom:15px; opacity:0.5;"></i>
-                                <p>لم تضف أصدقاء بعد!<br>ابحث عن أصدقاء وابدأ الدردشة.</p>
-                            </div>`;
-                        document.getElementById('countAll').innerText = "0";
+                        friendsData = [];
+                        renderFriends();
                         return;
                     }
 
-                    // هنا بنعمل مصفوفة مؤقتة عشان ما نمسحش الكاش غير لما الجديد يجهز
+                    // مصفوفة مؤقتة لتجميع البيانات
                     let tempFriends = [];
                     
+                    // استخدام Promise.all لضمان تحميل كل البيانات
                     const promises = snapshot.docs.map(async (doc) => {
                         const fid = doc.id;
                         const relData = doc.data();
                         
+                        // جلب بيانات الصديق من Users Collection (للحصول على LastSeen و Online)
                         const userDoc = await db.collection("users").doc(fid).get();
                         const uData = userDoc.data() || {};
                         
                         return {
                             uid: fid,
                             name: uData.name || "مستخدم مجهول",
-                            pic: uData.profilePic || defaultAvatar,
+                            pic: uData.profilePic || uData.avatarUrl || defaultAvatar,
                             since: relData.acceptedAt ? moment(relData.acceptedAt.toDate()).format('D MMM YYYY') : 'غير معروف',
                             isFav: relData.isFavorite || false, 
-                            isVerified: uData.isVerified || false, // 🔥 التوثيق
-                            status: 'offline', 
-                            lastSeen: uData.lastSeen
+                            isVerified: uData.isVerified || false,
+                            // بيانات الحالة من Firestore مباشرة
+                            lastSeen: uData.lastSeen, 
+                            isOnlineSettings: uData.showActivity !== false // هل هو سامح بالظهور؟
                         };
                     });
 
                     tempFriends = await Promise.all(promises);
                     
-                    // تحديث البيانات وعرضها
                     friendsData = tempFriends;
-                    saveToCache(friendsData); // تحديث الكاش
+                    saveToCache(friendsData);
                     renderFriends(); 
-                    startLiveStatus();
                     
-                    // إخفاء مؤشر السحب
                     pullIndicator.classList.remove('visible');
                     pullIcon.classList.remove('rotate');
                 });
         }
 
-        function getStatusText(friend) {
-            if (friend.status === 'online') return 'نشط الآن';
-            return getShortLastSeen(friend.lastSeen);
+        // حساب حالة الأونلاين ووقت الظهور (نفس منطق الدردشة)
+        function calculateStatus(friend) {
+            // 1. حساب حالة الأونلاين
+            let isOnline = false;
+            let timeText = 'غير متصل';
+
+            if (friend.lastSeen) {
+                const now = Date.now();
+                // تحويل Timestamp إلى Millis لو لزم الأمر
+                const lastSeenMillis = (typeof friend.lastSeen.toMillis === 'function') 
+                                        ? friend.lastSeen.toMillis() 
+                                        : new Date(friend.lastSeen).getTime();
+
+                const diff = now - lastSeenMillis;
+
+                // يعتبر أونلاين لو الفرق أقل من 5 دقائق (300000 مللي ثانية)
+                // ويشترط أن يكون هو مفعل الظهور (isOnlineSettings) وأنا مفعل الظهور (myActivityVisible)
+                if (diff < 300000 && friend.isOnlineSettings && myActivityVisible) {
+                    isOnline = true;
+                    timeText = 'نشط الآن';
+                } else {
+                    // حساب الوقت المنقضي باستخدام دالة الدردشة
+                    timeText = getShortLastSeen(lastSeenMillis);
+                }
+            }
+
+            return { isOnline, timeText };
+        }
+
+        // دالة تنسيق الوقت المختصرة (من كود الدردشة)
+        function getShortLastSeen(timestamp) {
+            if (!timestamp) return '';
+            const diff = Date.now() - timestamp;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (minutes < 1) return 'نشط الآن';
+            if (minutes < 60) return `منذ ${minutes}د`; 
+            if (hours < 24) return `منذ ${hours}س`;   
+            if (days < 7) return `منذ ${days}ي`;      
+            return moment(timestamp).format('D MMM');
         }
 
         // --- رسم القائمة ---
         function renderFriends() {
             const listContainer = document.getElementById('friendsListContainer');
             
-            // تنظيف العناصر القديمة (ماعدا العنوان والهيكل)
-            listContainer.querySelectorAll('.friend-item, .empty-state').forEach(el => el.remove());
+            // تنظيف القائمة الحالية (مع الحفاظ على العنوان)
+            const oldItems = listContainer.querySelectorAll('.friend-item, .empty-state');
+            oldItems.forEach(el => el.remove());
             
-            // ترتيب: المفضلة أولاً
-            let filtered = friendsData.sort((a, b) => (b.isFav === true) - (a.isFav === true));
+            // حساب الأونلاين وتحديث البيانات لكل صديق قبل الفلترة
+            friendsData.forEach(friend => {
+                const status = calculateStatus(friend);
+                friend.calculatedOnline = status.isOnline;
+                friend.calculatedTimeText = status.timeText;
+            });
 
-            if (currentFilter === 'online') filtered = filtered.filter(f => f.status === 'online');
-            else if (currentFilter === 'favorites') filtered = filtered.filter(f => f.isFav);
+            // الفلترة والترتيب
+            let filtered = [...friendsData]; // نسخة جديدة
 
+            // الترتيب: المفضلة أولاً
+            filtered.sort((a, b) => (b.isFav === true) - (a.isFav === true));
+
+            if (currentFilter === 'online') {
+                filtered = filtered.filter(f => f.calculatedOnline);
+            } else if (currentFilter === 'favorites') {
+                filtered = filtered.filter(f => f.isFav);
+            } else {
+                // فلترة البحث
+                const q = document.getElementById('searchInput').value.toLowerCase();
+                if(q) filtered = filtered.filter(f => f.name.toLowerCase().includes(q));
+            }
+
+            // تحديث العدادات
             document.getElementById('countAll').innerText = friendsData.length;
-            document.getElementById('countOnline').innerText = friendsData.filter(f => f.status === 'online').length;
+            document.getElementById('countOnline').innerText = friendsData.filter(f => f.calculatedOnline).length;
 
             if(filtered.length === 0) {
                 const msg = document.createElement('div');
                 msg.className = 'empty-state';
-                msg.innerHTML = '<p>لا توجد نتائج.</p>';
+                msg.innerHTML = `
+                    <i class="fa-solid fa-user-group" style="font-size:50px; margin-bottom:15px; opacity:0.5;"></i>
+                    <p>لا توجد نتائج.</p>`;
                 listContainer.appendChild(msg);
                 return;
             }
@@ -443,7 +522,7 @@
                 
                 div.innerHTML = `
                     <div class="friend-avatar" style="background-image:url('${friend.pic}')">
-                        <div class="online-dot ${friend.status === 'online' ? 'active' : ''}" id="dot-${friend.uid}"></div>
+                        <div class="online-dot ${friend.calculatedOnline ? 'active' : ''}"></div>
                     </div>
                     <div class="friend-info">
                         <div class="friend-name-row">
@@ -451,24 +530,31 @@
                             ${verifiedIcon}
                             <i class="fa-solid fa-star fav-star ${friend.isFav ? 'active' : ''}"></i>
                         </div>
-                        <div class="friend-status ${friend.status === 'online' ? 'online' : ''}" id="txt-${friend.uid}">
-                            ${getStatusText(friend)}
+                        <div class="friend-status ${friend.calculatedOnline ? 'online' : ''}">
+                            ${friend.calculatedTimeText}
                         </div>
                     </div>
                     <div class="item-actions">
                         <div class="icon-btn chat-quick" onclick="event.stopPropagation(); quickChat('${friend.uid}', '${friend.name}')">
                             <i class="fa-brands fa-facebook-messenger"></i>
                         </div>
-                        <div class="icon-btn" onclick="event.stopPropagation(); openSheet({uid:'${friend.uid}', name:'${friend.name}', pic:'${friend.pic}', since:'${friend.since}', isFav:${friend.isFav}, isVerified:${friend.isVerified}})">
+                        <div class="icon-btn" onclick="event.stopPropagation(); openSheet(thisFriendData('${friend.uid}'))">
                             <i class="fa-solid fa-ellipsis-vertical"></i>
                         </div>
                     </div>
                 `;
                 listContainer.appendChild(div);
             });
+            
+            document.getElementById('updateTime').innerText = moment().format('h:mm A');
         }
 
-        // --- Pull to Refresh Logic (سحب للتحديث) ---
+        // مساعد لتمرير البيانات للشيت بشكل صحيح
+        function thisFriendData(uid) {
+            return friendsData.find(f => f.uid === uid);
+        }
+
+        // --- Pull to Refresh ---
         window.addEventListener('touchstart', e => { touchstartY = e.touches[0].clientY; });
         window.addEventListener('touchmove', e => {
             const touchY = e.touches[0].clientY;
@@ -480,51 +566,30 @@
         window.addEventListener('touchend', () => {
             if (pullIndicator.classList.contains('visible')) {
                 pullIcon.classList.add('rotate');
-                loadFriends(); // إعادة تحميل البيانات
+                loadFriends(); 
             }
         });
 
-        // --- Realtime Status ---
-        function startLiveStatus() {
-            friendsData.forEach(friend => {
-                rtdb.ref('/status/' + friend.uid).on('value', snap => {
-                    const val = snap.val();
-                    const newState = (val && val.state === 'online') ? 'online' : 'offline';
-                    
-                    friend.status = newState;
-                    if(val && val.last_changed) friend.lastSeen = val.last_changed;
-
-                    const dot = document.getElementById(`dot-${friend.uid}`);
-                    const txt = document.getElementById(`txt-${friend.uid}`);
-                    
-                    if(dot && txt) {
-                        if(newState === 'online') {
-                            dot.classList.add('active');
-                            txt.classList.add('online');
-                            txt.innerText = 'نشط الآن';
-                        } else {
-                            dot.classList.remove('active');
-                            txt.classList.remove('online');
-                            txt.innerText = getShortLastSeen(friend.lastSeen);
-                        }
-                    }
-                    
-                    document.getElementById('countOnline').innerText = friendsData.filter(f => f.status === 'online').length;
-                });
+        // --- Presence System (تحديث وجودي أنا) ---
+        function startPresenceSystem() {
+            if (!currentUserUid || !myActivityVisible) return;
+            
+            // تحديث فوري
+            updateMyStatus();
+            // تحديث دوري كل دقيقة
+            setInterval(updateMyStatus, 60000);
+            
+            // عند مغادرة الصفحة
+            window.addEventListener('beforeunload', () => {
+                 db.collection('users').doc(currentUserUid).update({ lastSeen: firebase.firestore.FieldValue.serverTimestamp() });
             });
         }
 
-        function getShortLastSeen(timestamp) {
-            if (!timestamp) return 'غير متصل';
-            if (typeof timestamp === 'object' && timestamp.toMillis) timestamp = timestamp.toMillis();
-            
-            const diff = Date.now() - timestamp;
-            const mins = Math.floor(diff / 60000);
-            
-            if (mins < 1) return 'نشط الآن';
-            if (mins < 60) return `منذ ${mins} دقيقة`;
-            if (mins < 1440) return `منذ ${Math.floor(mins/60)} ساعة`;
-            return `منذ ${Math.floor(mins/1440)} يوم`;
+        function updateMyStatus() {
+             db.collection('users').doc(currentUserUid).update({
+                online: true,
+                lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+            }).catch(e => console.log(e));
         }
 
         // --- UI Interactions ---
@@ -536,21 +601,16 @@
         };
 
         window.filterFriends = () => {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            const items = document.querySelectorAll('.friend-item');
-            items.forEach(item => {
-                const name = item.querySelector('.friend-name').innerText.toLowerCase();
-                item.style.display = name.includes(q) ? 'flex' : 'none';
-            });
+            renderFriends(); // الفلترة تحدث الآن داخل renderFriends
         };
 
         window.openSheet = (friend) => {
+            if(!friend) return;
             selectedFriendUid = friend.uid;
             selectedFriendName = friend.name;
             isFavorite = friend.isFav;
             isVerified = friend.isVerified;
 
-            // عرض الاسم مع التوثيق في الشيت
             const verifiedIcon = isVerified ? '<i class="fa-solid fa-circle-check verified-badge"></i>' : '';
             document.getElementById('sheetName').innerHTML = `${friend.name} ${verifiedIcon}`;
             document.getElementById('sheetDate').innerText = `صديق منذ ${friend.since}`;
@@ -566,19 +626,40 @@
             document.getElementById('actionSheet').classList.remove('active');
         };
 
+        // --- إصلاح نظام المفضلة ---
         window.toggleFavorite = async () => {
-            isFavorite = !isFavorite;
+            // 1. عكس الحالة الحالية
+            const newStatus = !isFavorite;
+            isFavorite = newStatus;
+            
+            // 2. تحديث الزر فوراً (Visual Feedback)
             updateFavBtnUI();
             
+            // 3. تحديث البيانات المحلية فوراً وإعادة الرسم
+            const fIndex = friendsData.findIndex(f => f.uid === selectedFriendUid);
+            if(fIndex > -1) {
+                friendsData[fIndex].isFav = newStatus;
+                saveToCache(friendsData);
+                renderFriends();
+            }
+
+            // 4. إرسال التحديث للسيرفر
             try {
                 await db.collection('users').doc(currentUserUid).collection('friends').doc(selectedFriendUid).update({
-                    isFavorite: isFavorite
+                    isFavorite: newStatus
                 });
-                const fIndex = friendsData.findIndex(f => f.uid === selectedFriendUid);
-                if(fIndex > -1) friendsData[fIndex].isFav = isFavorite;
-                saveToCache(friendsData); // تحديث الكاش
-                renderFriends(); 
-            } catch(e) { console.error(e); }
+                showToast(newStatus ? "تمت الإضافة للمفضلة" : "تمت الإزالة من المفضلة");
+            } catch(e) { 
+                console.error(e);
+                showToast("حدث خطأ في الاتصال");
+                // تراجع في حالة الخطأ
+                isFavorite = !newStatus;
+                updateFavBtnUI();
+                if(fIndex > -1) {
+                    friendsData[fIndex].isFav = !newStatus;
+                    renderFriends();
+                }
+            }
         };
 
         function updateFavBtnUI() {
@@ -597,7 +678,11 @@
 
         window.quickChat = (uid, name) => {
             const cid = [currentUserUid, uid].sort().join("_");
-            db.collection("chats").doc(cid).set({ users: [currentUserUid, uid] }, {merge:true});
+            // التأكد من إنشاء وثيقة الشات إذا لم تكن موجودة
+            db.collection("chats").doc(cid).set({ 
+                users: [currentUserUid, uid],
+                lastMessageTime: firebase.firestore.FieldValue.serverTimestamp()
+            }, {merge:true});
             location.href = `chat.html?chatId=${cid}&name=${encodeURIComponent(name)}&uid=${uid}`;
         };
         
@@ -605,11 +690,19 @@
 
         window.unfriendUser = async () => {
             if(!confirm("هل أنت متأكد من إلغاء الصداقة؟")) return;
+            closeSheet();
+            
+            // تحديث محلي فوري
+            friendsData = friendsData.filter(f => f.uid !== selectedFriendUid);
+            saveToCache(friendsData);
+            renderFriends();
+
             const batch = db.batch();
             batch.delete(db.collection("users").doc(currentUserUid).collection("friends").doc(selectedFriendUid));
             batch.delete(db.collection("users").doc(selectedFriendUid).collection("friends").doc(currentUserUid));
             await batch.commit();
-            closeSheet();
+            
+            showToast("تم إلغاء الصداقة");
         };
 
         function checkReqCount() {
@@ -619,6 +712,41 @@
                 else b.style.display='none';
             });
         }
+                // مراقبة الإشعارات وتشغيل العداد والصوت
+        function startNotificationListener() {
+            db.collection("notifications")
+              .where("recipientId", "==", currentUserUid)
+              .where("read", "==", false)
+              .onSnapshot(snap => {
+                    const count = snap.size;
+                    const badge = document.getElementById('headerNotifBadge');
+                    
+                    if (badge) {
+                        if (count > 0) {
+                            badge.style.display = 'inline-block';
+                            badge.innerText = count > 99 ? '99+' : count;
+                            
+                            // تشغيل التنبيه (صوت + توست) للإشعارات الجديدة فقط
+                            snap.docChanges().forEach(change => {
+                                if (change.type === "added") {
+                                    // التأكد أن الإشعار جديد (أقل من 10 ثواني)
+                                    const timeDiff = Date.now() - (change.doc.data().createdAt?.toDate().getTime() || Date.now());
+                                    if (timeDiff < 10000) {
+                                        document.getElementById('notificationSound').play().catch(e=>{});
+                                        showToast("🔔 إشعار جديد");
+                                        if(navigator.vibrate) navigator.vibrate(200);
+                                    }
+                                }
+                            });
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+              });
+        }
+
     </script>
+<audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3" preload="auto"></audio>
+
 </body>
 </html>

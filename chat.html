@@ -3499,16 +3499,799 @@ z-index: 2147483647 !important;
     100% { box-shadow: 0 0 30px rgba(220, 39, 67, 0.8); transform: scale(1.02); }
 }
 
-/* ================= حل مشكلة الطبقات (Z-Index) ================= */
-
-/* ضمان أن عارض القصص يظهر فوق صفحة البروفايل */
-#simpleStoryViewer {
-    z-index: 2147483647 !important; /* أعلى رقم ممكن في المتصفح */
+.gif-btn { background: rgba(236, 72, 153, 0.1); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.2); }
+.gif-picker {
+    position: absolute; bottom: 80px; left: 10px; right: 10px;
+    height: 300px; background: #1e293b; border-radius: 20px;
+    z-index: 200; display: none; flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+}
+.gif-grid { 
+    flex: 1; overflow-y: auto; display: grid; 
+    grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 10px; 
+}
+.gif-item { width: 100%; cursor: pointer; border-radius: 8px; }
+/* تنسيق الفوتر الجديد */
+.chat-footer {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(11, 17, 33, 0.98); /* خلفية غامقة عشان الكلام يبان */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    
+    display: flex;
+    align-items: flex-end; /* محاذاة للأسفل عشان لو النص كبر الأزرار تفضل تحت */
+    padding: 10px;
+    gap: 8px; /* مسافة بين المجموعات */
+    min-height: 60px;
 }
 
-/* صفحة البروفايل */
-.profile-page {
-    z-index: 99999 !important; /* رقم عالي لكن أقل من عارض القصص */
+/* تنسيق موحد لجميع الأزرار (صغيرة ومتناسقة) */
+.action-btn {
+    width: 38px;  /* تصغير العرض */
+    height: 38px; /* تصغير الطول */
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    font-size: 16px; /* تصغير الأيقونة */
+    transition: 0.2s;
+    flex-shrink: 0; /* ممنوع تنكمش */
+    margin-bottom: 2px; /* تظبيط المحاذاة مع مربع النص */
+    
+    /* ستايل افتراضي */
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #94a3b8;
+}
+
+.action-btn:active { transform: scale(0.9); }
+
+/* ألوان خاصة للأزرار */
+.media-btn:hover { color: #00e5ff; border-color: rgba(0, 229, 255, 0.3); }
+.file-btn:hover { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+.gif-btn:hover { color: #ec4899; border-color: rgba(236, 72, 153, 0.3); }
+.mic-btn:hover { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+
+/* زر الإرسال (مميز) */
+.send-btn {
+    background: linear-gradient(135deg, #00e5ff, #2979ff);
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+/* حاوية الزراير الشمال */
+.footer-actions-left {
+    display: flex;
+    align-items: center;
+    gap: 6px; /* مسافة صغيرة بين الزراير وبعضها */
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+/* كلاس للإخفاء الناعم عند الكتابة */
+.footer-actions-left.hidden {
+    max-width: 0;
+    opacity: 0;
+    padding: 0;
+    margin: 0;
+}
+
+/* مربع الكتابة */
+.input-container {
+    flex: 1; /* ياخد باقي المساحة */
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    padding: 8px 15px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    min-height: 40px;
+    max-height: 120px; /* أقصى ارتفاع */
+    overflow-y: auto;
+}
+
+.chat-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    resize: none;
+    height: 22px; /* ارتفاع السطر الواحد */
+    padding: 0;
+    line-height: 1.4;
+}
+
+/* إخفاء شريط الـ GIF */
+.gif-picker { bottom: 70px; } 
+
+/* تعديل الـ Padding للجسم عشان الفوتر ميغطيش آخر رسالة */
+.chat-body { padding-bottom: 80px !important; }
+/* زر الفوتر */
+.gift-center-btn {
+    background: linear-gradient(135deg, #ff4081 0%, #f50057 100%);
+    color: #fff;
+    border: none;
+    box-shadow: 0 0 10px rgba(245, 0, 87, 0.4);
+    position: relative;
+}
+.gift-badge {
+    position: absolute; top: -5px; right: -5px;
+    background: #FFD700; color: #000; font-size: 8px; font-weight: bold;
+    padding: 2px 4px; border-radius: 4px; border: 1px solid #000;
+}
+
+/* تنسيق النافذة */
+.gift-sheet {
+    background: #121212;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 0; /* هنظبط البادينج جوه */
+    overflow: hidden;
+    height: 60vh; /* ارتفاع ثابت */
+    display: flex; flex-direction: column;
+}
+
+/* الهيدر والرصيد */
+.gift-header-top {
+    padding: 15px;
+    background: rgba(255,255,255,0.03);
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.user-balance-box {
+    background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px;
+    display: flex; align-items: center; gap: 6px; border: 1px solid #FFD700;
+}
+.coin-num { color: #FFD700; font-weight: bold; font-family: monospace; font-size: 15px; }
+.add-coins-btn {
+    background: #FFD700; color: #000; border: none; padding: 6px 12px;
+    border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 12px;
+}
+
+/* التبويبات */
+.gift-tabs {
+    display: flex; padding: 10px; gap: 10px;
+    background: #1a1a1a;
+}
+.gift-tab {
+    flex: 1; text-align: center; padding: 10px;
+    background: rgba(255,255,255,0.05); color: #888;
+    border-radius: 12px; cursor: pointer; font-size: 13px; font-weight: bold;
+    transition: 0.2s; border: 1px solid transparent;
+}
+.gift-tab.active {
+    background: rgba(255, 64, 129, 0.15); color: #ff4081;
+    border-color: #ff4081;
+}
+
+/* المحتوى */
+.gift-content-panel {
+    display: none; flex: 1; overflow-y: auto; padding: 10px;
+}
+.gift-content-panel.active { display: grid; }
+
+/* شبكة الملصقات المجانية */
+.stickers-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+}
+.sticker-item {
+    font-size: 40px; text-align: center; cursor: pointer;
+    padding: 10px; border-radius: 10px; transition: 0.2s;
+}
+.sticker-item:active { transform: scale(0.8); background: rgba(255,255,255,0.1); }
+
+.sticker-bubble {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+/* === إصلاح نافذة الهدايا === */
+#giftCenterModal {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* خلفية سوداء شفافة */
+    z-index: 20000; /* فوق كل حاجة */
+    
+    /* أهم جزء: الإخفاء الافتراضي */
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* عشان تقدر تدوس على الشات من تحتها */
+    
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: flex-end; /* عشان القائمة تطلع من تحت */
+    justify-content: center;
+}
+
+/* حالة الظهور (لما نضغط) */
+#giftCenterModal.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto; /* تفعيل اللمس */
+}
+
+/* القائمة نفسها */
+.gift-sheet {
+    width: 100%;
+    max-width: 500px;
+    background: #121212;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    border-radius: 25px 25px 0 0;
+    
+    /* الحركة */
+    transform: translateY(100%); /* نازلة تحت الشاشة */
+    transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    height: 60vh;
+    display: flex; 
+    flex-direction: column;
+}
+
+/* لما النافذة تفتح، القائمة تطلع لفوق */
+#giftCenterModal.active .gift-sheet {
+    transform: translateY(0);
+}
+#giftCenterModal {
+    /* ... باقي الخصائص ... */
+    z-index: 2147483647 !important; /* رفع الرقم ليظهر فوق أي نافذة أخرى */
+}
+/* إزالة الخلفية للملصقات لتظهر بشكل حر */
+.sticker-bubble {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* تنسيق فقاعة الهدية لتكون مميزة */
+.gift-bubble {
+    background: linear-gradient(135deg, #1a1a1a, #2a2a2a) !important;
+    border: 1px solid #FFD700 !important; /* إطار ذهبي */
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2) !important;
+}
+
+/* حركة بسيطة للأيقونة */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+/* ================= تصميم صندوق الهدايا السحري ================= */
+
+/* ================= تصميم الصندوق الواقعي (تعديل الأبعاد والحركة) ================= */
+
+/* 1. الحاوية الأساسية (المسرح) */
+.gift-interactive-container {
+    position: relative;
+    width: 160px; /* عرض مناسب */
+    height: 180px; /* ارتفاع يستوعب خروج الخاتم */
+    margin: 10px auto;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* يبدأ من الأسفل */
+    overflow: visible; /* مهم عشان الخاتم لما يطلع ميتخصش */
+}
+
+/* 2. مجموعة الصندوق (جسم الصندوق + الغطاء) */
+.gift-package {
+    position: relative;
+    width: 100px;
+    height: 80px;
+    z-index: 10;
+    transition: transform 0.5s;
+    /* الأنيميشن الافتراضي: الاهتزاز قبل الفتح */
+    animation: boxShake 2s infinite; 
+}
+
+/* وقف الاهتزاز عند الفتح */
+.gift-interactive-container.opened .gift-package {
+    animation: none;
+    transform: translateY(10px); /* ينزل شوية عشان يثبت */
+}
+
+/* 3. جسم الصندوق (Body) */
+.magic-box {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #e91e63, #ad1457); /* لون فوشيا غامق */
+    border-radius: 0 0 10px 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    position: relative;
+    z-index: 2;
+}
+
+/* شريط الزينة العمودي على الصندوق */
+.magic-box::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 100%;
+    background: #FFD700; /* ذهبي */
+    border-left: 1px solid rgba(255,255,255,0.2);
+    border-right: 1px solid rgba(0,0,0,0.1);
+}
+
+/* 4. الغطاء (Lid) - تم ضبط مكانه ليكون ملتصقاً بالصندوق */
+.magic-lid {
+    position: absolute;
+    top: -15px; /* يركب فوق الصندوق بالظبط */
+    left: -5px; /* يبرز قليلاً من الجوانب */
+    width: 110px; /* أعرض من الصندوق بـ 10px */
+    height: 25px;
+    background: linear-gradient(135deg, #ff4081, #c60055);
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.4);
+    z-index: 3;
+    transition: all 0.6s cubic-bezier(0.6, -0.28, 0.735, 0.045); /* حركة طيران واقعية */
+}
+
+/* شريط الزينة على الغطاء */
+.magic-lid::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 18px;
+    height: 100%;
+    background: #FFD700;
+}
+
+/* الفيونكة (Bow) */
+.magic-lid::after {
+    content: '🎀'; /* إيموجي الفيونكة أو رسمة */
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 35px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.3));
+}
+
+/* 5. حركة طيران الغطاء عند الفتح */
+.gift-interactive-container.opened .magic-lid {
+    top: -150px; /* يطير لفوق */
+    left: 50px;  /* يميل لليمين */
+    transform: rotate(45deg) scale(0.8);
+    opacity: 0;  /* يختفي */
+}
+/* ================= تعديل حجم ومكان الخاتم ================= */
+
+/* 1. تعديل المحتوى (الخاتم) لضبط مكانه */
+.magic-gift-content {
+    position: absolute;
+    bottom: 30px; /* تعديل بسيط للمكان الأولي جوه الصندوق */
+    left: 0;
+    right: 0;
+    text-align: center;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* عند الفتح: الخاتم يطلع فوق الصندوق بالمكان المناسب */
+.gift-interactive-container.opened .magic-gift-content {
+    bottom: 65px; /* 🔥 تم التعديل: ظبطنا الارتفاع عشان يكون فوق الصندوق بالظبط 🔥 */
+    opacity: 1;
+    transform: scale(1); /* 🔥 تم التعديل: شيلنا التكبير الزيادة (كان 1.2) عشان الحجم يبقى واقعي 🔥 */
+    z-index: 5;
+}
+
+/* 2. تصغير حجم أيقونة الخاتم */
+.magic-gift-icon {
+    font-size: 55px; /* 🔥 تم التعديل: صغرنا الحجم من 80px لـ 55px عشان يبقى ملائم 🔥 */
+    filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5)); /* تعديل الظل ليناسب الحجم الجديد */
+}
+
+/* اسم الهدية ننزله شوية عشان ميكونش لازق في الخاتم */
+.magic-gift-name {
+    margin-top: 8px; /* زيادة المسافة */
+    /* باقي الخصائص زي ما هي */
+    background: rgba(0,0,0,0.7);
+    color: #FFD700;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    display: inline-block;
+    box-shadow: 0 0 10px #FFD700;
+}
+
+/* تعديل بسيط في أنيميشن النبض ليناسب الحجم الجديد (عشان ميكبرش أوي وهو بينبض) */
+@keyframes ringHeartBeat {
+    0% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
+    15% { transform: scale(1.15); filter: drop-shadow(0 0 15px rgba(255,215,0,1)); } /* تكبير أهدى */
+    30% { transform: scale(1.05); }
+    45% { transform: scale(1.1); filter: drop-shadow(0 0 10px rgba(255,215,0,0.8)); }
+    60% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
+/* ================= حالة "تم الفتح سابقاً" (Re-closed) ================= */
+
+/* 1. لما نقفل الهدية تاني، نوقف الاهتزاز */
+.gift-interactive-container.has-been-opened:not(.opened) .gift-package {
+    animation: none; /* وقف النبض/الاهتزاز */
+}
+
+/* 2. شكل الغطاء وهو مقفول "تاني مرة" (يبان مفكوك) */
+.gift-interactive-container.has-been-opened:not(.opened) .magic-lid {
+    transform: rotate(5deg) translateY(-3px); /* ميل بسيط ورفعة لفوق */
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2); /* ظل أخف */
+}
+
+/* 3. تغميق بسيط للصندوق عشان يبان مستعمل */
+.gift-interactive-container.has-been-opened:not(.opened) .magic-box {
+    filter: brightness(0.9);
+}
+/* ================= تصميم الصندوق الفخم (Luxury Box) ================= */
+
+/* 1. جسم الصندوق الفخم (أسود x ذهبي) */
+.gift-interactive-container.luxury-tier .magic-box {
+    background: linear-gradient(135deg, #1a1a1a, #000000); /* أسود فاحم */
+    border: 1px solid #FFD700; /* حدود ذهبية */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); /* توهج ذهبي خفيف */
+}
+
+/* شريط الزينة للصندوق الفخم */
+.gift-interactive-container.luxury-tier .magic-box::before {
+    background: linear-gradient(to bottom, #FFD700, #FDB931, #FFD700); /* شريط ذهبي لامع */
+    width: 20px;
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+}
+
+/* 2. الغطاء الفخم */
+.gift-interactive-container.luxury-tier .magic-lid {
+    background: linear-gradient(135deg, #2b2b2b, #0d0d0d);
+    border: 1px solid #FFD700;
+    border-bottom: none; /* عشان يركب صح */
+}
+
+/* شريط الزينة للغطاء الفخم */
+.gift-interactive-container.luxury-tier .magic-lid::before {
+    background: linear-gradient(to bottom, #FFD700, #FDB931);
+}
+
+/* الفيونكة (ممكن نغيرها لتاج أو ماسة لو تحب، بس هنسيبها فيونكة ذهبية) */
+.gift-interactive-container.luxury-tier .magic-lid::after {
+    content: '👑'; /* تاج بدل الفيونكة للهدايا الفخمة */
+    font-size: 40px;
+    top: -35px;
+    filter: drop-shadow(0 0 5px #FFD700);
+}
+
+/* 3. تأثيرات خاصة للفخم (بريق) */
+.gift-interactive-container.luxury-tier::after {
+    content: '';
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(circle, rgba(255,215,0,0.1) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+    animation: luxuryGlow 3s infinite alternate;
+}
+
+@keyframes luxuryGlow {
+    0% { opacity: 0.3; transform: scale(0.8); }
+    100% { opacity: 0.8; transform: scale(1.1); }
+}
+
+/* 4. شكل الهدية من جوه (الخاتم/القصر) يكون أكبر وأكثر لمعاناً */
+.gift-interactive-container.luxury-tier .magic-gift-icon {
+    font-size: 70px; /* أكبر شوية */
+    filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.8)); /* وهج قوي */
+}
+
+/* ================= تصميم شبكة الهدايا (TikTok Style) ================= */
+
+/* 1. الحاوية (الشبكة نفسها) */
+.gift-grid {
+    display: grid;
+    /* 4 أعمدة متساوية بالظبط */
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 8px; /* مسافة بين الهدايا */
+    padding: 10px;
+    padding-bottom: 80px; /* مسافة عشان القائمة توصل للآخر */
+}
+
+/* 2. كارت الهدية الواحد (المربع) */
+.gift-item {
+    background: rgba(255, 255, 255, 0.05); /* خلفية شفافة غامقة */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* برواز خفيف */
+    border-radius: 12px;
+    padding: 10px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+/* تأثير اللمس */
+.gift-item:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--accent-color);
+}
+
+/* 3. أيقونة الهدية (كبيرة وواضحة) */
+.gift-emoji {
+    font-size: 40px; /* حجم كبير للأيقونة */
+    margin-bottom: 5px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); /* ظل يخليها بارزة */
+    transition: transform 0.2s;
+}
+
+/* تكبير الأيقونة عند الضغط */
+.gift-item:active .gift-emoji {
+    transform: scale(1.1);
+}
+
+/* 4. اسم الهدية */
+.gift-name {
+    font-size: 10px;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+    margin-bottom: 2px;
+}
+
+/* 5. سعر الهدية (شيك وصغير) */
+.gift-price {
+    font-size: 9px;
+    color: #FFD700; /* ذهبي */
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+/* ================= تمييز الهدايا الفخمة (Luxury Tier) ================= */
+.gift-item.luxury-item {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0, 0, 0, 0.4));
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.gift-item.luxury-item .gift-name {
+    color: #FFD700;
+}
+/* ================= زر الإيموجي الداخلي (Inside Input) ================= */
+
+/* 1. ضبط حاوية الإدخال لتكون هي المرجع */
+.input-container {
+    position: relative !important; /* ضروري عشان الزرار يثبت جواه */
+    display: flex;
+    align-items: flex-end; /* عشان الزرار يفضل تحت لو المربع كبر */
+}
+
+/* 2. تعديل حقل الكتابة ليترك مسافة للزرار */
+.chat-input {
+    padding-left: 40px !important; /* وسعنا مكان ع الشمال عشان الزرار */
+    /* باقي خصائصك زي ما هي */
+}
+
+/* 3. تصميم زر الإيموجي الصغير جداً */
+.internal-emoji-btn {
+    position: absolute;
+    left: 10px; /* مكانه على الشمال */
+    bottom: 12px; /* ثابت تحت مهما المربع كبر */
+    
+    font-size: 18px; /* صغير جداً زي ما طلبت */
+    color: #64748b; /* لون رمادي هادي */
+    cursor: pointer;
+    z-index: 10;
+    transition: 0.2s;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px; 
+    height: 24px;
+    border-radius: 50%;
+}
+
+.internal-emoji-btn:hover {
+    color: #00e5ff; /* ينور أزرق لما تقف عليه */
+    background: rgba(255,255,255,0.05);
+}
+
+/* ================= قائمة الإيموجي (المنبثقة - في المنتصف) ================= */
+.emoji-picker-panel {
+    position: absolute;
+    bottom: 70px; /* فوق الفوتر مباشرة */
+    
+    /* التعديل هنا: التوسيط الأفقي */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    width: 95%; /* عرض شبه كامل عشان تستوعب إيموجي كتير */
+    max-width: 400px; /* حد أقصى عشان الشاشات الكبيرة */
+    height: 280px;
+    
+    background: rgba(20, 25, 35, 0.98); /* خلفية غامقة فخمة */
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    
+    display: none; /* مخفي افتراضياً */
+    flex-direction: column;
+    z-index: 2000;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
+    
+    /* انيميشن ظهور ناعم */
+    animation: slideUpFade 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* الشبكة اللي فيها الإيموجي (تعديل عشان التوسيط) */
+.emoji-grid {
+    display: grid;
+    /* 7 في الصف عشان يستغل العرض، أو خليها auto-fill */
+    grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); 
+    gap: 8px;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.emoji-item {
+    font-size: 24px;
+    text-align: center;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 10px;
+    transition: 0.2s;
+    background: rgba(255,255,255,0.03); /* خلفية خفيفة لكل إيموجي */
+}
+
+.emoji-item:active {
+    background: rgba(255,255,255,0.15);
+    transform: scale(0.9);
+}
+
+/* تعديل العناوين */
+.emoji-category-title {
+    grid-column: 1 / -1; /* ياخد الصف كله */
+    font-size: 12px;
+    color: #00e5ff;
+    font-weight: bold;
+    margin-top: 15px;
+    margin-bottom: 8px;
+    padding-right: 5px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+/* ================== تنسيق الإيموجي الكبير والملصقات ================== */
+
+/* 1. الإيموجي الكبير (بدون فقاعة) */
+.msg-bubble.emoji-only {
+    background: transparent !important; /* إزالة خلفية الفقاعة */
+    box-shadow: none !important;        /* إزالة الظل */
+    border: none !important;            /* إزالة الحدود */
+    padding: 0 !important;              /* إزالة الحشوة */
+    margin: 5px 0 !important;           /* ضبط الهوامش */
+    font-size: 50px !important;         /* حجم كبير للإيموجي */
+    line-height: 1;                     /* ضبط ارتفاع السطر */
+    overflow: visible !important;
+}
+
+/* تكبير الإيموجي عند التفاعل معه (اختياري) */
+.msg-bubble.emoji-only:active {
+    transform: scale(0.9);
+    transition: transform 0.1s;
+}
+
+/* 2. الملصقات (Stickers) - تشبه الإيموجي ولكن قد تكون صوراً أو نصوصاً أكبر */
+.msg-bubble.sticker-bubble {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 5px 0 !important;
+    font-size: 70px !important; /* حجم أكبر للملصقات */
+    line-height: 1;
+    overflow: visible !important;
+}
+
+/* ضبط محاذاة الوقت للإيموجي والملصقات */
+.emoji-only .msg-meta-row, 
+.sticker-bubble .msg-meta-row {
+    position: absolute;
+    bottom: -15px; /* وضع الوقت أسفل الإيموجي */
+    right: 0;
+    left: 0;
+    justify-content: center !important; /* توسيط الوقت */
+    background: rgba(0, 0, 0, 0.3);     /* خلفية شفافة للوقت ليكون مقروءاً */
+    padding: 2px 6px;
+    border-radius: 10px;
+    width: fit-content;
+    margin: 0 auto;                     /* توسيط الحاوية */
+    display: flex; /* تأكد من ظهورها */
+}
+
+/* إخفاء الوقت بشكل افتراضي وإظهاره فقط عند الحاجة أو جعله صغيراً جداً */
+.emoji-only .msg-time, 
+.sticker-bubble .msg-time {
+    font-size: 9px !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+/* ================= تصميم الفقاعات الشفافة (للصور، الصوت، الملصقات، والإيموجي) ================= */
+
+/* 1. كلاس إلغاء الفقاعة (يجعل الخلفية شفافة تماماً) */
+.msg-bubble.transparent-bubble {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-bottom: 5px !important;
+    width: auto !important; /* السماح للعنصر بأخذ حجمه */
+    max-width: 100% !important;
+}
+
+/* 2. تكبير الإيموجي لو لوحده */
+.msg-bubble.emoji-only {
+    font-size: 45px !important;
+    line-height: 1.2;
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 3. تنسيق الملصقات (تظهر كبيرة في القلب) */
+.msg-bubble.sticker-bubble {
+    font-size: 80px !important; /* حجم كبير للملصق */
+    line-height: 1;
+    display: block !important;
+    text-align: center;
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.3)); /* ظل للعنصر نفسه مش للمربع */
+}
+
+/* 4. تعديل حاوية الميديا (عشان الصور والفيديو ميكونش حواليها حدود زيادة) */
+.transparent-bubble .media-container {
+    border-radius: 18px !important; /* تدوير الصورة نفسها */
+    border: 1px solid rgba(255,255,255,0.1);
+    margin: 0 !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+/* 5. تعديل الريكورد (الصوت) ليكون عائماً */
+.transparent-bubble .custom-audio-player {
+    margin-top: 0 !important;
+    background: rgba(30, 41, 59, 0.9) !important; /* خلفية خاصة للمشغل نفسه */
+    border-radius: 50px !important; /* شكل كبسولة */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 6. تعديل الملفات */
+.transparent-bubble .file-card {
+    background: rgba(30, 41, 59, 0.9) !important;
+    border-radius: 15px !important;
+}
+
+/* إخفاء وقت الرسالة والـ Seen في حالة الإيموجي والملصقات عشان الشكل يكون نظيف */
+/* (اختياري: لو عايز الوقت يظهر شيل السطرين دول) */
+.emoji-only .msg-meta-row, 
+.sticker-bubble .msg-meta-row {
+    background: rgba(0,0,0,0.4); /* خلفية صغيرة للوقت */
+    padding: 2px 6px;
+    border-radius: 10px;
+    position: absolute;
+    bottom: -10px;
+    right: 0;
+    width: max-content;
 }
 
     </style>
@@ -3605,17 +4388,15 @@ z-index: 2147483647 !important;
     </div>
 
 </div>
-
-
-      <div class="chat-footer">
-  <div class="reply-preview-bar" id="replyBar" style="display:none;">
-    <div class="reply-content">
-        <div class="reply-title" id="replyTitle">الرد على...</div>
-        <div class="reply-text" id="replyText">نص الرسالة</div>
+<div class="chat-footer">
+    
+    <div class="reply-preview-bar" id="replyBar" style="display:none;">
+        <div class="reply-content">
+            <div class="reply-title" id="replyTitle">الرد على...</div>
+            <div class="reply-text" id="replyText">نص الرسالة</div>
+        </div>
+        <i class="fa-solid fa-times close-reply" onclick="cancelReply()"></i>
     </div>
-    <i class="fa-solid fa-times close-reply" onclick="cancelReply()"></i>
-</div>
-
 
     <div class="recording-ui" id="recordingUI">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -3624,45 +4405,58 @@ z-index: 2147483647 !important;
             </div>
             <span id="recordTimer" style="color:#ff3b30; font-weight:bold; font-family:monospace;">00:00</span>
         </div>
-        <div style="display:flex; gap:20px; align-items:center;">
+        <div style="display:flex; gap:15px; align-items:center;">
             <span style="color:#94a3b8; cursor:pointer; font-size:12px;" onclick="cancelRecording()">إلغاء</span>
-            <div onclick="stopAndSendRecording()" style="width:35px; height:35px; background:#ff3b30; border-radius:50%; display:grid; place-items:center; cursor:pointer; box-shadow: 0 0 10px rgba(255,59,48,0.4);">
-                <i class="fa-solid fa-paper-plane" style="color:#fff; font-size:14px;"></i>
+            <div onclick="stopAndSendRecording()" class="action-btn" style="background:#ff3b30; color:#fff; border:none; box-shadow: 0 0 10px rgba(255,59,48,0.4);">
+                <i class="fa-solid fa-paper-plane"></i>
             </div>
         </div>
     </div>
 
-    <div class="footer-actions-left">
-        <div class="action-btn file-btn" onclick="playUiSound('click'); document.getElementById('fileInput').click()">
-            <i class="fa-solid fa-paperclip"></i>
-        </div>
-        <div class="action-btn media-btn" onclick="playUiSound('click'); document.getElementById('mediaInput').click()">
-            <i class="fa-regular fa-image"></i>
-        </div>
+    <div class="footer-actions-left" id="leftActions">
+    <div class="action-btn file-btn" onclick="playUiSound('click'); document.getElementById('fileInput').click()">
+        <i class="fa-solid fa-paperclip"></i>
+    </div>
+    <div class="action-btn media-btn" onclick="playUiSound('click'); document.getElementById('mediaInput').click()">
+        <i class="fa-regular fa-image"></i>
+    </div>
+    
+    <div class="action-btn gift-center-btn" onclick="openGiftCenter()">
+        <i class="fa-solid fa-gift"></i>
+        <div class="gift-badge">NEW</div>
     </div>
 
-    <div class="action-btn destruct-btn" id="destructBtn" onclick="playUiSound('destruct'); toggleDestructMode()" style="margin-left: 5px; margin-right: 5px;">
+    <div class="action-btn destruct-btn" id="destructBtn" onclick="playUiSound('destruct'); toggleDestructMode()">
         <i class="fa-solid fa-bomb"></i>
         <span class="destruct-badge" id="destructBadge" style="display:none;">OFF</span>
     </div>
+</div>
+
 
     <div class="input-container">
-       <textarea id="messageInput" class="chat-input" rows="1" placeholder="اكتب رسالة..." 
-          oninput="autoResize(this); toggleSendButton(); detectMood(this.value)"></textarea>
-
-
-    <div class="action-btn mic-btn" id="micBtn" onclick="playUiSound('record'); startRecording()" style="margin-right: 5px;">
-        <i class="fa-solid fa-microphone"></i>
-    </div>
+    <i class="fa-regular fa-face-smile internal-emoji-btn" onclick="toggleInternalEmojiPicker()"></i>
     
-    <div class="send-btn" id="sendBtn" onclick="playUiSound('sent'); sendMessage()">
-        <i class="fa-solid fa-paper-plane"></i>
+    <textarea id="messageInput" class="chat-input" rows="1" placeholder="اكتب رسالة..." 
+       oninput="autoResize(this); toggleSendButton(); detectMood(this.value)"></textarea>
+</div>
+
+<div id="emojiPickerPanel" class="emoji-picker-panel">
+    <div class="emoji-grid" id="emojiGridContent"></div>
+</div>
+
+    <div class="footer-actions-right">
+        <div class="action-btn mic-btn" id="micBtn" onclick="playUiSound('record'); startRecording()">
+            <i class="fa-solid fa-microphone"></i>
+        </div>
+        
+        <div class="action-btn send-btn" id="sendBtn" onclick="playUiSound('sent'); sendMessage()" style="display: none;">
+            <i class="fa-solid fa-paper-plane"></i>
+        </div>
     </div>
 
     <input type="file" id="mediaInput" hidden accept="image/*,video/*" onchange="uploadMedia(this, 'media')">
     <input type="file" id="fileInput" hidden accept="*/*" onchange="uploadMedia(this, 'file')">
 </div>
-
 
 <div id="callOverlay" class="call-overlay">
     
@@ -5133,13 +5927,38 @@ if (msg.type === 'system_nickname') {
         lastDate = msgDate;
         prevMsg = null;
     }
+            // ================= 4. رسائل النظام (التعديل النهائي لإخفاء الاسم في الصداقة) =================
+                         // ================= تصحيح رسائل النظام في الأرشيف (loadMoreHistory) =================
+                else if (msg.type === 'system') {
+                    let actionText = "";
+                    let showName = true; // متغير للتحكم في ظهور الاسم
 
-    // ================= 4. رسائل النظام (مثل وضع الشبح) =================
-    if (msg.type === 'system') {
-        const actionText = msg.text === 'ghost_on' ? 'قام بتفعيل وضع الشبح 👻' : 'قام بإلغاء وضع الشبح 🚫';
-        html += `<div class="system-msg-row" id="msg_${doc.id}"><span class="system-msg-text">${actionText} بواسطة <span class="system-user-name">${u.name}</span></span></div>`;
-        return; // الخروج للانتقال للرسالة التالية
-    }
+                    // 1. فحص حالات الشبح
+                    if (msg.text === 'ghost_on') {
+                        actionText = 'قام بتفعيل وضع الشبح 👻';
+                    } else if (msg.text === 'ghost_off') {
+                        actionText = 'قام بإلغاء وضع الشبح 🚫';
+                    } 
+                    // 2. فحص حالة الصداقة (عشان النص يظهر صح والاسم يختفي)
+                    else if (msg.text === 'request_accepted' || msg.text.includes('صديقين')) {
+                        actionText = '🎉 لقد أصبحنا صديقين، اكسروا حاجز الصمت!';
+                        showName = false; // إخفاء اسم المستخدم
+                    }
+                    // 3. رسائل تغيير الألقاب
+                    else if (msg.text.includes('تغيير لقب')) {
+                         actionText = msg.text;
+                         showName = false;
+                    } 
+                    else {
+                        actionText = msg.text;
+                    }
+
+                    // تجهيز الاسم لو مطلوب
+                    let nameHtml = showName ? `<span class="system-user-name" style="margin-right:5px;">(${u.name})</span>` : '';
+
+                    newHtml += `<div class="system-msg-row" id="msg_${doc.id}"><span class="system-msg-text">${actionText} ${nameHtml}</span></div>`;
+                    return; // الانتقال للرسالة التالية
+                }
 
     // ================= 5. تجهيز محتوى الرسالة =================
     let content = "";
@@ -5172,6 +5991,39 @@ if (msg.type === 'system_nickname') {
     else if (msg.type === 'video') { content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video><div class="video-play-overlay"><div class="play-circle"><i class="fa-solid fa-play"></i></div></div></div>`; } 
     else if (msg.type === 'audio') { content = generateAudioPlayer(msg.text, doc.id); }
     else if (msg.type === 'file') { content = `<div class="file-card" onclick="window.open('${msg.text}', '_blank')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">ملف مرفق</span><span class="file-size">تحميل</span></div></div>`; }
+ // ================== رسم الهدايا (يدعم العادي والفخم) ==================
+else if (msg.type === 'gift') {
+    const giftId = `gift_${doc.id}`;
+    
+    // تحديد هل الهدية فخمة أم لا؟
+    const isLuxury = msg.giftTier === 'luxury';
+    
+    // إضافة كلاس "luxury-tier" لو الهدية غالية
+    const containerClass = isLuxury ? 'gift-interactive-container luxury-tier' : 'gift-interactive-container';
+
+    const giftContent = `
+        <div class="magic-gift-content">
+            <div class="magic-gift-icon">${msg.giftIcon}</div>
+            <div class="magic-gift-name">${msg.giftName}</div>
+            <div style="font-size:10px; color:#ddd; margin-top:2px;">${msg.giftPrice} <i class="fa-solid fa-coins"></i></div>
+        </div>
+    `;
+
+    content = `
+    <div id="${giftId}" class="${containerClass}" onclick="toggleMagicGift(this)">
+        ${giftContent}
+        <div class="gift-package">
+            <div class="magic-lid"></div>
+            <div class="magic-box"></div>
+        </div>
+    </div>`;
+    
+    bubbleClass = "sticker-bubble"; 
+}
+// ====================================================================
+
+            // (هنا يكمل الكود القديم: else if (msg.type === 'call_log') ...)
+
     else if (msg.type === 'call_log') { content = `<div class="call-card-inner">📞 ${msg.text === 'no_answer' ? 'مكالمة فائتة' : 'مكالمة انتهت'}</div>`; }
 
     // ================= 6. منطق الرد (Reply) =================
@@ -5219,27 +6071,28 @@ if (msg.type === 'system_nickname') {
     let isSameSender = (prevMsg && prevMsg.uid === msg.uid && prevMsg.type !== 'deleted' && msg.type !== 'deleted');
 
     // ================= 9. بناء HTML النهائي (رسمة واحدة فقط!) =================
-    html += `
-    <div class="msg-row ${isMe ? 'sender' : 'receiver'} ${isSameSender ? 'same-sender' : ''}" id="msg_${doc.id}" style="${rowStyle}">
-        ${!isMe ? miniAvatar : ''}
-        
-        <div class="${bubbleClass}" style="position: relative;">
-            
-            ${!isMe && !isSameSender ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
-            
-            ${replyHtml} <div>${content}</div> ${bombIndicator} ${reactionHtml}
+                    // ✅ التصحيح: غيرنا newHtml لـ html
+                html += `
+                <div class="msg-row ${isMe ? 'sender' : 'receiver'} ${isSameSender ? 'same-sender' : ''}" id="msg_${doc.id}" style="${rowStyle}">
+                    ${!isMe ? miniAvatar : ''}
+                    
+                    <div class="${bubbleClass}" style="position: relative;">
+                        
+                        ${!isMe && !isSameSender ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
+                        
+                        ${replyHtml} <div>${content}</div> ${bombIndicator} ${reactionHtml}
 
-            ${msg.type !== 'deleted' ? `
-                <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
-                    <span class="msg-time">${timeText}</span>
-                    ${eyeHtml} 
-                </div>` 
-            : ''}
-        </div>
-    </div>`;
-
-    prevMsg = msg;
-});
+                        ${msg.type !== 'deleted' ? `
+                            <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
+                                <span class="msg-time">${timeText}</span>
+                                ${eyeHtml} 
+                            </div>` 
+                        : ''}
+                    </div>
+                </div>`;
+                
+                prevMsg = msg;
+            }); // نهاية الـ forEach
 
                 container.innerHTML = html;
 
@@ -5472,25 +6325,51 @@ async function loadMoreHistory() {
                 else if(msg.type === 'audio') { content = generateAudioPlayer(msg.text, doc.id); }
                 else if(msg.type === 'file') { content = `<div class="file-card" onclick="window.open('${msg.text}', '_blank')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">ملف مرفق</span><span class="file-size">تحميل</span></div></div>`; }
                 else if (msg.type === 'call_log') { content = `<div class="call-card-inner">📞 مكالمة</div>`; }
-                else if (msg.type === 'system') {
-                    const actionText = msg.text === 'ghost_on' ? 'قام بتفعيل وضع الشبح 👻' : 'قام بإلغاء وضع الشبح 🚫';
-                    newHtml += `<div class="system-msg-row" id="msg_${doc.id}"><span class="system-msg-text">${actionText} بواسطة <span class="system-user-name">${u.name}</span></span></div>`;
-                    return; // الانتقال للرسالة التالية
+                                else             // ================= 4. رسائل النظام (التصحيح النهائي) =================
+            if (msg.type === 'system') {
+                let actionText = "";
+                let showName = true; // متغير للتحكم في ظهور الاسم
+                
+                // فحص نوع النص
+                if (msg.text === 'ghost_on') {
+                    actionText = 'قام بتفعيل وضع الشبح 👻';
+                } else if (msg.text === 'ghost_off') {
+                    actionText = 'قام بإلغاء وضع الشبح 🚫';
+                } 
+                // التحقق من رسائل الصداقة (سواء كود أو نص)
+                else if (msg.text === 'request_accepted' || msg.text.includes('أصبحنا صديقين')) { 
+                    actionText = '🎉 لقد أصبحنا صديقين، اكسروا حاجز الصمت!';
+                    showName = false; // 👈 هنا السر: نلغي ظهور الاسم لهذه الرسالة
+                } else {
+                    actionText = msg.text;
+                    // لو النص يحتوي على ترحيب عام، نخفي الاسم أيضاً
+                    if(actionText.includes('حاجز الصمت')) showName = false;
                 }
 
-                const eyeHtml = getEyeStatusHTML(msg, isMe);
+                // تجهيز كود الاسم (يظهر فقط لو showName = true)
+                let nameHtml = showName ? `<span class="system-user-name" style="margin-right:5px;">(${u.name})</span>` : '';
+
+                html += `<div class="system-msg-row" id="msg_${doc.id}"><span class="system-msg-text">${actionText} ${nameHtml}</span></div>`;
+                return; 
+            }
+           const eyeHtml = getEyeStatusHTML(msg, isMe);
                 const timeText = msg.createdAt ? formatTime(msg.createdAt) : "";
                 // ✅ تم إضافة onclick و cursor:pointer
 const miniAvatar = `<div class="msg-user-avatar" onclick="openUserPopup('${msg.uid}')" style="background-image: url('${u.profilePic}'); background-color:${u.color}; cursor: pointer;">${u.profilePic?'':u.char}</div>`;
                 
                 let isSameSender = (prevMsg && prevMsg.uid === msg.uid && prevMsg.type !== 'deleted' && msg.type !== 'deleted');
 
-                newHtml += `
-                <div class="msg-row ${isMe ? 'sender' : 'receiver'} ${isSameSender ? 'same-sender' : ''}" id="msg_${doc.id}">
+                                // ✅ التصحيح: غيرنا الاسم لـ html ليطابق المتغير الأساسي
+                html += `
+                <div class="msg-row ${isMe ? 'sender' : 'receiver'} ${isSameSender ? 'same-sender' : ''}" id="msg_${doc.id}" style="${rowStyle}">
                     ${!isMe ? miniAvatar : ''}
-                    <div class="${bubbleClass}">
+                    
+                    <div class="${bubbleClass}" style="position: relative;">
+                        
                         ${!isMe && !isSameSender ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
-                        <div>${content}</div>
+                        
+                        ${replyHtml} <div>${content}</div> ${bombIndicator} ${reactionHtml}
+
                         ${msg.type !== 'deleted' ? `
                             <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
                                 <span class="msg-time">${timeText}</span>
@@ -5499,6 +6378,7 @@ const miniAvatar = `<div class="msg-user-avatar" onclick="openUserPopup('${msg.u
                         : ''}
                     </div>
                 </div>`;
+
                 
                 prevMsg = msg;
             });
@@ -7438,35 +8318,31 @@ function toggleSendButton() {
     const input = document.getElementById('messageInput');
     const sendBtn = document.getElementById('sendBtn');
     const micBtn = document.getElementById('micBtn');
-    
-    // تعريف العنصر اللي شايل زراير المرفقات (الصور والملفات والقنبلة)
-    const actionsContainer = document.querySelector('.footer-actions-left');
+    const leftActions = document.getElementById('leftActions');
 
-    if (input.value.trim().length > 0) {
-        // === حالة الكتابة ===
-        
-        // 1. إظهار زر الإرسال وإخفاء المايك
+    const hasText = input.value.trim().length > 0;
+
+    if (hasText) {
+        // --- حالة الكتابة ---
+        // 1. إظهار الإرسال وإخفاء المايك
         sendBtn.style.display = 'flex';
         micBtn.style.display = 'none';
-        
-        // 2. إخفاء الزراير الجانبية عشان نوسع للكتابة
-        if (actionsContainer) {
-            actionsContainer.classList.add('hidden');
-        }
+
+        // 2. إخفاء الزراير الجانبية عشان نوسع للكتابة (اختياري)
+        // لو عايز الزراير تفضل ظاهرة امسح السطر اللي تحت ده
+        if(leftActions) leftActions.classList.add('hidden');
 
     } else {
-        // === حالة عدم الكتابة ===
-        
+        // --- حالة عدم الكتابة ---
         // 1. إظهار المايك وإخفاء الإرسال
         sendBtn.style.display = 'none';
         micBtn.style.display = 'flex';
-        
-        // 2. إظهار الزراير الجانبية مرة أخرى
-        if (actionsContainer) {
-            actionsContainer.classList.remove('hidden');
-        }
+
+        // 2. إظهار الزراير الجانبية
+        if(leftActions) leftActions.classList.remove('hidden');
     }
 }
+
 
 
     // كود لتشغيل الصوت غصب عن المتصفح
@@ -7594,7 +8470,17 @@ function buildMessageHTML(msg, id, u) {
     
     // تحديد نوع المحتوى
     if (msg.type === 'deleted') content = `<span style="font-style:italic;color:#94a3b8;"><i class="fa-solid fa-ban"></i> تم حذف الرسالة</span>`;
-    else if (msg.type === 'text') content = linkify(escapeHtml(msg.text));
+    else if (msg.type === 'text') {
+    // التحقق هل النص عبارة عن إيموجي فقط؟
+    if (isEmojiOnly(msg.text)) {
+        content = `<div style="font-size: 50px; line-height: 1;">${msg.text}</div>`;
+        bubbleClass = "msg-bubble emoji-only"; // استخدام كلاس الإيموجي الجديد
+    } else {
+        // نص عادي
+        content = linkify(escapeHtml(msg.text));
+        // bubbleClass تبقى كما هي للرسائل العادية
+    }
+}
     else if (msg.type === 'image') content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`;
     else if (msg.type === 'video') content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video></div>`;
     else if (msg.type === 'audio') content = generateAudioPlayer(msg.text, id);
@@ -8358,7 +9244,27 @@ function buildMessageHTML(msg, id, u, isMe) {
     else if (msg.type === 'video') { content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video></div>`; }
     else if (msg.type === 'audio') { content = generateAudioPlayer(msg.text, id); }
     else if (msg.type === 'file') { content = `<div class="file-card" onclick="window.open('${msg.text}', '_blank')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">ملف مرفق</span><span class="file-size">تحميل</span></div></div>`; }
-    
+        // ... داخل دالة buildMessageHTML ...
+
+    // 1. عرض الهدية المدفوعة (شكل فخم)
+    else if (msg.type === 'gift') {
+        content = `
+        <div class="msg-gift-container" style="text-align:center; padding:10px; min-width:120px;">
+            <div style="font-size:50px; animation:bounce 2s infinite;">${msg.giftIcon}</div>
+            <div style="color:#FFD700; font-weight:bold; font-size:14px; margin-top:5px;">${msg.giftName}</div>
+            <div style="color:#aaa; font-size:10px;">${msg.giftPrice} <i class="fa-solid fa-coins"></i></div>
+        </div>`;
+        bubbleClass += " gift-bubble"; // ستايل ذهبي (اللي ضفناه قبل كده)
+    }
+
+    // 2. عرض الملصق المجاني (كبير وبدون خلفية)
+    else if (msg.type === 'sticker') {
+    // عرض الملصق (Sticker)
+    content = `<div style="font-size: 70px; line-height: 1;">${msg.text}</div>`;
+    bubbleClass = "msg-bubble sticker-bubble"; // استخدام كلاس الملصق الجديد
+} 
+
+
     // 🔥 إضافة منطق الرد هنا أيضاً
     let replyHtml = "";
     if (msg.replyTo && msg.type !== 'deleted') {
@@ -10068,7 +10974,562 @@ function closeProfile() {
         }, 300);
     }
 }
+async function toggleGifPicker() {
+    // إنشاء النافذة لو مش موجودة
+    if(!document.getElementById('gifPicker')) {
+        const div = document.createElement('div');
+        div.id = 'gifPicker';
+        div.className = 'gif-picker';
+        div.innerHTML = `
+            <input type="text" placeholder="بحث عن GIF..." style="width:100%; padding:10px; background:rgba(0,0,0,0.2); border:none; color:#fff;" oninput="searchGifs(this.value)">
+            <div class="gif-grid" id="gifGrid"></div>
+        `;
+        document.querySelector('.chat-footer').appendChild(div);
+        searchGifs('funny'); // بحث افتراضي
+    }
+    
+    const picker = document.getElementById('gifPicker');
+    picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+}
 
+async function searchGifs(query) {
+    // استخدم API Key مجاني من Tenor
+    const key = "LIVDSRZULELA"; 
+    const url = `https://g.tenor.com/v1/search?q=${query}&key=${key}&limit=10`;
+    
+    const res = await fetch(url);
+    const data = await res.json();
+    const grid = document.getElementById('gifGrid');
+    grid.innerHTML = '';
+    
+    data.results.forEach(gif => {
+        const img = document.createElement('img');
+        img.src = gif.media[0].tinygif.url;
+        img.className = 'gif-item';
+        img.onclick = () => sendGif(gif.media[0].gif.url);
+        grid.appendChild(img);
+    });
+}
+
+function sendGif(url) {
+    // إرسال كصورة عادية
+    db.collection("chats").doc(chatId).collection("messages").add({
+        text: url,
+        uid: currentUserId,
+        type: 'image', // يعامل معاملة الصورة
+        seen: false,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    toggleGifPicker(); // إغلاق النافذة
+}
+
+
+
+// 1. بيانات الهدايا (قائمة موسعة - 80 منتج)
+const premiumGifts = [
+    // =============================================
+    // الفئة الأولى: هدايا عادية (Regular Tier)
+    // (أسعار من 5 إلى 499 كوينز - صندوق وردي)
+    // =============================================
+    
+    // --- 🌹 حب ورومانسية ---
+    { id: 'p1', icon: '🌹', name: 'وردة حمراء', price: 10, type: 'premium', tier: 'regular' },
+    { id: 'p2', icon: '💌', name: 'رسالة حب', price: 15, type: 'premium', tier: 'regular' },
+    { id: 'p3', icon: '🧸', name: 'دبدوب', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p4', icon: '💐', name: 'بوكيه ورد', price: 80, type: 'premium', tier: 'regular' },
+    { id: 'p5', icon: '🍫', name: 'شوكولاتة', price: 30, type: 'premium', tier: 'regular' },
+    { id: 'p6', icon: '💘', name: 'سهم الحب', price: 40, type: 'premium', tier: 'regular' },
+    { id: 'p7', icon: '💍', name: 'دبلة فضة', price: 100, type: 'premium', tier: 'regular' },
+    { id: 'p8', icon: '💋', name: 'قبلة', price: 20, type: 'premium', tier: 'regular' },
+
+    // --- 🍔 أكل وشرب ---
+    { id: 'p9', icon: '☕', name: 'قهوة صباحية', price: 20, type: 'premium', tier: 'regular' },
+    { id: 'p10', icon: '🍕', name: 'بيتزا', price: 25, type: 'premium', tier: 'regular' },
+    { id: 'p11', icon: '🍔', name: 'برجر', price: 25, type: 'premium', tier: 'regular' },
+    { id: 'p12', icon: '🍟', name: 'بطاطس', price: 15, type: 'premium', tier: 'regular' },
+    { id: 'p13', icon: '🍿', name: 'فشار', price: 15, type: 'premium', tier: 'regular' },
+    { id: 'p14', icon: '🍩', name: 'دونات', price: 20, type: 'premium', tier: 'regular' },
+    { id: 'p15', icon: '🍦', name: 'آيس كريم', price: 15, type: 'premium', tier: 'regular' },
+    { id: 'p16', icon: '🍰', name: 'كيكة عيد ميلاد', price: 60, type: 'premium', tier: 'regular' },
+    { id: 'p17', icon: '🍹', name: 'عصير فريش', price: 20, type: 'premium', tier: 'regular' },
+    { id: 'p18', icon: '🍗', name: 'دجاج مقرمش', price: 35, type: 'premium', tier: 'regular' },
+
+    // --- 🎉 احتفالات وترفيه ---
+    { id: 'p19', icon: '🎈', name: 'بالون', price: 10, type: 'premium', tier: 'regular' },
+    { id: 'p20', icon: '🎉', name: 'مفرقعات', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p21', icon: '🎵', name: 'نغمة موسيقية', price: 25, type: 'premium', tier: 'regular' },
+    { id: 'p22', icon: '🎮', name: 'ذراع تحكم', price: 150, type: 'premium', tier: 'regular' },
+    { id: 'p23', icon: '🎧', name: 'سماعة رأس', price: 100, type: 'premium', tier: 'regular' },
+    { id: 'p24', icon: '🎤', name: 'ميكروفون', price: 120, type: 'premium', tier: 'regular' },
+    { id: 'p25', icon: '🎸', name: 'جيتار', price: 200, type: 'premium', tier: 'regular' },
+    { id: 'p26', icon: '🎹', name: 'بيانو', price: 300, type: 'premium', tier: 'regular' },
+    { id: 'p27', icon: '⚽', name: 'كرة قدم', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p28', icon: '🏀', name: 'كرة سلة', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p29', icon: '🏆', name: 'كأس الفوز', price: 400, type: 'premium', tier: 'regular' },
+    { id: 'p30', icon: '🥇', name: 'ميدالية ذهبية', price: 100, type: 'premium', tier: 'regular' },
+
+    // --- 🐶 حيوانات وطبيعة ---
+    { id: 'p31', icon: '🐱', name: 'قطة كيوت', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p32', icon: '🐶', name: 'كلب وفي', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p33', icon: '🦋', name: 'فراشة', price: 30, type: 'premium', tier: 'regular' },
+    { id: 'p34', icon: '🐼', name: 'باندا', price: 70, type: 'premium', tier: 'regular' },
+    { id: 'p35', icon: '🦄', name: 'يونيكورن صغير', price: 400, type: 'premium', tier: 'regular' },
+    { id: 'p36', icon: '🌻', name: 'عباد الشمس', price: 15, type: 'premium', tier: 'regular' },
+    { id: 'p37', icon: '🌴', name: 'نخلة', price: 60, type: 'premium', tier: 'regular' },
+    { id: 'p38', icon: '🌵', name: 'صبّار', price: 25, type: 'premium', tier: 'regular' },
+
+    // --- 💄 موضة وأناقة ---
+    { id: 'p39', icon: '💄', name: 'أحمر شفاه', price: 80, type: 'premium', tier: 'regular' },
+    { id: 'p40', icon: '👠', name: 'حذاء كعب', price: 150, type: 'premium', tier: 'regular' },
+    { id: 'p41', icon: '👗', name: 'فستان', price: 200, type: 'premium', tier: 'regular' },
+    { id: 'p42', icon: '🕶️', name: 'نظارة شمس', price: 120, type: 'premium', tier: 'regular' },
+    { id: 'p43', icon: '🧢', name: 'كاب', price: 50, type: 'premium', tier: 'regular' },
+    { id: 'p44', icon: '⌚', name: 'ساعة يد', price: 250, type: 'premium', tier: 'regular' },
+    { id: 'p45', icon: '👜', name: 'حقيبة يد', price: 300, type: 'premium', tier: 'regular' },
+
+    // --- 📱 تكنولوجيا ---
+    { id: 'p46', icon: '📱', name: 'موبايل', price: 450, type: 'premium', tier: 'regular' },
+    { id: 'p47', icon: '💻', name: 'لابتوب', price: 499, type: 'premium', tier: 'regular' },
+    { id: 'p48', icon: '📷', name: 'كاميرا', price: 250, type: 'premium', tier: 'regular' },
+    { id: 'p49', icon: '💡', name: 'فكرة نيرة', price: 30, type: 'premium', tier: 'regular' },
+    { id: 'p50', icon: '🔋', name: 'طاقة إيجابية', price: 40, type: 'premium', tier: 'regular' },
+
+    // =============================================
+    // الفئة الثانية: هدايا فخمة (Luxury Tier)
+    // (أسعار 500 كوينز فأكثر - صندوق أسود وتاج)
+    // =============================================
+
+    // --- 💎 مجوهرات وثروة ---
+    { id: 'p51', icon: '💎', name: 'ماسة زرقاء', price: 500, type: 'premium', tier: 'luxury' },
+    { id: 'p52', icon: '💍', name: 'خاتم ألماس', price: 800, type: 'premium', tier: 'luxury' },
+    { id: 'p53', icon: '👑', name: 'تاج الملك', price: 1000, type: 'premium', tier: 'luxury' },
+    { id: 'p54', icon: '💰', name: 'كيس نقود', price: 600, type: 'premium', tier: 'luxury' },
+    { id: 'p55', icon: '💸', name: 'رزمة دولارات', price: 700, type: 'premium', tier: 'luxury' },
+    { id: 'p56', icon: '🏆', name: 'كأس العالم', price: 900, type: 'premium', tier: 'luxury' },
+    { id: 'p57', icon: '⚜️', name: 'شعار ملكي', price: 550, type: 'premium', tier: 'luxury' },
+
+    // --- 🏎️ مركبات فاخرة ---
+    { id: 'p58', icon: '🏎️', name: 'فيراري', price: 1200, type: 'premium', tier: 'luxury' },
+    { id: 'p59', icon: '🏍️', name: 'موتوسيكل ريس', price: 800, type: 'premium', tier: 'luxury' },
+    { id: 'p60', icon: '🚁', name: 'هليكوبتر', price: 2000, type: 'premium', tier: 'luxury' },
+    { id: 'p61', icon: '✈️', name: 'طائرة خاصة', price: 3000, type: 'premium', tier: 'luxury' },
+    { id: 'p62', icon: '🛳️', name: 'يخت فاخر', price: 4000, type: 'premium', tier: 'luxury' },
+    { id: 'p63', icon: '🚀', name: 'صاروخ فضاء', price: 5000, type: 'premium', tier: 'luxury' },
+    { id: 'p64', icon: '🛸', name: 'طبق طائر', price: 5500, type: 'premium', tier: 'luxury' },
+
+    // --- 🦁 حيوانات أسطورية ومفترسة ---
+    { id: 'p65', icon: '🦁', name: 'الأسد الملك', price: 1000, type: 'premium', tier: 'luxury' },
+    { id: 'p66', icon: '🐯', name: 'نمر شرس', price: 1000, type: 'premium', tier: 'luxury' },
+    { id: 'p67', icon: '🦅', name: 'صقر جارح', price: 900, type: 'premium', tier: 'luxury' },
+    { id: 'p68', icon: '🐉', name: 'تنين أسطوري', price: 2500, type: 'premium', tier: 'luxury' },
+    { id: 'p69', icon: '🦖', name: 'ديناصور', price: 1500, type: 'premium', tier: 'luxury' },
+    { id: 'p70', icon: '🦄', name: 'يونيكورن ذهبي', price: 2000, type: 'premium', tier: 'luxury' },
+
+    // --- 🏰 أملاك وعجائب ---
+    { id: 'p71', icon: '🏰', name: 'قصر ملكي', price: 5000, type: 'premium', tier: 'luxury' },
+    { id: 'p72', icon: '🏝️', name: 'جزيرة خاصة', price: 7000, type: 'premium', tier: 'luxury' },
+    { id: 'p73', icon: '🎡', name: 'ملاهي كاملة', price: 3500, type: 'premium', tier: 'luxury' },
+    { id: 'p74', icon: '🗼', name: 'برج إيفل', price: 2500, type: 'premium', tier: 'luxury' },
+    { id: 'p75', icon: '🗽', name: 'تمثال الحرية', price: 2500, type: 'premium', tier: 'luxury' },
+    { id: 'p76', icon: '🌋', name: 'بركان ثائر', price: 1500, type: 'premium', tier: 'luxury' },
+
+    // --- 🌌 فضاء وخيال ---
+    { id: 'p77', icon: '🌍', name: 'كوكب الأرض', price: 8000, type: 'premium', tier: 'luxury' },
+    { id: 'p78', icon: '🌕', name: 'القمر الكامل', price: 4000, type: 'premium', tier: 'luxury' },
+    { id: 'p79', icon: '☀️', name: 'الشمس المشرقة', price: 6000, type: 'premium', tier: 'luxury' },
+    { id: 'p80', icon: '🌌', name: 'مجرة درب التبانة', price: 10000, type: 'premium', tier: 'luxury' }
+];
+// قائمة الملصقات المجانية (هذا هو الجزء الناقص عندك)
+// قائمة الملصقات المجانية (100+ ملصق متنوع)
+const freeStickers = [
+    // --- 😃 الوجوه والتعبيرات ---
+    '😂', '🤣', '🥰', '😍', '😘', '😡', '😭', '😱', '😳', '🤔',
+    '😎', '🥳', '🤩', '🥺', '😤', '🤯', '🥶', '🥵', '😴', '🤮',
+    '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👿', '🤡', '💩',
+    '👻', '💀', '☠️', '👽', '👾', '🤖', '🎃', '😺', '😸', '😹',
+    '😻', '😼', '😽', '🙀', '😿', '😾', '🙈', '🙉', '🙊', '🐵',
+    
+    // --- ❤️ الحب والقلوب ---
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🤎', '🖤', '🤍', '💔',
+    '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '💌',
+    '💍', '💎', '💐', '🌹', '🥀', '🌺', '🌷', '🌸', '💮', '🏵️',
+
+    // --- 👋 الإشارات واليد ---
+    '👍', '👎', '👊', '✊', '🤛', '🤜', '🤞', '✌️', '🤟', '🤘',
+    '👌', '🤌', '🤏', '👈', '👉', '👆', '👇', '☝️', '✋', '🤚',
+    '🖐', '🖖', '👋', '🤙', '💪', '🙏', '✍️', '💅', '🤳', '🤝',
+
+    // --- 🦁 حيوانات وطبيعة ---
+    '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯',
+    '🦁', '🐮', '🐷', '🐸', '🦄', '🐝', '🦋', '🐌', '🐞', '🐜',
+    
+    // --- 🍔 أكل وشرب ---
+    '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🍈',
+    '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦',
+    '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🍿', '🥤', '🧋',
+
+    // --- 🔥 متنوع ومميز ---
+    '🔥', '✨', '🌟', '💫', '💥', '💢', '💦', '💧', '💤', '💨',
+    '🎉', '🎊', '🎈', '🎂', '🎀', '🎁', '🕯️', '🧨', '🧧', '🎐'
+];
+
+
+
+// 2. فتح وإغلاق المركز
+function openGiftCenter() {
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    // تحديث الرصيد ورسم العناصر
+    updateBalanceInCenter();
+    renderPremiumGifts();
+    renderFreeStickers();
+    
+    // إظهار النافذة
+    const modal = document.getElementById('giftCenterModal');
+    if(modal) modal.classList.add('active');
+}
+
+function closeGiftCenter() {
+    const modal = document.getElementById('giftCenterModal');
+    if(modal) modal.classList.remove('active');
+}
+
+// 3. التبديل بين التبويبات (VIP / ملصقات)
+function switchGiftTab(type, btn) {
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    // تغيير لون الزرار
+    document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    
+    // تغيير المحتوى الظاهر
+    document.querySelectorAll('.gift-content-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(`tab-${type}`).classList.add('active');
+}
+
+// 4. رسم الهدايا (تعبئة القائمة)
+// 4. رسم الهدايا (تعبئة القائمة - Grid System)
+function renderPremiumGifts() {
+    const grid = document.getElementById('premiumGrid');
+    
+    // تنظيف القديم عشان ميكررش
+    if(!grid) return;
+    grid.innerHTML = ''; 
+
+    premiumGifts.forEach(gift => {
+        const item = document.createElement('div');
+        
+        // تحديد كلاس إضافي لو الهدية فخمة (عشان يبقى شكلها مميز)
+        const luxuryClass = gift.tier === 'luxury' ? 'luxury-item' : '';
+        
+        item.className = `gift-item ${luxuryClass}`;
+        
+        // عند الضغط
+        item.onclick = () => {
+            // تأثير اهتزاز للموبايل
+            if(navigator.vibrate) navigator.vibrate(10);
+            sendPremiumGift(gift);
+        };
+
+        // بناء محتوى الكارت
+        item.innerHTML = `
+            <div class="gift-emoji">${gift.icon}</div>
+            <div class="gift-name">${gift.name}</div>
+            <div class="gift-price">
+                ${gift.price} <i class="fa-solid fa-coins" style="font-size:8px;"></i>
+            </div>
+        `;
+        
+        grid.appendChild(item);
+    });
+}
+
+
+function renderFreeStickers() {
+    const grid = document.getElementById('stickersGrid');
+    if(!grid || grid.children.length > 0) return;
+
+    freeStickers.forEach(sticker => {
+        const item = document.createElement('div');
+        item.className = 'sticker-item';
+        item.style.cssText = "font-size: 35px; text-align: center; cursor: pointer; padding: 10px;";
+        item.innerText = sticker;
+        item.onclick = () => sendFreeSticker(sticker);
+        grid.appendChild(item);
+    });
+}
+
+// 5. إرسال هدية مدفوعة (خصم الرصيد)
+async function sendPremiumGift(gift) {
+    if (!currentUserId || !chatId) return;
+
+    const userRef = db.collection('users').doc(currentUserId);
+    try {
+        await db.runTransaction(async (t) => {
+            const doc = await t.get(userRef);
+            const balance = doc.data().coins || 0;
+            if (balance < gift.price) throw "no_funds";
+            t.update(userRef, { coins: balance - gift.price });
+        });
+
+        // نجح الخصم -> إرسال
+        sendGiftMessage(gift, 'gift'); 
+        playUiSound('sent');
+        showToast(`تم إرسال ${gift.name} بنجاح`);
+        closeGiftCenter();
+        updateBalanceInCenter();
+
+    } catch (e) {
+        if (e === "no_funds") {
+            if(confirm("رصيدك غير كافي! هل تريد الشحن؟")) openRechargeModal();
+        }
+    }
+}
+
+// 6. إرسال ملصق مجاني
+function sendFreeSticker(sticker) {
+    const giftObj = {
+        icon: sticker,
+        name: 'ملصق',
+        price: 'مجاني'
+    };
+    sendGiftMessage(giftObj, 'sticker');
+    closeGiftCenter();
+}
+
+// 7. الدالة الموحدة للإرسال للداتابيز
+async function sendGiftMessage(giftData, type) {
+    const msgPayload = {
+        type: type, 
+        giftIcon: giftData.icon,
+        giftName: giftData.name,
+        giftPrice: giftData.price,
+        // 🔥 الإضافة الجديدة: حفظ مستوى الهدية (regular/luxury)
+        giftTier: giftData.tier || 'regular', 
+        
+        uid: currentUserId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        seen: false,
+        text: type === 'gift' ? `أرسل ${giftData.name} 🎁` : giftData.icon,
+        isGhost: typeof isGhostMode !== 'undefined' ? isGhostMode : false
+    };
+
+    await db.collection("chats").doc(chatId).collection("messages").add(msgPayload);
+    
+    // تحديث الشات الخارجي
+    if(cachedOtherUserId && !msgPayload.isGhost) {
+        await db.collection("chats").doc(chatId).set({ 
+            lastMessage: type === 'gift' ? `🎁 ${giftData.name}` : `ملصق ${giftData.icon}`,
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            sentTo: cachedOtherUserId,
+            senderId: currentUserId,
+            seen: false,
+            unreadCount: firebase.firestore.FieldValue.increment(1)
+        }, { merge: true });
+    }
+}
+
+// 8. تحديث الرصيد والشحن
+function updateBalanceInCenter() {
+    db.collection('users').doc(currentUserId).onSnapshot(doc => {
+        if(doc.exists) {
+            const el = document.getElementById('centerCoinsDisplay');
+            if(el) el.innerText = doc.data().coins || 0;
+        }
+    });
+}
+
+function openRechargeModal() {
+    closeGiftCenter();
+    document.getElementById('rechargeModal').style.display = 'flex';
+}
+
+function processRecharge(amount, price) {
+    // محاكاة الشحن (يضاف الرصيد فوراً)
+    db.collection('users').doc(currentUserId).update({
+        coins: firebase.firestore.FieldValue.increment(amount)
+    }).then(() => {
+        showToast(`تم شحن ${amount} عملة بنجاح 💰`);
+        document.getElementById('rechargeModal').style.display = 'none';
+        openGiftCenter(); // العودة للمتجر
+    });
+}
+// صوت فتح الهدية السحري
+const giftOpenSound = new Audio("https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg"); 
+
+// دالة تبديل حالة الهدية (فتح/غلق)
+function toggleMagicGift(element) {
+    
+    // 1. لو الهدية مفتوحة حالياً -> اقفلها
+    if (element.classList.contains('opened')) {
+        element.classList.remove('opened');
+        
+        // (اختياري) صوت قفلة خفيفة
+        // const closeSound = new Audio("path_to_close_sound.mp3");
+        // closeSound.play();
+        
+        return; 
+    }
+
+    // 2. لو الهدية مقفولة -> افتحها
+    // تشغيل صوت الفتح السحري
+    const audio = new Audio("https://actions.google.com/sounds/v1/cartoon/magic_chime.ogg");
+    audio.play().catch(()=>{});
+
+    // إضافة كلاس الفتح
+    element.classList.add('opened');
+    
+    // 🔥 إضافة كلاس "تم الفتح سابقاً" (عشان لما تتقفل تاني يبان عليها)
+    element.classList.add('has-been-opened');
+
+    // اهتزاز الموبايل
+    if (navigator.vibrate) navigator.vibrate([50, 50, 50]);
+    
+    // تشغيل الكونفيتي فقط لو دي أول مرة تتفتح (عشان متبقاش دوشة كل مرة)
+    // أو شيل الشرط لو عايزها في كل مرة
+    if (!element.getAttribute('data-opened-once')) {
+        if(typeof launchConfetti === 'function') launchConfetti(element);
+        element.setAttribute('data-opened-once', 'true');
+    }
+}
+
+// دالة بسيطة لعمل تأثير الكونفيتي (بدون مكتبات خارجية ثقيلة)
+function launchConfetti(element) {
+    const colors = ['#FFD700', '#ff4081', '#00e5ff', '#ffffff'];
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.style.position = 'fixed';
+        particle.style.left = centerX + 'px';
+        particle.style.top = centerY + 'px';
+        particle.style.width = Math.random() * 8 + 4 + 'px';
+        particle.style.height = Math.random() * 8 + 4 + 'px';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.borderRadius = '50%';
+        particle.style.pointerEvents = 'none';
+        particle.style.zIndex = '9999';
+        document.body.appendChild(particle);
+
+        // حركة عشوائية
+        const destX = (Math.random() - 0.5) * 300;
+        const destY = (Math.random() - 1) * 300;
+        const rotation = Math.random() * 360;
+
+        const animation = particle.animate([
+            { transform: `translate(0, 0) rotate(0deg)`, opacity: 1 },
+            { transform: `translate(${destX}px, ${destY}px) rotate(${rotation}deg)`, opacity: 0 }
+        ], {
+            duration: 1000 + Math.random() * 1000,
+            easing: 'cubic-bezier(0, .9, .57, 1)'
+        });
+
+        animation.onfinish = () => particle.remove();
+    }
+}
+
+// ================= قائمة الإيموجي الضخمة (100+) =================
+const emojisCollection = {
+    "الوجه والتعبيرات": [
+        "😂", "🤔", "🙃", "😢", "🤗", "😅", "😲", "😭", "😍", "🥰", 
+        "😘", "😗", "😙", "😚", "😋", "😛", "😝", "😜", "🤪", "🤨", 
+        "🧐", "🤓", "😎", "🥸", "🤩", "🥳", "😏", "😒", "😞", "😔", 
+        "😟", "😕", "🙁", "☹️", "😣", "😖", "😫", "😩", "🥺", "😤", 
+        "😠", "😡", "🤬", "🤯", "😳", "🥵", "🥶", "😱", "😨", "😰", 
+        "😥", "😓", "🤫", "🤥", "😶", "😐", "😑", "😬", "🙄", "😯", 
+        "😦", "😧", "😮", "🥱", "😴", "🤤", "😪", "😵", "🤐", "🥴"
+    ],
+    "القلوب والحب": [
+        "❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤", "🤍", "💔", 
+        "❣️", "💕", "💞", "💓", "💗", "💖", "💘", "💝", "💟", "💌"
+    ],
+    "الإشارات واليد": [
+        "👋", "🤚", "🖐", "✋", "🖖", "👌", "🤌", "🤏", "✌️", "🤞", 
+        "🤟", "🤘", "🤙", "👈", "👉", "👆", "🖕", "👇", "☝️", "👍", 
+        "👎", "✊", "👊", "🤛", "🤜", "👏", "🙌", "👐", "🤲", "🤝"
+    ],
+    "الحيوانات": [
+        "🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼", "🐻‍❄️", "🐨", 
+        "🐯", "🦁", "cow", "🐷", "🐸", "🐵", "🙈", "🙉", "🙊", "🦅"
+    ]
+};
+
+// 1. دالة فتح/غلق القائمة
+function toggleInternalEmojiPicker() {
+    const picker = document.getElementById('emojiPickerPanel');
+    const content = document.getElementById('emojiGridContent');
+    
+    // لو لسه فاضية، نملاها
+    if (content.innerHTML === '') {
+        renderEmojiList();
+    }
+
+    if (picker.style.display === 'flex') {
+        picker.style.display = 'none';
+    } else {
+        picker.style.display = 'flex';
+    }
+}
+
+// 2. رسم القائمة
+function renderEmojiList() {
+    const content = document.getElementById('emojiGridContent');
+    let html = '';
+
+    for (const [category, emojis] of Object.entries(emojisCollection)) {
+        // عنوان القسم
+        html += `<div class="emoji-category-title">${category}</div>`;
+        
+        // الإيموجيات
+        emojis.forEach(emoji => {
+            html += `<div class="emoji-item" onclick="insertEmoji('${emoji}')">${emoji}</div>`;
+        });
+    }
+    content.innerHTML = html;
+}
+
+// 3. دالة إدخال الإيموجي في النص
+function insertEmoji(emoji) {
+    const input = document.getElementById('messageInput');
+    
+    // إضافة الإيموجي في مكان المؤشر
+    const startPos = input.selectionStart;
+    const endPos = input.selectionEnd;
+    
+    const text = input.value;
+    const newText = text.substring(0, startPos) + emoji + text.substring(endPos);
+    
+    input.value = newText;
+    
+    // تحريك المؤشر بعد الإيموجي
+    input.selectionStart = startPos + emoji.length;
+    input.selectionEnd = startPos + emoji.length;
+    
+    // تحديث واجهة الإدخال (زر الإرسال، الطول...)
+    input.focus();
+    if(typeof autoResize === 'function') autoResize(input);
+    if(typeof toggleSendButton === 'function') toggleSendButton();
+}
+
+// إغلاق القائمة عند الضغط خارجها
+document.addEventListener('click', function(e) {
+    const picker = document.getElementById('emojiPickerPanel');
+    const trigger = document.querySelector('.internal-emoji-btn');
+    
+    if (picker.style.display === 'flex' && !picker.contains(e.target) && !trigger.contains(e.target)) {
+        picker.style.display = 'none';
+    }
+});
+// دالة للتأكد هل الرسالة عبارة عن إيموجي فقط؟
+function isEmojiOnly(text) {
+    if (!text) return false;
+    // تعبير منتظم يفحص الرموز التعبيرية والأرقام والرموز فقط
+    const emojiRegex = /^(\p{Emoji_Presentation}|\p{Emoji}\uFE0F|\p{Number}\uFE0F?|[\u203C-\u3299]\uFE0F?|\s)+$/u;
+    // وكمان نتأكد إن الطول مش كبير أوي (مثلاً أقل من 10 إيموجي)
+    return emojiRegex.test(text) && text.length < 20;
+}
 
     </script>
     
@@ -10483,6 +11944,66 @@ function closeProfile() {
 
     <div class="story-touch-area left" onclick="prevStoryItem()"></div>
     <div class="story-touch-area right" onclick="nextStoryItem()"></div>
+</div>
+<div class="bottom-sheet-overlay" id="giftCenterModal" onclick="closeGiftCenter()">
+    <div class="bottom-sheet gift-sheet" onclick="event.stopPropagation()">
+        
+        <div class="gift-header-top">
+            <div class="user-balance-box">
+                <span style="font-size:12px; color:#ccc;">رصيدك:</span>
+                <span id="centerCoinsDisplay" class="coin-num">0</span>
+                <i class="fa-solid fa-coins" style="color:#FFD700;"></i>
+            </div>
+            <button class="add-coins-btn" onclick="openRechargeModal()">شحن +</button>
+        </div>
+
+        <div class="gift-tabs">
+            <div class="gift-tab active" onclick="switchGiftTab('premium', this)">
+                <i class="fa-solid fa-gem"></i> مميزة (VIP)
+            </div>
+            <div class="gift-tab" onclick="switchGiftTab('free', this)">
+                <i class="fa-regular fa-face-smile"></i> ملصقات
+            </div>
+        </div>
+
+        <div id="tab-premium" class="gift-content-panel active">
+            <div class="gift-grid" id="premiumGrid">
+                </div>
+        </div>
+
+        <div id="tab-free" class="gift-content-panel">
+            <div class="stickers-grid" id="stickersGrid">
+                </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="rechargeModal" class="confirm-modal-overlay">
+    <div class="confirm-modal" style="text-align: center;">
+        <div class="modal-icon-box" style="background: rgba(255, 215, 0, 0.1); color: #FFD700;">
+            <i class="fa-solid fa-gem"></i>
+        </div>
+        <div class="confirm-title">شحن رصيد</div>
+        <div class="confirm-desc">اختر الباقة المناسبة لك</div>
+        
+        <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:15px;">
+            <div onclick="processRecharge(100, 1.99)" style="display:flex; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; cursor:pointer; border:1px solid rgba(255,255,255,0.1);">
+                <span style="color:#fff; font-weight:bold;">100 <i class="fa-solid fa-coins" style="color:#FFD700;"></i></span>
+                <span style="color:#4ade80;">$1.99</span>
+            </div>
+            <div onclick="processRecharge(500, 4.99)" style="display:flex; justify-content:space-between; padding:15px; background:rgba(255, 215, 0, 0.1); border-radius:12px; cursor:pointer; border:1px solid #FFD700;">
+                <span style="color:#fff; font-weight:bold;">500 <i class="fa-solid fa-coins" style="color:#FFD700;"></i></span>
+                <span style="color:#4ade80;">$4.99</span>
+            </div>
+             <div onclick="processRecharge(1000, 9.99)" style="display:flex; justify-content:space-between; padding:15px; background:rgba(255,255,255,0.05); border-radius:12px; cursor:pointer; border:1px solid rgba(255,255,255,0.1);">
+                <span style="color:#fff; font-weight:bold;">1000 <i class="fa-solid fa-coins" style="color:#FFD700;"></i></span>
+                <span style="color:#4ade80;">$9.99</span>
+            </div>
+        </div>
+
+        <button class="btn-modal btn-cancel" onclick="document.getElementById('rechargeModal').style.display='none'" style="width:100%;">إلغاء</button>
+    </div>
 </div>
 
 
