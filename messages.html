@@ -2536,26 +2536,25 @@
 }
 
 /* ================= تصميم حالة النشاط (زي الماسنجر) ================= */
+
+/* الكبسولة اللي فيها الوقت (للمستخدمين الأوفلاين مؤخراً) */
 .status-badge {
     position: absolute;
     bottom: -2px;
-    right: -2px; /* رجعناها لازقة في الصورة عشان الحجم الصغير */
-    
-    background: #000;
-    color: #4ade80; /* أخضر */
-    
-    font-size: 9px; 
+    right: -4px; /* مكانها على اليمين تحت */
+    background: #1a1a1a; /* خلفية سوداء */
+    color: #4ade80; /* لون أخضر فاقع */
+    font-size: 10px;
     font-weight: 800;
-    font-family: sans-serif; /* خط بسيط للأرقام */
-    
-    padding: 1px 4px; /* حواف ضيقة جداً */
-    border-radius: 6px;
-    border: 2px solid #1a1a1a;
-    z-index: 10;
-    min-width: 18px; /* عرض ثابت صغير */
+    padding: 1px 6px;
+    border-radius: 10px; /* حواف دائرية */
+    border: 2px solid var(--bg-deep); /* حدود بنفس لون خلفية التطبيق عشان تفصلها */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    z-index: 5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* خط رقمي واضح */
+    min-width: 18px;
     text-align: center;
 }
-
 
 /* نقطة الأونلاين العادية (للمستخدمين المتصلين حالياً) */
 .active-dot-online {
@@ -3986,42 +3985,55 @@ function loadChats(userId) {
 }
 
         async function fetchAndCacheUser(uid) {
+    // لو البيانات موجودة في الكاش وحديثة (أقل من دقيقة) نرجعها
+    // لكن للأمان سنقوم بالحساب كل مرة أو الاعتماد على Listener
+    
+    // ... (الجزء الخاص بـ if usersCache هذا سنتركه كما هو، لكن سنعدل الحساب بالأسفل)
+
     try {
         const doc = await db.collection("users").doc(uid).get();
         if (doc.exists) {
             const d = doc.data();
             
-            // حساب الأونلاين (زي الكود القديم)
+            // === [تعديل هام جداً] ===
+            // حساب الأونلاين بناءً على الوقت (5 دقائق = 300000 ميللي ثانية)
             let isOnlineCalculated = false;
-            let lastSeenMillis = 0; // متغير جديد لحفظ الوقت
-
-            if (d.lastSeen) {
-                lastSeenMillis = d.lastSeen.toMillis();
-                const diff = Date.now() - lastSeenMillis;
-                if (d.online === true && d.showActivity !== false && diff < 300000) { 
-                    isOnlineCalculated = true;
+            
+            if (d.online === true && d.showActivity !== false) {
+                if (d.lastSeen) {
+                    const lastSeenTime = d.lastSeen.toMillis();
+                    const currentTime = Date.now();
+                    const diff = currentTime - lastSeenTime;
+                    
+                    // لو الفرق أقل من 5 دقائق يعتبر أونلاين
+                    if (diff < 300000) { 
+                        isOnlineCalculated = true;
+                    }
+                } else {
+                    // لو معندوش وقت بس عنده online=true (حالات قديمة)
+                    isOnlineCalculated = true; 
                 }
-            } else if (d.online === true) {
-                isOnlineCalculated = true; 
             }
             
-            // حفظ البيانات
+            // تطبيق شرط "هل أنا مفعل حالة النشاط؟" عشان أشوف الناس
+            const realOnline = isOnlineCalculated && myActivityVisible;
+
             usersCache[uid] = { 
                 uid, 
                 name: d.name || "مستخدم", 
                 avatar: d.profilePic || d.avatarUrl || defaultAvatar, 
                 isVerified: d.isVerified === true, 
-                isOnline: isOnlineCalculated && myActivityVisible,
-                lastSeen: lastSeenMillis // 🔥 حفظنا الوقت هنا 🔥
+                isOnline: realOnline // القيمة المحسوبة الجديدة
             };
-            
-            sessionStorage.setItem('cached_users_data', JSON.stringify(usersCache));
+            // ده السطر اللي بيحفظ بيانات الناس في الذاكرة
+sessionStorage.setItem('cached_users_data', JSON.stringify(usersCache));
+
             return usersCache[uid];
+            
         }
     } catch (e) {}
-    return { uid, name: 'مجهول', avatar: defaultAvatar, isOnline: false, lastSeen: 0 };
+    return { uid, name: 'مجهول', avatar: defaultAvatar, isOnline: false };
 }
-
 
 function renderList() {
     const list = document.getElementById("list");
@@ -4095,42 +4107,20 @@ let bottomContent = c.isTyping
                 unreadHTML = `<div class="read-blue-dot"></div>`;
             }
         }
-let otherUserData = c.isGroup ? null : usersCache[c.otherUid];
-    let statusBadgeHTML = ''; // ده المتغير اللي هيشيل النتيجة (يا نقطة خضراء يا وقت)
+//
+        el.className = 'chat';
+        if (c.isPinned) el.classList.add('pinned-chat');
 
-    // 2. (جديد) منطق عرض الحالة المتطور
-    if (c.isGroup) {
-        // المجموعات ملهاش حالة أونلاين
-        statusBadgeHTML = ''; 
-    } else if (c.isOnline && window.isOnlineFeatureEnabled) {
-        // لو الشخص أونلاين وأنت مفعل الظهور: أظهر النقطة الخضراء
-        statusBadgeHTML = `<div class="active-dot-online"></div>`;
-    } else if (otherUserData && otherUserData.lastSeen && window.isOnlineFeatureEnabled) {
-        // لو أوفلاين بس عنده وقت ظهور مسجل: احسب الوقت
-        // دالة getShortLastSeen إحنا لسه ضايفينها فوق
-        const timeText = getShortLastSeen(otherUserData.lastSeen);
-        
-        if (timeText) {
-            // لو الوقت موجود وقصير (أقل من 3 أيام)، أظهر الكبسولة السوداء
-            statusBadgeHTML = `<div class="status-badge">${timeText}</div>`;
-        }
-    }
-       el.className = 'chat';
-    if (c.isPinned) el.classList.add('pinned-chat');
-
-    el.innerHTML = `
-        <div class="avatar-container" id="avatar-${c.id}">
-            <div class="avatar" style="background-image:url('${c.avatar}')"></div>
-            
-            ${statusBadgeHTML}
-            
-        </div>
-        <div class="info">
-            <div class="top-row"><div class="name">${displayName}</div><div class="time">${statusIconsHTML} ${c.time}</div></div>
-            <div class="bottom-row">${bottomContent}${unreadHTML}</div>
-        </div>`;
-
-
+        // بناء HTML العنصر
+        el.innerHTML = `
+            <div class="avatar-container" id="avatar-${c.id}">
+                <div class="avatar" style="background-image:url('${c.avatar}')"></div>
+                <div class="active-dot" style="background:${c.isOnline && window.isOnlineFeatureEnabled ? '#4ade80' : '#777'}"></div>
+            </div>
+            <div class="info">
+                <div class="top-row"><div class="name">${displayName}</div><div class="time">${statusIconsHTML} ${c.time}</div></div>
+                <div class="bottom-row">${bottomContent}${unreadHTML}</div>
+            </div>`;
 
         // =======================================================
         // أ) منطق الضغط على الصورة (يفتح المعاينة فقط)
@@ -5879,39 +5869,17 @@ function getShortLastSeen(timestamp) {
     const now = Date.now();
     const diff = now - timestamp;
     
-    // حساب الوحدات
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
-    const weeks = Math.floor(days / 7);
 
-    // 1. لو أقل من دقيقة
     if (minutes < 1) return 'الآن';
-
-    // 2. الدقائق (من 1د لـ 59د)
-    if (minutes < 60) {
-        return `${minutes} د`;
-    }
-
-    // 3. الساعات (من 1س لـ 23س)
-    if (hours < 24) {
-        return `${hours} س`;
-    }
-
-    // 4. الأيام (من 1ي لـ 6ي)
-    if (days < 7) {
-        return `${days} ي`;
-    }
-
-    // 5. الأسابيع (1أ، 2أ، إلخ..)
-    // ممكن نخليه يظهر لحد 4 أسابيع وبعدين يختفي
-    if (weeks <= 4) {
-        return `${weeks} أ`;
-    }
+    if (minutes < 60) return `${minutes}د`; // دقيقة
+    if (hours < 24) return `${hours}س`;   // ساعة
+    if (days < 4) return `${days}ي`;      // يوم (لحد 3 أيام بس)
     
-    return ''; // لو عدى شهر يختفي
+    return ''; // لو أكثر من 3 أيام منظهرش حاجة عشان الزحمة
 }
-
 
 
     </script>
@@ -6122,7 +6090,7 @@ function getShortLastSeen(timestamp) {
 })();
 </script>
 <div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
-    <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; ">
+    <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; background: #000; border: 1px solid #333;">
         
         <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
             <h3 style="color: #fff; margin: 0;">🗂️ أرشيف القصص</h3>
