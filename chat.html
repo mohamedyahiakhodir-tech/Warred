@@ -3499,6 +3499,18 @@ z-index: 2147483647 !important;
     100% { box-shadow: 0 0 30px rgba(220, 39, 67, 0.8); transform: scale(1.02); }
 }
 
+/* ================= حل مشكلة الطبقات (Z-Index) ================= */
+
+/* ضمان أن عارض القصص يظهر فوق صفحة البروفايل */
+#simpleStoryViewer {
+    z-index: 2147483647 !important; /* أعلى رقم ممكن في المتصفح */
+}
+
+/* صفحة البروفايل */
+.profile-page {
+    z-index: 99999 !important; /* رقم عالي لكن أقل من عارض القصص */
+}
+
     </style>
 </head>
 <body>
@@ -5229,62 +5241,101 @@ if (msg.type === 'system_nickname') {
     prevMsg = msg;
 });
 
-        container.innerHTML = html;
-                 if (isFirstLoad) {
-              // تأخير بسيط لضمان أن المتصفح رسم الرسائل والصور قبل النزول
-              setTimeout(() => {
-                  container.scrollTop = container.scrollHeight;
-              }, 300); // 300 ملي ثانية (وقت كافٍ جداً)
-          }
-         
-          // === كود الموتور المعدل (يظهر رسالة التفجير) ===
-destructQueue.forEach(item => {
-    const timerSpan = document.getElementById(`timer_${item.id}`);
-    const msgRow = document.getElementById(`msg_${item.id}`);
-    let seconds = Math.floor(item.timeLeft / 1000);
+                container.innerHTML = html;
 
-    // تحديث النص فوراً
-    if(timerSpan) timerSpan.innerText = `تدمير خلال: ${seconds}ث`;
-
-    const interval = setInterval(() => {
-        seconds--;
-        if(timerSpan) timerSpan.innerText = `تدمير خلال: ${seconds}ث`;
+        // ============================================================
+        // 🔥 إصلاح السكرول: الكود المسؤول عن ظهور الرسائل الجديدة فوراً 🔥
+        // ============================================================
         
-        // === لحظة الانفجار ===
-        if (seconds <= 0) {
-            clearInterval(interval);
-            
-            if(msgRow) {
-                // 1. تحديد الفقاعة عشان نغير شكلها
-                const bubble = msgRow.querySelector('.target-bubble');
-                
-                // 2. تحديد النص حسب الشخص (زي ما طلبت)
-                const explodedText = item.isMe ? "💥 لقد فجرت رسالة" : "💥 لقد فجر رسالة";
+        if (isFirstLoad) {
+            // الحالة الأولى: عند فتح الشات لأول مرة
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 300);
+        } else {
+            // الحالة الثانية: الشات مفتوح ورسالة جديدة وصلت
+            // نتحقق هل يوجد تغيير "إضافة" (رسالة جديدة) في قاعدة البيانات؟
+            const hasNewMessage = snap.docChanges().some(change => change.type === 'added');
 
-                // 3. تغيير الستايل والمحتوى
-                if(bubble) {
-                    // أنيميشن هزة بسيطة
-                    msgRow.style.animation = "shake 0.5s ease-in-out"; 
-                    
-                    // تغيير لون الخلفية لرمادي شفاف او احمر خفيف
-                    bubble.style.background = "rgba(255, 59, 48, 0.15)";
-                    bubble.style.border = "1px dashed rgba(255, 59, 48, 0.5)";
-                    bubble.style.color = "#ff3b30";
-                    bubble.style.textAlign = "center";
-                    bubble.style.minWidth = "150px";
-                    
-                    // استبدال المحتوى بالكامل بالجملة الجديدة
-                    bubble.innerHTML = `<span style="font-weight:bold; font-size:13px;">${explodedText}</span>`;
+            if (hasNewMessage) {
+                // حساب المسافة الحالية من الأسفل
+                const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+
+                // لو المستخدم قريب من الأسفل (أقل من 500 بكسل) أو الرسالة جاية مني أنا
+                // نعمل سكرول ناعم عشان الرسالة تظهر
+                if (distanceFromBottom < 500) {
+                    setTimeout(() => {
+                        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+                    }, 100);
+                } else {
+                    // (اختياري) هنا ممكن تظهر زرار صغير "يوجد رسائل جديدة بالأسفل"
+                    // لو المستخدم كان بيقرأ رسايل قديمة فوق
+                    const scrollBtn = document.getElementById("scrollToBottomBtn");
+                    if(scrollBtn) scrollBtn.style.display = "flex";
                 }
-                
-                // (اختياري) لو عايز الرسالة تختفي تماماً بعد جملة التفجير بـ 3 ثواني مثلاً
-                 setTimeout(() => msgRow.remove(), 3000);
             }
         }
-    }, 1000);
-    
-    activeTimers.push(interval);
-});
+
+        // ============================================================
+        // 💣 كود الموتور (التدمير الذاتي) كما هو 💣
+        // ============================================================
+        destructQueue.forEach(item => {
+            const timerSpan = document.getElementById(`timer_${item.id}`);
+            const msgRow = document.getElementById(`msg_${item.id}`);
+            let seconds = Math.floor(item.timeLeft / 1000);
+
+            // تحديث النص فوراً عند التحميل
+            if(timerSpan) timerSpan.innerText = `تدمير خلال: ${seconds}ث`;
+
+            const interval = setInterval(() => {
+                seconds--;
+                if(timerSpan) timerSpan.innerText = `تدمير خلال: ${seconds}ث`;
+                
+                // === لحظة الانفجار ===
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    
+                    if(msgRow) {
+                        // 1. تحديد الفقاعة عشان نغير شكلها
+                        const bubble = msgRow.querySelector('.target-bubble');
+                        
+                        // 2. تحديد النص حسب الشخص
+                        const explodedText = item.isMe ? "💥 لقد فجرت رسالة" : "💥 لقد فجر رسالة";
+
+                        // 3. تغيير الستايل والمحتوى
+                        if(bubble) {
+                            // أنيميشن هزة بسيطة
+                            msgRow.style.animation = "shake 0.5s ease-in-out"; 
+                            
+                            // تغيير لون الخلفية لرمادي شفاف او احمر خفيف
+                            bubble.style.background = "rgba(255, 59, 48, 0.15)";
+                            bubble.style.border = "1px dashed rgba(255, 59, 48, 0.5)";
+                            bubble.style.color = "#ff3b30";
+                            bubble.style.textAlign = "center";
+                            bubble.style.minWidth = "150px";
+                            // إزالة الظلال والتفاعلات القديمة
+                            bubble.style.boxShadow = "none";
+                            
+                            // استبدال المحتوى بالكامل بالجملة الجديدة
+                            bubble.innerHTML = `<span style="font-weight:bold; font-size:13px;">${explodedText}</span>`;
+                        }
+                        
+                        // إخفاء الرسالة تماماً بعد 3 ثواني من الانفجار
+                        setTimeout(() => {
+                            if(msgRow) {
+                                msgRow.style.transition = "opacity 0.5s, height 0.5s";
+                                msgRow.style.opacity = "0";
+                                msgRow.style.height = "0";
+                                setTimeout(() => msgRow.remove(), 500);
+                            }
+                        }, 3000);
+                    }
+                }
+            }, 1000);
+            
+            // إضافة التايمر للمصفوفة العامة عشان نقدر نوقفه لو خرجنا
+            if (typeof activeTimers !== 'undefined') activeTimers.push(interval);
+        });
 
         // ✅ التصحيح: زيادة حساسية السكرول (50 بكسل بدلاً من 0)
 // مراقب السكرول الذكي (فوق وتحت)
