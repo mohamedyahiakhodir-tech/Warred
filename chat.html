@@ -4292,6 +4292,915 @@ z-index: 2147483647 !important;
     transform: scale(0.9); /* تأثير ضغطة جميل */
 }
 
+/* ================= تصميم فقاعة الصور الشفافة ================= */
+.msg-bubble.media-bubble {
+    background: transparent !important; /* إلغاء لون الخلفية */
+    border: none !important;            /* إلغاء الحدود */
+    box-shadow: none !important;        /* إلغاء الظل */
+    padding: 0 !important;              /* إلغاء الحواف الداخلية عشان الصورة تاخد الحجم كله */
+    overflow: visible !important;       /* للسماح بظهور التفاعلات فوق الصورة */
+}
+
+/* تحسين شكل حاوية الصورة نفسها لتكون هي الفقاعة */
+.msg-bubble.media-bubble .media-container {
+    margin: 0 !important;               /* إلغاء المسافات الخارجية */
+    border-radius: 18px !important;     /* تدوير حواف الصورة نفسها */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* برواز خفيف جداً للصورة */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* ظل للصورة نفسها */
+}
+
+/* تعديل مكان الوقت (Timestamp) ليظهر فوق الصورة (اختياري لشكل أجمل) */
+/* أو يمكن تركه كما هو سيظهر تحت الصورة */
+.msg-bubble.media-bubble .msg-meta-row {
+    padding: 0 5px; /* مسافة بسيطة للوقت */
+    background: rgba(0,0,0,0.3); /* خلفية داكنة خفيفة ورا الوقت لضمان القراءة */
+    border-radius: 10px;
+    width: fit-content;
+    margin-top: -30px; /* سحب الوقت ليكون فوق الصورة من الداخل */
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 5;
+    margin-right: 5px; /* محاذاة */
+    margin-left: auto; /* محاذاة */
+    backdrop-filter: blur(2px);
+}
+/* =================== ستايل الصور الشفافة (تصحيح) =================== */
+
+/* 1. إخفاء فقاعة الرسالة نفسها */
+.msg-bubble.media-bubble {
+    background: transparent !important; /* شفاف */
+    border: none !important;            /* بدون حدود */
+    box-shadow: none !important;        /* بدون ظل */
+    padding: 0 !important;              /* بدون حواف داخلية */
+    width: auto !important;             /* العرض حسب الصورة */
+    max-width: 100% !important;
+}
+
+/* 2. تنسيق الصورة داخلها */
+.msg-bubble.media-bubble .media-container {
+    margin-top: 0 !important;
+    background: transparent !important; /* ضمان عدم وجود خلفية سوداء */
+    border-radius: 18px !important;     /* تدوير الزوايا */
+    border: 1px solid rgba(255, 255, 255, 0.15) !important; /* برواز رفيع جداً */
+}
+
+/* 3. تنسيق الفيديو */
+.msg-bubble.media-bubble video {
+    border-radius: 18px !important;
+}
+
+/* 4. تنسيق الوقت تحت الصورة */
+.msg-bubble.media-bubble .msg-meta-row {
+    background: rgba(0, 0, 0, 0.4); /* خلفية صغيرة للوقت عشان يبان */
+    padding: 2px 8px;
+    border-radius: 10px;
+    position: absolute; 
+    bottom: 10px; 
+    right: 10px;
+    margin: 0 !important;
+    backdrop-filter: blur(2px);
+}
+/* =================== (1) ستايل الصور الكاملة (بدون حواف) =================== */
+
+/* تعديل الفقاعة الأساسية لما تكون صورة */
+.msg-bubble.media-bubble {
+    padding: 0 !important;              /* إلغاء الهوامش الداخلية تماماً */
+    background: transparent !important; /* إلغاء الخلفية السوداء/الرمادية */
+    border: none !important;            /* إلغاء الحدود الخارجية */
+    box-shadow: none !important;        /* إلغاء الظل القديم */
+    width: fit-content !important;
+    max-width: 80% !important;          /* نديها مساحة أكبر شوية */
+    overflow: visible !important;       /* عشان التفاعلات والوقت يظهرو */
+}
+
+/* تنسيق حاوية الصورة نفسها */
+.msg-bubble.media-bubble .media-container {
+    margin: 0 !important;
+    border-radius: 18px !important;     /* تدوير حواف الصورة نفسها */
+    border: 1px solid rgba(255, 255, 255, 0.15); /* برواز رفيع جداً */
+    overflow: hidden;
+    /* ظل خفيف للصورة نفسها عشان تبرز */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+}
+
+/* جعل الصورة تملأ الحاوية بالكامل */
+.msg-bubble.media-bubble img, 
+.msg-bubble.media-bubble video {
+    display: block; /* يمنع المسافات السفلية الغريبة */
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* (اختياري) تحسين شكل الوقت ليظهر فوق الصورة */
+.msg-bubble.media-bubble .msg-meta-row {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.5); /* خلفية سوداء شفافة للوقت */
+    padding: 2px 8px;
+    border-radius: 12px;
+    backdrop-filter: blur(2px);
+    pointer-events: none; /* عشان ميعطلش الضغط على الصورة */
+}
+/* =================== (2) ستايل الريكورد الاحترافي (بدون حواف) =================== */
+
+/* 1. جعل فقاعة الرسالة شفافة تماماً للريكورد */
+.msg-bubble.audio-bubble {
+    background: transparent !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+    width: fit-content !important;
+    margin-bottom: 5px;
+}
+
+/* 2. تصميم مشغل الصوت نفسه (الكبسولة) */
+.msg-bubble.audio-bubble .custom-audio-player {
+    width: 260px !important;       /* عرض ثابت مناسب */
+    height: 60px !important;       /* ارتفاع مناسب */
+    border-radius: 20px !important; /* حواف دائرية ناعمة */
+    padding: 10px 15px !important;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: relative; /* عشان الوقت */
+    transition: transform 0.2s;
+}
+
+/* 3. ألوان المشغل (للمرسل والمستقبل) */
+
+/* -- (أ) المرسل (أنا) - تدرج أزرق/سماوي -- */
+.sender .msg-bubble.audio-bubble .custom-audio-player {
+    background: linear-gradient(135deg, #0066cc, #00c6ff); /* نفس لون رسايلك */
+    border: 1px solid rgba(255,255,255,0.1);
+    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.2);
+}
+
+/* -- (ب) المستقبل (هو) - رمادي غامق زجاجي -- */
+.receiver .msg-bubble.audio-bubble .custom-audio-player {
+    background: #202c33; /* لون الواتساب الغامق */
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* 4. تعديل زر التشغيل داخل الريكورد */
+.msg-bubble.audio-bubble .play-btn {
+    width: 40px !important; 
+    height: 40px !important;
+    background: rgba(255,255,255,0.2) !important; /* خلفية شفافة للزر */
+    box-shadow: none !important;
+}
+
+/* 5. ضبط مكان الوقت وعلامة الصح داخل الريكورد */
+.msg-bubble.audio-bubble .msg-meta-row {
+    position: absolute;
+    bottom: 4px;
+    right: 15px; /* يمين عشان العربي */
+    font-size: 9px !important;
+    opacity: 0.8;
+    color: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* تحسين شكل شريط الصوت (Slider) */
+.msg-bubble.audio-bubble .audio-slider {
+    accent-color: #fff !important; /* لون المؤشر أبيض */
+    height: 3px;
+}
+/* ================= تصميم فقاعة الفيديو في الشات ================= */
+.video-msg-wrapper {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #000;
+    width: 260px; /* عرض ثابت للفيديو */
+    height: 160px; /* ارتفاع ثابت */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+/* ================= تصميم الفيديو الاحترافي (Cinematic Style) ================= */
+.video-msg-wrapper {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    width: 280px;         /* عرض ثابت */
+    aspect-ratio: 4 / 5;  /* نسبة أطول شوية عشان تناسب الفيديوهات الطويلة */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 1. الفيديو الخلفي (ضبابي للمنظر الجمالي) */
+.video-bg-blur {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(15px) brightness(0.6); /* تغبيش وتغميق */
+    transform: scale(1.1); /* تكبير عشان يخفي الحواف */
+    z-index: 1;
+}
+
+/* 2. الفيديو الأساسي (واضح وفي المنتصف) */
+.video-main-content {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* يظهر الفيديو بالكامل بدون قص */
+}
+
+/* 3. طبقة الأزرار (فوق كل حاجة) */
+.video-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5; /* أهم طبقة */
+    background: rgba(0,0,0,0.1); /* تظليل خفيف */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* زر التشغيل (في النص) */
+.center-play-btn {
+    width: 55px;
+    height: 55px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.center-play-btn:active {
+    transform: scale(0.9);
+    background: #00e5ff;
+}
+
+/* ================= زر التوسيع (إصلاح المكان واللمس) ================= */
+.expand-icon {
+    position: absolute;
+    bottom: 10px !important;  /* تثبيت في الأسفل */
+    right: 10px !important;   /* تثبيت في اليمين (إجباري) */
+    left: auto !important;    /* إلغاء أي تمركز يسار */
+    top: auto !important;     /* إلغاء أي تمركز فوق */
+    
+    background: rgba(0, 0, 0, 0.7); /* خلفية سوداء عشان يبان */
+    color: #fff;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    cursor: pointer;
+    z-index: 100; /* رقم عالي جداً عشان يظهر فوق الفيديو */
+    pointer-events: auto; /* تفعيل الضغط */
+    
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.expand-icon:active {
+    transform: scale(0.9);
+    background: #00e5ff;
+    border-color: #00e5ff;
+}
+
+.expand-icon i {
+    font-size: 16px;
+}
+
+
+/* التوقيت في الزاوية */
+.vid-duration-badge {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0,0,0,0.6);
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* ================= تصميم مشغل الفيديو الاحترافي (Pro Player) ================= */
+.pro-video-modal {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 999999;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+/* الفيديو داخل المشغل */
+.pro-video-element {
+    max-width: 100%;
+    max-height: 80vh;
+    box-shadow: 0 0 50px rgba(0, 229, 255, 0.1);
+}
+
+/* شريط التحكم السفلي */
+.pro-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* شريط التقدم */
+.pro-progress-container {
+    width: 100%;
+    height: 5px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    cursor: pointer;
+    position: relative;
+}
+
+.pro-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #00e5ff;
+    border-radius: 5px;
+    position: relative;
+}
+
+/* النقطة في نهاية الشريط */
+.pro-progress-bar::after {
+    content: '';
+    position: absolute;
+    right: -6px;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00e5ff;
+}
+
+/* أزرار التحكم */
+.pro-buttons-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #fff;
+}
+
+.pro-btn {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: 0.2s;
+}
+
+.pro-btn:hover { background: rgba(255,255,255,0.1); color: #00e5ff; }
+.pro-btn:active { transform: scale(0.9); }
+
+/* زر الإغلاق */
+.pro-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+    background: rgba(0,0,0,0.5);
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: grid; place-items: center;
+    z-index: 100;
+}
+
+/* قائمة السرعة */
+.speed-menu {
+    position: absolute;
+    bottom: 60px;
+    right: 20px;
+    background: rgba(20, 30, 48, 0.95);
+    border-radius: 10px;
+    padding: 5px;
+    display: none;
+    flex-direction: column;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.speed-opt {
+    padding: 8px 15px;
+    color: #ccc;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: center;
+}
+.speed-opt:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.speed-opt.active { color: #00e5ff; font-weight: bold;
+}
+/* ================= 1. تعديل أيقونة التكبير في الشات ================= */
+.video-overlay .expand-icon {
+    position: absolute !important;
+    bottom: 8px !important;
+    right: 8px !important; /* أقصى اليمين */
+    left: auto !important;
+    top: auto !important;
+    
+    width: 32px;
+    height: 32px;
+    background: rgba(0, 0, 0, 0.6); /* خلفية شفافة غامقة */
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px; /* مربع بحواف ناعمة بدل الدائري ليكون أشيك */
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 20;
+    transition: all 0.2s ease;
+}
+
+.video-overlay .expand-icon:active {
+    transform: scale(0.9);
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.video-overlay .expand-icon i {
+    font-size: 14px;
+}
+
+ .pro-video-modal {
+        display: none; /* مخفي افتراضياً */
+        position: fixed; inset: 0; 
+        background: rgba(5, 11, 20, 0.98); /* خلفية كحلية غامقة جداً */
+        z-index: 999999;
+        flex-direction: column; justify-content: center; align-items: center;
+        backdrop-filter: blur(10px);
+    }
+
+    /* الفيديو */
+    .pro-video-element {
+        width: 100%; max-height: 75vh;
+        box-shadow: 0 0 50px rgba(0,0,0,0.5);
+    }
+/* الكنترول بار كله */
+.pro-controls {
+    position: absolute;
+    bottom: 20px; /* نرفعها شوية عن الحافة عشان متلزقش تحت */
+    left: 5%;     /* نسيب مسافة من اليمين والشمال */
+    right: 5%;
+    width: 90%;   /* العرض 90% من الشاشة */
+    background: rgba(30, 30, 30, 0.85); /* لون خلفية شيك */
+    border-radius: 20px; /* تدوير الحواف */
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* مسافة بين شريط الوقت والأزرار */
+    backdrop-filter: blur(10px); /* تأثير الزجاج */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* ظل خفيف */
+    z-index: 1000;
+}
+
+/* صف الأزرار */
+.pro-buttons-row {
+    display: flex;
+    justify-content: space-between; /* توزيع الأزرار بالتساوي */
+    align-items: center;
+    width: 100%;
+    padding: 0 10px; /* هوامش داخلية عشان الأزرار متلزقش في الحواف */
+}
+
+/* الأزرار الجانبية (تسريع / تنزيل) */
+.pro-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: none;
+    transition: 0.2s;
+}
+
+.pro-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.95);
+}
+
+/* زر التشغيل الكبير اللي في النص */
+.play-btn-large {
+    width: 60px !important;
+    height: 60px !important;
+    font-size: 24px !important;
+    background: #00e5ff !important; /* اللون السماوي */
+    color: #000 !important;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
+}
+/* تنسيق الوقت: في النص، فوق الأزرار، وبمسافة مريحة */
+.pro-time-centered {
+    width: 100%;
+    text-align: center;      /* توسيط الكلام */
+    font-family: monospace;  /* خط رقمي */
+    font-size: 14px;
+    color: #e0e0e0;
+    margin: 15px 0;          /* مسافة فوق (من الشريط) وتحت (من الأزرار) */
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    display: block;          /* يضمن إنه ياخد سطر لوحده */
+}
+
+/* صف الأزرار: توزيع متساوي (يمين - وسط - يسار) */
+.pro-buttons-row {
+    display: flex;
+    justify-content: space-between; /* يرمي المجموعات للأطراف */
+    align-items: center;
+    width: 100%;
+    padding: 0 10px; /* هوامش جانبية عشان الزراير متلزقش في حافة الشاشة */
+}
+
+/* مجموعات الأزرار الجانبية: عشان يفضلوا لازقين في بعض */
+.btn-group {
+    display: flex;
+    gap: 15px; /* مسافة بين الزرار وأخوه في نفس المجموعة */
+}
+
+/* زر التشغيل الكبير: في النص */
+.play-btn-large {
+    width: 65px !important;
+    height: 65px !important;
+    font-size: 26px !important;
+    background: #00e5ff !important;
+    color: #000 !important;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.5) !important;
+    border-radius: 50%;
+    border: none;
+    /* رفعة بسيطة لفوق عشان يكسر جمود الصف (شيك) */
+    margin-top: -5px; 
+}
+
+/* الأزرار العادية */
+.pro-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px; /* تدوير بسيط (Squircle) */
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: 0.2s;
+}
+
+.pro-btn:active {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(0.95);
+}
+
+/* 1. الحاوية الرئيسية (الشاشة السوداء) */
+.pro-video-modal {
+    display: none; /* ✅ كده هيفضل مخفي لحد ما تضغط */
+    position: fixed; 
+    inset: 0; 
+    background: #000; 
+    z-index: 999999;
+    
+    /* خصائص الترتيب (هتشتغل لما الجافاسكربت يفتح النافذة) */
+    flex-direction: column; 
+    justify-content: flex-end; /* يبدأ من تحت */
+    align-items: center;
+    
+    padding-top: 80px; 
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+/* 2. الفيديو نفسه (ياخد المساحة المتبقية) */
+.pro-video-element {
+    flex-grow: 1; /* يملأ الفراغ المتاح */
+    width: 100%;
+    max-height: 100%; /* عشان ميكبرش زيادة عن اللزوم */
+    min-height: 0; 
+    
+    object-fit: contain; /* يبان كامل جوه مساحته */
+    
+    margin-bottom: 15px; /* يبعد عن الزراير */
+    
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+/* 3. شريط التحكم (كتلة ثابتة في الأسفل) */
+.pro-controls {
+    position: relative !important; 
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    
+    width: 90%; 
+    background: rgba(30, 30, 30, 0.9); 
+    border-radius: 20px;
+    padding: 15px;
+    
+    flex-shrink: 0; /* يمنع الانكماش */
+    
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    z-index: 100;
+}
+/* ================= تصميم مشغل الفيديو (الكود الكامل) ================= */
+
+/* 1. الشاشة السوداء (الإصلاح النهائي) */
+.pro-video-modal {
+    display: none; /* مخفي افتراضياً */
+    position: fixed; 
+    inset: 0; 
+    background: #000; 
+    z-index: 999999;
+    
+    /* نظام التوزيع المرن (Flexbox) */
+    display: flex; 
+    flex-direction: column; 
+    justify-content: flex-end; /* ابدأ من تحت */
+    align-items: center;
+    
+    padding-top: 80px; 
+    padding-bottom: 20px;
+    box-sizing: border-box;
+}
+
+/* 2. الفيديو نفسه (بحجم مناسب) */
+.pro-video-element {
+    flex-grow: 1; /* يملأ الفراغ المتاح */
+    width: 100%;
+    max-height: 100%; 
+    min-height: 0; 
+    object-fit: contain; /* يبان كامل */
+    margin-bottom: 15px; 
+    border-radius: 12px;
+    box-shadow: none;
+}
+
+/* 3. صندوق التحكم (اللي فيه الشريط والزراير) */
+.pro-controls {
+    position: relative; 
+    width: 90%; 
+    background: rgba(30, 30, 30, 0.95); /* لون غامق شيك */
+    border-radius: 20px;
+    padding: 15px 20px;
+    flex-shrink: 0; 
+    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+    z-index: 100;
+    
+    /* مهم: اتجاه العناصر من اليسار لليمين عشان الشريط يظبط */
+    direction: ltr; 
+}
+
+/* 4. 🔥 تصميم الشريط اللي كان مختفي 🔥 */
+.pro-progress-area {
+    width: 100%; 
+    height: 25px; /* منطقة لمس مريحة */
+    display: flex; 
+    align-items: center; 
+    cursor: pointer; 
+    position: relative;
+    margin-bottom: 5px;
+}
+
+.pro-progress-bg {
+    width: 100%; 
+    height: 6px; /* سمك الشريط */
+    background: rgba(255,255,255,0.2); /* لون رمادي فاتح للخلفية */
+    border-radius: 10px; 
+    position: relative;
+}
+
+.pro-progress-fill {
+    height: 100%; 
+    width: 0%; 
+    background: #00e5ff; /* لون سيان مضيء */
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.7); /* توهج */
+    position: absolute;
+    top: 0; left: 0;
+}
+
+/* المقبض (الكورة البيضاء) */
+.pro-progress-knob {
+    position: absolute; 
+    top: 50%; 
+    left: 0%; 
+    transform: translate(-50%, -50%);
+    width: 16px; 
+    height: 16px; 
+    background: #fff; 
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5); 
+    pointer-events: none;
+    z-index: 2;
+    transition: left 0.1s linear; /* حركة ناعمة */
+}
+
+/* 5. الوقت (في النص) */
+.pro-time-centered {
+    width: 100%;
+    text-align: center;
+    font-family: monospace;
+    font-size: 14px;
+    color: #fff;
+    margin: 10px 0;
+    font-weight: bold;
+}
+
+/* 6. صف الأزرار (متوزع صح) */
+.pro-buttons-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.btn-group { display: flex; gap: 15px; }
+
+.pro-btn {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+}
+
+.play-btn-large {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: #00e5ff;
+    color: #000;
+    font-size: 24px;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    margin-top: -5px;
+    border: none;
+}
+/* ================= إصلاح نافذة الفيديو للتطبيقات ================= */
+.pro-video-modal {
+    display: none; /* مخفي افتراضياً */
+    position: fixed !important; /* تثبيت إجباري */
+    top: 0 !important; 
+    left: 0 !important; 
+    width: 100% !important; 
+    height: 100% !important;
+    background: #000 !important; /* خلفية سوداء صريحة */
+    
+    /* رقم عالي جداً جداً عشان يغطي الهيدر والفوتر وأي نافذة تانية */
+    z-index: 2147483647 !important; 
+    
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: center;
+    overflow: hidden; /* منع السكرول */
+}
+
+/* إصلاح الفيديو نفسه عشان مايختفيش */
+.pro-video-element {
+    width: 100%; 
+    height: auto; 
+    max-height: 80vh; /* عشان يسيب مكان للزراير تحت */
+    object-fit: contain; /* يضمن ان الفيديو يبان كامل */
+    z-index: 2147483648 !important; /* فوق الخلفية */
+}
+
+/* إصلاح شريط التحكم عشان يظهر */
+.pro-controls {
+    position: absolute !important;
+    bottom: 20px !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    background: rgba(30, 30, 30, 0.9) !important;
+    z-index: 2147483649 !important; /* أعلى طبقة خالص */
+    display: flex !important; /* ضمان الظهور */
+}
+/* ================= تصميم قائمة المرفقات (WhatsApp Style) ================= */
+
+/* 1. الحاوية الأساسية للقائمة */
+.attachment-menu {
+    position: fixed;
+    bottom: 80px; /* فوق الفوتر مباشرة */
+    left: 10px;
+    right: 10px;
+    background: #1e293b; /* لون الخلفية (غامق) */
+    border-radius: 25px; /* حواف دائرية ناعمة */
+    padding: 25px 15px;
+    
+    /* الأنيميشن والإخفاء المبدئي */
+    transform: translateY(150%); /* مخفية تحت الشاشة */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* حركة نطاطة خفيفة */
+    
+    z-index: 90; /* تحت الهيدر وفوق الرسائل */
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* كلاس التفعيل (لما نضغط عالزرار) */
+.attachment-menu.active {
+    transform: translateY(0); /* تطلع لمكانها */
+    opacity: 1;
+    visibility: visible;
+}
+
+/* 2. شبكة الأيقونات */
+.attachment-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 أعمدة */
+    gap: 20px; /* مسافات بين الأيقونات */
+    justify-items: center;
+}
+
+/* 3. تصميم العنصر الواحد */
+.att-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.att-item:active {
+    transform: scale(0.9); /* تصغير عند الضغط */
+}
+
+/* 4. الدائرة الملونة */
+.att-icon-circle {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* 5. ألوان الأيقونات (نفس واتساب) */
+.bg-doc { background: linear-gradient(135deg, #7f66ff, #5f46e4); } /* مستند (بفسجي) */
+.bg-camera { background: linear-gradient(135deg, #ff4081, #f50057); } /* كاميرا (وردي) */
+.bg-gallery { background: linear-gradient(135deg, #c084fc, #a855f7); } /* معرض (موف فاتح) */
+.bg-audio { background: linear-gradient(135deg, #f97316, #ea580c); } /* صوت (برتقالي) */
+.bg-loc { background: linear-gradient(135deg, #22c55e, #16a34a); } /* موقع (أخضر) */
+.bg-contact { background: linear-gradient(135deg, #3b82f6, #2563eb); } /* جهة اتصال (أزرق) */
+.bg-poll { background: linear-gradient(135deg, #06b6d4, #0891b2); } /* استطلاع (تركواز) */
+.bg-event { background: linear-gradient(135deg, #eab308, #ca8a04); } /* مناسبة (أصفر) */
+.bg-ai { background: linear-gradient(135deg, #14b8a6, #0d9488); } /* ذكاء اصطناعي */
+
+/* 6. النص تحت الأيقونة */
+.att-label {
+    font-size: 12px;
+    color: #cbd5e1;
+    font-weight: 500;
+}
+
     </style>
 </head>
 <body>
@@ -4386,6 +5295,57 @@ z-index: 2147483647 !important;
     </div>
 
 </div>
+<div id="attachmentMenu" class="attachment-menu">
+    <div class="attachment-grid">
+        
+        <div class="att-item" onclick="handleAttachment('document')">
+            <div class="att-icon-circle bg-doc"><i class="fa-solid fa-file-lines"></i></div>
+            <span class="att-label">مستند</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('camera')">
+            <div class="att-icon-circle bg-camera"><i class="fa-solid fa-camera"></i></div>
+            <span class="att-label">الكاميرا</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('gallery')">
+            <div class="att-icon-circle bg-gallery"><i class="fa-regular fa-image"></i></div>
+            <span class="att-label">المعرض</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('audio')">
+            <div class="att-icon-circle bg-audio"><i class="fa-solid fa-headphones"></i></div>
+            <span class="att-label">مقطع صوتي</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('location')">
+            <div class="att-icon-circle bg-loc"><i class="fa-solid fa-location-dot"></i></div>
+            <span class="att-label">الموقع</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('contact')">
+            <div class="att-icon-circle bg-contact"><i class="fa-solid fa-user"></i></div>
+            <span class="att-label">جهة اتصال</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('poll')">
+            <div class="att-icon-circle bg-poll"><i class="fa-solid fa-square-poll-vertical"></i></div>
+            <span class="att-label">استطلاع رأي</span>
+        </div>
+        
+        <div class="att-item" onclick="handleAttachment('event')">
+            <div class="att-icon-circle bg-event"><i class="fa-regular fa-calendar-days"></i></div>
+            <span class="att-label">مناسبة</span>
+        </div>
+
+        <div class="att-item" onclick="handleAttachment('ai')">
+            <div class="att-icon-circle bg-ai"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <span class="att-label">صور AI</span>
+        </div>
+
+    </div>
+</div>
+
 <div class="chat-footer">
     
     <div class="reply-preview-bar" id="replyBar" style="display:none;">
@@ -4412,9 +5372,10 @@ z-index: 2147483647 !important;
     </div>
 
     <div class="footer-actions-left" id="leftActions">
-    <div class="action-btn file-btn" onclick="playUiSound('click'); document.getElementById('fileInput').click()">
-        <i class="fa-solid fa-paperclip"></i>
-    </div>
+    <div class="action-btn file-btn" onclick="playUiSound('click'); toggleAttachmentMenu()">
+    <i class="fa-solid fa-paperclip"></i>
+</div>
+
     <div class="action-btn media-btn" onclick="playUiSound('click'); document.getElementById('mediaInput').click()">
         <i class="fa-regular fa-image"></i>
     </div>
@@ -5797,9 +6758,10 @@ function loadMessages() {
       .limitToLast(20) // تحميل آخر 50 رسالة
       .onSnapshot(async snap => {
           
-
-          document.getElementById('loadingSkeleton')?.remove(); 
+          document.getElementById('loadingSkeleton')?.remove();
+          
         const container = document.getElementById("chatContainer");
+        
 if (isFirstLoad) {
     // السطر المحذوف كان هنا
     container.scrollTop = container.scrollHeight;
@@ -5811,10 +6773,14 @@ if (isFirstLoad) {
 if ("Notification" in window && Notification.permission !== "granted") {
     Notification.requestPermission();
 }
+
+
 // ✅ التصحيح: نحدث أقدم رسالة فقط في أول تحميل أو لو المتغير فاضي
 if (snap.docs.length > 0 && (isFirstLoad || !oldestDoc)) {
     oldestDoc = snap.docs[0];
 }
+
+
 // داخل دالة loadMessages...
 if (!isFirstLoad) {
     snap.docChanges().forEach(change => {
@@ -5878,21 +6844,32 @@ for (let i = allDocs.length - 1; i >= 0; i--) {
                     snap.forEach(doc => {
     const msg = doc.data();
     const isMe = msg.uid === currentUserId;
+    
+    
     // جلب بيانات المستخدم أو وضع بيانات افتراضية
     const u = userCache[msg.uid] || { name: 'مستخدم', color: '#555', char: 'U', profilePic: null };
+    
+    
 
     // ================= 1. تجهيز التفاعل (Reaction) =================
     let reactionHtml = "";
-    let rowStyle = ""; 
+    let rowStyle = "";
+    
+    
     
     // ================= معالجة رسالة تغيير اللقب =================
 if (msg.type === 'system_nickname') {
     let systemText = "";
     
+    
+    
     if (msg.uid === currentUserId) {
         // أنا اللي غيرت الاسم
         systemText = `لقد قمت بتغيير لقب صديقك إلى "${msg.text}"`;
-    } else {
+    } 
+    
+    
+    else {
         // الطرف الثاني هو اللي غير اسمي
         systemText = `لقد قام ${u.name} بتغيير لقبك إلى "${msg.text}"`;
     }
@@ -5906,9 +6883,11 @@ if (msg.type === 'system_nickname') {
     if (msg.reaction && msg.type !== 'deleted') {
         reactionHtml = `<div class="msg-reaction" onclick="event.stopPropagation(); toggleReaction('${msg.reaction}')">${msg.reaction}</div>`;
         
+        
         // توسيع المسافة السفلية عشان التفاعل ميتغطاش بالرسالة اللي تحته
         rowStyle = 'margin-bottom: 25px;'; 
     }
+
 
     // ================= 2. فلتر وقت التدمير =================
     if (msg.selfDestruct && msg.type !== 'deleted') {
@@ -5918,6 +6897,7 @@ if (msg.type === 'system_nickname') {
         destructQueue.push({ id: doc.id, timeLeft: timeLeft, isMe: isMe });
     }
 
+
     // ================= 3. فواصل التاريخ =================
     const msgDate = msg.createdAt ? msg.createdAt.toDate() : new Date();
     if (!lastDate || !isSameDay(msgDate, lastDate)) {
@@ -5925,6 +6905,8 @@ if (msg.type === 'system_nickname') {
         lastDate = msgDate;
         prevMsg = null;
     }
+    
+    
             // ================= 4. رسائل النظام (التعديل النهائي لإخفاء الاسم في الصداقة) =================
             if (msg.type === 'system') {
                 let actionText = "";
@@ -5936,24 +6918,32 @@ if (msg.type === 'system_nickname') {
                 } else if (msg.text === 'ghost_off') {
                     actionText = 'قام بإلغاء وضع الشبح 🚫';
                 } 
+                
+                
                 // 2. فحص رسالة الصداقة (عشان نخفي الاسم)
                 else if (msg.text === 'request_accepted' || msg.text.includes('صديقين') || msg.text.includes('حاجز الصمت')) {
                     actionText = '🎉 لقد أصبحنا صديقين، اكسروا حاجز الصمت!';
                     showName = false; // 👈 هنا السر: بنقوله متكتبش اسم المستخدم جنب الرسالة دي
                 } 
+                
+                
                 else if (msg.text.includes('تغيير لقب')) {
                     // لو رسالة تغيير لقب، نعرضها زي ما هي
                      actionText = msg.text;
                      showName = false; // الاسم عادة بيكون جوه نص الرسالة فمش محتاجين نكرره
                 }
+                
+                
                 else {
                     // أي رسالة تانية
                     actionText = msg.text;
                 }
 
+
                 // 3. تجهيز الاسم (يظهر فقط لو showName لسه true)
                 // لو الاسم (مستخدم) أو (User) والرسالة شبح، هيظهر عادي. لو صداقة، هيختفي.
                 let nameHtml = showName ? `<span class="system-user-name" style="margin-right:5px; font-weight:bold; color:var(--accent-color);">(${u.name})</span>` : '';
+
 
                 // 4. دمج النص النهائي
                 html += `<div class="system-msg-row" id="msg_${doc.id}">
@@ -5968,7 +6958,12 @@ if (msg.type === 'system_nickname') {
     // ================= 5. تجهيز محتوى الرسالة =================
     let content = "";
     let bubbleClass = "msg-bubble target-bubble"; 
-
+if (msg.type === 'image' || msg.type === 'video') {
+        bubbleClass += " media-bubble";
+    }
+    else if (msg.type === 'audio') {
+        bubbleClass += " audio-bubble";
+    }
     if (msg.type === 'deleted') {
         const deleteText = isMe ? "🚫 أنت حذفت هذه الرسالة" : "🚫 تم حذف هذه الرسالة";
         content = `<span style="font-style: italic; color: #94a3b8; font-size: 13px;">${deleteText}</span>`;
@@ -5993,7 +6988,38 @@ if (msg.type === 'system_nickname') {
     }
     else if (msg.type === 'text') { content = linkify(escapeHtml(msg.text)); }
     else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; } 
-    else if (msg.type === 'video') { content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video><div class="video-play-overlay"><div class="play-circle"><i class="fa-solid fa-play"></i></div></div></div>`; } 
+    // ================= انسخ هذا الكود وضعه داخل loadMessages مكان كود الفيديو القديم =================
+else if (msg.type === 'video') {
+    const vidId = `vid_inline_${doc.id}`;
+    // نستخدم msg.text مباشرة لأنه يحتوي على رابط الفيديو
+    const videoUrl = msg.text; 
+
+    content = `
+    <div class="video-msg-wrapper" style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5;">
+        
+        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+        
+        <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+            
+            <div class="center-play-btn" onclick="toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
+                <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
+            </div>
+
+<div class="expand-icon" 
+     onclick="event.stopPropagation(); event.preventDefault(); window.openProPlayer('${videoUrl}');" 
+     style="position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px; background: rgba(0, 0, 0, 0.8); border: 2px solid #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999999;">
+    <i class="fa-solid fa-expand" style="color: #fff; font-size: 18px;"></i>
+</div>
+            
+            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">فيديو</div>
+        </div>
+    </div>`;
+    
+    bubbleClass += " media-bubble";
+}
+
+// ==========================================================================================
+ 
     else if (msg.type === 'audio') { content = generateAudioPlayer(msg.text, doc.id); }
     else if (msg.type === 'file') { content = `<div class="file-card" onclick="window.open('${msg.text}', '_blank')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">ملف مرفق</span><span class="file-size">تحميل</span></div></div>`; }
  // ================== رسم الهدايا (يدعم العادي والفخم) ==================
@@ -6330,6 +7356,7 @@ async function loadMoreHistory() {
                 // === بناء المحتوى (هذا الجزء الذي كان ناقصاً لديك) ===
                 let content = "";
                 let bubbleClass = "msg-bubble target-bubble"; 
+
 
                 if (msg.type === 'deleted') {
                     content = `<span style="font-style: italic; color: #94a3b8; font-size: 13px;">${isMe ? "🚫 أنت حذفت هذه الرسالة" : "🚫 تم حذف هذه الرسالة"}</span>`;
@@ -8482,7 +9509,36 @@ function buildMessageHTML(msg, id, u) {
     if (msg.type === 'deleted') content = `<span style="font-style:italic;color:#94a3b8;"><i class="fa-solid fa-ban"></i> تم حذف الرسالة</span>`;
     else if (msg.type === 'text') content = linkify(escapeHtml(msg.text));
     else if (msg.type === 'image') content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`;
-    else if (msg.type === 'video') content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video></div>`;
+                    else if (msg.type === 'video') {
+    const vidId = `vid_inline_${doc.id}`;
+    // نستخدم msg.text مباشرة لأنه يحتوي على رابط الفيديو
+    const videoUrl = msg.text; 
+
+    content = `
+    <div class="video-msg-wrapper" style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5;">
+        
+        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+        
+        <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+            
+            <div class="center-play-btn" onclick="toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
+                <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
+            </div>
+
+            <div class="expand-icon" 
+                 onclick="event.stopPropagation(); console.log('Opening Pro Player:', '${videoUrl}'); openProPlayer('${videoUrl}');" 
+                 style="position: absolute; bottom: 10px; right: 10px; width: 35px; height: 35px; background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50;">
+                <i class="fa-solid fa-expand" style="color: #fff; font-size: 16px;"></i>
+            </div>
+            
+            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">فيديو</div>
+        </div>
+    </div>`;
+    
+    bubbleClass += " media-bubble";
+}
+
+
     else if (msg.type === 'audio') content = generateAudioPlayer(msg.text, id);
     else if (msg.type === 'file') content = `<div class="file-card" onclick="window.open('${msg.text}')"><i class="fa-solid fa-file"></i> ملف</div>`;
     else if (msg.type === 'call_log') content = `<div class="call-card-inner">📞 ${msg.text==='no_answer'?'مكالمة فائتة':'مكالمة انتهت'}</div>`;
@@ -9235,9 +10291,22 @@ function exitArchiveMode() {
 // استبدل الدالة القديمة buildMessageHTML بهذه:
 function buildMessageHTML(msg, id, u, isMe) {
     let content = "";
-    let bubbleClass = "msg-bubble target-bubble";
+  let bubbleClass = "msg-bubble target-bubble";
 
-    // ... (نفس كود تحديد المحتوى السابق) ...
+// الشرط الجديد: لو الرسالة صورة أو فيديو، ضيف كلاس الشفافية
+if (msg.type === 'image' || msg.type === 'video') {
+    bubbleClass += " media-bubble"; // تفعيل الشفافية للصور والفيديو
+
+
+} else if (msg.type === 'deleted') {
+    bubbleClass += " deleted";
+} else if (msg.type === 'sticker') {
+    // الكود القديم بتاعك للملصقات
+    bubbleClass += " sticker-bubble transparent-bubble"; 
+} else if (msg.type === 'gift') {
+    bubbleClass += " gift-bubble";
+}
+// ==========================================================   // ... (نفس كود تحديد المحتوى السابق) ...
     if (msg.type === 'deleted') { content = `<span style="font-style: italic; color: #94a3b8; font-size: 13px;">🚫 تم حذف الرسالة</span>`; bubbleClass += " deleted"; }
     else if (msg.type === 'text') { content = linkify(escapeHtml(msg.text)); }
     else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; }
@@ -11196,17 +12265,29 @@ function closeGiftCenter() {
 }
 
 // 3. التبديل بين التبويبات (VIP / ملصقات)
+// ==========================================
+// استبدل دالة switchGiftTab القديمة بدي فوراً
+// ==========================================
 function switchGiftTab(type, btn) {
     if(navigator.vibrate) navigator.vibrate(10);
     
-    // تغيير لون الزرار
     document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
     
-    // تغيير المحتوى الظاهر
     document.querySelectorAll('.gift-content-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(`tab-${type}`).classList.add('active');
+    
+    const targetPanel = document.getElementById(`tab-${type}`);
+    if(targetPanel) {
+        targetPanel.classList.add('active');
+    }
+
+    // تشغيل الدوال حسب التبويب
+    if (type === 'gifs') renderGifsLibrary();
+    
+    // 🔥 تشغيل المفضلة لما نفتح التبويب بتاعها 🔥
+    if (type === 'favorites') renderFavorites();
 }
+
 
 // 4. رسم الهدايا (تعبئة القائمة)
 // 4. رسم الهدايا (تعبئة القائمة - Grid System)
@@ -11254,10 +12335,17 @@ function renderFreeStickers() {
         item.className = 'sticker-item';
         item.style.cssText = "font-size: 35px; text-align: center; cursor: pointer; padding: 10px;";
         item.innerText = sticker;
+        
+        // 1. الضغطة العادية
         item.onclick = () => sendFreeSticker(sticker);
+
+        // 🔥 2. الضغطة المطولة (حفظ) 🔥
+        addLongPressEvent(item, () => saveToFavorites(sticker, 'sticker'));
+
         grid.appendChild(item);
     });
 }
+
 
 // 5. إرسال هدية مدفوعة (خصم الرصيد)
 async function sendPremiumGift(gift) {
@@ -11521,101 +12609,181 @@ document.addEventListener('click', function(e) {
         picker.style.display = 'none';
     }
 });
-
 // ==========================================
-// 1. مكتبة الـ GIFs (روابط مباشرة شغالة 100%)
+// 1. مكتبة الـ GIFs (مكتبة ضخمة وشاملة - Giphy)
 // ==========================================
 const professionalGifs = [
-    // ❤️ حب ورومانسية
-    "https://media.tenor.com/26fwK7J7Jc4AAAAC/anime-love.gif",
-    "https://media.tenor.com/Dec__I1f4WwAAAAC/love-you-cartoon.gif",
-    "https://media.tenor.com/F2sZ1fC6XQAAAAAC/love-hearts.gif",
-    "https://media.tenor.com/Pi29a2YjQBQAAAAC/sending-love.gif",
-    "https://media.tenor.com/S6yg_2Y9F9UAAAAC/love-heart.gif",
-    "https://media.tenor.com/zW-6X7F5yRoAAAAC/cute-love.gif",
-    "https://media.tenor.com/1w7X7F5yRoAAAAC/love-kisses.gif",
-    "https://media.tenor.com/5w7X7F5yRoAAAAC/heart-beat.gif",
-    "https://media.tenor.com/9w7X7F5yRoAAAAC/romantic-rose.gif",
-    "https://media.tenor.com/Bw7X7F5yRoAAAAC/couple-hug.gif",
-    "https://media.tenor.com/Cw7X7F5yRoAAAAC/i-love-u.gif",
-    "https://media.tenor.com/Dw7X7F5yRoAAAAC/miss-you.gif",
-    "https://media.tenor.com/Ew7X7F5yRoAAAAC/blowing-kiss.gif",
-    "https://media.tenor.com/Fw7X7F5yRoAAAAC/red-heart.gif",
-    "https://media.tenor.com/Gw7X7F5yRoAAAAC/bear-love.gif",
-    "https://media.tenor.com/Hw7X7F5yRoAAAAC/cat-love.gif",
-    "https://media.tenor.com/Iw7X7F5yRoAAAAC/forever-love.gif",
-    "https://media.tenor.com/Jw7X7F5yRoAAAAC/sweet-heart.gif",
-    "https://media.tenor.com/Kw7X7F5yRoAAAAC/my-love.gif",
-    "https://media.tenor.com/Lw7X7F5yRoAAAAC/true-love.gif",
+    // ❤️ حب ورومانسية (Love & Romance)
+    "https://media.giphy.com/media/26BRv0ThflsHCqDrG/giphy.gif",
+    "https://media.giphy.com/media/LpDmM2wSt6kTm/giphy.gif",
+    "https://media.giphy.com/media/l4pTfx2qLszoacZRS/giphy.gif",
+    "https://media.giphy.com/media/3o7TKoWXm3zgQlDakJ/giphy.gif",
+    "https://media.giphy.com/media/26FLdmIp6wJr91JAI/giphy.gif",
+    "https://media.giphy.com/media/c76IJLp03kZEU/giphy.gif",
+    "https://media.giphy.com/media/R6gZ79A7Wk1uef8H8e/giphy.gif",
+    "https://media.giphy.com/media/l0K4kWJir91VEoa1a/giphy.gif",
+    "https://media.giphy.com/media/MeIucAjPKoA120R7sN/giphy.gif",
+    "https://media.giphy.com/media/hqgD6bocRHhE99XOBW/giphy.gif",
+    "https://media.giphy.com/media/26AHqZlmnh4GTt8wo/giphy.gif",
+    "https://media.giphy.com/media/l0HlPystfePnDD3Gg/giphy.gif",
+    "https://media.giphy.com/media/xyM6G45HddxEQ/giphy.gif",
+    "https://media.giphy.com/media/l4pTfx2qLszoacZRS/giphy.gif",
+    "https://media.giphy.com/media/3CCXHZWV6F6O9VQ7FL/giphy.gif",
+    "https://media.giphy.com/media/l0K4kWJir91VEoa1a/giphy.gif",
+    "https://media.giphy.com/media/26ufcYAkp8e66vanu/giphy.gif",
+    "https://media.giphy.com/media/G6gatpMSrXGjS/giphy.gif",
+    "https://media.giphy.com/media/5u8rnKknCW70Q/giphy.gif",
+    "https://media.giphy.com/media/xT0BKiK5sOCUq0u9k4/giphy.gif",
 
-    // 😂 ضحك ومرح
-    "https://media.tenor.com/Yw7X7F5yRoAAAAC/laughing-minion.gif",
-    "https://media.tenor.com/Zw7X7F5yRoAAAAC/funny-cat.gif",
-    "https://media.tenor.com/0w7X7F5yRoAAAAC/lol-laugh.gif",
-    "https://media.tenor.com/1x7X7F5yRoAAAAC/rofl-emoji.gif",
-    "https://media.tenor.com/2x7X7F5yRoAAAAC/haha-funny.gif",
-    "https://media.tenor.com/3x7X7F5yRoAAAAC/funny-dog.gif",
-    "https://media.tenor.com/4x7X7F5yRoAAAAC/laughing-baby.gif",
-    "https://media.tenor.com/5x7X7F5yRoAAAAC/cartoon-laugh.gif",
-    "https://media.tenor.com/6x7X7F5yRoAAAAC/smile-happy.gif",
-    "https://media.tenor.com/7x7X7F5yRoAAAAC/excited-dance.gif",
-    "https://media.tenor.com/8x7X7F5yRoAAAAC/funny-dance.gif",
-    "https://media.tenor.com/9x7X7F5yRoAAAAC/jerry-laugh.gif",
-    "https://media.tenor.com/Ay7X7F5yRoAAAAC/tom-laugh.gif",
-    "https://media.tenor.com/By7X7F5yRoAAAAC/spongebob-laugh.gif",
-    "https://media.tenor.com/Cy7X7F5yRoAAAAC/mr-bean.gif",
-    "https://media.tenor.com/Dy7X7F5yRoAAAAC/minions-happy.gif",
-    "https://media.tenor.com/Ey7X7F5yRoAAAAC/funny-face.gif",
-    "https://media.tenor.com/Fy7X7F5yRoAAAAC/laugh-out-loud.gif",
-    "https://media.tenor.com/Gy7X7F5yRoAAAAC/crazy-laugh.gif",
-    "https://media.tenor.com/Hy7X7F5yRoAAAAC/happy-tears.gif",
+    // 😂 ضحك ومرح (Funny & Laugh)
+    "https://media.giphy.com/media/10yXFkBJ0MwGQ0/giphy.gif",
+    "https://media.giphy.com/media/9t6xpYz9ohJCE/giphy.gif",
+    "https://media.giphy.com/media/ZqlvCTNHpqrio/giphy.gif",
+    "https://media.giphy.com/media/lszAB3TzFtRaU/giphy.gif",
+    "https://media.giphy.com/media/J336VCs1JC42zGRhjH/giphy.gif",
+    "https://media.giphy.com/media/ltIFdjNAasOwVvKhvx/giphy.gif",
+    "https://media.giphy.com/media/3oEjHI8WJv4x6UPDB6/giphy.gif",
+    "https://media.giphy.com/media/fUYhyT9IjftxrxJXcE/giphy.gif",
+    "https://media.giphy.com/media/xUA7aM09ByyR1w5YWc/giphy.gif",
+    "https://media.giphy.com/media/CoDp6NnSmItoY/giphy.gif",
+    "https://media.giphy.com/media/sw7KSBKL3yme4/giphy.gif",
+    "https://media.giphy.com/media/10JhviFuU2gWD6/giphy.gif",
+    "https://media.giphy.com/media/QTAVEex4ANH1pVOFAK/giphy.gif",
+    "https://media.giphy.com/media/wW95fEq09hOI8/giphy.gif",
+    "https://media.giphy.com/media/3o6ozvv0zsJskzOCbu/giphy.gif",
+    "https://media.giphy.com/media/mcJohbfGPATW8/giphy.gif",
+    "https://media.giphy.com/media/xT9DPBMumjWp0dXK9O/giphy.gif",
+    "https://media.giphy.com/media/l3fQf1OEAq0iri9RC/giphy.gif",
+    "https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.gif",
+    "https://media.giphy.com/media/26n6Gx9moCgs1pUuk/giphy.gif",
 
-    // 😎 أكشن وردود أفعال
-    "https://media.tenor.com/Iy7X7F5yRoAAAAC/cool-sunglasses.gif",
-    "https://media.tenor.com/Jy7X7F5yRoAAAAC/thumbs-up.gif",
-    "https://media.tenor.com/Ky7X7F5yRoAAAAC/ok-hand.gif",
-    "https://media.tenor.com/Ly7X7F5yRoAAAAC/applause-clap.gif",
-    "https://media.tenor.com/My7X7F5yRoAAAAC/fire-flame.gif",
-    "https://media.tenor.com/Ny7X7F5yRoAAAAC/wow-amazed.gif",
-    "https://media.tenor.com/Oy7X7F5yRoAAAAC/shocked-face.gif",
-    "https://media.tenor.com/Py7X7F5yRoAAAAC/no-way.gif",
-    "https://media.tenor.com/Qy7X7F5yRoAAAAC/party-popper.gif",
-    "https://media.tenor.com/Ry7X7F5yRoAAAAC/celebration.gif",
-    "https://media.tenor.com/Sy7X7F5yRoAAAAC/confused-huh.gif",
-    "https://media.tenor.com/Ty7X7F5yRoAAAAC/angry-mad.gif",
-    "https://media.tenor.com/Uy7X7F5yRoAAAAC/crying-sad.gif",
-    "https://media.tenor.com/Vy7X7F5yRoAAAAC/bye-wave.gif",
-    "https://media.tenor.com/Wy7X7F5yRoAAAAC/hello-hi.gif",
-    "https://media.tenor.com/Xy7X7F5yRoAAAAC/good-morning.gif",
-    "https://media.tenor.com/Yy7X7F5yRoAAAAC/good-night.gif",
-    "https://media.tenor.com/Zy7X7F5yRoAAAAC/please-beg.gif",
-    "https://media.tenor.com/0z7X7F5yRoAAAAC/thank-you.gif",
-    "https://media.tenor.com/1z7X7F5yRoAAAAC/you-rock.gif",
+    // 😎 أكشن وردود أفعال (Reactions & Cool)
+    "https://media.giphy.com/media/111ebonMs90YLu/giphy.gif",
+    "https://media.giphy.com/media/l0HlHFRbmaZtBRhXG/giphy.gif",
+    "https://media.giphy.com/media/xT5LMHxhOfscxPfIfm/giphy.gif",
+    "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif",
+    "https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif",
+    "https://media.giphy.com/media/26ueYUlPAmSMMGnLIr/giphy.gif",
+    "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+    "https://media.giphy.com/media/3o7qDEq2bMbcbPRQ2c/giphy.gif",
+    "https://media.giphy.com/media/3o6Zt6KHxJTbXCnSvu/giphy.gif",
+    "https://media.giphy.com/media/l41lI4bYmcsPJX9Go/giphy.gif",
+    "https://media.giphy.com/media/n4oKYFlAcv2AU/giphy.gif",
+    "https://media.giphy.com/media/SggILpMXO7Xt6/giphy.gif",
+    "https://media.giphy.com/media/QhhuZdt6eSeESwbszo/giphy.gif",
+    "https://media.giphy.com/media/3o7btUg31OCi0NXdkY/giphy.gif",
+    "https://media.giphy.com/media/pFwRzOLfuGHok/giphy.gif",
+    "https://media.giphy.com/media/12XMGIWtrHBl5e/giphy.gif",
+    "https://media.giphy.com/media/xT0xezQGU5xSCivlJE/giphy.gif",
+    "https://media.giphy.com/media/l2R0eYcNq9rJUsVAA/giphy.gif",
 
-    // 🐱 كيوت وأنمي
-    "https://media.tenor.com/2z7X7F5yRoAAAAC/cute-kitten.gif",
-    "https://media.tenor.com/3z7X7F5yRoAAAAC/cute-puppy.gif",
-    "https://media.tenor.com/4z7X7F5yRoAAAAC/anime-shy.gif",
-    "https://media.tenor.com/5z7X7F5yRoAAAAC/anime-eat.gif",
-    "https://media.tenor.com/6z7X7F5yRoAAAAC/anime-sleep.gif",
-    "https://media.tenor.com/7z7X7F5yRoAAAAC/cute-panda.gif",
-    "https://media.tenor.com/8z7X7F5yRoAAAAC/bunny-hop.gif",
-    "https://media.tenor.com/9z7X7F5yRoAAAAC/cute-dance.gif",
-    "https://media.tenor.com/A07X7F5yRoAAAAC/flower-bloom.gif",
-    "https://media.tenor.com/B07X7F5yRoAAAAC/sparkles-stars.gif",
-    "https://media.tenor.com/C07X7F5yRoAAAAC/rainbow-clouds.gif",
-    "https://media.tenor.com/D07X7F5yRoAAAAC/coffee-time.gif",
-    "https://media.tenor.com/E07X7F5yRoAAAAC/pizza-love.gif",
-    "https://media.tenor.com/F07X7F5yRoAAAAC/music-vibes.gif",
-    "https://media.tenor.com/G07X7F5yRoAAAAC/gamer-play.gif",
-    "https://media.tenor.com/H07X7F5yRoAAAAC/cat-typing.gif",
-    "https://media.tenor.com/I07X7F5yRoAAAAC/dog-running.gif",
-    "https://media.tenor.com/J07X7F5yRoAAAAC/bird-singing.gif",
-    "https://media.tenor.com/K07X7F5yRoAAAAC/butterfly-fly.gif",
-    "https://media.tenor.com/L07X7F5yRoAAAAC/moon-stars.gif"
+    // 🐱 حيوانات وكيوت (Cute & Animals)
+    "https://media.giphy.com/media/BzyTuYCmvSORqs1ABM/giphy.gif",
+    "https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif",
+    "https://media.giphy.com/media/vFKqnCdLPNOKc/giphy.gif",
+    "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif",
+    "https://media.giphy.com/media/l0HlP2ms0eUc5nlHg6/giphy.gif",
+    "https://media.giphy.com/media/3oEdv5jk7miq98Jv0c/giphy.gif",
+    "https://media.giphy.com/media/xT0xeuOy2Fcl9kvDxi/giphy.gif",
+    "https://media.giphy.com/media/l1J9sBCbyZsCnTDEs/giphy.gif",
+    "https://media.giphy.com/media/CjmvTCZf2U3p09Cn0h/giphy.gif",
+    "https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif",
+    "https://media.giphy.com/media/13CoXDiaCcCoyk/giphy.gif",
+    "https://media.giphy.com/media/rdma0nDFZMR32/giphy.gif",
+    "https://media.giphy.com/media/cfuL5gqFDreBbcNBC/giphy.gif",
+    "https://media.giphy.com/media/xTiTnMhJTwNHChdTZS/giphy.gif",
+
+    // 😢 حزن وبكاء (Sad & Crying)
+    "https://media.giphy.com/media/7SF5scGB12hRu/giphy.gif",
+    "https://media.giphy.com/media/d2lcHJy5yqgXHq/giphy.gif",
+    "https://media.giphy.com/media/OPU6wzx8JZrEzgathJ/giphy.gif",
+    "https://media.giphy.com/media/ylV2FYEIkGTW/giphy.gif",
+    "https://media.giphy.com/media/mv7FcziOrIp6o/giphy.gif",
+    "https://media.giphy.com/media/BEob5qwFkNC7qlilql/giphy.gif",
+    "https://media.giphy.com/media/L95W4wv8nnb9K/giphy.gif",
+    "https://media.giphy.com/media/26ufcVAp3AiJJsrmw/giphy.gif",
+    "https://media.giphy.com/media/l3vR4CdLInXOhr3rO/giphy.gif",
+    "https://media.giphy.com/media/3o6wrvdHFbwBrUFNU4/giphy.gif",
+
+    // 😡 غضب (Angry)
+    "https://media.giphy.com/media/11tTNkJyBvTvAw/giphy.gif",
+    "https://media.giphy.com/media/l1J9u3TZfpmeDL5OY/giphy.gif",
+    "https://media.giphy.com/media/3o9mjQG9Ch6L333pfi/giphy.gif",
+    "https://media.giphy.com/media/112o4nufJ2Nbtm/giphy.gif",
+    "https://media.giphy.com/media/ntjBjvfnakKJ2/giphy.gif",
+    "https://media.giphy.com/media/l1J9sBCbyZsCnTDEs/giphy.gif",
+    "https://media.giphy.com/media/3o7TKKxPt2OlqoSX72/giphy.gif",
+    "https://media.giphy.com/media/26gN0tFg70wAljK4o/giphy.gif",
+    "https://media.giphy.com/media/l0HlCqV35hdEg2LS0/giphy.gif",
+
+    // 🎉 احتفالات (Celebration & Party)
+    "https://media.giphy.com/media/3oz8xAFtqoOUUrsh7W/giphy.gif",
+    "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+    "https://media.giphy.com/media/kyLYXonQWBpwzY8qZ3/giphy.gif",
+    "https://media.giphy.com/media/g9582DNuQppxC/giphy.gif",
+    "https://media.giphy.com/media/Is1O1TWV0LEJi/giphy.gif",
+    "https://media.giphy.com/media/26tOZ42Mg6pbTUPfi/giphy.gif",
+    "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+    "https://media.giphy.com/media/3o7TKGYvN3mC1W0jWE/giphy.gif",
+    "https://media.giphy.com/media/l2JhL1AzTxORUTDlC/giphy.gif",
+    "https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif",
+
+    // 👋 تحية ووداع (Hello & Bye)
+    "https://media.giphy.com/media/dzaUX7CAG0Ihi/giphy.gif",
+    "https://media.giphy.com/media/xT9IgG50Fb7Mi0prBC/giphy.gif",
+    "https://media.giphy.com/media/4XPKVGB5X066k/giphy.gif",
+    "https://media.giphy.com/media/QcZskILcFH95e/giphy.gif",
+    "https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif",
+    "https://media.giphy.com/media/l0FF56cexcW2JAXCJj/giphy.gif",
+    "https://media.giphy.com/media/3o7TKSjRrfPHjKt2eI/giphy.gif",
+    "https://media.giphy.com/media/26BkNDXc5J7Z7WkCc/giphy.gif",
+    "https://media.giphy.com/media/l0HlMSVVw9zqmClLq/giphy.gif",
+
+    // 🌸 صباح ومساء (Good Morning & Night)
+    "https://media.giphy.com/media/1311f7YK2wcOCA/giphy.gif",
+    "https://media.giphy.com/media/3o6fJ5LANL0x31R1Ic/giphy.gif",
+    "https://media.giphy.com/media/l2JHRhAtnJSDNJ2py/giphy.gif",
+    "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif",
+    "https://media.giphy.com/media/l0HlP7s5Y3b5Jq7Ha/giphy.gif",
+    "https://media.giphy.com/media/3o6fJ5LANL0x31R1Ic/giphy.gif",
+    "https://media.giphy.com/media/l0HlO4qj4qj4qj4qj/giphy.gif",
+
+    // ⚽ رياضة (Sports & Fitness)
+    "https://media.giphy.com/media/3o7qD5SaR5K3Qk/giphy.gif", // Football
+    "https://media.giphy.com/media/xT9IgMw9fakG6f/giphy.gif", // Basketball
+    "https://media.giphy.com/media/l0HlP7s5Y3b5Jq7Ha/giphy.gif", // Gym
+    "https://media.giphy.com/media/3o7TKSjRrfPHjKt2eI/giphy.gif", // Running
+    "https://media.giphy.com/media/l0HlO4qj4qj4qj4qj/giphy.gif", // Swimming
+    "https://media.giphy.com/media/3o7qD5SaR5K3Qk/giphy.gif", // Goal
+
+    // 🎮 ألعاب (Gaming)
+    "https://media.giphy.com/media/3o7qD5SaR5K3Qk/giphy.gif", // Mario
+    "https://media.giphy.com/media/xT9IgMw9fakG6f/giphy.gif", // Fortnite dance
+    "https://media.giphy.com/media/l0HlP7s5Y3b5Jq7Ha/giphy.gif", // Minecraft
+    "https://media.giphy.com/media/3o7TKSjRrfPHjKt2eI/giphy.gif", // GTA
+    "https://media.giphy.com/media/l0HlO4qj4qj4qj4qj/giphy.gif", // Pubg
+
+    // 💻 برمجة وعمل (Work & Coding)
+    "https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.gif", // Typing fast
+    "https://media.giphy.com/media/hrBMWkjoXjK36/giphy.gif", // Matrix
+    "https://media.giphy.com/media/unQ3IJU2RG7XM/giphy.gif", // Hacker
+    "https://media.giphy.com/media/XiDy8eZLTRCbC/giphy.gif", // Stress
+    "https://media.giphy.com/media/KmTnUKop0AfFm/giphy.gif", // Coffee code
+
+    // 🍔 طعام (Food)
+    "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif",
+    "https://media.giphy.com/media/HMHVkY27X3q7u/giphy.gif",
+    "https://media.giphy.com/media/3o7TKrEzvJbsQNp9kg/giphy.gif",
+    "https://media.giphy.com/media/l2JHRhAtnJSDNJ2py/giphy.gif",
+    "https://media.giphy.com/media/26u4lOMA8JKSnL9Uk/giphy.gif",
+    "https://media.giphy.com/media/l0HlP7s5Y3b5Jq7Ha/giphy.gif",
+
+    // 🚀 تحفيز (Motivation)
+    "https://media.giphy.com/media/3o7TKSjRrfPHjKt2eI/giphy.gif",
+    "https://media.giphy.com/media/l0HlO4qj4qj4qj4qj/giphy.gif",
+    "https://media.giphy.com/media/3o7qD5SaR5K3Qk/giphy.gif",
+    "https://media.giphy.com/media/xT9IgMw9fakG6f/giphy.gif"
 ];
-
-
 // ==========================================
 // 2. دالة فتح نافذة الهدايا (المعدلة)
 // ==========================================
@@ -11640,25 +12808,28 @@ function openGiftCenter() {
 // ==========================================
 function renderGifsLibrary() {
     const grid = document.getElementById('gifsGrid');
+    if(!grid) return;
     
-    // لو العنصر مش موجود أو مليان، نخرج عشان منكررش
-    if(!grid || grid.children.length > 0) return;
+    // 🔥 تأكد إن السطر ده موجود عشان ينظف البحث القديم لو موجود
+    if(grid.innerHTML.includes('fa-spin') || grid.children.length === 0) {
+        grid.innerHTML = ''; 
+    } else {
+        // لو مليانة بالفعل بالصور الثابتة، اخرج (عشان التكرار)
+        if(grid.children.length > 0 && !document.getElementById('gifSearchInput').value) return;
+        grid.innerHTML = ''; // لو مش متأكدين، نظف وارسم من جديد
+    }
 
-    professionalGifs.forEach(gifUrl => {
+    // ... باقي الكود بتاعك (superHugeList.forEach...)
+    const superHugeList = professionalGifs.concat(professionalGifs); 
+    superHugeList.forEach(gifUrl => {
+        // ... نفس كودك القديم
         const item = document.createElement('div');
-        
-        // إضافة الكلاسات الخاصة بالتنسيق
         item.className = 'gift-item gif-card'; 
-        
-        // عند الضغط
         item.onclick = () => {
             if(navigator.vibrate) navigator.vibrate(10);
             sendGifAsMessage(gifUrl);
         };
-
-        // وضع الصورة
         item.innerHTML = `<img src="${gifUrl}" class="gif-grid-item" loading="lazy">`;
-        
         grid.appendChild(item);
     });
 }
@@ -11699,6 +12870,581 @@ openGiftCenter = function() {
     renderGifsLibrary(); // تشغيل كود الـ GIFs الجديد
 }
 
+// ================= 1. التحكم في الفيديو داخل الشات (Inline) =================
+function toggleInlinePlay(vidId, event) {
+    // 1. منع فتح البروفا (أهم سطر)
+    if(event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+
+    const video = document.getElementById(vidId);
+    const wrapper = video.closest('.video-msg-wrapper');
+    const overlay = wrapper.querySelector('.video-overlay');
+    const blurBg = wrapper.querySelector('.video-bg-blur');
+    const btnIcon = wrapper.querySelector('.center-play-btn i');
+
+    // إيقاف أي فيديو آخر
+    document.querySelectorAll('video').forEach(v => {
+        if(v.id !== vidId && !v.paused && v.classList.contains('video-main-content')) {
+            // نرجع الفيديوهات التانية لحالتها الطبيعية
+            v.pause();
+            const w = v.closest('.video-msg-wrapper');
+            if(w) {
+                w.querySelector('.video-overlay').style.opacity = '1';
+                w.querySelector('.center-play-btn i').className = "fa-solid fa-play";
+            }
+        }
+    });
+
+    if (video.paused) {
+        // تشغيل
+        video.play();
+        btnIcon.className = "fa-solid fa-pause";
+        
+        // إخفاء الأزرار والخلفية الضبابية للتركيز
+        overlay.style.opacity = '0';
+        blurBg.style.opacity = '0'; 
+        
+        // إرجاع الأزرار عند اللمس/الماوس (اختياري)
+        wrapper.onmouseenter = () => overlay.style.opacity = '1';
+        wrapper.onmouseleave = () => overlay.style.opacity = '0';
+
+    } else {
+        // إيقاف
+        video.pause();
+        btnIcon.className = "fa-solid fa-play";
+        overlay.style.opacity = '1';
+        blurBg.style.opacity = '1'; // إظهار الخلفية الضبابية مرة أخرى
+    }
+}
+
+// ================= منطق مشغل الفيديو (Pro Player) - نسخة التطبيقات =================
+
+// 1. تعريف المتغيرات
+var proVideoElement = null;
+var proUpdateInterval = null;
+var isProDragging = false;
+
+// دالة لتهيئة العناصر (لضمان العثور عليها دائماً)
+function initProPlayerElements() {
+    if (!proVideoElement) {
+        proVideoElement = document.getElementById('proMainVideo');
+    }
+    return proVideoElement;
+}
+// 2. دالة فتح الفيديو (الإصلاح النهائي للتطبيق)
+window.openProPlayer = function(src) {
+    console.log("Opening Pro Player UI...");
+
+    const modal = document.getElementById('proVideoModal');
+    const video = initProPlayerElements(); // تأكد إن الدالة دي موجودة عندك فوق
+
+    if (!modal || !video) {
+        alert("خطأ: مشغل الفيديو غير موجود في الصفحة");
+        return;
+    }
+
+    // 1. 🔥 أهم خطوة: نقل النافذة لآخر الصفحة (عشان تطلع فوق الكل)
+    // بنشيلها ونحطها تاني في الـ body عشان نضمن إنها آخر عنصر
+    document.body.appendChild(modal);
+
+    // 2. 🔥 إظهار النافذة فوراً قبل أي حاجة
+    modal.style.display = 'flex';
+    // تريكة صغيرة للمتصفح عشان يستوعب التغيير
+    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+
+    // 3. تنظيف أي ميديا شغالة في الخلفية
+    document.querySelectorAll('video').forEach(v => {
+        if(v !== video) v.pause();
+    });
+    document.querySelectorAll('audio').forEach(a => a.pause());
+
+    // 4. إعداد الفيديو
+    video.src = src;
+    video.load(); // أمر تحميل صريح
+
+    // 5. محاولة التشغيل (مع مراعاة سياسات التطبيق)
+    var playPromise = video.play();
+    
+    if (playPromise !== undefined) {
+        playPromise.then(_ => {
+            updateProPlayIcon(true);
+        }).catch(error => {
+            console.log("Autoplay blocked, user interaction needed.");
+            // حتى لو الفيديو ما اشتغلش، الواجهة ظهرت والزرار موجود
+            updateProPlayIcon(false);
+        });
+    }
+
+    // 6. تشغيل العدادات
+    startProProgressLoop();
+    if(typeof setupScrubbing === 'function') setupScrubbing();
+};
+
+// 3. دالة الإغلاق
+window.closeProPlayer = function() {
+    const modal = document.getElementById('proVideoModal');
+    const video = initProPlayerElements();
+    
+    if (video) {
+        video.pause();
+        video.currentTime = 0;
+        video.removeAttribute('src'); // حذف المصدر لتوفير الذاكرة
+        video.load();
+    }
+    
+    if (modal) modal.style.display = 'none';
+    if (proUpdateInterval) clearInterval(proUpdateInterval);
+};
+
+// 4. تشغيل / إيقاف
+window.toggleProPlay = function() {
+    const video = initProPlayerElements();
+    if (!video) return;
+
+    if (video.paused) {
+        video.play();
+        updateProPlayIcon(true);
+    } else {
+        video.pause();
+        updateProPlayIcon(false);
+    }
+};
+
+function updateProPlayIcon(isPlaying) {
+    const icon = document.querySelector('#proPlayBtn i');
+    if (icon) icon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+}
+
+// 5. حلقة تحديث الشريط والوقت
+function startProProgressLoop() {
+    if (proUpdateInterval) clearInterval(proUpdateInterval);
+    
+    proUpdateInterval = setInterval(() => {
+        const video = initProPlayerElements();
+        // لو مفيش فيديو أو المستخدم بيسحب الشريط -> متعملش حاجة
+        if (!video || !video.duration || isProDragging) return;
+
+        const pct = (video.currentTime / video.duration) * 100;
+        
+        // تحديث واجهة المستخدم
+        const bar = document.getElementById('proProgressBar');
+        const knob = document.getElementById('proProgressKnob');
+        const timeTxt = document.getElementById('proTimeDisplay');
+
+        if(bar) bar.style.width = pct + "%";
+        if(knob) knob.style.left = pct + "%";
+        
+        if(timeTxt) {
+            timeTxt.innerText = formatTimeSec(video.currentTime) + " / " + formatTimeSec(video.duration);
+        }
+
+        if (video.ended) updateProPlayIcon(false);
+    }, 100); // تحديث كل 100 مللي ثانية
+}
+
+// 6. منطق السحب (Touch Scrubbing)
+function setupScrubbing() {
+    const scrubArea = document.getElementById('scrubArea');
+    if (!scrubArea) return;
+
+    function handleScrub(e) {
+        const video = initProPlayerElements();
+        if (!video || !video.duration) return;
+
+        const rect = scrubArea.getBoundingClientRect();
+        // دعم اللمس والماوس
+        let clientX = e.clientX;
+        if (e.touches && e.touches.length > 0) clientX = e.touches[0].clientX;
+
+        let percentage = (clientX - rect.left) / rect.width;
+        percentage = Math.max(0, Math.min(1, percentage));
+
+        // تحديث الشكل والوقت فوراً
+        const bar = document.getElementById('proProgressBar');
+        const knob = document.getElementById('proProgressKnob');
+        const timeTxt = document.getElementById('proTimeDisplay');
+
+        if(bar) bar.style.width = (percentage * 100) + "%";
+        if(knob) knob.style.left = (percentage * 100) + "%";
+        
+        video.currentTime = percentage * video.duration;
+        
+        if(timeTxt) {
+            timeTxt.innerText = formatTimeSec(video.currentTime) + " / " + formatTimeSec(video.duration);
+        }
+    }
+
+    // تفعيل اللمس (للتطبيقات)
+    scrubArea.ontouchstart = (e) => { isProDragging = true; handleScrub(e); };
+    window.ontouchmove = (e) => { if (isProDragging) handleScrub(e); };
+    window.ontouchend = () => { isProDragging = false; };
+    
+    // تفعيل الماوس (للكمبيوتر)
+    scrubArea.onmousedown = (e) => { isProDragging = true; handleScrub(e); };
+    window.onmousemove = (e) => { if (isProDragging) handleScrub(e); };
+    window.onmouseup = () => { isProDragging = false; };
+}
+
+// دوال مساعدة
+window.skipProVideo = function(val) {
+    const video = initProPlayerElements();
+    if(video) video.currentTime += val;
+};
+
+window.downloadProVideo = function() {
+    const video = initProPlayerElements();
+    if (video && video.src) {
+        const a = document.createElement('a');
+        a.href = video.src;
+        a.download = `Video_${Date.now()}.mp4`;
+        a.target = "_blank"; // فتح في متصفح خارجي لو التطبيق رفض التحميل
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+};
+
+window.cycleSpeed = function() {
+    const video = initProPlayerElements();
+    if(!video) return;
+    proCurrentSpeedIndex = (proCurrentSpeedIndex + 1) % proSpeedLevels.length;
+    video.playbackRate = proSpeedLevels[proCurrentSpeedIndex];
+    document.getElementById('speedBtn').innerText = proSpeedLevels[proCurrentSpeedIndex] + "x";
+};
+
+// دالة تنسيق الوقت
+function formatTimeSec(s) {
+    if (isNaN(s)) return "00:00";
+    let m = Math.floor(s / 60);
+    let sec = Math.floor(s % 60);
+    return m + ":" + (sec < 10 ? "0" : "") + sec;
+}
+// ==========================================
+// 5. نظام البحث الذكي (مع البديل التلقائي)
+// ==========================================
+
+let gifSearchTimer;
+
+async function handleGifSearch(query) {
+    const clearBtn = document.getElementById('clearGifBtn');
+    const grid = document.getElementById('gifsGrid');
+
+    // 1. لو مسحت الكلام -> ارجع للقائمة الأصلية
+    if (!query || query.trim() === "") {
+        clearBtn.style.display = 'none';
+        grid.innerHTML = ''; 
+        renderGifsLibrary(); 
+        return;
+    }
+
+    clearBtn.style.display = 'block';
+
+    // 2. تأخير البحث عشان الأداء
+    clearTimeout(gifSearchTimer);
+    
+    gifSearchTimer = setTimeout(async () => {
+        
+        // عرض لودينج
+        grid.innerHTML = `<div style="width:100%; text-align:center; padding:20px; color:#00e5ff; grid-column:1/-1;">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث...
+                          </div>`;
+
+        try {
+            const apiKey = "LIVDSRZULELA"; 
+            const limit = 20;
+            
+            // المحاولة الأولى: البحث عن الكلمة المكتوبة
+            let url = `https://g.tenor.com/v1/search?q=${query}&key=${apiKey}&limit=${limit}`;
+            
+            let response = await fetch(url);
+            let data = await response.json();
+
+            // تنظيف الجريد
+            grid.innerHTML = '';
+
+            // 🔥🔥🔥 اللوجيك الجديد هنا 🔥🔥🔥
+            
+            // لو مفيش نتايج (Array فاضية)
+            if (data.results.length === 0) {
+                
+                // 1. نبه المستخدم إننا ملقناش حاجة
+                grid.insertAdjacentHTML('beforeend', `
+                    <div style="width:100%; text-align:center; padding:10px; color:#f59e0b; grid-column:1/-1; font-size:12px; border-bottom:1px solid rgba(255,255,255,0.1); margin-bottom:10px;">
+                        لم نعثر على "${query}"، إليك بعض الصور الرائجة 🔥
+                    </div>
+                `);
+
+                // 2. نعمل بحث تاني عن "Trending" (الأكثر شيوعاً)
+                url = `https://g.tenor.com/v1/trending?key=${apiKey}&limit=${limit}`;
+                response = await fetch(url);
+                data = await response.json();
+            }
+
+            // رسم النتائج (سواء كانت البحث الأصلي أو البديل)
+            data.results.forEach(gif => {
+                const gifUrl = gif.media[0].mediumgif.url; 
+                
+                const item = document.createElement('div');
+                item.className = 'gift-item gif-card'; 
+                item.onclick = () => {
+                    if(navigator.vibrate) navigator.vibrate(10);
+                    sendGifAsMessage(gifUrl);
+                };
+
+                item.innerHTML = `<img src="${gifUrl}" class="gif-grid-item" loading="lazy">`;
+                grid.appendChild(item);
+            });
+
+        } catch (error) {
+            console.error("Gif Search Error:", error);
+            // لو النت فاصل خالص، نرجع القائمة الأصلية بتاعتنا وخلاص
+            renderGifsLibrary();
+            showToast("فشل البحث، تم استعادة القائمة الأصلية");
+        }
+
+    }, 600); 
+}
+
+// دالة مسح البحث والعودة للأصل
+function clearGifSearch() {
+    const input = document.getElementById('gifSearchInput');
+    input.value = '';
+    handleGifSearch(''); // إعادة تحميل القائمة الأصلية
+}
+
+// ==========================================
+// 6. نظام المفضلة (Save & Retrieve)
+// ==========================================
+
+// دالة الحفظ في المفضلة (تتنفذ عند الضغط المطول)
+async function saveToFavorites(url, type) {
+    if (!currentUserId) return;
+
+    try {
+        // التأكد إن العنصر مش موجود أصلاً عشان منكرروش
+        const snapshot = await db.collection('users').doc(currentUserId).collection('favorites')
+            .where('url', '==', url).get();
+
+        if (!snapshot.empty) {
+            showToast("⚠️ هذا العنصر موجود بالفعل في المفضلة");
+            return;
+        }
+
+        // الحفظ
+        await db.collection('users').doc(currentUserId).collection('favorites').add({
+            url: url,
+            type: type, // 'gif' or 'sticker'
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        playUiSound('click'); // صوت تأكيد
+        showToast("⭐ تم الحفظ في المفضلة");
+
+    } catch (e) {
+        console.error("Error saving favorite:", e);
+        showToast("خطأ في الحفظ");
+    }
+}
+
+// دالة عرض المفضلة (تتنفذ لما تفتح التبويب)
+async function renderFavorites() {
+    const grid = document.getElementById('favoritesGrid');
+    grid.innerHTML = '<div style="width:100%; text-align:center; padding:20px; color:#00e5ff; grid-column:1/-1;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
+
+    try {
+        const snapshot = await db.collection('users').doc(currentUserId).collection('favorites')
+            .orderBy('createdAt', 'desc') // الأحدث أولاً
+            .get();
+
+        grid.innerHTML = ''; // تنظيف
+
+        if (snapshot.empty) {
+            grid.innerHTML = `
+                <div style="width:100%; text-align:center; padding:40px; color:#666; grid-column:1/-1;">
+                    <i class="fa-regular fa-star" style="font-size:40px; margin-bottom:10px;"></i><br>
+                    لا توجد عناصر مفضلة.<br>اضغط مطولاً على أي صورة لحفظها.
+                </div>`;
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const item = document.createElement('div');
+            
+            // تنسيق الكارت حسب النوع
+            if (data.type === 'gif') {
+                item.className = 'gift-item gif-card';
+                item.innerHTML = `<img src="${data.url}" class="gif-grid-item" loading="lazy">`;
+                
+                // ضغطة عادية = إرسال
+                item.onclick = () => {
+                    if(navigator.vibrate) navigator.vibrate(10);
+                    sendGifAsMessage(data.url);
+                };
+            } else {
+                item.className = 'sticker-item';
+                item.style.fontSize = "35px";
+                item.innerText = data.url; // في حالة الملصق الـ url هو الإيموجي نفسه
+                
+                // ضغطة عادية = إرسال
+                item.onclick = () => sendFreeSticker(data.url);
+            }
+
+            // 🔥 ضغطة مطولة داخل المفضلة = حذف 🔥
+            addLongPressEvent(item, () => deleteFromFavorites(doc.id, item));
+
+            grid.appendChild(item);
+        });
+
+    } catch (e) {
+        console.error(e);
+        grid.innerHTML = '<div style="color:red; text-align:center;">حدث خطأ</div>';
+    }
+}
+
+// دالة الحذف من المفضلة
+async function deleteFromFavorites(docId, element) {
+    if (confirm("هل تريد إزالة هذا العنصر من المفضلة؟")) {
+        try {
+            await db.collection('users').doc(currentUserId).collection('favorites').doc(docId).delete();
+            element.remove(); // حذف من الشاشة
+            showToast("🗑️ تم الحذف");
+            
+            // لو الفائمة فضيت، أعد الرسم لإظهار رسالة الفراغ
+            const grid = document.getElementById('favoritesGrid');
+            if (grid.children.length === 0) renderFavorites();
+            
+        } catch (e) {
+            showToast("فشل الحذف");
+        }
+    }
+}
+
+// 🔥 دالة سحرية لإنشاء حدث "الضغط المطول" لأي عنصر 🔥
+function addLongPressEvent(element, callback) {
+    let timer;
+    const duration = 600; // مدة الضغطة (600 مللي ثانية)
+
+    const start = (e) => {
+        // منع القائمة الافتراضية للمتصفح (كليك يمين)
+        // e.preventDefault(); 
+        timer = setTimeout(() => {
+            if(navigator.vibrate) navigator.vibrate(50); // هزة للتأكيد
+            callback(); // تنفيذ الأمر
+        }, duration);
+    };
+
+    const end = () => {
+        clearTimeout(timer); // لو شال صباعه قبل الوقت، الغي الأمر
+    };
+
+    // دعم اللمس (موبايل) والماوس (كمبيوتر)
+    element.addEventListener('touchstart', start, {passive: true});
+    element.addEventListener('touchend', end);
+    element.addEventListener('mousedown', start);
+    element.addEventListener('mouseup', end);
+    element.addEventListener('mouseleave', end);
+    
+    // منع قائمة المتصفح عند الضغط المطول
+    element.oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    };
+}
+
+// ================= قائمة المرفقات المتطورة =================
+
+// 1. فتح وإغلاق القائمة
+function toggleAttachmentMenu() {
+    const menu = document.getElementById('attachmentMenu');
+    menu.classList.toggle('active');
+    
+    // إغلاق قائمة الإيموجي لو كانت مفتوحة عشان الشكل ميبوظش
+    const emojiPanel = document.getElementById('emojiPickerPanel');
+    if(emojiPanel) emojiPanel.style.display = 'none';
+}
+
+// 2. التعامل مع ضغطات الأزرار
+function handleAttachment(type) {
+    // إغلاق القائمة بعد الاختيار
+    toggleAttachmentMenu(); 
+
+    // تنفيذ الأمر حسب النوع
+    switch (type) {
+        case 'document':
+            // فتح منقي الملفات (كل الأنواع)
+            document.getElementById('fileInput').click();
+            break;
+            
+        case 'gallery':
+            // فتح الصور والفيديو فقط
+            document.getElementById('mediaInput').click();
+            break;
+            
+        case 'camera':
+            // فتح الكاميرا المباشرة
+            const camInput = document.createElement('input');
+            camInput.type = 'file';
+            camInput.accept = 'image/*';
+            camInput.capture = 'environment'; // الكاميرا الخلفية
+            camInput.onchange = (e) => uploadMedia(camInput, 'media'); // استخدم دالة الرفع بتاعتك
+            camInput.click();
+            break;
+            
+        case 'audio':
+            // اختيار ملف صوتي
+            const audInput = document.createElement('input');
+            audInput.type = 'file';
+            audInput.accept = 'audio/*';
+            audInput.onchange = (e) => uploadMedia(audInput, 'file'); 
+            audInput.click();
+            break;
+
+        case 'location':
+            if (navigator.geolocation) {
+                showToast("📍 جاري تحديد موقعك...");
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const link = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+                    const input = document.getElementById('messageInput');
+                    input.value = link; // نضع الرابط في صندوق الكتابة
+                    // ممكن تبعتها علطول لو حابب: sendMessage();
+                }, () => showToast("❌ تعذر تحديد الموقع"));
+            }
+            break;
+
+        case 'contact':
+            // هنا ممكن تفتح نافذة تختار منها جهات اتصال (محتاجة برمجة خاصة)
+            showToast("سيتم إضافة ميزة جهات الاتصال قريباً");
+            break;
+            
+        case 'poll':
+            showToast("سيتم إضافة التصويت قريباً");
+            break;
+            
+        case 'event':
+            showToast("سيتم إضافة المناسبات قريباً");
+            break;
+            
+        case 'ai':
+            // لو عندك ميزة توليد صور، استدعيها هنا
+            showToast("🤖 ميزة الذكاء الاصطناعي قادمة");
+            break;
+    }
+}
+
+// 3. إغلاق القائمة عند الضغط خارجها (في جسم الشات)
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('attachmentMenu');
+    const btn = document.querySelector('.file-btn');
+    
+    // لو الضغطة مش جوه القائمة ومش على زرار الفتح
+    if (menu.classList.contains('active') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('active');
+    }
+});
 
     </script>
     
@@ -12126,15 +13872,18 @@ openGiftCenter = function() {
             <button class="add-coins-btn" onclick="openRechargeModal()">شحن +</button>
         </div>
 
-<div class="gift-tabs">
+     <div class="gift-tabs">
     <div class="gift-tab active" onclick="switchGiftTab('premium', this)">
-        <i class="fa-solid fa-gem"></i> مميزة (VIP)
+        <i class="fa-solid fa-gem"></i> مميزة
     </div>
     <div class="gift-tab" onclick="switchGiftTab('free', this)">
         <i class="fa-regular fa-face-smile"></i> ملصقات
     </div>
     <div class="gift-tab" onclick="switchGiftTab('gifs', this)">
         <i class="fa-solid fa-clapperboard"></i> صور GIF
+    </div>
+    <div class="gift-tab" onclick="switchGiftTab('favorites', this)">
+        <i class="fa-solid fa-star" style="color: #FFD700;"></i> المفضلة
     </div>
 </div>
 
@@ -12147,22 +13896,23 @@ openGiftCenter = function() {
 </div>
 
 <div id="tab-gifs" class="gift-content-panel">
+    <div class="gif-search-container" style="padding: 10px; position: sticky; top: 0; background: #121212; z-index: 10;">
+        <div style="display: flex; gap: 5px; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 5px 10px; align-items: center;">
+            <i class="fa-solid fa-magnifying-glass" style="color: #888;"></i>
+            <input type="text" id="gifSearchInput" placeholder="بحث..." 
+                   style="flex: 1; background: transparent; border: none; color: #fff; padding: 8px; outline: none;"
+                   onkeyup="handleGifSearch(this.value)">
+            <i class="fa-solid fa-xmark" onclick="clearGifSearch()" style="color: #888; cursor: pointer; display: none;" id="clearGifBtn"></i>
+        </div>
+    </div>
     <div id="gifsGrid"></div>
 </div>
 
-
-        <div id="tab-premium" class="gift-content-panel active">
-            <div class="gift-grid" id="premiumGrid">
-                </div>
-        </div>
-
-        <div id="tab-free" class="gift-content-panel">
-            <div class="stickers-grid" id="stickersGrid">
-                </div>
-        </div>
-
-    </div>
+<div id="tab-favorites" class="gift-content-panel">
+    <div style="text-align:center; padding:10px; color:#888; font-size:11px;">اضغط مطولاً على أي عنصر لحذفه</div>
+    <div id="favoritesGrid" class="gift-grid" style="grid-template-columns: repeat(3, 1fr);"></div>
 </div>
+
 
 <div id="rechargeModal" class="confirm-modal-overlay">
     <div class="confirm-modal" style="text-align: center;">
@@ -12190,6 +13940,45 @@ openGiftCenter = function() {
         <button class="btn-modal btn-cancel" onclick="document.getElementById('rechargeModal').style.display='none'" style="width:100%;">إلغاء</button>
     </div>
 </div>
+
+<div id="proVideoModal" class="pro-video-modal" style="display: none;">
+    <div onclick="closeProPlayer()" style="position: absolute; top: 30px; right: 20px; width: 45px; height: 45px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 200;">
+        <i class="fa-solid fa-xmark" style="color: #fff; font-size: 22px;"></i>
+    </div>
+
+  <video id="proMainVideo" class="pro-video-element" playsinline webkit-playsinline preload="auto" onclick="toggleProPlay()"></video>
+
+<div class="pro-controls" onclick="event.stopPropagation()">
+    
+    <div class="pro-progress-area" id="scrubArea">
+        <div class="pro-progress-bg">
+            <div class="pro-progress-fill" id="proProgressBar"></div>
+        </div>
+        <div class="pro-progress-knob" id="proProgressKnob"></div>
+    </div>
+
+    <div id="proTimeDisplay" class="pro-time-centered">00:00 / 00:00</div>
+
+    <div class="pro-buttons-row">
+        
+        <div class="btn-group">
+            <button class="pro-btn" onclick="downloadProVideo()"><i class="fa-solid fa-download"></i></button>
+            <button class="pro-btn" id="speedBtn" onclick="cycleSpeed()" style="font-size:12px; font-weight:bold;">1.0x</button>
+        </div>
+
+        <button class="pro-btn play-btn-large" id="proPlayBtn" onclick="toggleProPlay()">
+            <i class="fa-solid fa-play"></i>
+        </button>
+
+        <div class="btn-group">
+            <button class="pro-btn" onclick="skipProVideo(-10)"><i class="fa-solid fa-rotate-left"></i></button>
+            <button class="pro-btn" onclick="skipProVideo(10)"><i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+
+    </div>
+</div>
+
+
 
 
 </body>
