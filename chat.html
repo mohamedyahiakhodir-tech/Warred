@@ -19,6 +19,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"></script>
 
     <style>
+    
         /* ================= تصميم الوريد الاحترافي (Wareed Style) ================= */
         :root { 
             --bg-primary: #050b14; /* خلفية داكنة جداً */
@@ -96,80 +97,6 @@ body::before {
 .icon-btn.video { color: #00e5ff; }
 
 
-/* القسم الأيمن */
-.header-right-section { display: flex; align-items: center; gap: 15px; }
-
-/* زر الرجوع */
-.back-btn { 
-    font-size: 20px; color: #94a3b8; 
-    padding: 8px; border-radius: 50%;
-    cursor: pointer; transition: 0.2s; 
-}
-.back-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
-.back-btn:active { transform: scale(0.9); }
-
-/* === حاوية الصورة (حلقة نيون) === */
-.user-avatar-container { 
-    position: relative; 
-    width: 48px; height: 48px; 
-    border-radius: 50%; 
-    padding: 2px; /* مسافة للحلقة الملونة */
-    background: linear-gradient(135deg, #00e5ff, #2979ff); 
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.3); 
-    cursor: pointer;
-}
-
-.header-avatar { 
-    width: 100%; height: 100%; 
-    border-radius: 50%; 
-    background-color: #0b1121; 
-    background-size: cover; background-position: center;
-    border: 2px solid #0b1121; 
-    display: grid; place-items: center;
-    color: #fff; font-weight: bold;
-}
-
-/* نقطة الأونلاين */
-.online-status { 
-    position: absolute; bottom: 0; left: 0; 
-    width: 12px; height: 12px; 
-    background: #10b981; 
-    border-radius: 50%; 
-    border: 2px solid #0b1121;
-    box-shadow: 0 0 8px #10b981;
-}
-
-/* === معلومات المستخدم === */
-.header-info { display: flex; flex-direction: column; justify-content: center; }
-
-.header-info h3 { 
-    margin: 0; font-size: 17px; font-weight: 700; color: #fff; 
-    letter-spacing: 0.5px;
-    display: flex; align-items: center; gap: 5px;
-    text-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-
-/* علامة التوثيق (مهمة عشان متبوظش) */
-.verify-badge { color: #38bdf8; font-size: 14px; margin-right: 3px; }
-
-/* حالة الاتصال (نص متدرج) */
-.status-text { 
-    font-size: 12px; font-weight: 500; 
-    background: linear-gradient(to right, #00e5ff, #2979ff); 
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    opacity: 0.9; 
-}
-
-/* جاري الكتابة (مهمة) */
-.typing-text { 
-    font-size: 11px; color: #38bdf8; font-weight: bold; 
-    display: none; animation: fadeIn 0.3s; 
-}
-
-/* === أزرار الاتصال (الشكل المربع الجديد) === */
-.header-actions { display: flex; gap: 10px; }
-
 /
 .icon-btn:active { transform: scale(0.95); }
 
@@ -192,9 +119,7 @@ body::before {
 }
 
 
-        .msg-row { display: flex; width: 100%; align-items: flex-end; gap: 10px; position: relative; animation: fadeInSlide 0.3s ease; }
-        .msg-row.sender { justify-content: flex-end; }
-        .msg-row.receiver { justify-content: flex-start; }
+        
         
         .msg-user-avatar { 
             width: 32px; height: 32px; border-radius: 50%; 
@@ -204,11 +129,6 @@ body::before {
         }
         .receiver .msg-user-avatar { display: grid; }
 
-        /* توقيت الرسالة */
-        .msg-time {
-            font-size: 9px; opacity: 0.7; margin-top: 4px; display: block; text-align: left;
-        }
-        .sender .msg-time { text-align: right; color: rgba(255,255,255,0.8); }
 
         /* ================= الوسائط ومشغل الصوت ================= */
        /* ================= الوسائط ومشغل الصوت (تصميم الحواف المستديرة) ================= */
@@ -271,27 +191,6 @@ body::before {
 
         /* ================= الفوتر /* ================= الفوتر المتكامل (شكل + وظائف) ================= */
 
-.chat-footer {
-    position: fixed;
-    bottom: 20px; left: 15px; right: 15px;
-    z-index: 100;
-    
-    background: rgba(11, 17, 33, 0.95);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    
-    border-radius: 30px; /* تدوير الفوتر نفسه */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    
-    display: flex;
-    /* التعديل هنا 👇: محاذاة العناصر للأسفل */
-    align-items: flex-end; 
-    padding: 8px 10px; /* تقليل البادينج شوية */
-    min-height: 60px;
-    gap: 8px;
-}
-
 
 /* === 2. واجهة التسجيل (Absolute تغطي الفوتر كله) === */
 .recording-ui {
@@ -316,32 +215,6 @@ body::before {
     align-items: center;
     gap: 5px;
     flex-shrink: 0; /* ممنوع ينكمش */
-}
-
-/* === 4. مربع الكتابة (ياخد المساحة الباقية) === */
-.input-container {
-    flex: 1;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 20px; /* تدوير أقل شوية عشان يبقى شكله حلو وهو كبير */
-    padding: 10px 15px;  /* تظبيط الحواف الداخلية */
-    display: flex;
-    align-items: center;
-    border: 1px solid rgba(255,255,255,0.05);
-    
-    /* التعديل المهم هنا 👇 */
-    height: auto !important; /* يلغي الارتفاع الثابت */
-    min-height: 45px;        /* أقل ارتفاع */
-    max-height: 140px;       /* أقصى ارتفاع قبل ما يعمل سكرول */
-    overflow-y: auto;        /* سكرول لو الكلام زاد أوي */
-    transition: 0.2s;
-}
-
-.input-container:focus-within { background: rgba(0,0,0,0.4); border-color: rgba(0,229,255,0.3); }
-
-.chat-input {
-    width: 100%; background: transparent; border: none; color: #fff;
-    font-size: 15px; resize: none; height: 24px; padding: 0;
-    max-height: 100px; overflow-y: auto; font-family: inherit;
 }
 
 /* زر الإرسال والمايك */
@@ -632,57 +505,6 @@ body::before {
     background: rgba(0, 229, 255, 0.2);
     transform: translateY(-1px);
 }
-/* تصميم كارت معاينة الروابط */
-.link-preview-card {
-    margin-top: 8px;
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    cursor: pointer;
-    transition: 0.2s;
-    display: flex;
-    flex-direction: column;
-    max-width: 100%;
-}
-.link-preview-card:hover {
-    background: rgba(0, 0, 0, 0.5);
-    border-color: var(--accent-color);
-}
-.lp-image {
-    width: 100%;
-    height: 140px;
-    object-fit: cover;
-    background: #0f1926;
-}
-.lp-content {
-    padding: 10px;
-}
-.lp-title {
-    font-size: 13px;
-    font-weight: bold;
-    color: #fff;
-    margin-bottom: 4px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.lp-desc {
-    font-size: 11px;
-    color: #94a3b8;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.lp-domain {
-    font-size: 10px;
-    color: var(--accent-color);
-    margin-top: 6px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
 /* حاوية فيديو اليوتيوب */
 .yt-embed-container {
     position: relative;
@@ -701,14 +523,6 @@ body::before {
     left: 0;
     width: 100%;
     height: 100%;
-    border: none;
-}
-
-/* 3. رسالة الطرف الثاني (Receiver) */
-.receiver .msg-bubble {
-    background: #202c33; /* لون رمادي غامق زي واتساب */
-    color: #e9edef;
-    border-bottom-left-radius: 4px;
     border: none;
 }
     /* ================= حل نهائي لقص الرسائل الطويلة ================= */
@@ -791,29 +605,6 @@ body::before {
 .lp-title { color: #e1e1e1 !important; font-size: 13px !important; }
 .lp-desc { color: #aaa !important; }
     
- 
-  /* تنسيق مربع الكتابة المتمدد */
-.chat-input {
-    width: 100%;
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 15px;
-    resize: none;
-    font-family: inherit;
-    line-height: 1.4; /* مسافة بين السطور عشان الكلام ميبقاش لازق */
-    
-    /* مهم عشان الارتفاع يتضبط */
-    height: 24px; /* الارتفاع المبدئي */
-    max-height: 140px; 
-    padding: 0;
-}
-
-/* تنسيق الحاوية عشان الكلام يبقى في النص */
-.input-container {
-    align-items: center;
-    min-height: 50px;
-}
 
 /* خلفية المكالمة */
 /* ================= تصميم شاشة الاتصال (الستايل النهائي) ================= */
@@ -881,41 +672,6 @@ body::before {
     background: rgba(255,255,255,0.1);
     padding: 6px 20px; border-radius: 20px;
     backdrop-filter: blur(5px);
-}
-
-/* 3. الجزء السفلي (الأزرار) */
-.call-btn { 
-    width: 55px; height: 55px; /* تصغير من 65 لـ 55 */
-    font-size: 22px; 
-    border-radius: 50%;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
-
-
-/* الزرار العام */
-
-.call-btn:active { transform: scale(0.9); }
-
-/* أزرار التحكم (مايك واسبيكر) - شفافة */
-.call-btn.mute, .call-btn.speaker { 
-    background: rgba(255,255,255,0.15); 
-}
-
-/* زر إنهاء المكالمة (أحمر) */
-.call-btn.end { 
-    background: #ff3b30; 
-    width: 65px; height: 65px; font-size: 28px;
-    box-shadow: 0 5px 20px rgba(255, 59, 48, 0.4);
-}
-
-/* زر الرد (أخضر) - يظهر بس لما حد يرن عليك */
-.call-btn.accept { 
-    background: #10b981; 
-    width: 65px; height: 65px; font-size: 28px;
-    box-shadow: 0 5px 20px rgba(16, 185, 129, 0.4);
-    /* انيميشن النبض */
-    animation: pulse-green 1.5s infinite;
 }
 
 /* زر الرفض لما حد يرن عليك - بيتهز */
@@ -1306,25 +1062,6 @@ body::before {
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3); /* يفتح لما تقف عليه */
 }
-
-/* --- رسائل المرسل (Sender) --- */
-/* لو رسالة متكررة لنفس الشخص، خلي الزاوية العلوية اليمين حادة */
-.msg-row.sender.same-sender .msg-bubble {
-    border-top-right-radius: 4px !important;
-    margin-top: 2px; /* قرب المسافة بينهم */
-}
-
-/* --- رسائل المستقبل (Receiver) --- */
-/* لو رسالة متكررة، خلي الزاوية العلوية الشمال حادة */
-.msg-row.receiver.same-sender .msg-bubble {
-    border-top-left-radius: 4px !important;
-    margin-top: 2px;
-}
-
-/* تكبير الزوايا العامة عشان تبقى Smooth */
-.msg-bubble {
-    border-radius: 18px; /* تدوير كبير */
-}
 /* تأثير الزجاج القوي */
 .chat-header, .chat-footer, .receiver .msg-bubble {
     background: rgba(15, 25, 38, 0.75) !important; /* شفافية أقل شوية */
@@ -1464,7 +1201,7 @@ body, button, input, textarea {
     background: rgba(0, 0, 0, 0.85) !important; /* تغميق الخلفية أكتر للتركيز */
     backdrop-filter: blur(8px); /* بلور قوي */
     -webkit-backdrop-filter: blur(8px);
-    z-index: 2147483647 !important; /* أعلى رقم Z-Index مسموح بيه في المتصفح */
+   /* أعلى رقم Z-Index مسموح بيه في المتصفح */
     display: none; 
     align-items: center; 
     justify-content: center;
@@ -1518,22 +1255,6 @@ body, button, input, textarea {
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes popIn { to { transform: scale(1); } }
 
-/* زر المايكروفون */
-.mic-btn {
-    width: 48px; height: 48px;
-    border-radius: 50%; /* دائري بالكامل */
-    
-    /* خلفية خضراء غامقة جداً وشفافة */
-    background: rgba(16, 185, 129, 0.1); 
-    border: 1px solid rgba(16, 185, 129, 0.2); 
-    
-    color: #34d399; /* لون الأيقونة أخضر نيون هادي */
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    font-size: 20px;
-    transition: all 0.3s ease;
-    margin-bottom: 2px;
-}
 /* ================= أزرار الفوتر (الشكل الأساسي) ================= */
 
 /* التنسيق العام للأزرار */
@@ -1941,66 +1662,6 @@ body.ghost-active .msg-bubble {
     color: #00e5ff;      /* لون السيان المميز */
     font-weight: 600;
 }
-/* ================= تصميم نافذة البحث (Messenger Style) ================= */
-.search-overlay-full {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: #0b1121; /* نفس لون خلفية التطبيق */
-    z-index: 2500; /* فوق كل حاجة */
-    display: none;
-    flex-direction: column;
-    animation: fadeIn 0.2s ease-out;
-}
-
-.search-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    background: rgba(15, 25, 38, 0.95);
-}
-
-.search-input-box {
-    flex: 1;
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 8px 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.search-input-field {
-    background: transparent;
-    border: none;
-    color: #fff;
-    width: 100%;
-    font-size: 14px;
-    font-family: inherit;
-}
-
-.search-results-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-}
-
-/* تصميم عنصر النتيجة (زي الصورة بالظبط) */
-.search-result-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.search-result-item:hover {
-    background: rgba(255,255,255,0.05);
-}
 
 .s-avatar {
     width: 50px;
@@ -2085,23 +1746,6 @@ body.ghost-active .msg-bubble {
 }
 .mg-header h3 { margin: 0; color: #fff; font-size: 18px; }
 
-/* تنسيق التبويبات */
-.mg-tabs {
-    display: flex; overflow-x: auto;
-    background: #0f1926;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    flex-shrink: 0;
-}
-.mg-tab {
-    flex: 1; text-align: center; padding: 15px 0;
-    color: #64748b; font-size: 14px; font-weight: 500;
-    cursor: pointer; border-bottom: 2px solid transparent;
-    min-width: 70px;
-    transition: 0.2s;
-}
-.mg-tab.active {
-    color: #00e5ff; border-bottom-color: #00e5ff; background: rgba(0, 229, 255, 0.05);
-}
 
 /* جسم الصفحة */
 .mg-body { flex: 1; overflow-y: auto; padding: 10px; position: relative; }
@@ -2993,11 +2637,6 @@ body.dark-mode .message.quick-reply {
 @keyframes popInReaction {
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
-/* عدل هذا الكلاس في الـ CSS */
-.search-overlay-full {
-    /* ... باقي الخصائص ... */
-    z-index: 200000 !important; /* كان 2500، لازم يكون رقم عالي جداً */
-}
 
 /* ================= 1. إصلاح قابلية النقر للصورة ================= */
 .msg-user-avatar {
@@ -3255,19 +2894,7 @@ z-index: 2147483647 !important;
     background-clip: padding-box;
 }
 
-/* شريط التقدم (العداد) */
-.story-progress-container {
-    position: absolute; top: 10px; left: 10px; right: 10px;
-    height: 3px; background: rgba(255,255,255,0.3);
-    border-radius: 2px; z-index: 10;
-    overflow: hidden;
-}
 
-.story-progress-bar {
-    height: 100%; width: 0%;
-    background: #fff;
-    transition: width 0.1s linear;
-}
 
 /* الصورة أو الفيديو */
 .story-media-element {
@@ -3275,24 +2902,18 @@ z-index: 2147483647 !important;
     object-fit: contain; /* تعرض الصورة بالكامل */
 }
 
-/* بيانات المستخدم فوق (اختياري عشان تعرف مين صاحب القصة) */
-.story-user-top {
-    position: absolute; top: 20px; left: 20px;
-    display: flex; align-items: center; gap: 10px;
-    z-index: 10;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.5);
-}
-.story-user-top img { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #fff; }
-.story-user-top span { color: #fff; font-weight: bold; font-size: 14px; }
 
 /* ================= تصميم عارض القصص (تحديث) ================= */
 #simpleStoryViewer {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: #000;
-    z-index: 2147483647 !important; /* أعلى رقم ممكن لضمان الظهور فوق الهيدر والبوب أب */
+
     display: none; 
     flex-direction: column;
+    /* مهم جداً لحركة السحب */
+    transform-origin: bottom center;
+    will-change: transform, opacity;
 }
 
 .story-progress-container {
@@ -3310,10 +2931,14 @@ z-index: 2147483647 !important;
 }
 
 .story-user-top {
-    position: absolute; top: 20px; left: 20px;
-    display: flex; align-items: center; gap: 10px;
-    z-index: 20;
-    text-shadow: 0 1px 5px rgba(0,0,0,0.5);
+    position: absolute; 
+    top: 25px; 
+    left: 20px;
+    display: flex; 
+    align-items: center; 
+    gap: 10px;
+    z-index: 90;
+    pointer-events: none; /* عشان السحب يشتغل حتى لو لمست الاسم */
 }
 .story-user-top img { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #fff; object-fit: cover; }
 .story-user-top span { color: #fff; font-weight: bold; font-size: 14px; font-family: 'Cairo', sans-serif; }
@@ -3323,6 +2948,32 @@ z-index: 2147483647 !important;
     object-fit: contain; /* تعرض الصورة بالكامل دون قص */
     max-height: 100vh;
 }
+
+.close-story-btn {
+    position: absolute;
+    top: 25px; /* محاذاة مع الهيدر */
+    right: 20px; /* على اليمين (أو اليسار حسب تفضيلك) */
+    z-index: 100;
+    width: 35px;
+    height: 35px;
+    background: rgba(0, 0, 0, 0.3); /* خلفية شفافة */
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: 0.2s;
+}
+
+.close-story-btn:active {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(0.9);
+}
+
 /* ================= تصميم الفقاعات (أنا يمين/* ================= تصميم الفقاعات النهائي (أنا يسار - هو يمين) ================= */
 
 /* 1. ضبط محاذاة الصفوف (تعديل لصفحة عربية RTL) */
@@ -3411,62 +3062,7 @@ z-index: 2147483647 !important;
     opacity: 0.6;
 }
 
-/* ================= إصلاح نافذة البحث ================= */
-.search-overlay-full {
-    position: fixed !important;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: #0b1121;
-    z-index: 2147483647 !important; /* رقم عالي جداً عشان يظهر فوق الكل */
-    display: none;
-    flex-direction: column;
-    animation: fadeIn 0.2s ease-out;
-}
 
-.search-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 15px;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    background: rgba(15, 25, 38, 0.95);
-}
-
-.search-input-box {
-    flex: 1;
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    padding: 8px 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.search-input-field {
-    background: transparent;
-    border: none;
-    color: #fff;
-    width: 100%;
-    font-size: 14px;
-    font-family: inherit;
-    outline: none;
-}
-
-.search-result-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 15px 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
-    cursor: pointer;
-}
-.highlight-term {
-    color: #00e5ff;
-    font-weight: bold;
-    background: rgba(0, 229, 255, 0.15);
-    padding: 0 4px;
-    border-radius: 4px;
-}
 /* ================= حل مشكلة حلقة القصة في البروفايل ================= */
 
 /* 1. تصميم الحلقة الملونة للصورة الكبيرة */
@@ -3499,19 +3095,6 @@ z-index: 2147483647 !important;
     100% { box-shadow: 0 0 30px rgba(220, 39, 67, 0.8); transform: scale(1.02); }
 }
 
-.gif-btn { background: rgba(236, 72, 153, 0.1); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.2); }
-.gif-picker {
-    position: absolute; bottom: 80px; left: 10px; right: 10px;
-    height: 300px; background: #1e293b; border-radius: 20px;
-    z-index: 200; display: none; flex-direction: column;
-    border: 1px solid rgba(255,255,255,0.1);
-    overflow: hidden;
-}
-.gif-grid { 
-    flex: 1; overflow-y: auto; display: grid; 
-    grid-template-columns: repeat(2, 1fr); gap: 5px; padding: 10px; 
-}
-.gif-item { width: 100%; cursor: pointer; border-radius: 8px; }
 /* تنسيق الفوتر الجديد */
 .chat-footer {
     position: fixed;
@@ -4292,38 +3875,8 @@ z-index: 2147483647 !important;
     transform: scale(0.9); /* تأثير ضغطة جميل */
 }
 
-/* ================= تصميم فقاعة الصور الشفافة ================= */
-.msg-bubble.media-bubble {
-    background: transparent !important; /* إلغاء لون الخلفية */
-    border: none !important;            /* إلغاء الحدود */
-    box-shadow: none !important;        /* إلغاء الظل */
-    padding: 0 !important;              /* إلغاء الحواف الداخلية عشان الصورة تاخد الحجم كله */
-    overflow: visible !important;       /* للسماح بظهور التفاعلات فوق الصورة */
-}
 
-/* تحسين شكل حاوية الصورة نفسها لتكون هي الفقاعة */
-.msg-bubble.media-bubble .media-container {
-    margin: 0 !important;               /* إلغاء المسافات الخارجية */
-    border-radius: 18px !important;     /* تدوير حواف الصورة نفسها */
-    border: 1px solid rgba(255, 255, 255, 0.1); /* برواز خفيف جداً للصورة */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3); /* ظل للصورة نفسها */
-}
 
-/* تعديل مكان الوقت (Timestamp) ليظهر فوق الصورة (اختياري لشكل أجمل) */
-/* أو يمكن تركه كما هو سيظهر تحت الصورة */
-.msg-bubble.media-bubble .msg-meta-row {
-    padding: 0 5px; /* مسافة بسيطة للوقت */
-    background: rgba(0,0,0,0.3); /* خلفية داكنة خفيفة ورا الوقت لضمان القراءة */
-    border-radius: 10px;
-    width: fit-content;
-    margin-top: -30px; /* سحب الوقت ليكون فوق الصورة من الداخل */
-    margin-bottom: 5px;
-    position: relative;
-    z-index: 5;
-    margin-right: 5px; /* محاذاة */
-    margin-left: auto; /* محاذاة */
-    backdrop-filter: blur(2px);
-}
 /* =================== ستايل الصور الشفافة (تصحيح) =================== */
 
 /* 1. إخفاء فقاعة الرسالة نفسها */
@@ -4469,655 +4022,7 @@ z-index: 2147483647 !important;
     accent-color: #fff !important; /* لون المؤشر أبيض */
     height: 3px;
 }
-/* ================= تصميم فقاعة الفيديو في الشات ================= */
-.video-msg-wrapper {
-    position: relative;
-    border-radius: 18px;
-    overflow: hidden;
-    background: #000;
-    width: 260px; /* عرض ثابت للفيديو */
-    height: 160px; /* ارتفاع ثابت */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-/* ================= تصميم الفيديو الاحترافي (Cinematic Style) ================= */
-.video-msg-wrapper {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    background: #000;
-    width: 280px;         /* عرض ثابت */
-    aspect-ratio: 4 / 5;  /* نسبة أطول شوية عشان تناسب الفيديوهات الطويلة */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-    cursor: pointer;
-    border: 1px solid rgba(255,255,255,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 
-/* 1. الفيديو الخلفي (ضبابي للمنظر الجمالي) */
-.video-bg-blur {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: blur(15px) brightness(0.6); /* تغبيش وتغميق */
-    transform: scale(1.1); /* تكبير عشان يخفي الحواف */
-    z-index: 1;
-}
-
-/* 2. الفيديو الأساسي (واضح وفي المنتصف) */
-.video-main-content {
-    position: relative;
-    z-index: 2;
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* يظهر الفيديو بالكامل بدون قص */
-}
-
-/* 3. طبقة الأزرار (فوق كل حاجة) */
-.video-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 5; /* أهم طبقة */
-    background: rgba(0,0,0,0.1); /* تظليل خفيف */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* زر التشغيل (في النص) */
-.center-play-btn {
-    width: 55px;
-    height: 55px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-    transition: 0.2s;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-}
-
-.center-play-btn:active {
-    transform: scale(0.9);
-    background: #00e5ff;
-}
-
-/* ================= زر التوسيع (إصلاح المكان واللمس) ================= */
-.expand-icon {
-    position: absolute;
-    bottom: 10px !important;  /* تثبيت في الأسفل */
-    right: 10px !important;   /* تثبيت في اليمين (إجباري) */
-    left: auto !important;    /* إلغاء أي تمركز يسار */
-    top: auto !important;     /* إلغاء أي تمركز فوق */
-    
-    background: rgba(0, 0, 0, 0.7); /* خلفية سوداء عشان يبان */
-    color: #fff;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    cursor: pointer;
-    z-index: 100; /* رقم عالي جداً عشان يظهر فوق الفيديو */
-    pointer-events: auto; /* تفعيل الضغط */
-    
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.5);
-}
-
-.expand-icon:active {
-    transform: scale(0.9);
-    background: #00e5ff;
-    border-color: #00e5ff;
-}
-
-.expand-icon i {
-    font-size: 16px;
-}
-
-
-/* التوقيت في الزاوية */
-.vid-duration-badge {
-    position: absolute;
-    bottom: 8px;
-    left: 8px;
-    background: rgba(0,0,0,0.6);
-    color: #fff;
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-/* ================= تصميم مشغل الفيديو الاحترافي (Pro Player) ================= */
-.pro-video-modal {
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 999999;
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    animation: fadeIn 0.3s ease;
-}
-
-/* الفيديو داخل المشغل */
-.pro-video-element {
-    max-width: 100%;
-    max-height: 80vh;
-    box-shadow: 0 0 50px rgba(0, 229, 255, 0.1);
-}
-
-/* شريط التحكم السفلي */
-.pro-controls {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-/* شريط التقدم */
-.pro-progress-container {
-    width: 100%;
-    height: 5px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 5px;
-    cursor: pointer;
-    position: relative;
-}
-
-.pro-progress-bar {
-    height: 100%;
-    width: 0%;
-    background: #00e5ff;
-    border-radius: 5px;
-    position: relative;
-}
-
-/* النقطة في نهاية الشريط */
-.pro-progress-bar::after {
-    content: '';
-    position: absolute;
-    right: -6px;
-    top: -3px;
-    width: 12px;
-    height: 12px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 10px #00e5ff;
-}
-
-/* أزرار التحكم */
-.pro-buttons-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: #fff;
-}
-
-.pro-btn {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 20px;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    transition: 0.2s;
-}
-
-.pro-btn:hover { background: rgba(255,255,255,0.1); color: #00e5ff; }
-.pro-btn:active { transform: scale(0.9); }
-
-/* زر الإغلاق */
-.pro-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    color: #fff;
-    font-size: 24px;
-    cursor: pointer;
-    background: rgba(0,0,0,0.5);
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    display: grid; place-items: center;
-    z-index: 100;
-}
-
-/* قائمة السرعة */
-.speed-menu {
-    position: absolute;
-    bottom: 60px;
-    right: 20px;
-    background: rgba(20, 30, 48, 0.95);
-    border-radius: 10px;
-    padding: 5px;
-    display: none;
-    flex-direction: column;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-.speed-opt {
-    padding: 8px 15px;
-    color: #ccc;
-    font-size: 13px;
-    cursor: pointer;
-    text-align: center;
-}
-.speed-opt:hover { background: rgba(255,255,255,0.1); color: #fff; }
-.speed-opt.active { color: #00e5ff; font-weight: bold;
-}
-/* ================= 1. تعديل أيقونة التكبير في الشات ================= */
-.video-overlay .expand-icon {
-    position: absolute !important;
-    bottom: 8px !important;
-    right: 8px !important; /* أقصى اليمين */
-    left: auto !important;
-    top: auto !important;
-    
-    width: 32px;
-    height: 32px;
-    background: rgba(0, 0, 0, 0.6); /* خلفية شفافة غامقة */
-    backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 8px; /* مربع بحواف ناعمة بدل الدائري ليكون أشيك */
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    z-index: 20;
-    transition: all 0.2s ease;
-}
-
-.video-overlay .expand-icon:active {
-    transform: scale(0.9);
-    background: var(--accent-color);
-    border-color: var(--accent-color);
-}
-
-.video-overlay .expand-icon i {
-    font-size: 14px;
-}
-
- .pro-video-modal {
-        display: none; /* مخفي افتراضياً */
-        position: fixed; inset: 0; 
-        background: rgba(5, 11, 20, 0.98); /* خلفية كحلية غامقة جداً */
-        z-index: 999999;
-        flex-direction: column; justify-content: center; align-items: center;
-        backdrop-filter: blur(10px);
-    }
-
-    /* الفيديو */
-    .pro-video-element {
-        width: 100%; max-height: 75vh;
-        box-shadow: 0 0 50px rgba(0,0,0,0.5);
-    }
-/* الكنترول بار كله */
-.pro-controls {
-    position: absolute;
-    bottom: 20px; /* نرفعها شوية عن الحافة عشان متلزقش تحت */
-    left: 5%;     /* نسيب مسافة من اليمين والشمال */
-    right: 5%;
-    width: 90%;   /* العرض 90% من الشاشة */
-    background: rgba(30, 30, 30, 0.85); /* لون خلفية شيك */
-    border-radius: 20px; /* تدوير الحواف */
-    padding: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px; /* مسافة بين شريط الوقت والأزرار */
-    backdrop-filter: blur(10px); /* تأثير الزجاج */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* ظل خفيف */
-    z-index: 1000;
-}
-
-/* صف الأزرار */
-.pro-buttons-row {
-    display: flex;
-    justify-content: space-between; /* توزيع الأزرار بالتساوي */
-    align-items: center;
-    width: 100%;
-    padding: 0 10px; /* هوامش داخلية عشان الأزرار متلزقش في الحواف */
-}
-
-/* الأزرار الجانبية (تسريع / تنزيل) */
-.pro-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    border: none;
-    transition: 0.2s;
-}
-
-.pro-btn:active {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
-}
-
-/* زر التشغيل الكبير اللي في النص */
-.play-btn-large {
-    width: 60px !important;
-    height: 60px !important;
-    font-size: 24px !important;
-    background: #00e5ff !important; /* اللون السماوي */
-    color: #000 !important;
-    box-shadow: 0 0 15px rgba(0, 229, 255, 0.4);
-}
-/* تنسيق الوقت: في النص، فوق الأزرار، وبمسافة مريحة */
-.pro-time-centered {
-    width: 100%;
-    text-align: center;      /* توسيط الكلام */
-    font-family: monospace;  /* خط رقمي */
-    font-size: 14px;
-    color: #e0e0e0;
-    margin: 15px 0;          /* مسافة فوق (من الشريط) وتحت (من الأزرار) */
-    font-weight: bold;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    display: block;          /* يضمن إنه ياخد سطر لوحده */
-}
-
-/* صف الأزرار: توزيع متساوي (يمين - وسط - يسار) */
-.pro-buttons-row {
-    display: flex;
-    justify-content: space-between; /* يرمي المجموعات للأطراف */
-    align-items: center;
-    width: 100%;
-    padding: 0 10px; /* هوامش جانبية عشان الزراير متلزقش في حافة الشاشة */
-}
-
-/* مجموعات الأزرار الجانبية: عشان يفضلوا لازقين في بعض */
-.btn-group {
-    display: flex;
-    gap: 15px; /* مسافة بين الزرار وأخوه في نفس المجموعة */
-}
-
-/* زر التشغيل الكبير: في النص */
-.play-btn-large {
-    width: 65px !important;
-    height: 65px !important;
-    font-size: 26px !important;
-    background: #00e5ff !important;
-    color: #000 !important;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.5) !important;
-    border-radius: 50%;
-    border: none;
-    /* رفعة بسيطة لفوق عشان يكسر جمود الصف (شيك) */
-    margin-top: -5px; 
-}
-
-/* الأزرار العادية */
-.pro-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 12px; /* تدوير بسيط (Squircle) */
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    border: 1px solid rgba(255,255,255,0.1);
-    transition: 0.2s;
-}
-
-.pro-btn:active {
-    background: rgba(255, 255, 255, 0.3);
-    transform: scale(0.95);
-}
-
-/* 1. الحاوية الرئيسية (الشاشة السوداء) */
-.pro-video-modal {
-    display: none; /* ✅ كده هيفضل مخفي لحد ما تضغط */
-    position: fixed; 
-    inset: 0; 
-    background: #000; 
-    z-index: 999999;
-    
-    /* خصائص الترتيب (هتشتغل لما الجافاسكربت يفتح النافذة) */
-    flex-direction: column; 
-    justify-content: flex-end; /* يبدأ من تحت */
-    align-items: center;
-    
-    padding-top: 80px; 
-    padding-bottom: 20px;
-    box-sizing: border-box;
-}
-
-/* 2. الفيديو نفسه (ياخد المساحة المتبقية) */
-.pro-video-element {
-    flex-grow: 1; /* يملأ الفراغ المتاح */
-    width: 100%;
-    max-height: 100%; /* عشان ميكبرش زيادة عن اللزوم */
-    min-height: 0; 
-    
-    object-fit: contain; /* يبان كامل جوه مساحته */
-    
-    margin-bottom: 15px; /* يبعد عن الزراير */
-    
-    border-radius: 12px;
-    box-shadow: none;
-}
-
-/* 3. شريط التحكم (كتلة ثابتة في الأسفل) */
-.pro-controls {
-    position: relative !important; 
-    bottom: auto !important;
-    left: auto !important;
-    right: auto !important;
-    transform: none !important;
-    
-    width: 90%; 
-    background: rgba(30, 30, 30, 0.9); 
-    border-radius: 20px;
-    padding: 15px;
-    
-    flex-shrink: 0; /* يمنع الانكماش */
-    
-    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-    z-index: 100;
-}
-/* ================= تصميم مشغل الفيديو (الكود الكامل) ================= */
-
-/* 1. الشاشة السوداء (الإصلاح النهائي) */
-.pro-video-modal {
-    display: none; /* مخفي افتراضياً */
-    position: fixed; 
-    inset: 0; 
-    background: #000; 
-    z-index: 999999;
-    
-    /* نظام التوزيع المرن (Flexbox) */
-    display: flex; 
-    flex-direction: column; 
-    justify-content: flex-end; /* ابدأ من تحت */
-    align-items: center;
-    
-    padding-top: 80px; 
-    padding-bottom: 20px;
-    box-sizing: border-box;
-}
-
-/* 2. الفيديو نفسه (بحجم مناسب) */
-.pro-video-element {
-    flex-grow: 1; /* يملأ الفراغ المتاح */
-    width: 100%;
-    max-height: 100%; 
-    min-height: 0; 
-    object-fit: contain; /* يبان كامل */
-    margin-bottom: 15px; 
-    border-radius: 12px;
-    box-shadow: none;
-}
-
-/* 3. صندوق التحكم (اللي فيه الشريط والزراير) */
-.pro-controls {
-    position: relative; 
-    width: 90%; 
-    background: rgba(30, 30, 30, 0.95); /* لون غامق شيك */
-    border-radius: 20px;
-    padding: 15px 20px;
-    flex-shrink: 0; 
-    box-shadow: 0 5px 20px rgba(0,0,0,0.5);
-    z-index: 100;
-    
-    /* مهم: اتجاه العناصر من اليسار لليمين عشان الشريط يظبط */
-    direction: ltr; 
-}
-
-/* 4. 🔥 تصميم الشريط اللي كان مختفي 🔥 */
-.pro-progress-area {
-    width: 100%; 
-    height: 25px; /* منطقة لمس مريحة */
-    display: flex; 
-    align-items: center; 
-    cursor: pointer; 
-    position: relative;
-    margin-bottom: 5px;
-}
-
-.pro-progress-bg {
-    width: 100%; 
-    height: 6px; /* سمك الشريط */
-    background: rgba(255,255,255,0.2); /* لون رمادي فاتح للخلفية */
-    border-radius: 10px; 
-    position: relative;
-}
-
-.pro-progress-fill {
-    height: 100%; 
-    width: 0%; 
-    background: #00e5ff; /* لون سيان مضيء */
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 229, 255, 0.7); /* توهج */
-    position: absolute;
-    top: 0; left: 0;
-}
-
-/* المقبض (الكورة البيضاء) */
-.pro-progress-knob {
-    position: absolute; 
-    top: 50%; 
-    left: 0%; 
-    transform: translate(-50%, -50%);
-    width: 16px; 
-    height: 16px; 
-    background: #fff; 
-    border-radius: 50%;
-    box-shadow: 0 0 5px rgba(0,0,0,0.5); 
-    pointer-events: none;
-    z-index: 2;
-    transition: left 0.1s linear; /* حركة ناعمة */
-}
-
-/* 5. الوقت (في النص) */
-.pro-time-centered {
-    width: 100%;
-    text-align: center;
-    font-family: monospace;
-    font-size: 14px;
-    color: #fff;
-    margin: 10px 0;
-    font-weight: bold;
-}
-
-/* 6. صف الأزرار (متوزع صح) */
-.pro-buttons-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-}
-
-.btn-group { display: flex; gap: 15px; }
-
-.pro-btn {
-    width: 40px; height: 40px;
-    border-radius: 12px;
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    border: none;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-}
-
-.play-btn-large {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: #00e5ff;
-    color: #000;
-    font-size: 24px;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-    margin-top: -5px;
-    border: none;
-}
-/* ================= إصلاح نافذة الفيديو للتطبيقات ================= */
-.pro-video-modal {
-    display: none; /* مخفي افتراضياً */
-    position: fixed !important; /* تثبيت إجباري */
-    top: 0 !important; 
-    left: 0 !important; 
-    width: 100% !important; 
-    height: 100% !important;
-    background: #000 !important; /* خلفية سوداء صريحة */
-    
-    /* رقم عالي جداً جداً عشان يغطي الهيدر والفوتر وأي نافذة تانية */
-    z-index: 2147483647 !important; 
-    
-    flex-direction: column; 
-    justify-content: center; 
-    align-items: center;
-    overflow: hidden; /* منع السكرول */
-}
-
-/* إصلاح الفيديو نفسه عشان مايختفيش */
-.pro-video-element {
-    width: 100%; 
-    height: auto; 
-    max-height: 80vh; /* عشان يسيب مكان للزراير تحت */
-    object-fit: contain; /* يضمن ان الفيديو يبان كامل */
-    z-index: 2147483648 !important; /* فوق الخلفية */
-}
-
-/* إصلاح شريط التحكم عشان يظهر */
-.pro-controls {
-    position: absolute !important;
-    bottom: 20px !important;
-    left: 10px !important;
-    right: 10px !important;
-    width: auto !important;
-    background: rgba(30, 30, 30, 0.9) !important;
-    z-index: 2147483649 !important; /* أعلى طبقة خالص */
-    display: flex !important; /* ضمان الظهور */
-}
 /* ================= تصميم قائمة المرفقات (WhatsApp Style) ================= */
 
 /* 1. الحاوية الأساسية للقائمة */
@@ -5201,6 +4106,1077 @@ z-index: 2147483647 !important;
     font-weight: 500;
 }
 
+
+/* --- كارت الاستطلاع (Poll) --- */
+.msg-poll-card {
+    background: rgba(255,255,255,0.03);
+    padding: 15px; border-radius: 12px;
+    min-width: 250px;
+}
+.poll-question {
+    font-weight: bold; color: #fff; margin-bottom: 12px; font-size: 15px;
+}
+.poll-option {
+    background: rgba(255,255,255,0.08);
+    padding: 10px; border-radius: 8px;
+    margin-bottom: 8px; cursor: pointer;
+    display: flex; justify-content: space-between;
+    transition: 0.2s; border: 1px solid rgba(255,255,255,0.05);
+}
+.poll-option:hover { background: rgba(255,255,255,0.15); }
+.poll-text { font-size: 13px; color: #e2e8f0; }
+.poll-count { font-size: 11px; color: #94a3b8; }
+/* تحسين شكل نافذة المستندات */
+#docViewerModal .mg-body {
+    height: calc(100% - 60px); /* ارتفاع الشاشة ناقص الهيدر */
+    width: 100%;
+}
+
+#docIframe {
+    background: #fff; /* خلفية بيضاء عشان المستند يبان */
+}
+
+/* ================= تصميم كارت جهة الاتصال ================= */
+.msg-contact-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(30, 41, 59, 0.95); /* خلفية داكنة */
+    padding: 12px 15px;
+    border-radius: 16px;
+    min-width: 220px;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.msg-contact-card:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* الشريط الملون الجانبي */
+.msg-contact-card::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: #00e5ff; /* اللون المميز للتطبيق */
+}
+
+/* أيقونة الشخص */
+.contact-icon-box {
+    width: 45px; height: 45px;
+    background: linear-gradient(135deg, #00e5ff, #2979ff);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff;
+    font-size: 20px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 229, 255, 0.3);
+}
+
+/* النصوص */
+.contact-info-box {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.contact-name-text {
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 2px;
+}
+
+.contact-number-text {
+    color: #94a3b8;
+    font-size: 12px;
+    font-family: monospace; /* عشان الأرقام تبان واضحة */
+    letter-spacing: 0.5px;
+}
+
+/* زر الاتصال السريع */
+.contact-action-btn {
+    color: #00e5ff;
+    font-size: 18px;
+    padding: 8px;
+    border-radius: 50%;
+    background: rgba(0, 229, 255, 0.1);
+}
+/* ================= إصلاح عارض القصص (Story Viewer Fix) ================= */
+#simpleStoryViewer {
+    position: fixed !important; /* تثبيت إجباري */
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important; /* عرض الشاشة بالكامل */
+    height: 100vh !important; /* ارتفاع الشاشة بالكامل */
+    background: #000 !important; /* خلفية سوداء تغطي كل شيء */
+    
+    /* رقم طبقة أعلى من الهيدر (100) والفوتر (100) وأي نافذة أخرى */
+   
+    
+    display: none; /* مخفي افتراضياً */
+    flex-direction: column;
+    overflow: hidden; /* منع ظهور أي سكرول بار */
+    
+    /* التأكد من إعادة تعيين الخصائص للحالة الطبيعية */
+    opacity: 1; 
+    transform: none;
+}
+
+/* تنسيق زر الإغلاق ليكون ظاهراً بوضوح */
+.close-story-btn {
+    position: absolute !important;
+    top: 30px !important; /* مسافة من الأعلى */
+    right: 20px !important; /* مسافة من اليمين (عربي) */
+    z-index: 2147483649 !important; /* فوق الفيديو والصور */
+    
+    width: 40px; height: 40px;
+    background: rgba(0, 0, 0, 0.5); /* خلفية نصف شفافة */
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+}
+
+.close-story-btn i {
+    color: #fff;
+    font-size: 20px;
+}
+
+/* إصلاح مكان عرض الصورة/الفيديو */
+.story-content-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+}
+
+.story-media-element {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain; /* يظهر المحتوى بالكامل دون قص */
+}
+
+/* ================= إصلاح الطبقات النهائي ================= */
+
+/* الطبقة 1: المحتوى العادي */
+.chat-body, .chat-header { z-index: 10; }
+
+/* الطبقة 2: الفوتر والقوائم المنبثقة العادية */
+.chat-footer { z-index: 100; }
+.context-menu-overlay { z-index: 2000; }
+
+/* الطبقة 3: النوافذ الكبيرة (بروفايل، هدايا) */
+.profile-page, #giftCenterModal { z-index: 3000 !important; }
+
+/* الطبقة 4: الوسائط (صور، فيديو، قصص) - يجب أن تكون أعلى شيء */
+.media-gallery-overlay { z-index: 4000 !important; }
+
+/* الطبقة 5: مشغل الفيديو الاحترافي (الملك) */
+.pro-video-modal { 
+
+    background: #000 !important;    /* ضمان خلفية سوداء */
+}
+
+/* إصلاح الفيديو داخل المشغل لضمان ظهوره */
+.pro-video-element {
+    z-index: 2147483648 !important; /* أعلى من خلفية المشغل */
+    position: relative;
+    max-height: 80vh;
+}
+
+/* إصلاح أزرار التحكم في الفيديو */
+.pro-controls {
+    z-index: 2147483649 !important; /* أعلى طبقة على الإطلاق */
+}
+
+/* ================= تنسيق صف الاسم والتوثيق ================= */
+.popup-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px; /* مسافة بين الاسم والعلامة */
+    margin-bottom: 5px;
+    flex-wrap: nowrap; /* يمنع نزول العلامة سطر جديد */
+}
+
+/* تنسيق علامة التوثيق */
+.popup-verify {
+    color: #00e5ff; /* اللون السيان (الأزرق السماوي) */
+    font-size: 16px;
+    display: none; /* مخفي افتراضياً */
+    filter: drop-shadow(0 0 5px rgba(0, 229, 255, 0.5)); /* توهج خفيف */
+}
+
+/* تنسيق الصورة الشخصية في النافذة المنبثقة */
+.popup-avatar {
+    width: 110px; 
+    height: 110px;
+    border-radius: 50%;
+    background-color: #0f1926;
+    background-size: cover; 
+    background-position: center;
+    border: 4px solid #0f1926;
+    display: flex; /* لضمان توسط الحرف إذا لم توجد صورة */
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #fff;
+}
+/* ================= 1. تصميم الأرقام (Digital Numbers) ================= */
+.digital-number {
+    font-family: 'Courier New', monospace; /* خط رقمي */
+    background: rgba(0, 229, 255, 0.1);    /* خلفية سيان شفافة */
+    color: #00e5ff;                        /* لون النص سيان */
+    padding: 2px 6px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    font-weight: bold;
+    letter-spacing: 1px;
+    display: inline-block;
+    direction: ltr; /* عشان الأرقام تظهر صح */
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.1);
+}
+
+/* ================= 2. تصميم بطاقة التصويت الاحترافية (Pro Poll) ================= */
+.poll-card-modern {
+    background: linear-gradient(145deg, #1e293b, #0f172a); /* تدرج كحلي فخم */
+    border-radius: 20px;
+    padding: 15px;
+    width: 280px; /* عرض ثابت */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+/* عنوان السؤال */
+.poll-question-modern {
+    font-size: 16px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #fff, #94a3b8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 15px;
+    text-align: right;
+}
+
+/* حاوية الخيارات */
+.poll-options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* الخيار الواحد */
+.poll-option-modern {
+    position: relative;
+    height: 45px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.poll-option-modern:active {
+    transform: scale(0.98);
+}
+
+/* شريط التقدم الخلفي (الملون) */
+.poll-progress-bar {
+    position: absolute;
+    top: 0; right: 0; bottom: 0; /* يبدأ من اليمين للعربي */
+    width: 0%; /* سيتغير بالجافاسكربت */
+    background: linear-gradient(90deg, rgba(0, 229, 255, 0.2), rgba(41, 121, 255, 0.3));
+    border-right: 3px solid #00e5ff; /* خط مضيء في المقدمة */
+    transition: width 1s cubic-bezier(0.23, 1, 0.32, 1); /* أنيميشن ناعم جداً */
+    z-index: 1;
+}
+
+/* محتوى الخيار (النص والنسبة) */
+.poll-option-content {
+    position: relative;
+    z-index: 2; /* فوق الشريط */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+    padding: 0 15px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+}
+
+/* النسبة المئوية */
+.poll-percent {
+    font-size: 11px;
+    color: #00e5ff;
+    font-family: monospace;
+    font-weight: bold;
+    opacity: 0; /* مخفي لحد ما يتم التصويت */
+    transform: translateX(-10px);
+    transition: all 0.5s ease;
+}
+
+/* حالة "تم التصويت" */
+.poll-card-modern.voted .poll-percent {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* الدائرة الصغيرة بجانب الخيار (تختفي عند التصويت) */
+.poll-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.poll-option-modern.selected .poll-radio {
+    border-color: #00e5ff;
+    background: #00e5ff;
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+}
+
+.poll-option-modern.selected .poll-progress-bar {
+    background: linear-gradient(90deg, rgba(0, 229, 255, 0.4), rgba(41, 121, 255, 0.5));
+}
+
+/* الفوتر (عدد الأصوات) */
+.poll-footer-modern {
+    margin-top: 12px;
+    font-size: 10px;
+    color: #64748b;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 5px;
+}
+
+/* هذا الكود موجود بالفعل لديك، تأكد فقط منه */
+.msg-bubble.transparent-bubble {
+    background: transparent !important; /* خلفية شفافة */
+    border: none !important;            /* بدون حدود */
+    box-shadow: none !important;        /* بدون ظل */
+    padding: 0 !important;              /* بدون حواف داخلية */
+    width: auto !important;             /* العرض حسب المحتوى */
+}
+/* تصميم زر عرض الملف الشخصي */
+.view-profile-btn {
+    margin-top: 18px; /* مسافة من العنصر اللي فوقه */
+    padding: 10px 28px;
+    background: rgba(0, 229, 255, 0.05); /* خلفية شفافة زرقاء خفيفة */
+    border: 1px solid rgba(0, 229, 255, 0.3); /* حدود نيون خفيفة */
+    border-radius: 50px; /* تدوير كامل (شكل كبسولة) */
+    color: #00e5ff;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.05);
+}
+
+/* تأثير عند اللمس أو الماوس (Hover) */
+.view-profile-btn:hover, .view-profile-btn:active {
+    background: linear-gradient(135deg, #00e5ff, #2979ff); /* تدرج لوني */
+    color: #fff; /* النص يتحول للأبيض */
+    border-color: transparent;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); /* توهج قوي */
+    transform: translateY(-2px); /* يرتفع قليلاً */
+}
+
+/* حركة السهم */
+.view-profile-btn .btn-arrow {
+    transition: transform 0.3s ease;
+}
+
+/* عند اللمس السهم يتحرك لليسار */
+.view-profile-btn:hover .btn-arrow, .view-profile-btn:active .btn-arrow {
+    transform: translateX(-5px); 
+}
+
+/* تأثير الضغط (Click) */
+.view-profile-btn:active {
+    transform: scale(0.95); /* تصغير لحظي */
+}
+
+#privacySettingsPage {
+    z-index: 2147483647 !important; /* أعلى رقم طبقة مسموح به في المتصفح */
+    background-color: #0b1121 !important; /* خلفية معتمة عشان تغطي اللي تحتها */
+}
+
+:root {
+    /* --- المستوى 1: الأساسيات --- */
+    --z-background: 0;       /* الخلفية */
+    --z-content: 10;         /* جسم الشات والرسائل */
+    
+    /* --- المستوى 2: الثوابت --- */
+    --z-header: 100;         /* الهيدر والفوتر */
+    --z-floating: 200;       /* الأزرار العائمة (زر النزول) */
+    
+    /* --- المستوى 3: القوائم المنبثقة --- */
+    --z-dropdown: 500;       /* قائمة المرفقات، الإيموجي */
+    --z-context: 600;        /* قائمة الضغط المطول (Context Menu) */
+    
+    /* --- المستوى 4: النوافذ الكاملة (Full Pages) --- */
+    --z-modal-base: 1000;    /* البروفايل، الهدايا، الإعدادات */
+    --z-modal-top: 1100;     /* نافذة فوق نافذة (مثل تغيير اللقب فوق البروفايل) */
+    
+    /* --- المستوى 5: الوسائط (Media) --- */
+    --z-gallery: 2000;       /* معرض الصور */
+    --z-story: 2500;         /* عارض القصص */
+    --z-lightbox: 2600;      /* تكبير الصورة */
+    
+    /* --- المستوى 6: التنبيهات والطوارئ --- */
+    --z-alert: 3000;         /* نوافذ التأكيد (حذف، حظر) */
+    --z-toast: 3500;         /* رسائل التنبيه الصغيرة (Toasts) */
+    
+    /* --- المستوى 7: المكالمات (الملك) --- */
+    --z-call-overlay: 4000;  /* شاشة المكالمة */
+    --z-call-controls: 4001; /* أزرار التحكم في المكالمة */
+    
+    /* --- المستوى 8: مشغل الفيديو الاحترافي (فوق الكل) --- */
+    --z-pro-player: 5000;    
+}
+/* 1. المحتوى الأساسي */
+.chat-body { z-index: var(--z-content); }
+.chat-header, .chat-footer { z-index: var(--z-header); }
+.scroll-bottom-btn { z-index: var(--z-floating); }
+
+/* 2. القوائم */
+.attachment-menu, .emoji-picker-panel { z-index: var(--z-dropdown); }
+.context-menu-overlay { z-index: var(--z-context); }
+
+/* 3. النوافذ الكاملة (البروفايل، الهدايا، البحث) */
+.profile-page, 
+#giftCenterModal, 
+#fullSearchOverlay, 
+#nicknamesPage { 
+    z-index: var(--z-modal-base) !important; 
+}
+
+/* 4. نوافذ فوق النوافذ (تغيير اللقب، معلومات المستخدم) */
+#userPopupOverlay, 
+#nicknameModal, 
+#contactModal, 
+#pollModal { 
+    z-index: var(--z-modal-top) !important; 
+}
+
+/* 5. الوسائط (الصور والقصص) */
+.media-gallery-overlay { z-index: var(--z-gallery) !important; }
+#simpleStoryViewer { z-index: var(--z-story) !important; }
+.lightbox { z-index: var(--z-lightbox) !important; }
+
+/* 6. التنبيهات (عشان تظهر فوق البروفايل والصور) */
+.confirm-modal-overlay, /* نافذة الحذف والتأكيد */
+#uploadConfirmModal,
+#deleteModal,
+#customBlockModal { 
+    z-index: var(--z-alert) !important; 
+}
+
+#toast { z-index: var(--z-toast) !important; }
+
+/* 7. المكالمات (لازم تغطي كل حاجة ما عدا مشغل الفيديو الكبير) */
+.call-overlay { z-index: var(--z-call-overlay) !important; }
+.call-controls-section, #incomingCallControls { z-index: var(--z-call-controls) !important; }
+
+/* 8. مشغل الفيديو الاحترافي (أعلى حاجة في التطبيق) */
+.pro-video-modal { z-index: var(--z-pro-player) !important; }
+
+
+/* ================= 1. فيديو الشات المصغر (Inline Video) ================= */
+.video-msg-wrapper {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #000;
+    width: 260px;
+    aspect-ratio: 4 / 5;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* الفيديو نفسه */
+.video-main-content {
+    width: 100%; height: 100%; object-fit: contain; z-index: 2;
+}
+
+/* طبقة الأزرار فوق الفيديو */
+.video-overlay {
+    position: absolute; inset: 0; z-index: 5;
+    background: rgba(0,0,0,0.2);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.2s ease;
+}
+
+/* زر التشغيل الدائري */
+.center-play-btn {
+    width: 50px; height: 50px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 20px;
+    cursor: pointer; transition: 0.2s;
+}
+.center-play-btn:active { transform: scale(0.9); background: var(--accent-color); }
+
+/* زر التكبير (Expand) */
+.expand-icon {
+    position: absolute; bottom: 10px; right: 10px;
+    width: 35px; height: 35px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; cursor: pointer;
+    z-index: 10;
+}
+.expand-icon:active { transform: scale(0.9); border-color: var(--accent-color); color: var(--accent-color); }
+
+
+/* ================= 2. مشغل الفيديو الاحترافي (Full Screen Pro Player) ================= */
+
+/* الحاوية الرئيسية (الشاشة السوداء) */
+.pro-video-modal {
+    display: none; /* مخفي افتراضياً */
+    position: fixed; inset: 0;
+    background: #000;
+    
+    /* استخدام نظام الطبقات الجديد */
+    z-index: var(--z-pro-player) !important;
+    
+    flex-direction: column;
+    justify-content: center; 
+    align-items: center;
+    padding-bottom: 20px; /* مسافة للكنترول */
+}
+
+/* الفيديو الكبير */
+.pro-video-element {
+    width: 100%; 
+    height: auto; 
+    max-height: 80vh; /* عشان يسيب مسافة للأزرار تحت */
+    object-fit: contain;
+    box-shadow: 0 0 50px rgba(0,0,0,0.5);
+}
+
+/* زر الإغلاق (X) */
+.pro-close-btn {
+    position: absolute; top: 30px; right: 20px;
+    width: 40px; height: 40px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 10; color: #fff; font-size: 20px;
+    
+}
+
+/* ================= 3. شريط التحكم (Controls Bar) ================= */
+.pro-controls {
+    position: absolute; 
+    bottom: 30px; 
+    width: 90%; max-width: 600px;
+    background: rgba(25, 25, 25, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 15px 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.1);
+    
+    display: flex; flex-direction: column; gap: 10px;
+    direction: ltr; /* مهم عشان الشريط والوقت يظهروا صح */
+}
+
+/* منطقة الشريط (السحب) */
+.pro-progress-area {
+    width: 100%; height: 20px;
+    display: flex; align-items: center;
+    cursor: pointer; position: relative;
+}
+
+/* الخلفية الرمادي */
+.pro-progress-bg {
+    width: 100%; height: 4px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 10px; position: relative;
+}
+
+/* اللون الملون (التقدم) */
+.pro-progress-fill {
+    height: 100%; width: 0%;
+    background: var(--accent-color);
+    border-radius: 10px;
+    position: absolute; top: 0; left: 0;
+    box-shadow: 0 0 10px var(--accent-color);
+}
+
+/* الدائرة (المقبض) */
+.pro-progress-knob {
+    position: absolute; top: 50%; left: 0%;
+    width: 14px; height: 14px;
+    background: #fff; border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    pointer-events: none; transition: left 0.1s linear;
+}
+
+/* عرض الوقت */
+.pro-time-centered {
+    width: 100%; text-align: center;
+    font-family: monospace; font-size: 13px; font-weight: bold;
+    color: #e2e8f0; margin-bottom: 5px;
+}
+
+/* صف الأزرار */
+.pro-buttons-row {
+    display: flex; justify-content: space-between; align-items: center; width: 100%;
+}
+
+.btn-group { display: flex; gap: 15px; }
+
+/* أزرار التحكم الصغيرة */
+.pro-btn {
+    width: 40px; height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff; border: 1px solid rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; transition: 0.2s;
+}
+.pro-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+
+/* زر التشغيل الكبير */
+.play-btn-large {
+    width: 55px; height: 55px;
+    border-radius: 50%;
+    background: var(--accent-color);
+    color: #000; font-size: 22px;
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
+    border: none; display: flex; align-items: center; justify-content: center;
+    margin-top: -10px; /* رفعة جمالية */
+}
+.play-btn-large:active { transform: scale(0.95); box-shadow: 0 0 10px var(--accent-color); }
+/* ================= تصميم كارت الموقع الاحترافي ================= */
+.location-msg-card {
+    width: 260px;
+    height: 160px;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.1);
+    background: #242f3e; /* لون خريطة جوجل الليلي */
+}
+
+/* صورة الخريطة الخلفية (صورة ثابتة عامة أو نمط) */
+.location-bg-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.7); /* تغميق بسيط عشان الدبوس يبان */
+    transition: transform 0.3s ease;
+}
+
+.location-msg-card:hover .location-bg-image {
+    transform: scale(1.1); /* زووم خفيف عند اللمس */
+}
+
+/* الدبوس المتحرك (Pin) */
+.map-pin-container {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center;
+    z-index: 2;
+}
+
+.map-pin-icon {
+    font-size: 35px;
+    color: #ff3b30; /* لون أحمر */
+    filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+    animation: pinBounce 1.5s infinite;
+}
+
+/* نقطة تحت الدبوس */
+.map-pin-shadow {
+    width: 12px; height: 4px;
+    background: rgba(0,0,0,0.6);
+    border-radius: 50%;
+    margin-top: -5px;
+    animation: shadowScale 1.5s infinite;
+}
+
+/* الفوتر (العنوان) */
+.location-footer {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: rgba(20, 30, 45, 0.9);
+    backdrop-filter: blur(5px);
+    padding: 10px;
+    display: flex; align-items: center; gap: 10px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.loc-icon-box {
+    width: 35px; height: 35px;
+    background: rgba(0, 229, 255, 0.15);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #00e5ff;
+}
+
+.loc-text-info {
+    display: flex; flex-direction: column;
+}
+
+.loc-title { font-size: 13px; font-weight: bold; color: #fff; }
+.loc-sub { font-size: 10px; color: #94a3b8; }
+
+/* أنيميشن الدبوس */
+@keyframes pinBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+@keyframes shadowScale {
+    0%, 100% { transform: scale(1); opacity: 0.6; }
+    50% { transform: scale(0.5); opacity: 0.3; }
+}
+/* ================= تصميم كارت البروفايل (Profile Card) ================= */
+.profile-share-card {
+    background: #1e293b; /* خلفية كحلي غامق */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 15px;
+    width: 240px; /* عرض مناسب */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    margin-top: 5px;
+}
+
+/* الجزء العلوي (صورة واسم) */
+.psc-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 12px;
+}
+
+.psc-avatar {
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 2px solid #00e5ff; /* إطار سيان */
+    box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+}
+
+.psc-info {
+    flex: 1;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+
+.psc-name {
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.psc-subtitle {
+    color: #94a3b8;
+    font-size: 11px;
+}
+
+/* الأزرار */
+.psc-actions {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 8px;
+}
+
+.psc-btn {
+    width: 100%;
+    padding: 8px 0;
+    border-radius: 10px;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    transition: 0.2s;
+    font-family: 'Cairo', sans-serif;
+}
+
+/* زر العرض (شفاف) */
+.psc-btn-primary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+.psc-btn-primary:hover { background: rgba(255,255,255,0.15); }
+
+/* زر المراسلة (ملون) */
+.psc-btn-secondary {
+    background: linear-gradient(135deg, #00e5ff, #2979ff);
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 100, 255, 0.3);
+}
+.psc-btn-secondary:active { transform: scale(0.98); }
+
+
+/* ================= تصميم الرد على القصة الاحترافي ================= */
+.story-reply-pro-container {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0, 0, 0, 0.4); /* خلفية داكنة للتباين */
+    border-radius: 18px;
+    overflow: hidden;
+    margin-bottom: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    min-width: 200px;
+    max-width: 260px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+/* الجزء العلوي (معاينة القصة) */
+.story-reply-preview {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.08); /* لون أفتح شوية للمعينة */
+    padding: 8px 12px;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* صندوق الميديا الصغير */
+.story-reply-media-box {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #000;
+    flex-shrink: 0;
+    border: 1px solid rgba(0, 229, 255, 0.4); /* إطار نيون خفيف */
+    position: relative;
+}
+
+.story-reply-media-box img, 
+.story-reply-media-box video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* أيقونة الفيديو فوق المربع الصغير */
+.video-play-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.2);
+    font-size: 14px;
+    color: #fff;
+}
+
+.reply-info-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.reply-label-top {
+    font-size: 11px;
+    color: var(--accent-color); /* لون السيان بتاعك */
+    font-weight: 800;
+}
+
+.reply-sub-label {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+/* الجزء السفلي (نص الرد) */
+.story-reply-text-body {
+    padding: 12px 15px;
+    font-size: 14px;
+    color: #fff;
+    line-height: 1.5;
+    word-break: break-word;
+    background: transparent;
+}
+/* تنسيق الغطاء الخلفي - معدل لضمان الاختفاء التام */
+#giftCenterModal {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none; /* مخفي تماماً افتراضياً */
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 2147483647 !important; /* أعلى طبقة ممكنة */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+/* الحالة لما يكون نشط */
+#giftCenterModal.active {
+    display: flex !important; /* يظهر فقط عند النشاط */
+    opacity: 1;
+}
+
+/* ورقة الهدايا نفسها */
+.gift-sheet {
+    width: 100%;
+    max-width: 500px;
+    height: 70vh;
+    background: #121212;
+    border-radius: 25px 25px 0 0;
+    transform: translateY(100%); /* تبدأ من تحت الشاشة */
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#giftCenterModal.active .gift-sheet {
+    transform: translateY(0); /* تطلع لفوق لما نفتح */
+}
+
+/* عدل التنسيق ده عندك */
+.gift-content-panel.active {
+    display: grid !important; /* إجبار الظهور كـ Grid */
+    min-height: 200px; /* ضمان وجود مساحة للرسم */
+    width: 100%;
+}
+
+.gift-grid, .stickers-grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    padding: 10px;
+    /* إضافة السطر ده بيحل مشاكل الويب فيو في توزيع العناصر */
+    grid-auto-rows: min-content; 
+}
+
+/* المشغل الاحترافي - إعدادات السيادة */
+.pro-video-modal {
+    position: fixed !important;
+    inset: 0 !important;
+    background: #000 !important;
+    z-index: 2147483647 !important; /* أعلى رقم في الكوكب */
+    display: none; /* بيتحول لـ flex بالجافاسكريبت */
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.pro-video-element {
+    width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+}
+
+/* ================= كارت نهاية المحادثة ================= */
+.chat-end-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+    margin: 20px auto;
+    width: 90%;
+    max-width: 300px;
+    background: rgba(15, 25, 38, 0.4);
+    border-radius: 25px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: center;
+}
+
+.cec-avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 0 20px rgba(0, 229, 255, 0.2);
+    margin-bottom: 15px;
+}
+
+.cec-name {
+    font-size: 18px;
+    font-weight: bold;
+    color: #fff;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.cec-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 20px;
+}
+
+.cec-btn {
+    padding: 10px 25px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    color: #fff;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.cec-btn:active {
+    transform: scale(0.95);
+    background: var(--accent-gradient);
+    border-color: transparent;
+}
+
     </style>
 </head>
 <body>
@@ -5259,7 +5235,8 @@ z-index: 2147483647 !important;
             <div class="online-status"></div>
         </div>
         
-        <div class="header-info">
+<div class="header-info" onclick="openProfile()" style="cursor: pointer;">
+
             <h3 id="headerNameWrapper">
                 <span id="headerName">مستخدم Wareed </span>
                 <span id="headerVerify"></span> <i id="headerMuteIcon" class="fa-solid fa-bell-slash" style="display:none; color:#8b5cf6; font-size:12px; margin-right:5px;"></i>
@@ -5494,23 +5471,7 @@ z-index: 2147483647 !important;
 
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-    // قائمة العناصر التي يجب أن تكون في الأعلى
-    const overlayIds = [
-        'profilePage', 
-        'simpleStoryViewer', // تأكد أن هذا الـ ID مضاف هنا
-        'callOverlay', 
-        'lightbox'
-    ];
-
-    overlayIds.forEach(id => {
-        const element = document.getElementById(id);
-        if (element && element.parentNode !== document.body) {
-            document.body.appendChild(element); 
-        }
-    });
-});
-
+        
         let editingTargetId = null;
 let globalNicknames = {}; // مخزن للألقاب عشان الهيدر يشوفها
 
@@ -5532,17 +5493,11 @@ navigator.vibrate = (function(origVibrate) {
     };
 })(navigator.vibrate);
 
-           
-        // إعداد الصوت
-        // 1. صوت الرسالة (مدمج جوه الكود عشان يشتغل فوراً)
-// ================= نظام الصوت الاحترافي (بدون نت) =================
-
-// ده كود صوت "Pop" سريع جداً ومدمج جوه الملف (مش هيحتاج نت)
-// استبدل السطر القديم بهذا:
-          document.addEventListener("DOMContentLoaded", function() {
+         document.addEventListener("DOMContentLoaded", function() {
     
-    // القائمة الكاملة للعناصر العائمة
+    // القائمة الكاملة للعناصر التي يجب أن تطفو فوق الجميع
     const overlayIds = [
+        'simpleStoryViewer', // 🔥🔥 تمت إضافة هذا السطر: هذا هو الحل السحري 🔥🔥
         'profilePage', 
         'privacySettingsPage',
         'deleteModal', 
@@ -5555,17 +5510,25 @@ navigator.vibrate = (function(origVibrate) {
         'customBlockModal',
         'uploadConfirmModal',
         'userPopupOverlay',
-        'nicknameModal' // 👈👈 (1) ضفنا دي هنا، ده الحل السحري
+        'nicknameModal',
+        'nicknameSelectModal',
+        'nicknamesPage',
+        'contactModal',
+        'pollModal',
+        'giftCenterModal',
+        'proVideoModal'
     ];
 
     overlayIds.forEach(id => {
         const element = document.getElementById(id);
-        // نقل العنصر ليكون ابن مباشر للـ body لضمان ظهوره فوق كل شيء
+        // نقل العنصر ليكون ابن مباشر للـ body لضمان ظهوره فوق الهيدر والفوتر
         if (element && element.parentNode !== document.body) {
             document.body.appendChild(element); 
         }
     });
 });
+
+
 
 
 
@@ -5829,7 +5792,8 @@ let seconds = 0;
 auth.onAuthStateChanged(async user => {
     if (user) {
         currentUserId = user.uid;
-        
+        checkPageSecurity(); 
+
         // ================= التعديل الجديد: تحميل الخصوصية فوراً =================
         try {
             const userDoc = await db.collection('users').doc(currentUserId).get();
@@ -6290,38 +6254,27 @@ async function updateLastMessageAfterDelete() {
         console.log("خطأ تحديث الواجهة الخارجية", e); 
     }
 }
-
-
-   async function getUser(uid) {
-    // 1. لو المستخدم موجود في الكاش، رجعه فوراً
+async function getUser(uid) {
     if (userCache[uid]) return userCache[uid];
 
     try {
-        // 2. محاولة جلب البيانات من فايربيس
         const doc = await db.collection('users').doc(uid).get();
-        
-        // 3. تأكد أن البيانات موجودة وإلا استخدم كائن فارغ
         const data = doc.exists ? doc.data() : {};
 
-        // 4. تحديث الكاش ببيانات آمنة (لتجنب القيم الفارغة null)
         userCache[uid] = {
             name: data.name || "مستخدم",
             char: (data.name || 'U')[0].toUpperCase(),
             color: data.color || "#555",
-            profilePic: data.profilePic || null, // السماح بـ null للصورة فقط
+            
+            // 🔥🔥 الإصلاح هنا: البحث عن الصورة بجميع الأسماء المحتملة 🔥🔥
+            profilePic: data.profilePic || data.avatar || data.photoURL || data.image || null,
+            
             isVerified: data.isVerified || false
         };
 
     } catch (e) {
-        console.warn("⚠️ خطأ في جلب المستخدم:", uid, e);
-        // 5. في حالة الخطأ، خزن بيانات افتراضية حتى لا يتوقف التطبيق
-        userCache[uid] = { 
-            name: "مستخدم", 
-            char: "U", 
-            color: "#555", 
-            profilePic: null,
-            isVerified: false
-        };
+        console.warn("⚠️ خطأ جلب المستخدم:", uid, e);
+        userCache[uid] = { name: "مستخدم", char: "U", color: "#555", profilePic: null, isVerified: false };
     }
 
     return userCache[uid];
@@ -6369,20 +6322,20 @@ async function updateHeader(uid) {
         userCache[uid] = {
             ...userCache[uid],
             name: u.name || "مستخدم",
-            profilePic: u.profilePic || null,
+            profilePic: u.profilePic || u.avatar || u.photoURL || null,
             color: u.color || "#555",
             char: (u.name || 'U')[0].toUpperCase(),
+            // 🔥 إصلاح 2: جلب حالة التوثيق
+            isVerified: u.isVerified || false, 
             lastSeen: u.lastSeen,
             privacy: u.privacy || {}
         };
 
-        // --- (1) معالجة الاسم والألقاب ---
+        // معالجة الاسم والألقاب
         let finalName = u.name || "مستخدم"; 
-        
-        // لو فيه لقب مشترك (أولوية)
         if (typeof globalNicknames !== 'undefined' && globalNicknames[uid]) {
             finalName = globalNicknames[uid];
-        } 
+}
         // محاولة جلب اللقب من الكولكشن الفرعي (احتياطي)
         else {
              try {
@@ -6391,6 +6344,18 @@ async function updateHeader(uid) {
                     finalName = nickDoc.data().nickname;
                 }
             } catch (e) { }
+        }
+const verifyEl = document.getElementById("headerVerify");
+        if (verifyEl) {
+            if (u.isVerified === true) {
+                // إظهار العلامة الزرقاء
+                verifyEl.innerHTML = '<i class="fa-solid fa-circle-check" style="color:#00e5ff; margin-right:5px; font-size:14px;"></i>';
+                verifyEl.style.display = "inline-block";
+            } else {
+                // إخفاء العلامة
+                verifyEl.innerHTML = '';
+                verifyEl.style.display = "none";
+            }
         }
 
         // تحديث النصوص في الهيدر
@@ -6509,14 +6474,59 @@ let storyTimerInterval = null;
 let storyDuration = 5000; // الافتراضي للصور
 let storyStartTime = 0;
 
-// 1. فتح القصة (يجلب القصص من الداتابيز)
+// ================= إصلاح دالة عرض القصص (لإظهار الصورة والتوثيق) =================
 async function openUserStoryViewer(targetUid) {
-    // تحديد وقت 24 ساعة
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // 1. تحديد العنصر وإجباره على الظهور الصحيح
+    const viewer = document.getElementById('simpleStoryViewer');
+    
+    // نقل العنصر للـ body لو لم يكن هناك (زيادة تأكيد ليظهر فوق الكل)
+    if (viewer.parentNode !== document.body) {
+        document.body.appendChild(viewer);
+    }
+
+    // إعادة تعيين الخصائص
+    viewer.style.display = 'flex';
+    viewer.style.opacity = '1';       
+    viewer.style.transform = 'none';  
     
     showToast("جاري تحميل القصة... ⏳");
 
     try {
+        // ============================================================
+        // 🔥🔥 بداية الإصلاح: تعبئة بيانات المستخدم في الهيدر 🔥🔥
+        // ============================================================
+        
+        // 1. جلب البيانات من الكاش أو استخدام بيانات افتراضية
+        let userData = userCache[targetUid];
+        if (!userData) {
+            userData = { name: 'مستخدم', profilePic: null, isVerified: false };
+        }
+
+        // 2. تحديث الاسم
+        const nameEl = document.getElementById('storyUserName');
+        if (nameEl) nameEl.innerText = userData.name;
+
+        // 3. تحديث الصورة الشخصية (كانت مفقودة)
+        const imgEl = document.getElementById('storyUserImg');
+        if (imgEl) {
+            // البحث عن الصورة بأي اسم محتمل
+            const picSrc = userData.profilePic || userData.avatar || userData.photoURL || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
+            imgEl.src = picSrc;
+        }
+
+        // 4. تحديث علامة التوثيق (كانت مفقودة)
+        const verifyBadge = document.getElementById('storyVerifyIcon');
+        if (verifyBadge) {
+            if (userData.isVerified === true) {
+                verifyBadge.style.display = 'inline-block'; // إظهار
+            } else {
+                verifyBadge.style.display = 'none'; // إخفاء
+            }
+        }
+        // ============================================================
+
+        // 5. جلب القصص من الداتابيز
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
         const snapshot = await db.collection('stories')
             .where('uid', '==', targetUid)
             .where('timestamp', '>', twentyFourHoursAgo)
@@ -6524,37 +6534,25 @@ async function openUserStoryViewer(targetUid) {
             .get();
 
         if (snapshot.empty) {
+            viewer.style.display = 'none'; 
             showToast("لا توجد قصص لعرضها");
-            // تنظيف الحلقة الملونة إذا لم نجد قصص
-            const avatarContainer = document.querySelector('.user-avatar-container');
-            if(avatarContainer) {
-                avatarContainer.classList.remove('has-story');
-                avatarContainer.onclick = () => openProfile(); // إعادة التوجيه للبروفايل
-            }
             return;
         }
 
-        // ملء الطابور (Queue)
         currentStoriesQueue = [];
         snapshot.forEach(doc => currentStoriesQueue.push(doc.data()));
 
-        // تجهيز بيانات المستخدم في العارض
-        const userData = userCache[targetUid] || { name: 'مستخدم', profilePic: 'img/default.png' };
-        document.getElementById('storyUserName').innerText = userData.name;
-        document.getElementById('storyUserImg').src = userData.profilePic || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
-
-        // إظهار العارض
-        document.getElementById('simpleStoryViewer').style.display = 'flex';
-        
-        // تشغيل أول قصة
+        // بدء عرض القصة الأولى
         currentStoryIndex = 0;
         showStoryItem(currentStoryIndex);
 
     } catch(err) {
-        console.error("Story Error:", err);
-        showToast("حدث خطأ في تحميل القصة");
+        console.error(err);
+        viewer.style.display = 'none';
+        showToast("حدث خطأ في عرض القصة");
     }
 }
+
 
 // 2. عرض العنصر (صورة أو فيديو)
 function showStoryItem(index) {
@@ -6644,68 +6642,69 @@ function prevStoryItem() {
     }
 }
 
-function closeStoryViewer() {
-    document.getElementById('simpleStoryViewer').style.display = 'none';
-    const vidEl = document.getElementById('storyVideoDisplay');
-    vidEl.pause();
-    vidEl.src = ""; // تفريغ الرابط
-    clearInterval(storyTimerInterval);
-}
 
 
 
        // دالة فتح البروفايل (محدثة لنقل البيانات)
 async function openProfile() {
-    // 1. نقل البيانات الأساسية (الاسم والصورة) من الهيدر للبروفايل
-    const headerName = document.getElementById('headerName').innerText;
-    const headerImgStyle = document.getElementById('headerImage').style.backgroundImage;
-    const headerInitial = document.getElementById('headerImage').innerText;
-
-    const bigImg = document.getElementById('profilePageImg');
-    document.getElementById('profilePageName').innerText = headerName;
-
-    // 2. تنظيف الصورة الكبيرة من أي حالة قصة سابقة (مهم جداً)
-    bigImg.classList.remove('has-story-active');
-    bigImg.onclick = null; // إلغاء الضغط القديم
-    bigImg.style.cursor = 'default';
-
-    // 3. وضع الصورة العادية مؤقتاً
-    if (headerImgStyle && headerImgStyle !== 'none' && headerImgStyle !== '') {
-        bigImg.style.backgroundImage = headerImgStyle;
-        bigImg.innerText = '';
-        bigImg.style.backgroundColor = 'transparent';
-    } else {
-        bigImg.style.backgroundImage = 'none';
-        bigImg.style.backgroundColor = '#555';
-        bigImg.style.display = 'grid';
-        bigImg.style.placeItems = 'center';
-        bigImg.style.fontSize = '40px';
-        bigImg.style.color = '#fff';
-        bigImg.innerText = headerInitial;
-    }
-
-    // 4. إظهار الصفحة (نقل الكود لضمان الطبقات)
-    const profilePage = document.getElementById('profilePage');
-    if (profilePage.parentNode !== document.body) {
-        document.body.appendChild(profilePage);
-    }
-    profilePage.style.display = 'flex';
-
-    // ============================================================
-    // 🔥 الكود الجديد: فحص القصة للصورة الكبيرة داخل القائمة 🔥
-    // ============================================================
-    // نستخدم المتغير cachedOtherUserId لمعرفة من نحادث
+    // 1. تحديد المستخدم المستهدف (الشخص الذي نحدثه)
     let targetUid = cachedOtherUserId;
     
-    // إذا لم يكن هناك ID محادثة (مثلاً دخلنا من رابط مباشر)، نحاول جلبه من الرابط
+    // محاولة التقاط الـ UID من الرابط لو المتغير فارغ (حالة الدخول المباشر)
     if (!targetUid) {
         const params = new URLSearchParams(location.search);
         targetUid = params.get("uid");
     }
 
+    // 2. جلب بيانات المستخدم من الكاش أو استخدام بيانات افتراضية
+    const userData = userCache[targetUid] || { name: 'مستخدم', profilePic: null, isVerified: false };
+
+    // === تحديث الصورة (Image Fix) ===
+    const bigImg = document.getElementById('profilePageImg');
+    
+    // تنظيف الحالة القديمة
+    bigImg.classList.remove('has-story-active');
+    bigImg.onclick = null;
+    bigImg.style.cursor = 'default';
+
+    // وضع الصورة من البيانات مباشرة (أدق من نسخها من الهيدر)
+    const userImage = userData.profilePic || userData.avatar || userData.photoURL;
+    
+    if (userImage) {
+        bigImg.style.backgroundImage = `url('${userImage}')`;
+        bigImg.innerText = '';
+        bigImg.style.backgroundColor = 'transparent';
+    } else {
+        bigImg.style.backgroundImage = 'none';
+        bigImg.style.backgroundColor = userData.color || '#555';
+        bigImg.innerText = (userData.name || 'U')[0].toUpperCase();
+        bigImg.style.display = 'grid';
+        bigImg.style.placeItems = 'center';
+    }
+
+    // === تحديث الاسم (Name Fix) ===
+    document.getElementById('profilePageName').innerText = userData.name || "مستخدم";
+
+    // === تحديث التوثيق (Verification Fix) ===
+    const verifyIcon = document.getElementById('profilePageVerify');
+    if (verifyIcon) {
+        if (userData.isVerified === true) {
+            verifyIcon.style.display = 'inline-block'; // إظهار العلامة
+        } else {
+            verifyIcon.style.display = 'none'; // إخفاء العلامة
+        }
+    }
+
+    // === إظهار الصفحة ===
+    const profilePage = document.getElementById('profilePage');
+    if (profilePage.parentNode !== document.body) {
+        document.body.appendChild(profilePage); // نقلها للأعلى لتغطية كل شيء
+    }
+    profilePage.style.display = 'flex';
+
+    // === فحص القصة (Story Logic) ===
     if (targetUid) {
         try {
-            // فحص هل المستخدم عنده قصة في آخر 24 ساعة؟
             const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
             const snapshot = await db.collection('stories')
                 .where('uid', '==', targetUid)
@@ -6714,23 +6713,21 @@ async function openProfile() {
                 .get();
 
             if (!snapshot.empty) {
-                console.log("وجدنا قصة! تفعيل الحلقة في البروفايل.");
-                
-                // ✅ إضافة الكلاس الجديد الذي قمنا بتصميمه في CSS
+                // تفعيل الحلقة الملونة
                 bigImg.classList.add('has-story-active');
+                bigImg.style.cursor = 'pointer';
                 
-                // ✅ جعل الضغط يفتح القصة بدلاً من تكبير الصورة
+                // جعل الضغط يفتح القصة
                 bigImg.onclick = function(e) {
-                    e.stopPropagation(); // منع أي تداخل
+                    e.stopPropagation();
                     openUserStoryViewer(targetUid);
                 };
             }
         } catch (e) {
-            console.log("Error checking story in profile:", e);
+            console.log("Story check error:", e);
         }
     }
 }
-
 
         // دالة مساعدة لمعرفة هل التاريخين في نفس اليوم
 // ================= دوال مساعدة للتواريخ =================
@@ -6758,6 +6755,16 @@ function loadMessages() {
       .limitToLast(20) // تحميل آخر 50 رسالة
       .onSnapshot(async snap => {
           
+                  // --- 1. كود جديد: جلب تاريخ الحذف ---
+        let myClearTime = 0;
+        try {
+            const cDoc = await db.collection("chats").doc(chatId).get();
+            if (cDoc.exists && cDoc.data().clearedAt && cDoc.data().clearedAt[currentUserId]) {
+                myClearTime = cDoc.data().clearedAt[currentUserId].toMillis();
+            }
+        } catch (e) {}
+        // ------------------------------------
+
           document.getElementById('loadingSkeleton')?.remove();
           
         const container = document.getElementById("chatContainer");
@@ -6824,7 +6831,20 @@ if (d.uid !== currentUserId) {
         await Promise.all(Array.from(uids).map(uid => getUser(uid)));
 
         // 2. التحضير لبناء HTML
-        let html = "";
+     let html = "";
+          
+          // لو عدد الرسائل أقل من 20، معناها إحنا في بداية المحادثة تماماً
+          if (snap.docs.length < 20 && !isArchiveMode) {
+              const otherUser = userCache[cachedOtherUserId] || { name: 'مستخدم', profilePic: null };
+              html = `
+                <div class="chat-end-card" style="margin-bottom: 30px; margin-top: 10px;">
+                    <div class="cec-avatar" style="background-image: url('${otherUser.profilePic || 'https://i.ibb.co/tZ5tPqB/default-avatar.png'}');"></div>
+                    <div class="cec-name">${otherUser.name}</div>
+                    <div class="cec-sub">مرحباً بك في بداية المحادثة</div>
+                    <button class="cec-btn" onclick="navigateToUserProfile()">عرض الملف الشخصي</button>
+                </div>`;
+          }
+
         let prevMsg = null; // لمقارنة الرسالة الحالية بالسابقة (للتجميع)
         let lastDate = null; // لمقارنة التواريخ (للفواصل)
 
@@ -6842,7 +6862,12 @@ for (let i = allDocs.length - 1; i >= 0; i--) {
 }
 
                     snap.forEach(doc => {
+                        
     const msg = doc.data();
+                // --- 2. كود جديد: إخفاء الرسائل القديمة ---
+            if (msg.createdAt && msg.createdAt.toMillis() <= myClearTime) return;
+            // ------------------------------------------
+
     const isMe = msg.uid === currentUserId;
     
     
@@ -6906,7 +6931,9 @@ if (msg.type === 'system_nickname') {
         prevMsg = null;
     }
     
-    
+
+// =====================================================================
+
             // ================= 4. رسائل النظام (التعديل النهائي لإخفاء الاسم في الصداقة) =================
             if (msg.type === 'system') {
                 let actionText = "";
@@ -6958,9 +6985,11 @@ if (msg.type === 'system_nickname') {
     // ================= 5. تجهيز محتوى الرسالة =================
     let content = "";
     let bubbleClass = "msg-bubble target-bubble"; 
+    
 if (msg.type === 'image' || msg.type === 'video') {
         bubbleClass += " media-bubble";
     }
+    
     else if (msg.type === 'audio') {
         bubbleClass += " audio-bubble";
     }
@@ -6974,54 +7003,202 @@ if (msg.type === 'image' || msg.type === 'video') {
         rowStyle = "";
     }
     else if (msg.type === 'story_reply') {
-        let mediaTag = msg.storyType === 'video' 
-            ? `<video src="${msg.storyUrl}" class="story-reply-media" muted></video>` 
-            : `<img src="${msg.storyUrl}" class="story-reply-media">`;
-        content = `
-            <div class="story-reply-container" onclick="window.open('${msg.storyUrl}', '_blank')">
-                <div class="story-media-wrapper">${mediaTag}</div>
-                <div class="story-reply-content">
-                    <div class="reply-label"><i class="fa-solid fa-reply"></i> رد على قصتك</div>
-                    <div class="reply-text-body">${linkify(escapeHtml(msg.text))}</div>
-                </div>
-            </div>`;
+    // تجهيز وسم الميديا للمربع الصغير
+    let mediaContent = "";
+    if (msg.storyType === 'video') {
+        mediaContent = `
+            <video src="${msg.storyUrl}#t=0.1" muted></video>
+            <div class="video-play-hint"><i class="fa-solid fa-play"></i></div>`;
+    } else {
+        mediaContent = `<img src="${msg.storyUrl}">`;
     }
-    else if (msg.type === 'text') { content = linkify(escapeHtml(msg.text)); }
-    else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; } 
-    // ================= انسخ هذا الكود وضعه داخل loadMessages مكان كود الفيديو القديم =================
-else if (msg.type === 'video') {
-    const vidId = `vid_inline_${doc.id}`;
-    // نستخدم msg.text مباشرة لأنه يحتوي على رابط الفيديو
-    const videoUrl = msg.text; 
+
+    // 🔥 المنطق الذكي لتحديد أي ستوريات تفتح:
+    // إذا كنت أنا المرسل (isMe)، فالقصة تخص الطرف الآخر.
+    // إذا كان هو المرسل، فالقصة تخصني أنا.
+    const storyOwnerUid = isMe ? cachedOtherUserId : currentUserId;
 
     content = `
-    <div class="video-msg-wrapper" style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5;">
-        
-        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
-        
-        <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-            
-            <div class="center-play-btn" onclick="toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
-                <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
+        <div class="story-reply-pro-container" onclick="openUserStoryViewer('${storyOwnerUid}')">
+            <div class="story-reply-preview">
+                <div class="story-reply-media-box">
+                    ${mediaContent}
+                </div>
+                <div class="reply-info-text">
+                    <span class="reply-label-top"><i class="fa-solid fa-reply"></i> رد على القصة</span>
+                    <span class="reply-sub-label">اضغط لمشاهدة القصة كاملة</span>
+                </div>
             </div>
+            <div class="story-reply-text-body">
+                ${linkify(escapeHtml(msg.text))}
+            </div>
+        </div>`;
+    
+    // جعل الفقاعة شفافة لأن الحاوية الجديدة لها ستايلها الخاص
+    bubbleClass += " transparent-bubble";
+}
 
-<div class="expand-icon" 
-     onclick="event.stopPropagation(); event.preventDefault(); window.openProPlayer('${videoUrl}');" 
-     style="position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px; background: rgba(0, 0, 0, 0.8); border: 2px solid #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 999999;">
-    <i class="fa-solid fa-expand" style="color: #fff; font-size: 18px;"></i>
-</div>
-            
-            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">فيديو</div>
+
+    
+   else if (msg.type === 'text') { content = formatText(msg.text); }
+    else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; } 
+    // ================= انسخ هذا الكود وضعه داخل loadMessages مكان كود الفيديو القديم =================
+// ابحث عن جزء الفيديو في loadMessages واستبدله بده
+else if (msg.type === 'video') {
+    const videoUrl = msg.text; 
+    const vidId = `vid_${doc.id}`;
+
+    content = `
+    <div class="video-msg-wrapper">
+        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline></video>
+        <div class="video-overlay">
+            <div class="center-play-btn" onclick="toggleInlinePlay('${vidId}', event)">
+                <i class="fa-solid fa-play"></i>
+            </div>
+            <div class="expand-icon" onclick="event.stopPropagation(); window.openProPlayer('${videoUrl}');">
+                <i class="fa-solid fa-expand"></i>
+            </div>
         </div>
     </div>`;
-    
     bubbleClass += " media-bubble";
 }
 
+
 // ==========================================================================================
- 
+ // ================= كود التصويت (Poll) =================
+else if (msg.type === 'poll') {
+    let totalVotes = 0;
+    const votesObj = msg.votes || {};
+    Object.values(votesObj).forEach(v => totalVotes += v);
+
+    let optionsHtml = '';
+    msg.options.forEach((opt) => {
+        const count = votesObj[opt] || 0;
+        let percent = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
+        
+        optionsHtml += `
+        <div class="poll-option-modern" onclick="handleVote('${doc.id}', '${opt}')">
+            <div class="poll-progress-bar" style="width: ${percent}%;"></div>
+            <div class="poll-option-content">
+                <div style="display:flex; align-items:center;">
+                    <div class="poll-radio"></div> <span>${opt}</span>
+                </div>
+                <span class="poll-percent">${percent}%</span>
+            </div>
+        </div>`;
+    });
+
+    content = `
+    <div class="poll-card-modern ${totalVotes > 0 ? 'voted' : ''}">
+        <div class="poll-question-modern">${msg.question}</div>
+        <div class="poll-options-list">${optionsHtml}</div>
+        <div class="poll-footer-modern">
+            <span>إجمالي الأصوات: ${totalVotes}</span>
+            <span>${formatTime(msg.createdAt)}</span>
+        </div>
+    </div>`;
+    
+    // جعل الفقاعة شفافة لأن الكارت له تصميمه الخاص
+    bubbleClass += " transparent-bubble";
+}
+// ================= كود الموقع (Location) - ضيفه جوه loadMessages =================
+    // ================= كود الموقع (Location) - النسخة المعدلة =================
+    else if (msg.type === 'location') {
+        
+        // 1. رابط ديناميكي يجيب صورة الشارع الحقيقي من Yandex (مجاني)
+        // بنبعتله الإحداثيات (lng, lat) وبيرجع صورة
+        const mapPlaceholder = `https://static-maps.yandex.ru/1.x/?lang=en_US&ll=${msg.lng},${msg.lat}&z=16&l=map&size=600,300`;
+
+        // 2. رابط جوجل مابس عشان لما يضغط يفتح التطبيق (تم إصلاح الرابط)
+        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${msg.lat},${msg.lng}`;
+
+        content = `
+        <div class="location-msg-card" onclick="window.open('${googleMapsLink}', '_blank')">
+            
+            <img src="${mapPlaceholder}" class="location-bg-image" alt="Location" 
+                 onerror="this.src='https://i.ibb.co/vz0wJqR/map-placeholder.png'"> <div class="map-pin-container">
+                <i class="fa-solid fa-location-dot map-pin-icon"></i>
+                <div class="map-pin-shadow"></div>
+            </div>
+
+            <div class="location-footer">
+                <div class="loc-icon-box">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+                <div class="loc-text-info">
+                    <span class="loc-title">موقع حالي 📍</span>
+                    <span class="loc-sub">اضغط لفتح الخريطة</span>
+                </div>
+            </div>
+        </div>`;
+        
+        // جعل الفقاعة شفافة لأن الكارت له تصميمه الخاص
+        bubbleClass += " transparent-bubble";
+    }
+// ================= كود كارت البروفايل (الإصلاح الحقيقي) =================
+else if (msg.type === 'profile_card') {
+    // تأكد من جلب الصورة أو وضع افتراضية
+    const pImage = msg.profileImage || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
+    
+    content = `
+    <div class="profile-share-card">
+        <div class="psc-header">
+            <div class="psc-avatar" style="background-image: url('${pImage}')"></div>
+            <div class="psc-info">
+                <div class="psc-name">${msg.profileName || 'مستخدم'}</div>
+                <div class="psc-subtitle">ملف شخصي 👤</div>
+            </div>
+        </div>
+        <div class="psc-actions">
+            <button class="psc-btn psc-btn-primary" onclick="window.location.href='profile.html?uid=${msg.profileUid}'">
+                عرض الملف الشخصي
+            </button>
+            <button class="psc-btn psc-btn-secondary" onclick="window.location.href='chat.html?chatId=new&uid=${msg.profileUid}'">
+                <i class="fa-regular fa-comment-dots"></i> مراسلة
+            </button>
+        </div>
+    </div>`;
+    
+    bubbleClass += " transparent-bubble";
+}
+
+
+// ================= كود جهات الاتصال (Contact) =================
+
+
+else if (msg.type === 'contact') {
+    content = `
+    <div class="msg-contact-card" onclick="window.location.href='tel:${msg.contactNumber}'">
+        <div class="contact-icon-box"><i class="fa-solid fa-user"></i></div>
+        <div class="contact-info-box">
+            <div class="contact-name-text">${msg.contactName}</div>
+            <div class="contact-number-text" dir="ltr">${msg.contactNumber}</div>
+        </div>
+        <div class="contact-action-btn"><i class="fa-solid fa-phone"></i></div>
+    </div>`;
+    
+    bubbleClass += " transparent-bubble";
+}
+
     else if (msg.type === 'audio') { content = generateAudioPlayer(msg.text, doc.id); }
-    else if (msg.type === 'file') { content = `<div class="file-card" onclick="window.open('${msg.text}', '_blank')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">ملف مرفق</span><span class="file-size">تحميل</span></div></div>`; }
+    else if (msg.type === 'file') { 
+    // استخراج اسم الملف بشكل نظيف
+    let fileName = "ملف مرفق";
+    try { 
+        fileName = decodeURIComponent(msg.text.split('/').pop().split('?')[0].split('_').pop()); 
+    } catch(e){}
+
+    content = `
+    <div class="file-card" onclick="openDocViewer('${msg.text}', '${fileName}')">
+        <div class="file-icon"><i class="fa-solid fa-file-pdf"></i></div>
+        <div class="file-info">
+            <span class="file-name">${fileName}</span>
+            <span class="file-size">اضغط للمعاينة</span>
+        </div>
+        <i class="fa-solid fa-eye" style="color:#00e5ff; font-size:12px;"></i>
+    </div>`; 
+}
+
  // ================== رسم الهدايا (يدعم العادي والفخم) ==================
 else if (msg.type === 'gift') {
     const giftId = `gift_${doc.id}`;
@@ -7136,7 +7313,9 @@ else if (msg.type === 'sticker') {
                 prevMsg = msg;
             }); // نهاية الـ forEach
 
-                container.innerHTML = html;
+// السطر الأصلي الموجود في كودك اللي بيعرض كل حاجة
+container.innerHTML = html;
+
 
         // ============================================================
         // 🔥 إصلاح السكرول: الكود المسؤول عن ظهور الرسائل الجديدة فوراً 🔥
@@ -7330,6 +7509,19 @@ async function loadMoreHistory() {
     oldestDoc = snap.docs[0];
             
             let newHtml = "";
+            if (snap.docs.length < 20 && !document.querySelector('.chat-end-card')) {
+                const otherUser = userCache[cachedOtherUserId] || { name: 'مستخدم' };
+                newHtml += `
+                    <div class="chat-end-card" style="margin-bottom: 30px; margin-top: 10px;">
+                        <div class="cec-avatar" style="background-image: url('${otherUser.profilePic || 'https://i.ibb.co/tZ5tPqB/default-avatar.png'}');"></div>
+                        <div class="cec-name">
+                            ${otherUser.name}
+                            ${otherUser.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#00e5ff; font-size:14px;"></i>' : ''}
+                        </div>
+                        <div class="cec-sub">هذه هي بداية المحادثة مع ${otherUser.name}</div>
+                        <button class="cec-btn" onclick="navigateToUserProfile()">عرض الملف الشخصي</button>
+                    </div>`;
+            }
             let prevMsg = null;
             let lastDate = null;
 
@@ -9538,6 +9730,95 @@ function buildMessageHTML(msg, id, u) {
     bubbleClass += " media-bubble";
 }
 
+// ... الشروط السابقة (image, video, etc.)
+
+    // ================= كود كارت البروفايل (Add inside buildMessageHTML) =================
+    // ================= كود كارت البروفايل (الجزء الناقص) =================
+else if (msg.type === 'profile_card') {
+    // صورة افتراضية لو مفيش صورة
+    const pImage = msg.profileImage || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
+    
+    content = `
+    <div class="profile-share-card">
+        <div class="psc-header">
+            <div class="psc-avatar" style="background-image: url('${pImage}')"></div>
+            <div class="psc-info">
+                <div class="psc-name">${msg.profileName}</div>
+                <div class="psc-subtitle">ملف شخصي 👤</div>
+            </div>
+        </div>
+        <div class="psc-actions">
+            <button class="psc-btn psc-btn-primary" onclick="window.location.href='profile.html?uid=${msg.profileUid}'">
+                عرض الملف الشخصي
+            </button>
+            <button class="psc-btn psc-btn-secondary" onclick="window.location.href='chat.html?chatId=new&uid=${msg.profileUid}'">
+                <i class="fa-regular fa-comment-dots"></i> مراسلة
+            </button>
+        </div>
+    </div>`;
+    
+    // نخلي الفقاعة شفافة عشان الكارت يبان بحدوده هو
+    bubbleClass += " transparent-bubble";
+}
+// =====================================================================
+
+ // ================= كود التصويت (Poll) =================
+else if (msg.type === 'poll') {
+    let totalVotes = 0;
+    const votesObj = msg.votes || {};
+    Object.values(votesObj).forEach(v => totalVotes += v);
+
+    let optionsHtml = '';
+    msg.options.forEach((opt) => {
+        const count = votesObj[opt] || 0;
+        let percent = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
+        
+        optionsHtml += `
+        <div class="poll-option-modern" onclick="handleVote('${doc.id}', '${opt}')">
+            <div class="poll-progress-bar" style="width: ${percent}%;"></div>
+            <div class="poll-option-content">
+                <div style="display:flex; align-items:center;">
+                    <div class="poll-radio"></div> <span>${opt}</span>
+                </div>
+                <span class="poll-percent">${percent}%</span>
+            </div>
+        </div>`;
+    });
+
+    content = `
+    <div class="poll-card-modern ${totalVotes > 0 ? 'voted' : ''}">
+        <div class="poll-question-modern">${msg.question}</div>
+        <div class="poll-options-list">${optionsHtml}</div>
+        <div class="poll-footer-modern">
+            <span>إجمالي الأصوات: ${totalVotes}</span>
+            <span>${formatTime(msg.createdAt)}</span>
+        </div>
+    </div>`;
+    
+    // 🔥🔥🔥 التعديل هنا: إضافة كلاس الشفافية لإلغاء الفقاعة الخارجية 🔥🔥🔥
+    bubbleClass += " transparent-bubble"; 
+}
+
+// ================= كود جهات الاتصال (Contact) =================
+else if (msg.type === 'contact') {
+    content = `
+    <div class="msg-contact-card" onclick="window.location.href='tel:${msg.contactNumber}'">
+        <div class="contact-icon-box"><i class="fa-solid fa-user"></i></div>
+        <div class="contact-info-box">
+            <div class="contact-name-text">${msg.contactName}</div>
+            <div class="contact-number-text" dir="ltr">${msg.contactNumber}</div>
+        </div>
+        <div class="contact-action-btn"><i class="fa-solid fa-phone"></i></div>
+    </div>`;
+    
+    // 🔥🔥🔥 التعديل هنا: إضافة كلاس الشفافية لإلغاء الفقاعة الخارجية 🔥🔥🔥
+    bubbleClass += " transparent-bubble";
+}
+
+    // ... باقي الكود ...
+
+
+// ... باقي الشروط
 
     else if (msg.type === 'audio') content = generateAudioPlayer(msg.text, id);
     else if (msg.type === 'file') content = `<div class="file-card" onclick="window.open('${msg.text}')"><i class="fa-solid fa-file"></i> ملف</div>`;
@@ -9591,7 +9872,12 @@ let reactionHtml = "";
     <div class="msg-row ${isMe ? 'sender' : 'receiver'}" id="msg_${id}">
         ${!isMe ? miniAvatar : ''}
         <div class="${bubbleClass}">
-            ${!isMe ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
+            ${!isMe ? `
+    <div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
+        ${u.name}
+        ${u.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#00e5ff; font-size:10px;"></i>' : ''}
+    </div>
+` : ''}
             
             ${replyHtml}
             
@@ -10325,6 +10611,45 @@ if (msg.type === 'image' || msg.type === 'video') {
         </div>`;
         bubbleClass += " gift-bubble"; // ستايل ذهبي (اللي ضفناه قبل كده)
     }
+    // ================= أضف هذا الجزء داخل دالة buildMessageHTML =================
+
+    // عرض كارت الموقع (Map Card)
+        // ================= كود الموقع (Location) - النسخة المعدلة =================
+    else if (msg.type === 'location') {
+        
+        // 1. رابط ديناميكي يجيب صورة الشارع الحقيقي من Yandex (مجاني)
+        // بنبعتله الإحداثيات (lng, lat) وبيرجع صورة
+        const mapPlaceholder = `https://static-maps.yandex.ru/1.x/?lang=en_US&ll=${msg.lng},${msg.lat}&z=16&l=map&size=600,300`;
+
+        // 2. رابط جوجل مابس عشان لما يضغط يفتح التطبيق (تم إصلاح الرابط)
+        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${msg.lat},${msg.lng}`;
+
+        content = `
+        <div class="location-msg-card" onclick="window.open('${googleMapsLink}', '_blank')">
+            
+            <img src="${mapPlaceholder}" class="location-bg-image" alt="Location" 
+                 onerror="this.src='https://i.ibb.co/vz0wJqR/map-placeholder.png'"> <div class="map-pin-container">
+                <i class="fa-solid fa-location-dot map-pin-icon"></i>
+                <div class="map-pin-shadow"></div>
+            </div>
+
+            <div class="location-footer">
+                <div class="loc-icon-box">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                </div>
+                <div class="loc-text-info">
+                    <span class="loc-title">موقع حالي 📍</span>
+                    <span class="loc-sub">اضغط لفتح الخريطة</span>
+                </div>
+            </div>
+        </div>`;
+        
+        // جعل الفقاعة شفافة لأن الكارت له تصميمه الخاص
+        bubbleClass += " transparent-bubble";
+    }
+
+
+// =========================================================================
 
     // 2. عرض الملصق المجاني (كبير وبدون خلفية)
     else if (msg.type === 'sticker') {
@@ -11665,58 +11990,70 @@ async function clearStuckCalls() {
     }
 }
 function openUserPopup(uid) {
-    console.log("Avatar Clicked for UID:", uid); // للتجربة في الـ Console
-
-    // 1. منع فتح البروفايل لنفسك (اختياري - لو عايز تلغيه امسح السطر ده)
-    if (uid === currentUserId) {
-        showToast("هذا ملفك الشخصي");
-        return;
-    }
+    // 1. منع فتح البروفايل لنفسك (اختياري)
+    /* if (uid === currentUserId) return; */
 
     currentPopupUserId = uid;
     
-    // 2. محاولة جلب البيانات من الكاش أو استخدام بيانات مؤقتة
-    // استخدمنا (userCache) المتعرف عندك في الكود
+    // 2. جلب البيانات من الكاش أو استخدام بيانات افتراضية
+    // نستخدم || {} لتجنب الأخطاء لو المستخدم مش موجود
     const userData = userCache[uid] || { 
         name: 'مستخدم', 
         color: '#555', 
         char: '?' 
     };
     
-    // 3. تعيين الصورة
+    // --- إصلاح الصورة (Image Fix) ---
     const avatarEl = document.getElementById('popupAvatar');
-    if (userData.profilePic && userData.profilePic !== 'null') {
-        avatarEl.style.backgroundImage = `url('${userData.profilePic}')`;
-        avatarEl.innerText = '';
-        avatarEl.style.backgroundColor = 'transparent';
+    
+    // البحث عن أي رابط صورة متاح في بيانات المستخدم
+    const userImage = userData.profilePic || userData.avatar || userData.photoURL || userData.image;
+
+    // التحقق القوي: هل يوجد رابط وهل هو ليس كلمة "null" النصية
+    if (userImage && userImage !== 'null' && userImage !== '') {
+        // حالة وجود صورة
+        avatarEl.style.backgroundImage = `url('${userImage}')`;
+        avatarEl.innerText = ''; // إخفاء الحرف
+        avatarEl.style.backgroundColor = 'transparent'; // خلفية شفافة
     } else {
+        // حالة عدم وجود صورة (عرض الحرف الأول)
         avatarEl.style.backgroundImage = 'none';
-        avatarEl.innerText = userData.char || (userData.name ? userData.name[0] : '?');
+        // جلب الحرف الأول من الاسم أو ؟
+        const char = userData.char || (userData.name ? userData.name.charAt(0).toUpperCase() : '?');
+        avatarEl.innerText = char;
         avatarEl.style.backgroundColor = userData.color || '#333';
-        avatarEl.style.display = 'grid';
-        avatarEl.style.placeItems = 'center';
-        avatarEl.style.fontSize = '40px';
-        avatarEl.style.color = '#fff';
     }
 
-    // 4. تعيين الاسم والبيانات
-    const nameHtml = `${userData.name || 'مستخدم'} ${userData.isVerified ? '<i class="fa-solid fa-circle-check popup-verify"></i>' : ''}`;
-    document.getElementById('popupName').innerHTML = nameHtml;
+    // --- إصلاح الاسم والتوثيق (Verification Fix) ---
+    
+    // 1. وضع الاسم فقط
+    document.getElementById('popupName').innerText = userData.name || 'مستخدم';
+    
+    // 2. التحكم في أيقونة التوثيق الموجودة في HTML
+    const verifyIcon = document.getElementById('popupVerify');
+    if (verifyIcon) {
+        if (userData.isVerified === true) {
+            verifyIcon.style.display = 'inline-block'; // إظهار العلامة
+        } else {
+            verifyIcon.style.display = 'none'; // إخفاء العلامة
+        }
+    }
+
+    // تعيين النبذة التعريفية (Bio)
     document.getElementById('popupBio').innerText = userData.bio || "مستخدم تطبيق Wareed";
 
-    // 5. إظهار النافذة (أهم خطوة)
+    // 5. إظهار النافذة
     const overlay = document.getElementById('userPopupOverlay');
     if (overlay) {
+        // نقل النافذة لتكون فوق كل شيء (احتياطي)
+        if(overlay.parentNode !== document.body) document.body.appendChild(overlay);
+        
         overlay.style.display = 'flex';
-        // إضافة انيميشن بسيط
         overlay.style.opacity = '0';
         setTimeout(() => overlay.style.opacity = '1', 10);
-    } else {
-        console.error("خطأ: عنصر userPopupOverlay غير موجود في HTML");
     }
     
-    // اهتزاز خفيف للموبايل للتأكيد
-    if(navigator.vibrate) navigator.vibrate(30);
+    if(navigator.vibrate) navigator.vibrate(10);
 }
 
 function closeUserPopup() {
@@ -12000,33 +12337,82 @@ function closeNicknamesPage() {
     document.getElementById('profilePage').style.display = 'flex'; // الرجوع للخلف
 }
 
+// ================= إصلاح دالة عرض القصص (لإظهار الصورة والتوثيق) =================
 async function openUserStoryViewer(targetUid) {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const viewer = document.getElementById('simpleStoryViewer');
     
-    // جلب قصص هذا المستخدم
-    const snapshot = await db.collection('stories')
-        .where('uid', '==', targetUid)
-        .where('timestamp', '>', twentyFourHoursAgo)
-        .orderBy('timestamp', 'asc')
-        .get();
-
-    if (snapshot.empty) {
-        showToast("لا توجد قصص لعرضها");
-        return;
+    // ضمان ظهور النافذة فوق كل العناصر
+    if (viewer.parentNode !== document.body) {
+        document.body.appendChild(viewer);
     }
 
-    // هنا نأخذ أول قصة (أو يمكنك عمل لوب لعرضهم كلهم)
-    // سنستخدم عارض الصور الموجود لديك (Lightbox) لسهولة الأمر
-    const storyData = snapshot.docs[snapshot.docs.length - 1].data(); // آخر قصة
+    // إعادة ضبط حالة النافذة (Reset)
+    viewer.style.display = 'flex';
+    viewer.style.opacity = '1';       
+    viewer.style.transform = 'none';  
     
-    if (storyData.type === 'image') {
-        openLb(storyData.url); // دالة فتح الصور الموجودة عندك
-    } else if (storyData.type === 'video') {
-        window.open(storyData.url, '_blank'); // فتح الفيديو
+    showToast("جاري تحميل القصة... ⏳");
+
+    try {
+        // 1. جلب بيانات المستخدم من الكاش (userCache) أو الـ Database
+        let userData = userCache[targetUid];
+        if (!userData) {
+            // محاولة جلب البيانات إذا لم تكن موجودة في الكاش
+            const userDoc = await db.collection('users').doc(targetUid).get();
+            userData = userDoc.exists ? userDoc.data() : { name: 'مستخدم', profilePic: null, isVerified: false };
+            userCache[targetUid] = userData; // تحديث الكاش
+        }
+
+        // 2. تحديث الاسم في الهيدر (هذا الجزء كان يعمل لديك)
+        const nameEl = document.getElementById('storyUserName');
+        if (nameEl) nameEl.innerText = userData.name || userData.displayName || "مستخدم";
+
+        // 3. تحديث الصورة الشخصية (إصلاح المشكلة الأولى)
+        const imgEl = document.getElementById('storyUserImg');
+        if (imgEl) {
+            // التحقق من كافة المسميات المحتملة لرابط الصورة في الـ Database
+            const picSrc = userData.profilePic || userData.avatar || userData.photoURL || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
+            imgEl.src = picSrc;
+        }
+
+        // 4. تحديث علامة التوثيق (إصلاح المشكلة الثانية)
+        const verifyBadge = document.getElementById('storyVerifyIcon');
+        if (verifyBadge) {
+            if (userData.isVerified === true) {
+                verifyBadge.style.display = 'inline-block'; // إظهار العلامة
+            } else {
+                verifyBadge.style.display = 'none'; // إخفاء العلامة
+            }
+        }
+
+        // 5. جلب القصص من Firestore (آخر 24 ساعة)
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const snapshot = await db.collection('stories')
+            .where('uid', '==', targetUid)
+            .where('timestamp', '>', twentyFourHoursAgo)
+            .orderBy('timestamp', 'asc')
+            .get();
+
+        if (snapshot.empty) {
+            viewer.style.display = 'none'; 
+            showToast("لا توجد قصص لعرضها");
+            return;
+        }
+
+        currentStoriesQueue = [];
+        snapshot.forEach(doc => currentStoriesQueue.push(doc.data()));
+
+        // بدء عرض أول قصة
+        currentStoryIndex = 0;
+        showStoryItem(currentStoryIndex);
+
+    } catch(err) {
+        console.error("Story Loading Error:", err);
+        viewer.style.display = 'none';
+        showToast("حدث خطأ في عرض القصة");
     }
-    
-    showToast("جاري عرض القصة...");
 }
+
 // ================= دالة إغلاق البروفايل =================
 function closeProfile() {
     const profilePage = document.getElementById('profilePage');
@@ -12270,24 +12656,18 @@ function closeGiftCenter() {
 // ==========================================
 function switchGiftTab(type, btn) {
     if(navigator.vibrate) navigator.vibrate(10);
-    
     document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('active'));
     btn.classList.add('active');
-    
     document.querySelectorAll('.gift-content-panel').forEach(p => p.classList.remove('active'));
     
-    const targetPanel = document.getElementById(`tab-${type}`);
-    if(targetPanel) {
-        targetPanel.classList.add('active');
-    }
+    document.getElementById(`tab-${type}`).classList.add('active');
 
-    // تشغيل الدوال حسب التبويب
+    // الرسم يحصل "فقط" عند نداء التبويب لضمان الـ Render
+    if (type === 'premium') renderPremiumGifts();
+    if (type === 'free') renderFreeStickers();
     if (type === 'gifs') renderGifsLibrary();
-    
-    // 🔥 تشغيل المفضلة لما نفتح التبويب بتاعها 🔥
     if (type === 'favorites') renderFavorites();
 }
-
 
 // 4. رسم الهدايا (تعبئة القائمة)
 // 4. رسم الهدايا (تعبئة القائمة - Grid System)
@@ -12787,20 +13167,34 @@ const professionalGifs = [
 // ==========================================
 // 2. دالة فتح نافذة الهدايا (المعدلة)
 // ==========================================
+// دالة فتح مركز الهدايا المطورة والمحمية من التوقف
+// دالة فتح مركز الهدايا (المصححة)
 function openGiftCenter() {
-    if(navigator.vibrate) navigator.vibrate(10);
-    
-    // تشغيل الدوال الأساسية
-    updateBalanceInCenter();
-    renderPremiumGifts();
-    renderFreeStickers();
-    
-    // 🔥 تشغيل دالة الـ GIF الجديدة
-    renderGifsLibrary(); 
-    
-    // إظهار النافذة
     const modal = document.getElementById('giftCenterModal');
-    if(modal) modal.classList.add('active');
+    if(!modal) return;
+    if(navigator.vibrate) navigator.vibrate(10);
+
+    modal.style.display = 'flex';
+    setTimeout(() => {
+        modal.classList.add('active');
+        // بدلاً من رسم كل شيء، نرسم التبويب الافتراضي فقط (المميزة)
+        renderPremiumGifts(); 
+        updateBalanceInCenter();
+    }, 100);
+}
+
+// دالة إغلاق مركز الهدايا (المصححة لفك تجمد الشاشة)
+function closeGiftCenter() {
+    const modal = document.getElementById('giftCenterModal');
+    if(!modal) return;
+
+    // 1. إزالة كلاس النشاط (هينزل القائمة لتحت ويشيل البلور)
+    modal.classList.remove('active');
+
+    // 2. الانتظار حتى ينتهي الانيميشن ثم إخفاء الطبقة تماماً
+    setTimeout(() => {
+        modal.style.display = 'none'; // دي اللي بتفك "تجمد الشاشة"
+    }, 400); // 400ms هي نفس مدة الـ transition في الـ CSS
 }
 
 // ==========================================
@@ -12927,90 +13321,66 @@ var proUpdateInterval = null;
 var isProDragging = false;
 
 // دالة لتهيئة العناصر (لضمان العثور عليها دائماً)
-function initProPlayerElements() {
-    if (!proVideoElement) {
-        proVideoElement = document.getElementById('proMainVideo');
-    }
-    return proVideoElement;
-}
-// 2. دالة فتح الفيديو (الإصلاح النهائي للتطبيق)
-window.openProPlayer = function(src) {
-    console.log("Opening Pro Player UI...");
+// ================= إصلاح مشغل الفيديو الاحترافي =================
 
+// 1. دالة تهيئة آمنة (تتأكد من وجود العنصر)
+function initProPlayerElements() {
+    // محاولة جلب الفيديو
+    let video = document.getElementById('proMainVideo');
+    
+    // إذا لم يجد الفيديو (لأنه ربما لم يتم تحميله بعد)، لا نعيد null بل نحاول البحث عنه مرة أخرى
+    if (!video) {
+        console.warn("Element #proMainVideo not found initially.");
+        return null;
+    }
+    return video;
+}
+
+// 2. دالة فتح الفيديو (النسخة المستقرة)
+window.openProPlayer = function(src) {
     const modal = document.getElementById('proVideoModal');
-    const video = initProPlayerElements(); // تأكد إن الدالة دي موجودة عندك فوق
+    const video = document.getElementById('proMainVideo');
 
     if (!modal || !video) {
-        alert("خطأ: مشغل الفيديو غير موجود في الصفحة");
+        console.error("المشغل مش موجود في الـ HTML");
         return;
     }
 
-    // 1. 🔥 أهم خطوة: نقل النافذة لآخر الصفحة (عشان تطلع فوق الكل)
-    // بنشيلها ونحطها تاني في الـ body عشان نضمن إنها آخر عنصر
+    // 1. نقل المشغل لآخر الـ body عشان ميتغطاش (مهم جداً)
     document.body.appendChild(modal);
 
-    // 2. 🔥 إظهار النافذة فوراً قبل أي حاجة
-    modal.style.display = 'flex';
-    // تريكة صغيرة للمتصفح عشان يستوعب التغيير
-    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+    // 2. إظهار المشغل فوراً
+    modal.style.cssText = "display: flex !important; opacity: 1 !important; visibility: visible !important; z-index: 9999999;";
 
-    // 3. تنظيف أي ميديا شغالة في الخلفية
-    document.querySelectorAll('video').forEach(v => {
-        if(v !== video) v.pause();
-    });
-    document.querySelectorAll('audio').forEach(a => a.pause());
-
-    // 4. إعداد الفيديو
+    // 3. شحن الفيديو وتشغيله
     video.src = src;
-    video.load(); // أمر تحميل صريح
+    video.load();
+    video.play().then(() => {
+        if(typeof updateProPlayIcon === 'function') updateProPlayIcon(true);
+    }).catch(err => console.log("Autoplay blocked:", err));
 
-    // 5. محاولة التشغيل (مع مراعاة سياسات التطبيق)
-    var playPromise = video.play();
-    
-    if (playPromise !== undefined) {
-        playPromise.then(_ => {
-            updateProPlayIcon(true);
-        }).catch(error => {
-            console.log("Autoplay blocked, user interaction needed.");
-            // حتى لو الفيديو ما اشتغلش، الواجهة ظهرت والزرار موجود
-            updateProPlayIcon(false);
-        });
-    }
-
-    // 6. تشغيل العدادات
-    startProProgressLoop();
-    if(typeof setupScrubbing === 'function') setupScrubbing();
+    // 4. تشغيل العدادات
+    if(typeof startProProgressLoop === 'function') startProProgressLoop();
 };
 
-// 3. دالة الإغلاق
+// 3. دالة الإغلاق (تنظيف كامل)
 window.closeProPlayer = function() {
     const modal = document.getElementById('proVideoModal');
-    const video = initProPlayerElements();
+    const video = document.getElementById('proMainVideo');
     
     if (video) {
         video.pause();
         video.currentTime = 0;
-        video.removeAttribute('src'); // حذف المصدر لتوفير الذاكرة
-        video.load();
+        video.src = ""; // تفريغ المصدر لتوفير الذاكرة
     }
     
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    
     if (proUpdateInterval) clearInterval(proUpdateInterval);
 };
 
-// 4. تشغيل / إيقاف
-window.toggleProPlay = function() {
-    const video = initProPlayerElements();
-    if (!video) return;
-
-    if (video.paused) {
-        video.play();
-        updateProPlayIcon(true);
-    } else {
-        video.pause();
-        updateProPlayIcon(false);
-    }
-};
 
 function updateProPlayIcon(isPlaying) {
     const icon = document.querySelector('#proPlayBtn i');
@@ -13368,69 +13738,141 @@ function toggleAttachmentMenu() {
 }
 
 // 2. التعامل مع ضغطات الأزرار
+// ================= تشغيل أزرار قائمة المرفقات =================
+
 function handleAttachment(type) {
-    // إغلاق القائمة بعد الاختيار
+    // 1. إغلاق القائمة فوراً بعد الاختيار
     toggleAttachmentMenu(); 
 
-    // تنفيذ الأمر حسب النوع
+    // 2. تنفيذ الأمر حسب النوع
     switch (type) {
+        
+        // --- 📄 مستند (Document) ---
         case 'document':
-            // فتح منقي الملفات (كل الأنواع)
-            document.getElementById('fileInput').click();
+            // نستخدم حقل الملفات الموجود أصلاً بس نغير نوعه ليقبل كل الملفات
+            const fileInp = document.getElementById('fileInput');
+            fileInp.setAttribute('accept', '*/*'); // قبول كل الأنواع (PDF, ZIP, DOC...)
+            fileInp.click();
             break;
             
+        // --- 🖼️ المعرض (Gallery) ---
         case 'gallery':
-            // فتح الصور والفيديو فقط
-            document.getElementById('mediaInput').click();
+            // فتح الصور والفيديوهات فقط
+            const mediaInp = document.getElementById('mediaInput');
+            mediaInp.click(); // هو أصلاً مضبوط على image/*,video/*
             break;
             
+        // --- 📷 الكاميرا (Camera) ---
         case 'camera':
-            // فتح الكاميرا المباشرة
+            // بنعمل حقل مؤقت عشان نفتح الكاميرا فوراً
             const camInput = document.createElement('input');
             camInput.type = 'file';
             camInput.accept = 'image/*';
-            camInput.capture = 'environment'; // الكاميرا الخلفية
-            camInput.onchange = (e) => uploadMedia(camInput, 'media'); // استخدم دالة الرفع بتاعتك
+            camInput.capture = 'environment'; // 👈 ده الأمر اللي بيفتح الكاميرا الخلفية علطول
+            
+            camInput.onchange = (e) => {
+                // نبعت الملف لدالة الرفع بتاعتك
+                if(camInput.files[0]) {
+                    // محاكاة دالة الرفع الموجودة عندك
+                    uploadMedia({ files: camInput.files }, 'media'); 
+                }
+            };
             camInput.click();
             break;
             
+        // --- 🎵 مقطع صوتي (Audio) ---
+                // --- 🎵 مقطع صوتي (Audio) ---
         case 'audio':
-            // اختيار ملف صوتي
-            const audInput = document.createElement('input');
-            audInput.type = 'file';
-            audInput.accept = 'audio/*';
-            audInput.onchange = (e) => uploadMedia(audInput, 'file'); 
-            audInput.click();
+            const audioInput = document.createElement('input');
+            audioInput.type = 'file';
+            
+            // 🔥 التغيير هنا: بنحدد أنواع الصوت بدقة عشان يفتح مشغل الموسيقى
+            // بعض الموبايلات بتفهم audio/* وبعضها بيحتاج تحديد أكتر
+            audioInput.accept = 'audio/*'; 
+            
+            audioInput.onchange = (e) => {
+                if(audioInput.files[0]) {
+                    // هنا بنبعت الملف لدالة الرفع
+                    // لاحظ: سميناها 'audio' عشان ممكن نميزها في الرفع لو حابب
+                    uploadMedia(audioInput, 'audio'); 
+                }
+            };
+            audioInput.click();
             break;
 
-        case 'location':
-            if (navigator.geolocation) {
-                showToast("📍 جاري تحديد موقعك...");
-                navigator.geolocation.getCurrentPosition(pos => {
-                    const link = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
-                    const input = document.getElementById('messageInput');
-                    input.value = link; // نضع الرابط في صندوق الكتابة
-                    // ممكن تبعتها علطول لو حابب: sendMessage();
-                }, () => showToast("❌ تعذر تحديد الموقع"));
-            }
-            break;
 
+        // --- 📍 الموقع (Location) ---
+        // --- 📍 الموقع (Location) ---
+case 'location':
+    if (!navigator.geolocation) {
+        showToast("❌ جهازك لا يدعم تحديد الموقع");
+        return;
+    }
+    
+    showToast("📍 جاري تحديد موقعك...");
+    
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            
+            // إعداد رسالة الموقع
+            const msgPayload = {
+                type: 'location', // نوع جديد
+                lat: lat,         // خط العرض
+                lng: lng,         // خط الطول
+                uid: currentUserId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                seen: false,
+                text: `https://www.google.com/maps?q=${lat},${lng}`, // رابط احتياطي
+                isGhost: typeof isGhostMode !== 'undefined' ? isGhostMode : false
+            };
+            
+            // التأكد من الشات والإرسال
+            await ensureChatActive();
+            await db.collection("chats").doc(chatId).collection("messages").add(msgPayload);
+            
+            // تحديث الرسالة الخارجية
+            await db.collection("chats").doc(chatId).update({
+                lastMessage: "📍 موقع حالي",
+                lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+                unreadCount: firebase.firestore.FieldValue.increment(1)
+            });
+
+            showToast("✅ تم إرسال الموقع");
+        },
+        (error) => {
+            console.error(error);
+            showToast("❌ تعذر تحديد الموقع، تأكد من تفعيل GPS");
+        },
+        { enableHighAccuracy: true } // دقة عالية
+    );
+    break;
+
+        // --- 👤 جهة اتصال (Contact) ---
+        // في دالة handleAttachment ...
+
+        // --- 👤 جهة اتصال ---
         case 'contact':
-            // هنا ممكن تفتح نافذة تختار منها جهات اتصال (محتاجة برمجة خاصة)
-            showToast("سيتم إضافة ميزة جهات الاتصال قريباً");
+            document.getElementById('contactModal').style.display = 'flex';
+            document.getElementById('contactName').focus();
             break;
             
+        // --- 📊 التصويت ---
         case 'poll':
-            showToast("سيتم إضافة التصويت قريباً");
+            document.getElementById('pollModal').style.display = 'flex';
+            document.getElementById('pollQuestion').focus();
             break;
             
+        // --- 📅 المناسبات ---
         case 'event':
-            showToast("سيتم إضافة المناسبات قريباً");
+            // ممكن نعملها بنفس الطريقة لاحقاً
+             showToast("📅 ميزة المناسبات قادمة قريباً");
             break;
-            
+// ...
+
         case 'ai':
-            // لو عندك ميزة توليد صور، استدعيها هنا
-            showToast("🤖 ميزة الذكاء الاصطناعي قادمة");
+            showToast("🤖 ميزة الذكاء الاصطناعي تحت التطوير");
             break;
     }
 }
@@ -13445,6 +13887,505 @@ document.addEventListener('click', function(e) {
         menu.classList.remove('active');
     }
 });
+
+// 1. إرسال جهة اتصال
+async function sendContactMessage() {
+    const name = document.getElementById('contactName').value.trim();
+    const number = document.getElementById('contactNumber').value.trim();
+
+    if (!name || !number) { showToast("يرجى إكمال البيانات"); return; }
+
+    document.getElementById('contactModal').style.display = 'none';
+    
+    // إرسال للداتابيز
+    const msgPayload = {
+        type: 'contact',
+        contactName: name,
+        contactNumber: number,
+        uid: currentUserId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        seen: false,
+        text: 'جهة اتصال 👤' // نص احتياطي
+    };
+    
+    await db.collection("chats").doc(chatId).collection("messages").add(msgPayload);
+    // تفريغ الحقول
+    document.getElementById('contactName').value = "";
+    document.getElementById('contactNumber').value = "";
+}
+
+// 2. إرسال تصويت (Poll)
+async function sendPollMessage() {
+    const q = document.getElementById('pollQuestion').value.trim();
+    const o1 = document.getElementById('pollOpt1').value.trim();
+    const o2 = document.getElementById('pollOpt2').value.trim();
+
+    if (!q || !o1 || !o2) { showToast("يرجى كتابة السؤال والخيارين"); return; }
+
+    document.getElementById('pollModal').style.display = 'none';
+
+    const msgPayload = {
+        type: 'poll',
+        question: q,
+        options: [o1, o2],
+        votes: { [o1]: 0, [o2]: 0 }, // عداد مبدئي
+        uid: currentUserId,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        seen: false,
+        text: '📊 استطلاع رأي'
+    };
+
+    await db.collection("chats").doc(chatId).collection("messages").add(msgPayload);
+    
+    // تفريغ
+    document.getElementById('pollQuestion').value = "";
+    document.getElementById('pollOpt1').value = "";
+    document.getElementById('pollOpt2').value = "";
+}
+
+// 3. دالة التصويت (Voting Logic)
+async function votePoll(msgId, option) {
+    if(!msgId) return;
+    showToast(`تم التصويت لـ: ${option}`);
+    // هنا ممكن نضيف كود تحديث الداتابيز لزيادة العداد (اختياري حالياً)
+}
+
+// ================= دالة فتح معاينة الملفات =================
+function openDocViewer(fileUrl, fileName) {
+    // 1. تحديد الامتداد
+    // بنحاول نعرف نوع الملف من الرابط (أو ممكن نبعته كبارامتر لو متخزن في الداتابيز)
+    let extension = fileUrl.split('.').pop().split('?')[0].toLowerCase();
+    
+    // قائمة الملفات المدعومة للمعاينة
+    const supportedDocs = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'txt'];
+
+    // 2. لو الملف مش مدعوم للمعاينة (زي ZIP أو EXE) -> نحمله علطول
+    if (!supportedDocs.includes(extension) && !fileUrl.includes('pdf')) { // أحياناً رابط فايربيس مش بيبين الامتداد، بس الـ PDF هو الأهم
+        window.open(fileUrl, '_blank');
+        return;
+    }
+
+    // 3. تجهيز النافذة
+    const modal = document.getElementById('docViewerModal');
+    const iframe = document.getElementById('docIframe');
+    const title = document.getElementById('docViewerTitle');
+    const downloadBtn = document.getElementById('docDownloadBtn');
+    const loader = document.getElementById('docLoader');
+
+    // نقل النافذة للـ body لضمان ظهورها فوق الكل
+    if(modal.parentNode !== document.body) document.body.appendChild(modal);
+
+    // إعداد البيانات
+    title.innerText = fileName || "مستند";
+    downloadBtn.href = fileUrl;
+    loader.style.display = 'flex'; // إظهار اللودر
+
+    // 4. 🔥 السحر هنا: استخدام Google Viewer 🔥
+    // Google Viewer بيحتاج الرابط يكون encoded عشان يشتغل صح
+    const viewerUrl = `https://docs.google.com/viewer?url=${encodeURIComponent(fileUrl)}&embedded=true`;
+    
+    iframe.src = viewerUrl;
+    modal.style.display = 'flex';
+}
+
+function closeDocViewer() {
+    const modal = document.getElementById('docViewerModal');
+    const iframe = document.getElementById('docIframe');
+    
+    modal.style.display = 'none';
+    iframe.src = ""; // تفريغ الرابط عشان يوقف تحميل ويوفر نت
+}
+
+// دالة فتح سجل الأسماء من الهاتف
+async function pickContactFromDevice() {
+    // التحقق هل المتصفح يدعم هذه الميزة؟ (غالباً أندرويد كروم)
+    const isSupported = ('contacts' in navigator && 'ContactsManager' in window);
+
+    if (isSupported) {
+        try {
+            const props = ['name', 'tel']; // البيانات التي نريدها (الاسم والرقم)
+            const opts = { multiple: false }; // اختيار اسم واحد فقط
+
+            // فتح نافذة الأسماء الخاصة بالموبايل
+            const contacts = await navigator.contacts.select(props, opts);
+
+            if (contacts.length) {
+                const contact = contacts[0];
+                
+                // تعبئة البيانات في الحقول تلقائياً
+                const nameInput = document.getElementById('contactName');
+                const numberInput = document.getElementById('contactNumber');
+
+                // وضع الاسم
+                if (contact.name && contact.name.length) {
+                    nameInput.value = contact.name[0];
+                }
+                
+                // وضع الرقم
+                if (contact.tel && contact.tel.length) {
+                    numberInput.value = contact.tel[0];
+                }
+                
+                showToast("✅ تم اختيار الاسم");
+            }
+        } catch (ex) {
+            // لو المستخدم قفل النافذة بدون اختيار
+            console.log("تم إلغاء اختيار الاسم");
+        }
+    } else {
+        // لو الميزة غير مدعومة (آيفون أو كمبيوتر)
+        alert("عذراً، هذه الميزة مدعومة فقط على هواتف أندرويد (Chrome). يرجى الكتابة يدوياً.");
+    }
+}
+// ================= منطق السحب لإغلاق القصة (Swipe Down to Close) =================
+
+const storyViewer = document.getElementById('simpleStoryViewer');
+let startY_story = 0;
+let currentY_story = 0;
+let isDragging_story = false;
+
+// 1. عند بداية اللمس
+storyViewer.addEventListener('touchstart', (e) => {
+    // التأكد اننا في اعلى الصفحة (عشان لو في سكرول مستقبلاً)
+    startY_story = e.touches[0].clientY;
+    isDragging_story = true;
+    storyViewer.style.transition = 'none'; // إلغاء الانيميشن عشان الحركة تكون فورية مع الصباع
+}, { passive: true });
+
+// 2. أثناء التحريك
+storyViewer.addEventListener('touchmove', (e) => {
+    if (!isDragging_story) return;
+    
+    currentY_story = e.touches[0].clientY;
+    const diff = currentY_story - startY_story;
+
+    // السماح بالسحب للأسفل فقط (diff > 0)
+    if (diff > 0) {
+        // تحريك القصة مع الصباع
+        storyViewer.style.transform = `translateY(${diff}px) scale(${1 - diff/3000})`; // تصغير بسيط مع السحب
+        
+        // تقليل الشفافية كل ما نسحب لتحت
+        // (1 - (المسافة / 800)) يعني هتختفي لما نسحب 800 بكسل
+        storyViewer.style.opacity = `${1 - diff/800}`;
+    }
+}, { passive: true });
+
+// 3. عند رفع الصباع
+storyViewer.addEventListener('touchend', (e) => {
+    isDragging_story = false;
+    const diff = currentY_story - startY_story;
+
+    // استرجاع الانيميشن الناعم
+    storyViewer.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+
+    // لو سحبنا مسافة كافية (مثلاً 150 بكسل) -> اغلق القصة
+    if (diff > 150) {
+        closeStoryViewer();
+    } else {
+        // لو سحبة صغيرة -> رجعها مكانها
+        storyViewer.style.transform = '';
+        storyViewer.style.opacity = '1';
+    }
+});
+
+// ================= تحديث دالة إغلاق القصة (لتنظيف الستايل) =================
+// استبدل دالة closeStoryViewer القديمة بهذه النسخة:
+
+// ================================================================
+// 🔥 تحديث نظام إغلاق القصة + السحب (Swipe Down) 🔥
+// ================================================================
+
+// 2. دالة الإغلاق المحسنة (بتعمل Reset للانيميشن)
+function closeStoryViewer() {
+    const viewer = document.getElementById('simpleStoryViewer');
+    const vidEl = document.getElementById('storyVideoDisplay');
+    
+    // أ) تطبيق انيميشن الخروج (تنزلق لأسفل وتختفي)
+    viewer.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+    viewer.style.transform = 'translateY(100%)'; 
+    viewer.style.opacity = '0';
+
+    // ب) الانتظار حتى ينتهي الانيميشن ثم الإخفاء الفعلي
+    setTimeout(() => {
+        viewer.style.display = 'none';
+        
+        // ج) 🔥 أهم خطوة: إعادة القيم لطبيعتها عشان المرة الجاية تفتح صح 🔥
+        viewer.style.transform = '';
+        viewer.style.opacity = '1';
+        
+        // د) إيقاف الفيديو والتايمر
+        if(vidEl) {
+            vidEl.pause();
+            vidEl.src = ""; 
+        }
+        if(typeof storyTimerInterval !== 'undefined') clearInterval(storyTimerInterval);
+        
+        // تصفير متغيرات السحب
+        isDragging_story = false;
+        
+    }, 300); // نفس مدة الـ transition
+}
+
+// 3. تفعيل السحب (Event Listeners)
+if (storyViewerEl) {
+    // أ) عند بداية اللمس
+    storyViewerEl.addEventListener('touchstart', (e) => {
+        // التأكد اننا في اعلى الصفحة (عشان لو في سكرول)
+        startY_story = e.touches[0].clientY;
+        isDragging_story = true;
+        // إلغاء الانيميشن عشان الحركة تكون فورية مع صباعك
+        storyViewerEl.style.transition = 'none'; 
+    }, { passive: true });
+
+    // ب) أثناء التحريك
+    storyViewerEl.addEventListener('touchmove', (e) => {
+        if (!isDragging_story) return;
+        
+        currentY_story = e.touches[0].clientY;
+        const diff = currentY_story - startY_story;
+
+        // السماح بالسحب للأسفل فقط (diff > 0)
+        if (diff > 0) {
+            // تحريك القصة مع الصباع وتصغيرها قليلاً
+            storyViewerEl.style.transform = `translateY(${diff}px) scale(${1 - diff/3000})`;
+            
+            // تقليل الشفافية كل ما نسحب لتحت
+            storyViewerEl.style.opacity = `${1 - diff/800}`;
+        }
+    }, { passive: true });
+
+    // ج) عند رفع الصباع
+    storyViewerEl.addEventListener('touchend', (e) => {
+        isDragging_story = false;
+        const diff = currentY_story - startY_story;
+
+        // استرجاع الانيميشن الناعم (عشان سواء قفلت أو رجعت تكون ناعمة)
+        storyViewerEl.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
+
+        // لو سحبنا مسافة كافية (أكبر من 150 بكسل) -> اغلق القصة
+        if (diff > 150) {
+            closeStoryViewer();
+        } else {
+            // لو سحبة صغيرة -> رجعها مكانها (Reset)
+            storyViewerEl.style.transform = '';
+            storyViewerEl.style.opacity = '1';
+        }
+    });
+}
+function formatText(text) {
+    // 1. تحويل الروابط (الكود القديم)
+    let formatted = linkify(escapeHtml(text));
+
+    // 2. تحويل الأرقام (3 أرقام أو أكثر) إلى شكل ديجيتال
+    // نستثني الروابط عشان منبوظش الـ URL
+    formatted = formatted.replace(/(?<!href="|">)(\b\d{3,}\b)/g, '<span class="digital-number">$1</span>');
+
+    return formatted;
+}
+
+function handleVote(msgId, option) {
+    if(navigator.vibrate) navigator.vibrate(20); // هزة خفيفة
+
+    // 1. تحديث بصري فوري (Optional UI Trick)
+    const msgEl = document.getElementById(`msg_${msgId}`);
+    if(msgEl) {
+        const card = msgEl.querySelector('.poll-card-modern');
+        if(card) card.classList.add('voted'); // إظهار النسب المئوية
+    }
+
+    // 2. إرسال التصويت للداتابيز (استخدم دالتك الحالية)
+    // votePoll(msgId, option); 
+    
+    // مثال لكود التحديث في فايربيس:
+    const docRef = db.collection("chats").doc(chatId).collection("messages").doc(msgId);
+    
+    // استخدام transaction لضمان عدم تضارب الأصوات
+    db.runTransaction(async (transaction) => {
+        const doc = await transaction.get(docRef);
+        if (!doc.exists) return;
+
+        const data = doc.data();
+        const currentVotes = data.votes || {};
+        
+        // زيادة العداد
+        currentVotes[option] = (currentVotes[option] || 0) + 1;
+        
+        // (مهم) هنا يجب إضافة الـ UID للمستخدم في مصفوفة "voters" لمنع التصويت مرتين
+        // لكن للتبسيط سنحدث العداد فقط
+        transaction.update(docRef, { votes: currentVotes });
+    }).then(() => {
+        showToast(`تم التصويت لـ: ${option}`);
+    }).catch((e) => console.log(e));
+}
+
+// دالة الانتقال لصفحة البروفايل الكاملة
+function navigateToUserProfile() {
+    // 1. هزة خفيفة للموبايل
+    if(navigator.vibrate) navigator.vibrate(10);
+
+    // 2. التأكد من وجود ID المستخدم
+    if (cachedOtherUserId) {
+        // الانتقال للصفحة مع تمرير الـ UID في الرابط
+        window.location.href = `profile.html?uid=${cachedOtherUserId}`;
+    } else {
+        // محاولة بديلة: جلب الـ UID من الرابط الحالي لو الكاش فاضي
+        const urlParams = new URLSearchParams(window.location.search);
+        const uidFromUrl = urlParams.get('uid');
+        
+        if (uidFromUrl) {
+            window.location.href = `profile.html?uid=${uidFromUrl}`;
+        } else {
+            showToast("⚠️ جاري تحميل البيانات، حاول مرة أخرى...");
+        }
+    }
+}
+function updateProPlayIcon(isPlaying) {
+    const icon = document.querySelector('#proPlayBtn i');
+    if (icon) {
+        // لو شغال نعرض علامة التوقف، لو واقف نعرض علامة التشغيل
+        icon.className = isPlaying ? "fa-solid fa-pause" : "fa-solid fa-play";
+    }
+}
+// ================= دالة تشغيل/إيقاف الفيديو المفقودة =================
+function toggleProPlay() {
+    // 1. نجيب الفيديو باستخدام دالة التهيئة الآمنة اللي عملناها
+    const video = initProPlayerElements();
+    
+    if (!video) return; // لو الفيديو مش موجود اخرج
+
+    // 2. فحص الحالة وتبديلها
+    if (video.paused) {
+        // لو واقف -> شغله
+        video.play().then(() => {
+            updateProPlayIcon(true); // تحديث الأيقونة لـ pause
+        }).catch(error => {
+            console.log("Play failed:", error);
+        });
+    } else {
+        // لو شغال -> وقفه
+        video.pause();
+        updateProPlayIcon(false); // تحديث الأيقونة لـ play
+    }
+}
+
+// ================= نظام حماية الشات (يوضع في نهاية السكربت) =================
+
+let realPagePassword = null; // متغير لتخزين الباسورد الحقيقي
+
+// 1. دالة التحقق (تشتغل أول ما الصفحة تفتح)
+async function checkPageSecurity() {
+    if (!chatId) return;
+
+    try {
+        // بنجيب بيانات الشات ده بس
+        const doc = await db.collection('chats').doc(chatId).get();
+        
+        if (doc.exists) {
+            const data = doc.data();
+            
+            // هل يوجد باسورد؟ وهل هو مكون من 6 أرقام؟
+            if (data.lockPass && data.lockPass.length === 6) {
+                // إظهار شاشة القفل فوراً
+                document.getElementById('pageLockModal').style.display = 'flex';
+                
+                // تخزين الباسورد الصحيح في المتغير عشان نقارن بيه
+                realPagePassword = data.lockPass;
+                
+                // التركيز على خانة الإدخال
+                document.getElementById('pageLockInput').focus();
+            }
+        }
+    } catch (error) {
+        console.error("خطأ في التحقق من الأمان:", error);
+    }
+}
+
+// 2. دالة فتح القفل (لما يدوس على الزرار)
+function unlockPage() {
+    const inputVal = document.getElementById('pageLockInput').value;
+    
+    if (inputVal === realPagePassword) {
+        // الباسورد صح: اخفي الشاشة
+        document.getElementById('pageLockModal').style.display = 'none';
+        
+        // تشغيل صوت نجاح (اختياري)
+        if(typeof playUiSound === 'function') playUiSound('sent');
+        
+    } else {
+        // الباسورد غلط
+        showToast("❌ رمز المرور غير صحيح");
+        document.getElementById('pageLockInput').value = ''; // فضي الخانة
+        
+        // اهتزاز للموبايل
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    }
+}
+// ================= مراقب القفل عند الخروج والعودة =================
+
+document.addEventListener("visibilitychange", function() {
+    // 1. التحقق هل المستخدم قام بإخفاء الصفحة (خرج أو قفل الشاشة)
+    if (document.visibilityState === 'hidden') {
+        
+        // 2. هل هذا الشات محمي أصلاً؟ (هل تم جلب باسورد له سابقاً؟)
+        if (realPagePassword) {
+            const lockModal = document.getElementById('pageLockModal');
+            const lockInput = document.getElementById('pageLockInput');
+            
+            // 3. إظهار شاشة القفل فوراً
+            if (lockModal) {
+                lockModal.style.display = 'flex';
+            }
+            
+            // 4. تنظيف خانة الباسورد لزيادة الأمان
+            if (lockInput) {
+                lockInput.value = '';
+                lockInput.blur(); // إزالة التركيز للكيبورد
+            }
+        }
+    }
+    
+    // 5. عند العودة للصفحة (Visible)
+    if (document.visibilityState === 'visible') {
+        if (realPagePassword) {
+            // تركيز المؤشر في خانة الباسورد للكتابة فوراً
+            setTimeout(() => {
+                const lockInput = document.getElementById('pageLockInput');
+                if(lockInput) lockInput.focus();
+            }, 300);
+        }
+    }
+});
+
+// أضف هذا الكود في ملف chat.html
+function updateBlockUI(isBlocked) {
+    // جلب العناصر (تأكد أن الـ classes مطابقة للتصميم في chat.html)
+    const footer = document.querySelector('.chat-footer'); // المكان اللي فيه زرار الإرسال
+    const inputArea = document.getElementById('messageInput'); 
+
+    if (isBlocked) {
+        // لو محظور: اخفي مكان الكتابة واظهر تحذير
+        if(footer) footer.style.display = 'none';
+        
+        // إنشاء رسالة تحذير لو مش موجودة
+        let alertDiv = document.getElementById('blockAlertDiv');
+        if(!alertDiv) {
+            alertDiv = document.createElement('div');
+            alertDiv.id = 'blockAlertDiv';
+            alertDiv.style.cssText = "position:fixed; bottom:0; width:100%; background:#222; color:#ff4444; text-align:center; padding:15px; font-weight:bold; z-index:100;";
+            alertDiv.innerHTML = '<i class="fa-solid fa-ban"></i> لا يمكنك المراسلة في هذه المحادثة';
+            document.body.appendChild(alertDiv);
+        } else {
+            alertDiv.style.display = 'block';
+        }
+        
+    } else {
+        // لو مش محظور: اظهر الفوتر واخفي التحذير
+        if(footer) footer.style.display = 'flex';
+        const alertDiv = document.getElementById('blockAlertDiv');
+        if(alertDiv) alertDiv.style.display = 'none';
+    }
+}
+
 
     </script>
     
@@ -13491,13 +14432,24 @@ document.addEventListener('click', function(e) {
 
     <div class="pp-content">
         
-        <div class="pp-user-info">
-            <div class="pp-avatar-wrapper">
-                <div id="profilePageImg" class="pp-avatar-lg"></div>
-            </div>
-            <div id="profilePageName" class="pp-name">اسم المستخدم</div>
-            <div class="encryption-pill"><i class="fa-solid fa-lock"></i> محادثة مشفرة</div>
-        </div>
+    <div class="pp-user-info">
+    <div class="pp-avatar-wrapper">
+        <div id="profilePageImg" class="pp-avatar-lg"></div>
+    </div>
+    
+    <div style="display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <div id="profilePageName" class="pp-name">اسم المستخدم</div>
+        <i id="profilePageVerify" class="fa-solid fa-circle-check" style="color: #00e5ff; font-size: 18px; display: none; filter: drop-shadow(0 0 5px rgba(0,229,255,0.5));"></i>
+    </div>
+
+    <div class="encryption-pill"><i class="fa-solid fa-lock"></i> محادثة مشفرة</div>
+
+    <button onclick="navigateToUserProfile()" class="view-profile-btn">
+        <span>عرض الملف الشخصي</span>
+        <i class="fa-solid fa-arrow-left-long btn-arrow"></i>
+    </button>
+
+</div>
 
         <div class="profile-menu-list">
             
@@ -13509,7 +14461,7 @@ document.addEventListener('click', function(e) {
                 </div>
                 <div class="p-item-arrow"><i class="fa-solid fa-toggle-off" id="ghostToggleIcon"></i></div>
             </div>
-<<div class="profile-item" onclick="openNicknamesPage()">
+<div class="profile-item" onclick="openNicknamesPage()">
     <div class="p-item-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
         <i class="fa-solid fa-a"></i>
     </div>
@@ -13622,6 +14574,32 @@ document.addEventListener('click', function(e) {
         </div>
     </div>
 </div>
+<div id="docViewerModal" class="media-gallery-overlay" style="display:none; z-index: 300000;">
+    
+    <div class="mg-header" style="justify-content: space-between;">
+        <div style="display:flex; align-items:center; gap:15px;">
+            <div class="mg-close-btn" onclick="closeDocViewer()">
+                <i class="fa-solid fa-xmark"></i>
+            </div>
+            <h3 id="docViewerTitle" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;">معاينة الملف</h3>
+        </div>
+        
+        <a id="docDownloadBtn" href="#" target="_blank" class="icon-btn" style="text-decoration:none; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-download"></i>
+        </a>
+    </div>
+
+    <div class="mg-body" style="padding:0; overflow:hidden; background:#333;">
+        
+        <div id="docLoader" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#fff; z-index:1;">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size:40px; color:#00e5ff; margin-bottom:15px;"></i>
+            <span>جاري جلب الملف...</span>
+        </div>
+
+        <iframe id="docIframe" style="width:100%; height:100%; border:none; position:relative; z-index:2;" onload="document.getElementById('docLoader').style.display='none'"></iframe>
+        
+    </div>
+</div>
 
 <div id="customBlockModal" class="confirm-modal-overlay">
     <div class="confirm-modal">
@@ -13728,15 +14706,15 @@ document.addEventListener('click', function(e) {
             <div id="popupAvatar" class="popup-avatar"></div>
         </div>
 
-        <div class="popup-info">
-            <div class="popup-name-row">
-                <span id="popupName" class="popup-name">اسم المستخدم</span>
-                <i id="popupVerify" class="fa-solid fa-circle-check popup-verify" style="display:none;"></i>
-            </div>
-            <span id="popupRealName" style="display:none; font-size:11px; color:#64748b; margin-top:2px;"></span>
-            
-            <span id="popupBio" class="popup-bio" style="margin-top:8px;">مستخدم تطبيق الوريد</span>
-        </div>
+       <div class="popup-info">
+    <div class="popup-name-row">
+        <span id="popupName" class="popup-name">اسم المستخدم</span>
+        
+        <i id="popupVerify" class="fa-solid fa-circle-check popup-verify" style="display:none;"></i>
+    </div>
+    
+    <span id="popupBio" class="popup-bio" style="margin-top:8px;">مستخدم تطبيق الوريد</span>
+</div>
 
         <div class="popup-actions-grid">
             
@@ -13841,16 +14819,24 @@ document.addEventListener('click', function(e) {
     <div class="story-progress-container">
         <div class="story-progress-bar" id="storyProgressBar"></div>
     </div>
-
     <div class="story-user-top">
-        <img id="storyUserImg" src="https://i.ibb.co/tZ5tPqB/default-avatar.png" onerror="this.src='https://i.ibb.co/tZ5tPqB/default-avatar.png'">
-        <span id="storyUserName">اسم المستخدم</span>
-        <span id="storyTime" style="font-size: 11px; opacity: 0.8; margin-right: 5px;"></span>
+        <img id="storyUserImg" src="https://i.ibb.co/tZ5tPqB/default-avatar.png" onerror="this.src='https://i.ibb.co/tZ5tPqB/default-avatar.png'" style="width: 35px; height: 35px; border-radius: 50%; border: 1px solid #fff; object-fit: cover;">
+        
+        <div style="display: flex; align-items: center; gap: 5px; margin-right: 10px;">
+            <span id="storyUserName" style="color: #fff; font-weight: bold; font-size: 14px; font-family: 'Cairo', sans-serif;">اسم المستخدم</span>
+            
+            <i id="storyVerifyIcon" class="fa-solid fa-circle-check" style="color: #38bdf8; font-size: 14px; display: none;"></i>
+        </div>
+        
+        <span id="storyTime" style="font-size: 11px; opacity: 0.8; color: #ccc; margin-right: auto;"></span>
     </div>
 
-    <div class="close-story-btn" onclick="closeStoryViewer()">
-        <i class="fa-solid fa-times"></i>
-    </div>
+
+
+ <div class="close-story-btn" onclick="closeStoryViewer()">
+    <i class="fa-solid fa-xmark"></i>
+</div>
+
 
     <div class="story-content-wrapper">
         <img id="storyImgDisplay" class="story-media-element" style="display:none;">
@@ -13886,15 +14872,14 @@ document.addEventListener('click', function(e) {
         <i class="fa-solid fa-star" style="color: #FFD700;"></i> المفضلة
     </div>
 </div>
-
 <div id="tab-premium" class="gift-content-panel active">
-    <div class="gift-grid" id="premiumGrid"></div>
+    <div class="gift-grid" id="premiumGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;"></div>
 </div>
+
 
 <div id="tab-free" class="gift-content-panel">
-    <div class="stickers-grid" id="stickersGrid"></div>
+    <div class="stickers-grid" id="stickersGrid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;"></div>
 </div>
-
 <div id="tab-gifs" class="gift-content-panel">
     <div class="gif-search-container" style="padding: 10px; position: sticky; top: 0; background: #121212; z-index: 10;">
         <div style="display: flex; gap: 5px; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 5px 10px; align-items: center;">
@@ -13978,7 +14963,67 @@ document.addEventListener('click', function(e) {
     </div>
 </div>
 
+<div id="contactModal" class="confirm-modal-overlay">
+    <div class="confirm-modal" style="text-align: right;">
+        <h3 style="color:#fff; margin-bottom:15px; text-align:center;">مشاركة جهة اتصال 👤</h3>
+        
+        <button type="button" onclick="pickContactFromDevice()" style="width:100%; margin-bottom:15px; padding:10px; background:rgba(0, 229, 255, 0.1); border:1px solid #00e5ff; color:#00e5ff; border-radius:10px; cursor:pointer; font-weight:bold;">
+            <i class="fa-solid fa-address-book"></i> اختر من الهاتف
+        </button>
 
+        <p style="text-align:center; color:#666; font-size:12px; margin-bottom:10px;">- أو اكتب يدوياً -</p>
+        
+        <input type="text" id="contactName" class="nickname-input" placeholder="اسم الشخص" style="margin-bottom:10px; text-align:right;">
+        <input type="tel" id="contactNumber" class="nickname-input" placeholder="رقم الهاتف" style="margin-bottom:20px; text-align:right; direction:ltr;">
+        
+        <div style="display:flex; gap:10px;">
+            <button type="button" onclick="document.getElementById('contactModal').style.display='none'" class="btn-modal btn-cancel">إلغاء</button>
+            <button type="button" onclick="sendContactMessage()" class="btn-modal btn-send">مشاركة</button>
+        </div>
+    </div>
+</div>
+
+<div id="pollModal" class="confirm-modal-overlay">
+    <div class="confirm-modal" style="text-align: right;">
+        <h3 style="color:#fff; margin-bottom:15px; text-align:center;">إنشاء تصويت 📊</h3>
+        
+        <input type="text" id="pollQuestion" class="nickname-input" placeholder="اكتب السؤال..." style="margin-bottom:15px; text-align:right;">
+        
+        <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:20px;">
+            <input type="text" id="pollOpt1" class="nickname-input" placeholder="الخيار الأول" style="text-align:right;">
+            <input type="text" id="pollOpt2" class="nickname-input" placeholder="الخيار الثاني" style="text-align:right;">
+        </div>
+        
+        <div style="display:flex; gap:10px;">
+            <button onclick="document.getElementById('pollModal').style.display='none'" class="btn-modal btn-cancel">إلغاء</button>
+            <button onclick="sendPollMessage()" class="btn-modal btn-send">نشر</button>
+        </div>
+    </div>
+</div>
+
+<div id="pageLockModal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999999; display: none; flex-direction: column; align-items: center; justify-content: center; backdrop-filter: blur(20px);">
+    
+    <div style="width: 80px; height: 80px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; border: 2px solid #8b5cf6; box-shadow: 0 0 30px rgba(139, 92, 246, 0.2);">
+        <i class="fa-solid fa-lock" style="font-size: 35px; color: #fff;"></i>
+    </div>
+
+    <h3 style="color: #fff; margin-bottom: 10px; font-family: 'Cairo';">محادثة محمية</h3>
+    <p style="color: #aaa; font-size: 14px; margin-bottom: 30px;">أدخل رمز المرور لفتح المحادثة</p>
+
+    <div style="background: #1a1a1a; padding: 25px; border-radius: 20px; width: 90%; max-width: 350px; border: 1px solid rgba(255,255,255,0.1); text-align: center;">
+        
+        <input type="password" id="pageLockInput" maxlength="6" inputmode="numeric" placeholder="******" 
+               style="width: 100%; background: #0d0d0f; border: 1px solid #333; padding: 15px; border-radius: 12px; color: #fff; text-align: center; font-size: 24px; letter-spacing: 8px; outline: none; margin-bottom: 20px;">
+        
+        <button onclick="unlockPage()" style="width: 100%; background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; padding: 12px; border: none; border-radius: 12px; font-weight: bold; font-size: 16px; cursor: pointer; margin-bottom: 10px;">
+            فتح المحادثة 🔓
+        </button>
+
+        <button onclick="history.back()" style="width: 100%; background: transparent; color: #777; padding: 10px; border: none; font-size: 14px; cursor: pointer;">
+            خروج
+        </button>
+    </div>
+</div>
 
 
 </body>

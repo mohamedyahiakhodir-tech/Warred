@@ -2568,6 +2568,22 @@
     border-radius: 50%; 
     z-index: 5;
 }
+/* كلاس الخطأ: بيخلي الحدود والكلام أحمر + بيشغل الأنيميشن */
+.input-error {
+    border-color: #ff3b30 !important; /* لون أحمر فاقع */
+    color: #ff3b30 !important;
+    box-shadow: 0 0 10px rgba(255, 59, 48, 0.4) !important; /* توهج أحمر */
+    animation: shakeInput 0.4s ease-in-out; /* تشغيل الهزة */
+}
+
+/* تعريف حركة الهزة (يمين وشمال بسرعة) */
+@keyframes shakeInput {
+    0%, 100% { transform: translateX(0); }
+    20% { transform: translateX(-10px); }
+    40% { transform: translateX(10px); }
+    60% { transform: translateX(-10px); }
+    80% { transform: translateX(10px); }
+}
 
     </style>
 </head>
@@ -2718,6 +2734,11 @@
         <div class="sidebar-item" onclick="vibrate(); location.href='blocked.html'" style="color: #ff7777;">
             <i class="fa-solid fa-ban" style="color: #ff7777;"></i> المحظورين
         </div>
+<div class="sidebar-item" onclick="openSecretChatsFlow()">
+    <i class="fa-solid fa-user-secret" style="color: #ff3b30;"></i> 
+    <span>المحادثات السرية</span>
+    <i class="fa-solid fa-lock" style="font-size:12px; color:#555; margin-right:auto;"></i>
+</div>
 
         <div style="height: 1px; background: rgba(255,255,255,0.05); margin: 10px 20px;"></div>
 
@@ -2749,6 +2770,16 @@
             <div class="sheet-action" onclick="vibrate(); toggleReadAction()">
                 <i class="fa-solid fa-circle-check"></i> <span id="markReadText">قراءة</span>
             </div>
+<div class="sheet-action" id="lockOptionBtn" onclick="vibrate(); openSetChatPassModal()">
+    <i class="fa-solid fa-lock" id="lockOptionIcon"></i> <span id="lockOptionText">قفل المحادثة</span>
+</div>
+
+
+<div class="sheet-action" onclick="vibrate(); initAddToSecret(selectedChatId)">
+    <i class="fa-solid fa-mask" style="color: #ff3b30;"></i> 
+    <span style="color: #ff3b30;">نقل للمحادثات السرية</span>
+</div>
+
             <div class="sheet-action" onclick="vibrate(); toggleMuteAction()">
                 <i class="fa-solid fa-bell-slash"></i> <span id="muteText">كتم</span>
             </div>
@@ -2816,6 +2847,14 @@
         let storyDuration = 5000;
 let areGesturesSetup = false; 
 let searchDebounceTimer;
+let pendingChatId = null; // لتخزين ID الدردشة التي نحاول فتحها
+let pendingChatName = null;
+let pendingChatUid = null;
+let pendingChatRequest = null;
+
+let secretOperation = null; // لتحديد العملية (فتح القائمة أم إضافة شات)
+let targetChatForSecret = null; // لتخزين الشات المراد إخفاؤه مؤقتاً
+let hiddenActiveUsersSet = new Set();
 
 
         const notificationAudio = document.getElementById('notificationSound');
@@ -3891,9 +3930,11 @@ function loadChats(userId) {
 
         for (const doc of snap.docs) {
             const d = doc.data();
-            
-            // تخطي المحادثات التي قمت بحذفها (Soft Delete)
-            if (d.deletedBy && d.deletedBy.includes(userId)) continue;
+            // لو الرسالة هي الشفرة والمرسل مش أنا، تجاهل الشات
+if (d.lastMessage === '__HIDDEN_START__' && d.lastSender !== userId) { continue; }
+
+          const isSoftDeleted = d.deletedBy && d.deletedBy.includes(userId);
+
 
             const lastSenderId = d.lastSender ? d.lastSender.toString() : "";
             const currentUserIdStr = userId.toString();
@@ -3906,14 +3947,26 @@ function loadChats(userId) {
                 // المجموعات لا تحتاج فلترة تكرار بنفس طريقة الأفراد
             } else {
                 otherUid = d.users.find(u => u !== userId);
+                
                 if(otherUid) {
                     const u = usersCache[otherUid] || await fetchAndCacheUser(otherUid);
                     chatName = u.name; chatAvatar = u.avatar; isVerified = u.isVerified;
                 }
             }
 
-            let previewMsg = d.lastMessage || 'بدء المحادثة';
+       let previewMsg = d.lastMessage || 'بدء المحادثة';
             let isMedia = false;
+
+            // 2. لو الرسالة هي الشفرة، نغير النص
+            if (previewMsg === '__HIDDEN_START__') {
+                previewMsg = '<span style="color:var(--accent-color); font-style:italic;">محادثة جديدة ✨</span>';
+            } 
+            // 3. لو الشات مقفول بباسورد
+            else if (d.lockPass && d.lockPass.length === 6) { 
+                previewMsg = '<span style="color:#ff3b30; font-style:italic;"><i class="fa-solid fa-lock"></i> رسالة محمية</span>';
+            }
+
+// -----------------------
             if(d.lastMessage && (d.lastMessage.includes('http') || d.lastMessage === 'صورة' || d.lastMessage === 'video' || d.type === 'image')) {
                 previewMsg = '<i class="fa-solid fa-camera"></i> صورة / وسائط'; isMedia = true;
             } else if (d.lastMessage && d.lastMessage.includes('voice_notes')) {
@@ -3925,7 +3978,7 @@ function loadChats(userId) {
                  previewMsg = '<i class="fa-solid fa-ban"></i> تم حذف رسالة';
             }
 
-            let isTyping = (d.typing && d.typing.includes(otherUid));
+                     let isTyping = (d.typing && d.typing.includes(otherUid));
 
             // إنشاء كائن الشات
             const chatObj = {
@@ -3948,8 +4001,14 @@ function loadChats(userId) {
                 isVerified,
                 isPinned: d.pinnedBy && d.pinnedBy.includes(userId),
                 isMuted: d.mutedBy && d.mutedBy.includes(userId),
-                isRequest: !isGroup && d.lastSender !== userId && !friendUids.has(otherUid)
+                isRequest: !isGroup && d.lastSender !== userId && !friendUids.has(otherUid),
+
+isSecret: d.secretBy && d.secretBy.includes(userId),
+isSoftDeleted: isSoftDeleted,
+                // 🔒 خاصية القفل: تتحقق إذا كان هناك باسورد مخزن ومكون من 6 أرقام
+                isLocked: d.lockPass && d.lockPass.length === 6
             };
+
 
             // 🔥🔥 المنطق الذكي لمنع التكرار 🔥🔥
             if (isGroup) {
@@ -3994,6 +4053,7 @@ function loadChats(userId) {
         const doc = await db.collection("users").doc(uid).get();
         if (doc.exists) {
             const d = doc.data();
+            
             
             // === [تعديل هام جداً] ===
             // حساب الأونلاين بناءً على الوقت (5 دقائق = 300000 ميللي ثانية)
@@ -4042,21 +4102,29 @@ function renderList() {
 
     // 1. تصفية المحادثات بناءً على العرض الحالي (inbox, archive, requests)
     let filteredChats = [];
-    if (currentView === 'inbox') {
-        titleText.innerText = "الدردشات";
-        filteredChats = allChats.filter(c => !c.isArchived && !c.isBlocked && !c.isRequest);
+    // التعديل: استبعاد المحادثات السرية من القائمة الرئيسية
+if (currentView === 'inbox') {
+    titleText.innerText = "الدردشات";
+    // الفلتر ده هيضمن إن الشات المحذوف ميظهرش في القائمة الرئيسية
+    filteredChats = allChats.filter(c => !c.isArchived && !c.isBlocked && !c.isRequest && !c.isSecret && !c.isSoftDeleted);
+
+        
         document.getElementById('storiesContainer').style.display = 'block';
     } else {
+
+    
         document.getElementById('storiesContainer').style.display = 'none';
 
         if (currentView === 'archive') {
             titleText.innerText = "الأرشيف";
-            filteredChats = allChats.filter(c => c.isArchived && !c.isBlocked);
+            
+             filteredChats = allChats.filter(c => c.isArchived && !c.isBlocked && !c.isSoftDeleted);
         } else if (currentView === 'requests') {
             titleText.innerText = "الطلبات";
-            filteredChats = allChats.filter(c => c.isRequest && !c.isBlocked && !c.isArchived);
+            filteredChats = allChats.filter(c => c.isRequest && !c.isBlocked && !c.isArchived && !c.isSoftDeleted);
         }
     }
+
 
     // 2. عرض رسالة فارغة إذا لم توجد محادثات
     if (filteredChats.length === 0) {
@@ -4076,6 +4144,8 @@ function renderList() {
         let displayName = c.name;
         if (c.isGroup) displayName = `<span style="background:var(--accent-color); padding:1px 5px; border-radius:4px; font-size:9px; margin-left:4px;">GR</span> ${c.name}`;
         if (c.isVerified) displayName += ` <i class="fa-solid fa-circle-check verify-badge"></i>`;
+        
+if (c.isLocked) displayName += ` <i class="fa-solid fa-lock" style="color:#aaa; font-size:10px; margin-right:5px;"></i>`;
 
         let statusIconsHTML = '';
         if (c.isPinned) statusIconsHTML += `<i class="fa-solid fa-thumbtack" style="color:var(--accent-color); font-size:10px; margin-left:4px;"></i>`;
@@ -4136,32 +4206,61 @@ let bottomContent = c.isTyping
         };
 
         // =======================================================
-        // ب) منطق الضغط على الشات (التعديل الهام للإشعارات والريستارت)
+        // منطق الضغط الموحد (مدمج فيه القفل + الإشعارات + الفتح)
         // =======================================================
-        // تعريف متغيرات السحب هنا لنستخدمها في الشرط
+        
+        // تعريف متغيرات السحب
         let startX = 0;
         let currentX = 0;
         let isDragging = false; 
 
         el.onclick = async (e) => {
-            // حماية إضافية: لو الضغطة جت على الصورة بالغلط، اخرج
+            // 1. حماية: لو داس على الصورة ميعملش حاجة (عشان يفتح البروفايل)
             if (e.target.closest('.avatar-container')) return;
             
-            // حماية هامة: لو المستخدم كان بيسحب (Swipe) وايده فلتت، لا تفتح الشات
-            if (isDragging) return; 
+            // 2. حماية: لو بيسحب الشات (Swipe) مايفتحش
+            if (typeof isDragging !== 'undefined' && isDragging) return; 
 
             vibrate();
             
-            // التعامل مع المحظورين
+            // 3. التحقق من الحظر
             if (c.isBlocked) { showToast("المستخدم محظور"); return; }
+
+            // ==========================================
+            // 🔒 4. التحقق من قفل المحادثة (الكود المهم)
+            // ==========================================
+            if (c.isLocked) {
+                console.log("الدردشة مقفلة، جاري طلب الباسورد...");
+                
+                // تخزين بيانات الشات مؤقتاً
+                pendingChatId = c.id;
+                pendingChatName = encodeURIComponent(c.name);
+                pendingChatUid = c.isGroup ? 'GROUP' : c.otherUid;
+                pendingChatRequest = c.isRequest;
+                
+                // إظهار نافذة الباسورد
+                const lockModal = document.getElementById('chatLockModal');
+                if(lockModal) {
+                    lockModal.style.display = 'flex';
+                    // تركيز المؤشر في خانة الكتابة
+                    setTimeout(() => {
+                        const passInput = document.getElementById('chatPassInput');
+                        if(passInput) {
+                            passInput.value = '';
+                            passInput.focus();
+                        }
+                    }, 100);
+                }
+                
+                return; // ⛔ وقف هنا وماتفتحش الشات إلا بعد الباسورد
+            }
+            // ==========================================
             
-            // التعامل مع الإشعارات (الحل الجذري)
+            // 5. التعامل مع الإشعارات وتصفير العداد
             if (!c.isRequest && !c.amISender && c.unreadCount > 0) {
-                // 1. إخفاء البادج فوراً (Visual Feedback)
                 const badge = el.querySelector('.unread-badge');
                 if(badge) badge.style.display = 'none';
                 
-                // 2. الانتظار حتى يتم التحديث في السيرفر فعلياً
                 try {
                     await resetUnreadCount(c.id);
                 } catch(err) {
@@ -4169,43 +4268,17 @@ let bottomContent = c.isTyping
                 }
             }
 
-            // حفظ مكان السكرول الحالي عشان لما يرجع يلاقي نفسه في نفس المكان
+            // 6. حفظ مكان السكرول والانتقال للشات
             sessionStorage.setItem('scrollPos', window.scrollY);
-
-            // الانتقال للشات
             openChat(c.id, encodeURIComponent(c.name), c.isGroup ? 'GROUP' : c.otherUid, c.isRequest);
         };
 
-        // زر الفأرة الأيمن للخيارات
+        // زر الفأرة الأيمن للخيارات (Context Menu)
         el.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             vibrate();
             openOptions(c);
         });
-
-        // ... (بعد ما خلصت الـ innerHTML فوق) ...
-
-        // =======================================================
-        // 1. منطق الضغط لفتح الشات (سيبه زي ما هو)
-        // =======================================================
-        el.onclick = async (e) => {
-            // حماية: لو داس على الصورة ميعملش حاجة هنا (لأن الصورة ليها كود لوحدها)
-            if (e.target.closest('.avatar-container')) return;
-            
-            vibrate();
-            
-            if (c.isBlocked) { showToast("المستخدم محظور"); return; }
-            
-            // تصفير العداد لو فيه رسايل مش مقروءة
-            if (!c.isRequest && !c.amISender && c.unreadCount > 0) {
-                const badge = el.querySelector('.unread-badge');
-                if(badge) badge.style.display = 'none';
-                try { await resetUnreadCount(c.id); } catch(err) {}
-            }
-
-            sessionStorage.setItem('scrollPos', window.scrollY);
-            openChat(c.id, encodeURIComponent(c.name), c.isGroup ? 'GROUP' : c.otherUid, c.isRequest);
-        };
 
         // =======================================================
         // 2. كود الضغط المطول لإظهار الخيارات (سيبه زي ما هو)
@@ -4241,15 +4314,40 @@ function resetUnreadCount(chatId) {
         function showSection(section) { currentView = section; toggleSidebar(); renderList(); }
         
         function openOptions(chat) {
-            selectedChatId = chat.id; selectedChatData = chat;
-            document.getElementById('sheetName').innerText = chat.name;
-            document.getElementById('sheetAvatar').style.backgroundImage = `url('${chat.avatar}')`;
-            document.getElementById('pinText').innerText = chat.isPinned ? "إلغاء التثبيت" : "تثبيت";
-            document.getElementById('archiveText').innerText = chat.isArchived ? "إلغاء الأرشفة" : "أرشفة";
-            document.getElementById('muteText').innerText = chat.isMuted ? "تفعيل التنبيهات" : "كتم";
-            document.getElementById('markReadText').innerText = chat.isSeen ? "تحديد كغير مقروء" : "قراءة";
-            document.getElementById('optionsModal').classList.add('active');
-        }
+    selectedChatId = chat.id; 
+    selectedChatData = chat;
+    
+    document.getElementById('sheetName').innerText = chat.name;
+    document.getElementById('sheetAvatar').style.backgroundImage = `url('${chat.avatar}')`;
+    
+    // تحديث نصوص الأزرار الموجودة
+    document.getElementById('pinText').innerText = chat.isPinned ? "إلغاء التثبيت" : "تثبيت";
+    document.getElementById('archiveText').innerText = chat.isArchived ? "إلغاء الأرشفة" : "أرشفة";
+    document.getElementById('muteText').innerText = chat.isMuted ? "تفعيل التنبيهات" : "كتم";
+    document.getElementById('markReadText').innerText = chat.isSeen ? "تحديد كغير مقروء" : "قراءة";
+
+    // ==========================================
+    // 🔥 الإضافة الجديدة: التحكم في زر القفل 🔥
+    // ==========================================
+    const lockBtn = document.getElementById('lockOptionBtn');
+    const lockText = document.getElementById('lockOptionText');
+    const lockIcon = document.getElementById('lockOptionIcon');
+
+    if (chat.isLocked) {
+        // لو الشات مقفول -> حول الزر لـ "إلغاء القفل"
+        lockText.innerText = "إلغاء القفل (فتح)";
+        lockIcon.className = "fa-solid fa-lock-open"; // أيقونة قفل مفتوح
+        lockBtn.onclick = function() { vibrate(); openUnlockModal(); }; 
+    } else {
+        // لو الشات مفتوح
+        lockText.innerText = "قفل المحادثة";
+        lockIcon.className = "fa-solid fa-lock";
+        lockBtn.onclick = function() { vibrate(); openSetChatPassModal(); };
+    }
+    // ==========================================
+
+    document.getElementById('optionsModal').classList.add('active');
+}
 
         function closeOptions() { document.getElementById('optionsModal').classList.remove('active'); }
 
@@ -4515,12 +4613,12 @@ function filterNewChatList(query) {
     
     renderNewChatList(filtered);
 }
-
-// دالة رسم العناصر داخل القائمة
+// دالة رسم العناصر داخل قائمة بدء محادثة جديدة
 function renderNewChatList(dataList) {
     const listContainer = document.getElementById('newChatListContainer');
     listContainer.innerHTML = '';
 
+    // حالة عدم وجود نتائج
     if (dataList.length === 0) {
         listContainer.innerHTML = `<div style="text-align:center; padding:20px; color:#555;">لا توجد نتائج</div>`;
         return;
@@ -4530,6 +4628,7 @@ function renderNewChatList(dataList) {
         const item = document.createElement('div');
         item.className = 'new-chat-item';
         
+        // التحقق من التوثيق
         let displayName = user.name;
         if(user.isVerified) displayName += ` <i class="fa-solid fa-circle-check" style="color:#38bdf8; font-size:12px;"></i>`;
 
@@ -4539,20 +4638,72 @@ function renderNewChatList(dataList) {
             <i class="fa-solid fa-comment-dots" style="margin-right: auto; color: var(--accent-color);"></i>
         `;
         
-        item.onclick = () => {
-            closeNewChatModal();
-            // البحث عن محادثة سابقة أو فتح جديدة
-            const existingChat = allChats.find(c => !c.isGroup && c.otherUid === user.uid);
+        // عند الضغط على المستخدم
+                // عند الضغط على المستخدم (الكود المحدث: شات خفي + إصلاح التداخل)
+        item.onclick = async () => {
+            closeNewChatModal(); // إغلاق النافذة المنبثقة أولاً
+            
+            // 1. البحث الدقيق عن شات موجود (استخدمنا String لمنع الأخطاء)
+            const existingChat = allChats.find(c => 
+                !c.isGroup && String(c.otherUid) === String(user.uid)
+            );
+            
             if (existingChat) {
+                // ✅ الحالة الأولى: وجدنا شات سابق
+                
+                // إذا كان الشات "محذوفاً مؤقتاً"، نقوم باستعادته
+                if (existingChat.isSoftDeleted) {
+                     db.collection('chats').doc(existingChat.id).update({
+                         deletedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                     }).catch(err => console.error("Error restoring chat:", err));
+
+                     existingChat.isSoftDeleted = false; 
+                }
+
+                // فتح الشات الموجود
                 openChat(existingChat.id, encodeURIComponent(user.name), user.uid, false);
+                
             } else {
-                openChat('new', encodeURIComponent(user.name), user.uid, false);
+                // ✅ الحالة الثانية: لا يوجد شات سابق (ننشئ شات خفي فوراً)
+                showToast("جاري فتح المحادثة...");
+
+                try {
+                    // إنشاء الوثيقة في الداتابيز فوراً
+                    const newChatRef = await db.collection('chats').add({
+                        users: [currentUser.uid, user.uid],
+                        type: 'DIRECT',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        
+                        // 🔥 الشفرة السرية (عشان يظهر عندك بس) 🔥
+                        lastMessage: "__HIDDEN_START__", 
+                        lastSender: currentUser.uid, 
+                        
+                        lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+                        seen: true,
+                        unreadCount: 0,
+                        
+                        // تهيئة المصفوفات لتجنب الأخطاء مستقبلاً
+                        archivedBy: [],
+                        deletedBy: [],
+                        pinnedBy: [],
+                        mutedBy: [],
+                        secretBy: []
+                    });
+
+                    // فتح الشات الجديد فوراً بالـ ID الحقيقي
+                    openChat(newChatRef.id, encodeURIComponent(user.name), user.uid, false);
+
+                } catch (error) {
+                    console.error("Error creating ghost chat:", error);
+                    showToast("حدث خطأ، حاول مرة أخرى");
+                }
             }
         };
         
         listContainer.appendChild(item);
     });
 }
+
 
 function closeNewChatModal() {
     document.getElementById('newChatModal').classList.remove('active');
@@ -4878,7 +5029,6 @@ async function sendStoryReply() {
     const input = document.getElementById('storyReplyInput');
     const text = input.value.trim();
     
-    // لو مفيش نص، منعملش حاجة
     if (!text) return;
 
     const group = storyGroups[currentGroupIndex];
@@ -4890,13 +5040,11 @@ async function sendStoryReply() {
         return;
     }
 
-    // تفريغ الحقل فوراً عشان المستخدم يحس بالسرعة
-    const msgToSend = text; // نخزن الرسالة
+    const msgToSend = text;
     input.value = ''; 
-    input.blur(); // إخفاء الكيبورد
+    input.blur();
 
     try {
-        // البحث عن الشات
         let chatId = null;
         const snapshot = await db.collection('chats')
             .where('users', 'array-contains', currentUser.uid)
@@ -4919,38 +5067,44 @@ async function sendStoryReply() {
                 lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
                 seen: false,
                 lastSender: currentUser.uid,
-                unreadCount: 1
+                unreadCount: 1,
+                deletedBy: [], // إضافة المصفوفات عشان ما يضربش في الفلترة
+                archivedBy: []
             });
             chatId = newChatRef.id;
         }
 
-        // إرسال الرسالة
+        // 🔥 الإرسال بالـ Keys الصحيحة (uid و createdAt)
         await db.collection('chats').doc(chatId).collection('messages').add({
             text: msgToSend,
-            sender: currentUser.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            uid: currentUser.uid, // كانت sender وبقت uid
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(), // كانت timestamp وبقت createdAt
             type: 'story_reply',
             storyUrl: story.url,
-            storyType: story.type
+            storyType: story.type,
+            seen: false
         });
 
         // تحديث الشات الخارجي
         await db.collection('chats').doc(chatId).update({
-            lastMessage: `رد على قصتك: ${msgToSend}`,
+            lastMessage: `💬 رد على القصة: ${msgToSend}`,
             lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
             lastSender: currentUser.uid,
             seen: false,
-            unreadCount: firebase.firestore.FieldValue.increment(1) 
+            unreadCount: firebase.firestore.FieldValue.increment(1),
+            deletedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid), // لو كان ممسوح يظهر تاني
+            deletedBy: firebase.firestore.FieldValue.arrayRemove(storyOwnerId)
         });
 
-        showToast("تم الإرسال ✅");
-        resumeFromInput();
+        showToast("تم إرسال الرد ✅");
+        if (typeof resumeFromInput === 'function') resumeFromInput();
 
     } catch (error) {
         console.error(error);
-        showToast("فشل الإرسال");
+        showToast("فشل إرسال الرد ❌");
     }
 }
+
 
 // متغير لتخزين وقت آخر ضغطة
 let lastTap = 0;
@@ -5341,51 +5495,41 @@ function closeSearchOnClickOutside(e) {
     }
 }
 
-// ================= وظيفة شريط المتصلين السريع =================
+// تعريف متغيرات المؤقت خارج الدالة
+let activeUserLongPressTimer;
+let isLongPressHandled = false;
 
 function renderQuickActiveUsers() {
     const list = document.getElementById('quickUsersList');
     const container = document.getElementById('quickUsersContainer');
     
-    // إخفاء الشريط إذا لم نكن في الصفحة الرئيسية
+    // إخفاء الشريط لو مش في الصفحة الرئيسية
     if (currentView !== 'inbox') {
         container.style.display = 'none';
         return;
     }
 
+    // تجميع البيانات (نفس الكود القديم)
     let peopleMap = new Map();
-
-    // 1. تجميع الأصدقاء
-    friendUids.forEach(uid => {
-        if (usersCache[uid]) {
-            peopleMap.set(uid, usersCache[uid]);
-        }
-    });
-
-    // 2. تجميع من راسلتهم (من قائمة الشات)
+    friendUids.forEach(uid => { if (usersCache[uid]) peopleMap.set(uid, usersCache[uid]); });
     allChats.forEach(chat => {
         if (!chat.isGroup && chat.otherUid) {
-            // نأخذ البيانات من الكاش أو من بيانات الشات نفسها كبديل
-            const cachedUser = usersCache[chat.otherUid];
-            const userData = cachedUser || {
-                uid: chat.otherUid,
-                name: chat.name,
-                avatar: chat.avatar,
-                isVerified: chat.isVerified,
-                isOnline: chat.isOnline // نعتمد على بيانات الشات المحدثة
-            };
-            peopleMap.set(chat.otherUid, userData);
+            const cachedUser = usersCache[chat.otherUid] || { uid: chat.otherUid, name: chat.name, avatar: chat.avatar, isVerified: chat.isVerified, isOnline: chat.isOnline };
+            peopleMap.set(chat.otherUid, cachedUser);
         }
     });
 
     let peopleArray = Array.from(peopleMap.values());
 
-    // 3. الترتيب: المتصلين أولاً
+    // فلترة المخفيين (إضافة مهمة عشان الإخفاء يشتغل)
+    if (typeof hiddenActiveUsersSet !== 'undefined') {
+        peopleArray = peopleArray.filter(u => !hiddenActiveUsersSet.has(u.uid));
+    }
+
+    // الترتيب
     peopleArray.sort((a, b) => {
-        // التحقق من حالة الاتصال الحقيقية (بما في ذلك إعداداتي أنا)
         const aOnline = a.isOnline && window.isOnlineFeatureEnabled;
         const bOnline = b.isOnline && window.isOnlineFeatureEnabled;
-        
         if (aOnline === bOnline) return 0;
         return aOnline ? -1 : 1;
     });
@@ -5404,13 +5548,9 @@ function renderQuickActiveUsers() {
         const item = document.createElement('div');
         item.className = 'quick-user-item';
         
-        // شرط ظهور اللمبة الخضراء:
-        // 1. المستخدم أونلاين
-        // 2. أنا مفعل الظهور (window.isOnlineFeatureEnabled)
         const isReallyOnline = user.isOnline && window.isOnlineFeatureEnabled;
         const dotDisplay = isReallyOnline ? 'block' : 'none';
-        
-        const firstName = user.name.split(' ')[0]; // الاسم الأول فقط
+        const firstName = user.name ? user.name.split(' ')[0] : "مستخدم";
 
         item.innerHTML = `
             <div class="quick-avatar-wrapper">
@@ -5420,25 +5560,187 @@ function renderQuickActiveUsers() {
             <div class="quick-user-name">${firstName}</div>
         `;
 
-        item.onclick = () => {
-            vibrate();
-            // البحث عن شات موجود لفتحه
-            const existingChat = allChats.find(c => !c.isGroup && c.otherUid === user.uid);
+        // ============================================================
+        // 🔥🔥 الجزء السحري: التفريق بين اللمسة العادية والمطولة 🔥🔥
+        // ============================================================
+
+        let pressTimer;
+        let isLongPress = false;
+
+        // 1. عند وضع الإصبع (Touch Start)
+        item.addEventListener('touchstart', (e) => {
+            isLongPress = false; // تصفير الحالة
             
-            if (existingChat) {
-                // فتح الشات الموجود
-                openChat(existingChat.id, encodeURIComponent(existingChat.name), user.uid, false);
-            } else {
-                // فتح شات جديد
-                // نستخدم خدعة بسيطة: نرسل 'new' كـ ID ليقوم النظام بمعالجته
-                const url = `chat.html?chatId=new&name=${encodeURIComponent(user.name)}&uid=${user.uid}`;
-                location.href = url;
+            // بدء عداد للضغط المطول (600 مللي ثانية)
+            pressTimer = setTimeout(() => {
+                isLongPress = true; // تم اعتبارها الآن ضغطة مطولة
+                if(navigator.vibrate) navigator.vibrate(50); // اهتزاز
+                
+                // 🔥 هنا نفتح القائمة المنبثقة 🔥
+                openActiveUserOptions(user); 
+            }, 600);
+        }, { passive: true });
+
+        // 2. عند رفع الإصبع (Touch End) - هنا يتم فتح الشات
+        item.addEventListener('touchend', (e) => {
+            clearTimeout(pressTimer); // إلغاء العداد فوراً
+
+            // لو مكنتش ضغطة مطولة (يعني المستخدم شال صباعه بسرعة)
+            if (!isLongPress) {
+                // 🔥 هنا نفتح الشات (اللمسة العادية) 🔥
+                openChatWithUserSmart(user);
+            }
+        });
+
+        // 3. لو المستخدم حرك صباعه (بيعمل سكرول) -> الغي كل حاجة
+        item.addEventListener('touchmove', () => {
+            clearTimeout(pressTimer);
+            isLongPress = true; // نعتبرها true عشان لما يشيل صباعه ميفكرش انها نقرة ويفتح الشات
+        });
+
+        // 4. دعم الماوس (للكمبيوتر)
+        item.oncontextmenu = (e) => {
+            e.preventDefault();
+            openActiveUserOptions(user); // كليك يمين يفتح القائمة
+        };
+
+        item.onclick = (e) => {
+            // لو كليك شمال بالماوس، افتح الشات
+            if (e.pointerType === 'mouse') {
+                openChatWithUserSmart(user);
             }
         };
 
         list.appendChild(item);
     });
 }
+
+// ============================================================
+// 🔥 دالة مساعدة لفتح الشات بذكاء (عشان منكررهاش) 🔥
+// (ضيف الدالة دي في أي مكان في ملف الـ JS)
+// ============================================================
+function openChatWithUserSmart(user) {
+    if(navigator.vibrate) navigator.vibrate(10); // هزة خفيفة للتأكيد
+    
+    // 1. ندور هل فيه شات قديم ولا لأ؟
+    const existingChat = allChats.find(c => !c.isGroup && c.otherUid === user.uid);
+    
+    if (existingChat) {
+        // لو لقينا شات قديم، نفتحه بالـ ID بتاعه
+        openChat(existingChat.id, encodeURIComponent(existingChat.name), user.uid, false);
+    } else {
+        // لو مفيش، نفتح شات جديد
+        // ملاحظة: تأكد إن user.name مش undefined
+        const safeName = user.name || "مستخدم";
+        const url = `chat.html?chatId=new&name=${encodeURIComponent(safeName)}&uid=${user.uid}`;
+        location.href = url;
+    }
+}
+
+// دالة مساعدة لفتح الشات (عشان منكررهاش)
+function openChatWithUserLogic(user) {
+    vibrate();
+    const existingChat = allChats.find(c => !c.isGroup && c.otherUid === user.uid);
+    
+    if (existingChat) {
+        openChat(existingChat.id, encodeURIComponent(existingChat.name), user.uid, false);
+    } else {
+        const url = `chat.html?chatId=new&name=${encodeURIComponent(user.name)}&uid=${user.uid}`;
+        location.href = url;
+    }
+}
+
+
+// فتح القائمة المنبثقة
+function openActiveUserOptions(user) {
+    selectedActiveUser = user;
+    
+    document.getElementById('activeUserSheetName').innerText = user.name;
+    document.getElementById('activeUserSheetAvatar').style.backgroundImage = `url('${user.avatar}')`;
+    
+    document.getElementById('activeUserOptionsModal').classList.add('active');
+}
+
+function closeActiveUserOptions() {
+    document.getElementById('activeUserOptionsModal').classList.remove('active');
+}
+
+// 1. عرض البروفايل
+function viewUserProfileFromSheet() {
+    location.href = `profile.html?uid=${selectedActiveUser.uid}`;
+}
+
+// 2. المراسلة
+function openChatFromSheet() {
+    const url = `chat.html?chatId=new&name=${encodeURIComponent(selectedActiveUser.name)}&uid=${selectedActiveUser.uid}`;
+    location.href = url;
+}
+
+// 3. 🔥 مشاركة جهة الاتصال (المنطق المهم) 🔥
+function startShareContactFlow() {
+    closeActiveUserOptions();
+    
+    // عرض قائمة الشاتات لاختيار هتبعتها لمين
+    const modal = document.getElementById('shareToChatModal');
+    const list = document.getElementById('shareToList');
+    list.innerHTML = '';
+    
+    modal.classList.add('active');
+    
+    // فلترة الشاتات (نعرض الأفراد والمجموعات)
+    allChats.forEach(chat => {
+        const div = document.createElement('div');
+        div.className = 'new-chat-item'; // نستخدم نفس ستايل قائمة البحث
+        div.innerHTML = `
+            <div class="nc-avatar" style="background-image: url('${chat.avatar}')"></div>
+            <div class="nc-name">${chat.name}</div>
+            <button style="margin-right:auto; background:var(--accent-color); border:none; color:#fff; padding:5px 12px; border-radius:15px;">إرسال</button>
+        `;
+        
+        div.onclick = () => {
+            sendProfileCardToChat(chat.id);
+            modal.classList.remove('active');
+        };
+        list.appendChild(div);
+    });
+}
+
+// دالة إرسال الكارت للداتابيز
+// الدالة المعدلة للإرسال من قائمة "نشط الآن"
+async function sendProfileCardToChat(targetChatId) {
+    if(!selectedActiveUser) return;
+    
+    showToast("جاري مشاركة الملف... ⏳");
+
+    try {
+        // لازم نبعت البيانات بنفس الـ Keys اللي الشات بيفهمها
+        await db.collection('chats').doc(targetChatId).collection('messages').add({
+            uid: currentUser.uid, // تغيير من sender لـ uid
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(), // تغيير من timestamp لـ createdAt
+            type: 'profile_card', 
+            profileUid: selectedActiveUser.uid,
+            profileName: selectedActiveUser.name,
+            profileImage: selectedActiveUser.avatar || '',
+            seen: false, // إضافة حالة المشاهدة
+            text: `👤 ملف شخصي: ${selectedActiveUser.name}` // نص احتياطي
+        });
+        
+        // تحديث وثيقة الشات الرئيسية عشان يظهر في القائمة بره
+        await db.collection('chats').doc(targetChatId).update({
+            lastMessage: `👤 ملف شخصي: ${selectedActiveUser.name}`,
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            lastSender: currentUser.uid,
+            seen: false,
+            unreadCount: firebase.firestore.FieldValue.increment(1)
+        });
+
+        showToast("تمت المشاركة بنجاح ✅");
+    } catch(e) {
+        console.error(e);
+        showToast("فشل الإرسال ❌");
+    }
+}
+
 // 1. دالة الأرشفة اليدوية (تحول القصة للأرشيف فوراً)
 function archiveCurrentStoryManual() {
     if(!confirm("هل تريد أرشفة القصة؟ ستختفي من العامة وتظهر في أرشيفك فقط.")) return;
@@ -5929,7 +6231,516 @@ function jumpToPinned() {
         handleSearchResultClick(window.pinnedMsgId);
     }
 }
+// 1. فتح نافذة تعيين كلمة المرور
+function openSetChatPassModal() {
+    closeOptions();
+    document.getElementById('setChatPassModal').style.display = 'flex';
+    document.getElementById('newChatPassInput').value = '';
+    document.getElementById('newChatPassInput').focus();
+}
 
+// 2. حفظ كلمة المرور في قاعدة البيانات
+async function saveChatPassword() {
+    const pass = document.getElementById('newChatPassInput').value;
+    
+    if (!pass || pass.length !== 6 || isNaN(pass)) {
+        showToast("يجب إدخال 6 أرقام فقط");
+        return;
+    }
+
+    try {
+        await db.collection('chats').doc(selectedChatId).update({
+            lockPass: pass
+        });
+        showToast("تم قفل المحادثة بنجاح 🔒");
+        document.getElementById('setChatPassModal').style.display = 'none';
+    } catch (error) {
+        console.error(error);
+        showToast("حدث خطأ أثناء الحفظ");
+    }
+}
+
+// 3. التحقق من كلمة المرور عند محاولة الفتح
+async function verifyChatPassword() {
+    const inputField = document.getElementById('chatPassInput'); // مسكنا العنصر نفسه
+    const inputPass = inputField.value;
+    
+    if (!inputPass || inputPass.length !== 6) {
+        showToast("كلمة المرور غير مكتملة");
+        return;
+    }
+
+    try {
+        const doc = await db.collection('chats').doc(pendingChatId).get();
+        if (doc.exists) {
+            const realPass = doc.data().lockPass;
+            
+            if (inputPass === realPass) {
+                // --- ✅ الباسورد صح ---
+                document.getElementById('chatLockModal').style.display = 'none';
+                openChat(pendingChatId, pendingChatName, pendingChatUid, pendingChatRequest);
+                pendingChatId = null;
+            } else {
+                // --- ❌ الباسورد غلط ---
+                triggerErrorEffect(inputField); // تشغيل التأثير الأحمر والهزاز
+            }
+        }
+    } catch (error) {
+        console.error(error);
+        showToast("حدث خطأ في التحقق");
+    }
+}
+
+// 4. إغلاق نافذة القفل
+function closeChatLockModal() {
+    document.getElementById('chatLockModal').style.display = 'none';
+    pendingChatId = null;
+}
+// ================= نظام المحادثات السرية (The Vault) - المصحح والكامل =================
+
+// 1. الدالة الرئيسية (تستدعى عند ضغط زر القائمة الجانبية)
+async function openSecretChatsFlow() {
+    toggleSidebar(); // غلق القائمة الجانبية
+    
+    // التحقق هل المستخدم لديه باسورد سري أصلاً؟
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const userData = userDoc.data();
+
+    if (userData && userData.secretPass) {
+        // لديه باسورد -> افتح نافذة التحقق للدخول للقائمة
+        secretOperation = 'OPEN_LIST';
+        openVerifySecretModal();
+    } else {
+        // ليس لديه باسورد -> افتح نافذة الإنشاء
+        // ونحدد العملية إنها فتح القائمة بعد الإنشاء
+        secretOperation = 'OPEN_LIST'; 
+        document.getElementById('setupSecretModal').style.display = 'flex';
+    }
+}
+
+// 2. دالة إضافة شات للخزنة (تستدعى من القائمة المطولة للشات)
+async function initAddToSecret(chatId) {
+    // 1. التأكد من أن المتغير معرف
+    if (typeof targetChatForSecret === 'undefined') {
+        console.error("Variable targetChatForSecret is missing!");
+        showToast("خطأ برمجي: المتغير غير معرف");
+        return;
+    }
+
+    // 2. إغلاق القائمة الجانبية
+    closeOptions(); 
+    
+    // 3. تحديد الشات المستهدف
+    targetChatForSecret = chatId;
+    console.log("Target Chat set to:", targetChatForSecret); // للتجربة في الكونسول
+    
+    // 4. التحقق من وجود كلمة سر
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const userData = userDoc.data();
+
+        if (!userData || !userData.secretPass) {
+            // لو مفيش باسورد -> نفتح نافذة الإنشاء
+            secretOperation = 'ADD_CHAT';
+            showToast("قم بإعداد كلمة سر للخزنة أولاً");
+            document.getElementById('setupSecretModal').style.display = 'flex';
+        } else {
+            // لو فيه باسورد -> نفتح نافذة التحقق
+            secretOperation = 'ADD_CHAT';
+            openVerifySecretModal();
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        showToast("حدث خطأ في الاتصال");
+    }
+}
+
+// 3. حفظ الباسورد الجديد (لأول مرة)
+async function saveNewSecretPass() {
+    const pass = document.getElementById('createSecretPass').value;
+    
+    // تحقق بسيط من الطول
+    if (pass.length < 4) { 
+        showToast("الرمز قصير جداً! يجب أن يكون 4 أرقام على الأقل"); 
+        return; 
+    }
+
+    try {
+        // حفظ الباسورد في وثيقة المستخدم
+        await db.collection('users').doc(currentUser.uid).update({
+            secretPass: pass 
+        });
+        
+        showToast("تم إنشاء الخزنة بنجاح 🔒");
+        document.getElementById('setupSecretModal').style.display = 'none';
+        
+        // 🔥 النقطة الحاسمة: تنفيذ العملية المعلقة بعد الحفظ مباشرة 🔥
+        if (secretOperation === 'ADD_CHAT' && targetChatForSecret) {
+            // لو كان جاي عشان يضيف شات، ضيفه فوراً
+            performAddToSecret();
+        } else {
+            // لو كان جاي يفتح القائمة بس، افتحها
+            renderSecretChats();
+        }
+
+    } catch (e) {
+        console.error(e);
+        // لو حصل خطأ (مثلاً الحقل مش موجود)، نستخدم set بـ merge
+        if (e.code === 'not-found' || e.message.includes('No document')) {
+             await db.collection('users').doc(currentUser.uid).set({ secretPass: pass }, { merge: true });
+             showToast("تم إنشاء الخزنة");
+             if (secretOperation === 'ADD_CHAT') performAddToSecret();
+             else renderSecretChats();
+        } else {
+            showToast("حدث خطأ في الحفظ");
+        }
+    }
+}
+
+// 4. فتح نافذة التحقق من الباسورد
+function openVerifySecretModal() {
+    document.getElementById('verifySecretModal').style.display = 'flex';
+    const input = document.getElementById('inputSecretPass');
+    input.value = '';
+    // تركيز المؤشر للكتابة فوراً
+    setTimeout(() => input.focus(), 100);
+}
+
+// 5. إغلاق نافذة التحقق
+function closeVerifySecret() {
+    document.getElementById('verifySecretModal').style.display = 'none';
+    // تصفير العمليات لإلغاء أي إجراء معلق
+    secretOperation = null;
+    targetChatForSecret = null;
+}
+
+// 6. التحقق من صحة الباسورد وتنفيذ العملية
+async function checkSecretPass() {
+    const inputPass = document.getElementById('inputSecretPass').value;
+    
+    // جلب الباسورد الحقيقي من السيرفر
+    const userDoc = await db.collection('users').doc(currentUser.uid).get();
+    const realPass = userDoc.data().secretPass;
+
+    if (inputPass === realPass) {
+        // --- الباسورد صحيح ---
+        document.getElementById('verifySecretModal').style.display = 'none';
+        
+        // تنفيذ العملية المعلقة حسب نوعها
+        if (secretOperation === 'OPEN_LIST') {
+            renderSecretChats();
+        } else if (secretOperation === 'ADD_CHAT') {
+            performAddToSecret();
+        }
+    } else {
+        // --- الباسورد خطأ ---
+        showToast("الرمز السري غير صحيح ❌");
+        if(navigator.vibrate) navigator.vibrate([100, 50, 100]); // اهتزاز للخطأ
+        document.getElementById('inputSecretPass').value = '';
+    }
+}
+
+// 7. تنفيذ نقل الشات للخزنة فعلياً (تحديث الداتابيز)
+async function performAddToSecret() {
+    // تأمين: لو مفيش شات محدد اخرج
+    if (!targetChatForSecret) return;
+    
+    showToast("جاري النقل للخزنة...");
+    try {
+        const chatRef = db.collection('chats').doc(targetChatForSecret);
+        
+        await chatRef.update({
+            // إضافة المعرف لقائمة "سري بواسطة"
+            secretBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+            
+            // إزالة من الأرشيف والتثبيت لمنع التعارض في القوائم
+            archivedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+            pinnedBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+        });
+        
+        showToast("تم النقل للمحادثات السرية بنجاح 🕵️‍♂️");
+        
+        // تصفير المتغيرات
+        targetChatForSecret = null;
+        secretOperation = null;
+        
+        // ملاحظة: الشات سيختفي تلقائياً من القائمة الرئيسية بسبب الـ Listener الموجود في loadChats
+    } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ في النقل");
+    }
+}
+
+// 8. عرض قائمة المحادثات السرية (الصفحة السوداء)
+// 8. عرض قائمة المحادثات السرية (الصفحة السوداء)
+function renderSecretChats() {
+    const page = document.getElementById('secretChatsPage');
+    const list = document.getElementById('secretList');
+    
+    // إظهار الصفحة ونقلها للبودي لضمان الظهور
+    if(page.parentNode !== document.body) document.body.appendChild(page);
+    page.style.display = 'flex';
+    
+    list.innerHTML = '<div style="text-align:center; padding:30px; color:#ff3b30;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري فك التشفير...</div>';
+
+    // فلترة الشاتات الموجودة في الذاكرة (allChats) لجلب السرية فقط
+    const secretChats = allChats.filter(c => c.isSecret === true);
+
+    list.innerHTML = '';
+    
+    if (secretChats.length === 0) {
+        list.innerHTML = `
+            <div style="text-align:center; padding:50px; color:#555;">
+                <i class="fa-solid fa-user-secret" style="font-size:50px; margin-bottom:15px;"></i><br>
+                الخزنة فارغة.<br>اضغط مطولاً على أي محادثة في الخارج لإضافتها هنا.
+            </div>`;
+        return;
+    }
+
+    // رسم الشاتات
+    secretChats.forEach(c => {
+        const item = document.createElement('div');
+        item.className = 'chat';
+        item.style.cssText = "background: linear-gradient(135deg, #1a0505 0%, #000 100%); border: 1px solid rgba(255, 59, 48, 0.2); margin-bottom: 10px;";
+        
+        // 🔥 التصحيح هنا: إظهار العداد فقط إذا لم أكن أنا المرسل 🔥
+        const showBadge = (!c.amISender && c.unreadCount > 0);
+
+        item.innerHTML = `
+            <div class="avatar-container">
+                <div class="avatar" style="background-image:url('${c.avatar}')"></div>
+            </div>
+            <div class="info">
+                <div class="top-row">
+                    <div class="name" style="color:#ff3b30;">${c.name} <i class="fa-solid fa-lock" style="font-size:10px; margin-right:5px;"></i></div> 
+                    <div class="time" style="color:#777;">${c.time}</div>
+                </div>
+                <div class="bottom-row">
+                    <div class="last" style="color:#aaa;">${c.lastMsg}</div>
+                    ${showBadge ? `<div class="unread-badge" style="background:#ff3b30;">${c.unreadCount}</div>` : ''}
+                </div>
+            </div>
+        `;
+        
+        item.onclick = () => {
+            sessionStorage.setItem('scrollPos', window.scrollY);
+            openChat(c.id, encodeURIComponent(c.name), c.isGroup ? 'GROUP' : c.otherUid, c.isRequest);
+        };
+
+        item.oncontextmenu = (e) => {
+            e.preventDefault();
+            if(navigator.vibrate) navigator.vibrate(50);
+            if(confirm("هل تريد إخراج هذه المحادثة من الوضع السري؟")) {
+                removeFromSecret(c.id);
+            }
+        };
+
+        list.appendChild(item);
+    });
+}
+
+// 9. إخراج شات من الخزنة (إلغاء السرية)
+async function removeFromSecret(chatId) {
+    try {
+        await db.collection('chats').doc(chatId).update({
+            secretBy: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+        });
+        
+        showToast("تم إظهار المحادثة للعلن");
+        
+        // إغلاق صفحة الخزنة للعودة للقائمة الرئيسية ورؤية الشات هناك
+        document.getElementById('secretChatsPage').style.display = 'none';
+        
+    } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ");
+    }
+}
+
+async function removeChatLock() {
+    closeOptions(); // إغلاق القائمة
+
+    // 1. طلب الباسورد الحالي للتأكد من هوية المالك
+    const inputPass = prompt("لإلغاء القفل، أدخل كلمة المرور الحالية:");
+    
+    if (!inputPass) return; // لو داس إلغاء
+
+    showToast("جاري التحقق...");
+
+    try {
+        // 2. جلب الباسورد الحقيقي من السيرفر
+        const doc = await db.collection('chats').doc(selectedChatId).get();
+        if (!doc.exists) return;
+
+        const realPass = doc.data().lockPass;
+
+        // 3. التحقق والحذف
+        if (inputPass === realPass) {
+            // الباسورد صح -> احذف حقل lockPass من الداتابيز
+            await db.collection('chats').doc(selectedChatId).update({
+                lockPass: firebase.firestore.FieldValue.delete()
+            });
+
+            showToast("تم إلغاء القفل بنجاح 🔓");
+            // الشات هيرجع يحدث نفسه تلقائي في القائمة
+        } else {
+            showToast("كلمة المرور خاطئة! ❌");
+        }
+
+    } catch (error) {
+        console.error(error);
+        showToast("حدث خطأ أثناء إلغاء القفل");
+    }
+}
+// 1. دالة فتح نافذة الإلغاء (دي اللي هتتحط في الزرار بدال removeChatLock القديمة)
+function openUnlockModal() {
+    closeOptions(); // نقفل القائمة السفلية الأول
+    
+    const modal = document.getElementById('unlockChatModal');
+    const input = document.getElementById('unlockPassInput');
+    
+    modal.style.display = 'flex';
+    input.value = ''; // تصفير الحقل
+    
+    // تركيز تلقائي عشان يكتب علطول
+    setTimeout(() => input.focus(), 100);
+}
+
+// 2. دالة إغلاق النافذة
+function closeUnlockModal() {
+    document.getElementById('unlockChatModal').style.display = 'none';
+}
+
+// 3. دالة تنفيذ الإلغاء (لما يضغط تأكيد)
+async function confirmUnlockAction() {
+    const inputField = document.getElementById('unlockPassInput'); // مسكنا العنصر
+    const inputPass = inputField.value;
+    
+    if (!inputPass) return showToast("اكتب الباسورد");
+
+    showToast("جاري التحقق...");
+
+    try {
+        const doc = await db.collection('chats').doc(selectedChatId).get();
+        if (!doc.exists) return;
+
+        const realPass = doc.data().lockPass;
+
+        if (inputPass === realPass) {
+            // --- ✅ الباسورد صح ---
+            await db.collection('chats').doc(selectedChatId).update({
+                lockPass: firebase.firestore.FieldValue.delete()
+            });
+            closeUnlockModal(); 
+            showToast("تم إلغاء القفل 🔓");
+            renderList(); 
+        } else {
+            // --- ❌ الباسورد غلط ---
+            triggerErrorEffect(inputField); // تشغيل التأثير الأحمر والهزاز
+        }
+
+    } catch (error) {
+        console.error(error);
+        showToast("خطأ في النظام");
+    }
+}
+
+// 4. (تحسين إضافي) تشغيل زر Enter
+document.getElementById('unlockPassInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        confirmUnlockAction();
+    }
+});
+
+// 1. فتح نافذة التغيير
+// 1. فتح نافذة التغيير (تصفير الـ 3 حقول)
+function openChangeSecretPassModal() {
+    document.getElementById('changeSecretPassModal').style.display = 'flex';
+    document.getElementById('oldSecretPass').value = '';
+    document.getElementById('newSecretPass').value = '';
+    document.getElementById('confirmSecretPass').value = ''; // تصفير حقل التأكيد
+    document.getElementById('oldSecretPass').focus();
+}
+
+// 2. تنفيذ التغيير (مع التحقق من التطابق)
+async function confirmChangeSecretPass() {
+    const oldPass = document.getElementById('oldSecretPass').value;
+    const newPass = document.getElementById('newSecretPass').value;
+    const confirmPass = document.getElementById('confirmSecretPass').value; // الحقل الجديد
+
+    // 1. التأكد إن كله مليان
+    if (!oldPass || !newPass || !confirmPass) {
+        showToast("الرجاء ملء جميع الحقول");
+        return;
+    }
+
+    // 2. 🔥 التأكد إن الجديد زي التأكيد 🔥
+    if (newPass !== confirmPass) {
+        showToast("الرمز الجديد غير متطابق! ❌");
+        // مسح حقول الجديد عشان يكتبهم تاني بتركيز
+        document.getElementById('newSecretPass').value = '';
+        document.getElementById('confirmSecretPass').value = '';
+        document.getElementById('newSecretPass').focus();
+        if(navigator.vibrate) navigator.vibrate(100);
+        return;
+    }
+
+    // 3. التأكد من الطول
+    if (newPass.length < 4) {
+        showToast("الرمز الجديد قصير جداً");
+        return;
+    }
+
+    showToast("جاري التحديث...");
+
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const currentRealPass = userDoc.data().secretPass;
+
+        // 4. التأكد إن القديم صح
+        if (oldPass !== currentRealPass) {
+            showToast("الرمز الحالي خطأ! ❌");
+            if(navigator.vibrate) navigator.vibrate(100);
+            return;
+        }
+
+        // 5. الحفظ
+        await db.collection('users').doc(currentUser.uid).update({
+            secretPass: newPass
+        });
+
+        showToast("تم تغيير الرمز بنجاح ✅");
+        document.getElementById('changeSecretPassModal').style.display = 'none';
+
+    } catch (error) {
+        console.error(error);
+        showToast("حدث خطأ أثناء التحديث");
+    }
+}
+
+function triggerErrorEffect(element) {
+    // 1. تفريغ الحقل
+    element.value = '';
+    
+    // 2. إضافة كلاس اللون الأحمر والهزة
+    element.classList.add('input-error');
+    
+    // 3. محاولة تشغيل الاهتزاز (لو الجهاز بيدعم)
+    // بنجرب نمطين مختلفين عشان نضمن إنه يشتغل على أكبر عدد من الأجهزة
+    if (navigator.vibrate) {
+        try { navigator.vibrate(400); } catch(e){} // هزة طويلة واحدة
+        try { navigator.vibrate([100, 50, 100, 50, 100]); } catch(e){} // نمط متقطع
+    }
+    
+    // 4. رسالة خطأ
+    showToast("كلمة المرور خاطئة! ❌");
+    
+    // 5. إزالة اللون الأحمر بعد ما الهزة تخلص (عشان يرجع طبيعي)
+    setTimeout(() => {
+        element.classList.remove('input-error');
+        element.focus(); // نرجع التركيز عشان يكتب تاني علطول
+    }, 500); // نص ثانية (نفس مدة الأنيميشن تقريباً)
+}
 
     </script>
     
@@ -6137,6 +6948,28 @@ function jumpToPinned() {
     };
 
 })();
+
+// دالة إخفاء المستخدم من القائمة (مؤقتاً)
+function hideActiveUser() {
+    // 1. إغلاق القائمة المنبثقة
+    closeActiveUserOptions();
+    
+    // 2. إظهار رسالة تأكيد
+    showToast("تم إخفاء المستخدم من القائمة مؤقتاً 👁️🚫");
+    
+    // 3. (اختياري) هنا يمكنك إضافة كود لإخفائه فعلياً من الـ DOM
+    // مثلاً إعادة رسم القائمة بدون هذا المستخدم، أو حفظ الإخفاء في LocalStorage
+    if (selectedActiveUser) {
+        // هذا مجرد إخفاء بصري مؤقت حتى يتم عمل Refresh
+        const userItem = document.querySelectorAll('.quick-user-item');
+        userItem.forEach(item => {
+            if(item.innerText.includes(selectedActiveUser.name.split(' ')[0])) {
+                item.style.display = 'none';
+            }
+        });
+    }
+}
+
 </script>
 <div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
     <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; background: #000; border: 1px solid #333;">
@@ -6167,6 +7000,164 @@ function jumpToPinned() {
     </div>
 
     <div class="chat-body" id="chatContainer">
+<div id="chatLockModal" class="custom-modal" style="z-index: 60000;">
+    <div class="modal-box" style="text-align: center;">
+        <h3 style="color:#fff; margin-bottom:15px;">🔒 الدردشة مقفلة</h3>
+        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">هذه المحادثة محمية بكلمة مرور.</p>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="chatPassInput" class="pro-input" placeholder="أدخل كلمة المرور (6 أرقام)" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 18px;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="verifyChatPassword()" class="btn-purple">فتح الدردشة</button>
+            <button onclick="closeChatLockModal()" class="btn-dark">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="setChatPassModal" class="custom-modal" style="z-index: 60000;">
+    <div class="modal-box" style="text-align: center;">
+        <h3 style="color:#fff; margin-bottom:15px;">🔐 تعيين قفل للدردشة</h3>
+        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">اختر كلمة مرور من 6 أرقام.</p>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="newChatPassInput" class="pro-input" placeholder="كلمة المرور الجديدة" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 18px;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="saveChatPassword()" class="btn-purple">حفظ القفل</button>
+            <button onclick="document.getElementById('setChatPassModal').style.display='none'" class="btn-dark">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="unlockChatModal" class="custom-modal" style="z-index: 70000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 0 30px rgba(0,0,0,0.8);">
+        
+        <div style="width:70px; height:70px; background:linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.3)); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255, 215, 0, 0.3);">
+            <i class="fa-solid fa-unlock-keyhole" style="font-size:30px; color:#FFD700;"></i>
+        </div>
+
+        <h3 style="color:#fff; margin-bottom:10px;">إلغاء قفل المحادثة</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:25px;">أدخل كلمة المرور الحالية لإزالة الحماية.</p>
+        
+        <div class="input-group" style="margin-bottom: 25px;">
+            <input type="password" id="unlockPassInput" class="pro-input" 
+                   placeholder="● ● ● ● ● ●" maxlength="6" 
+                   style="text-align: center; letter-spacing: 8px; font-size: 20px; border-color: rgba(255, 215, 0, 0.3); font-weight:bold; color:#FFD700;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="confirmUnlockAction()" class="btn-purple" style="background:linear-gradient(135deg, #FFD700, #d4af37); color:#000;">تأكيد الإلغاء</button>
+            <button onclick="closeUnlockModal()" class="btn-dark" style="margin-top:0;">تراجع</button>
+        </div>
+    </div>
+</div>
+
+<div id="setupSecretModal" class="custom-modal" style="z-index: 70000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #ff3b30;">
+        <div style="width:60px; height:60px; background:rgba(255, 59, 48, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-user-secret" style="font-size:30px; color:#ff3b30;"></i>
+        </div>
+        <h3 style="color:#fff; margin-bottom:10px;">إنشاء الخزنة السرية</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">قم بتعيين رمز مرور موحد لجميع محادثاتك السرية.</p>
+        
+        <input type="password" id="createSecretPass" class="pro-input" placeholder="رمز جديد (4-6 أرقام)" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
+        
+        <button onclick="saveNewSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ وإنشاء</button>
+        <button onclick="document.getElementById('setupSecretModal').style.display='none'" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+    </div>
+</div>
+
+<div id="verifySecretModal" class="custom-modal" style="z-index: 70000;">
+    <div class="modal-box" style="text-align: center;">
+        <h3 style="color:#fff; margin-bottom:15px;">🔒 منطقة محظورة</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">أدخل الرمز السري للمتابعة.</p>
+        
+        <input type="password" id="inputSecretPass" class="pro-input" placeholder="الرمز السري" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
+        
+        <button onclick="checkSecretPass()" class="btn-purple" style="background:linear-gradient(135deg, #ff3b30, #991b1b);">فتح الخزنة</button>
+        <button onclick="closeVerifySecret()" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+    </div>
+</div>
+
+<div id="secretChatsPage" class="profile-page" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; background:#000; z-index: 60000;">
+    <div class="pp-header" style="background:rgba(20,0,0,0.95); border-bottom:1px solid rgba(255,59,48,0.2); display: flex; align-items: center; justify-content: space-between; padding: 15px;">
+        
+        <div class="icon-btn" onclick="document.getElementById('secretChatsPage').style.display='none'" style="background:rgba(255,255,255,0.1); color:#fff;">
+            <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        
+        <h3 style="color:#ff3b30; margin:0;"><i class="fa-solid fa-user-secret"></i> الخزنة</h3>
+        
+        <div class="icon-btn" onclick="openChangeSecretPassModal()" style="background:rgba(255, 59, 48, 0.15); color:#ff3b30; border:1px solid rgba(255, 59, 48, 0.3);">
+            <i class="fa-solid fa-key"></i>
+        </div>
+    </div>
+    
+    <div id="secretList" style="padding:10px; overflow-y:auto; flex:1;"></div>
+</div>
+<div id="changeSecretPassModal" class="custom-modal" style="z-index: 75000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #ff3b30;">
+        <h3 style="color:#fff; margin-bottom:15px;">تغيير رمز الخزنة 🔐</h3>
+        
+        <div class="input-group" style="margin-bottom: 15px;">
+            <input type="password" id="oldSecretPass" class="pro-input" placeholder="الرمز الحالي" maxlength="6" style="text-align:center; letter-spacing:3px;">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 10px;">
+            <input type="password" id="newSecretPass" class="pro-input" placeholder="الرمز الجديد" maxlength="6" style="text-align:center; letter-spacing:3px; border-color:#ff3b30;">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="confirmSecretPass" class="pro-input" placeholder="تأكيد الرمز الجديد" maxlength="6" style="text-align:center; letter-spacing:3px; border-color:#ff3b30;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="confirmChangeSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ التغيير</button>
+            <button onclick="document.getElementById('changeSecretPassModal').style.display='none'" class="btn-dark">إلغاء</button>
+        </div>
+    </div>
+</div>
+<div class="bottom-sheet-overlay" id="activeUserOptionsModal" onclick="closeActiveUserOptions()">
+    <div class="bottom-sheet" onclick="event.stopPropagation()">
+        <div class="sheet-handle"></div>
+        
+        <div style="text-align:center; margin-bottom:20px;">
+            <div id="activeUserSheetAvatar" style="width:70px; height:70px; border-radius:50%; margin:0 auto 10px auto; background-size:cover; border:2px solid var(--accent-color);"></div>
+            <h3 id="activeUserSheetName" style="color:#fff;">اسم المستخدم</h3>
+        </div>
+        
+        <div class="sheet-action" onclick="viewUserProfileFromSheet()">
+            <i class="fa-solid fa-circle-user"></i> <span>عرض الملف الشخصي</span>
+        </div>
+
+        <div class="sheet-action" onclick="startShareContactFlow()">
+            <i class="fa-solid fa-share-nodes"></i> <span>مشاركة جهة الاتصال</span>
+        </div>
+
+        <div class="sheet-action" onclick="openChatFromSheet()">
+            <i class="fa-solid fa-comment-dots"></i> <span>مراسلة</span>
+        </div>
+        
+        <div class="sheet-action" onclick="callFromSheet()">
+            <i class="fa-solid fa-phone"></i> <span>اتصال صوتي</span>
+        </div>
+
+        <div class="sheet-action danger" onclick="hideActiveUser()">
+            <i class="fa-solid fa-eye-slash"></i> <span>إخفاء من القائمة</span>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-sheet-overlay" id="shareToChatModal" onclick="document.getElementById('shareToChatModal').classList.remove('active')">
+    <div class="bottom-sheet" onclick="event.stopPropagation()" style="height: 70vh;">
+        <div class="sheet-handle"></div>
+        <h3 style="text-align:center; color:#fff; margin-bottom:15px;">إرسال إلى...</h3>
+        <div id="shareToList" style="overflow-y:auto; padding:10px;"></div>
+    </div>
+</div>
 
 
 </body>
