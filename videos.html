@@ -3,290 +3,1005 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NABD - Watch</title>
+    <title>NABD Pro - Watch & Gifts (Optimized)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
 
     <style>
-        :root { 
-            --bg-color: #000; 
-            --primary-color: #5D5FEF; 
-            --danger-color: #ff3b30; 
-            --verified-color: #20D5EC;
-        }
+/* =========================================
+   1. المتغيرات وإعدادات الصفحة الأساسية
+   ========================================= */
+:root {
+    --primary: #F72585; 
+    --secondary: #4CC9F0;
+    --text-light: #ffffff;
+    --overlay-dark: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.9) 100%);
+    --bg-color: #0d0d0f;
+    --card-color: #161616;
+    --primary-solid: #5D5FEF;
+    --text-color: #eee;
+    --secondary-text: #aaa;
+    --border-color: #2a2a2a;
+    --danger-color: #ff3b30;
+    --success-color: #34c759;
+    --input-bg: #1f1f1f;
+    --sheet-bg: #1e1e1e;
+}
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
-        
-        body { 
-            background: var(--bg-color); 
-            color: #fff; 
-            height: 100vh; 
-            overflow: hidden; 
-            position: fixed;
-            width: 100%;
-            user-select: none;
-        }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: 'Cairo', sans-serif; }
 
-        /* --- الهيدر العائم --- */
-        .top-bar {
-            position: absolute; top: 0; left: 0; right: 0; z-index: 100;
-            padding: 15px 20px;
-            display: flex; justify-content: center; align-items: center; gap: 20px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
-        }
-        .tab-btn {
-            font-size: 16px; font-weight: 700; color: rgba(255,255,255,0.6); 
-            cursor: pointer; transition: 0.3s; position: relative; text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-        }
-        .tab-btn.active { color: #fff; font-size: 18px; transform: scale(1.1); }
-        .tab-btn.active::after {
-            content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
-            width: 20px; height: 3px; background: #fff; border-radius: 2px;
-        }
-        
-        .icon-header { position: absolute; font-size: 24px; cursor: pointer; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); color: #fff; }
-        .search-pos { left: 20px; }
-        .camera-pos { right: 20px; }
+body { background: #000; color: #fff; height: 100vh; width: 100vw; overflow: hidden; }
 
-        /* --- حاوية الفيديوهات --- */
-        .videos-feed { 
-            height: 100%; overflow-y: scroll; scroll-snap-type: y mandatory; 
-            scroll-behavior: smooth; scrollbar-width: none;
-        }
-        .videos-feed::-webkit-scrollbar { display: none; }
+/* تجميد الخلفية عند فتح القوائم */
+body.no-scroll { overflow: hidden !important; }
+body.no-scroll .app-container {
+    overflow: hidden !important;
+    pointer-events: none;
+    touch-action: none;
+}
 
-        .video-card { 
-            width: 100%; height: 100vh; position: relative; 
-            scroll-snap-align: start; scroll-snap-stop: always; 
-            background: #000; display: flex; align-items: center; justify-content: center; 
-        }
-        
-        .video-player { width: 100%; height: 100%; object-fit: cover; z-index: 1; }
-        .click-layer { position: absolute; inset: 0; z-index: 5; }
+/* =========================================
+   2. حاوية الفيديوهات (Feed & Video Slide)
+   ========================================= */
+.app-container {
+    height: 100%; width: 100%; overflow-y: scroll;
+    scroll-snap-type: y mandatory; scroll-behavior: smooth;
+    -ms-overflow-style: none; scrollbar-width: none;
+}
+.app-container::-webkit-scrollbar { display: none; }
 
-        /* --- Skeleton Loader (بديل شاشة الانتظار) --- */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-        .skeleton-card {
-            width: 100%; height: 100vh; background: #000;
-            position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden;
-            scroll-snap-align: start;
-        }
-        .skeleton-card::before {
-            content: ""; position: absolute; inset: 0;
-            background: linear-gradient(to right, #000 4%, #1a1a1a 25%, #000 36%);
-            background-size: 1000px 100%; animation: shimmer 1.5s infinite linear; z-index: 1;
-        }
-        .sk-item { position: absolute; background: #222; z-index: 2; }
-        .sk-side { right: 10px; width: 45px; height: 45px; border-radius: 50%; }
-        .sk-text { left: 20px; bottom: 80px; height: 20px; width: 60%; border-radius: 4px; }
-        .sk-text-sm { left: 20px; bottom: 50px; height: 15px; width: 40%; border-radius: 4px; }
+.video-slide {
+    height: 100dvh; width: 100%; position: relative;
+    scroll-snap-align: start; scroll-snap-stop: always;
+    background: #111; display: flex; justify-content: center; align-items: center; overflow: hidden;
+}
+
+video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.interaction-layer { position: absolute; inset: 0; z-index: 2; }
+
+/* بيانات الفيديو السفلية */
+.video-info {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 20px 20px 30px 20px; background: var(--overlay-dark);
+    z-index: 10; pointer-events: none;
+}
+.info-inner { pointer-events: auto; max-width: 80%; }
+.author-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.video-desc { font-size: 0.9rem; color: #eee; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
+
+/* الشريط الجانبي (الأزرار) */
+.side-bar {
+    position: absolute; left: 10px; bottom: 100px;
+    z-index: 20; display: flex; flex-direction: column;
+    gap: 25px; align-items: center;
+}
+.action-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; transition: transform 0.2s; }
+.action-btn:active { transform: scale(0.9); }
+
+.icon-circle {
+    width: 45px; height: 45px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);
+    border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.action-text { font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+
+/* صورة المستخدم وزر المتابعة */
+.avatar-wrapper { position: relative; margin-bottom: 10px; }
+.user-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+.follow-plus { 
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
+    background: var(--primary); width: 22px; height: 22px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 12px; color: #fff;
+}
+
+/* شريط التقدم للفيديو */
+.progress-container {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
+    background: rgba(255,255,255,0.2); z-index: 50; cursor: pointer;
+}
+.progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.1s linear; }
+
+/* أنيميشن القلب الكبير */
+.big-heart {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+    font-size: 120px; color: rgba(255, 40, 80, 0.9); z-index: 15; pointer-events: none;
+    filter: drop-shadow(0 0 10px rgba(255,0,0,0.5));
+}
+.big-heart.animate { animation: heartPop 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards; }
+
+/* زر كتم الصوت الشفاف */
+.mute-indicator {
+    position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 20px; border-radius: 50px;
+    color: rgba(255, 255, 255, 0.9); font-size: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    opacity: 0; transition: all 0.3s ease; z-index: 15; pointer-events: none;
+}
+.video-slide.muted-state .mute-indicator { opacity: 1; animation: floatIndicator 3s ease-in-out infinite; }
+
+/* اللودر الشبح (Brand Loader) */
+.brand-loader {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #000; z-index: 20; transition: opacity 0.4s ease-out;
+}
+.brand-pulse-icon {
+    margin: 0; padding: 0; font-size: 100px; color: transparent; 
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.4);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+    animation: ghostPulse 2s infinite ease-in-out;
+}
+
+/* =========================================
+   3. القوائم السفلية (Bottom Sheets)
+   ========================================= */
+.sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; backdrop-filter: blur(4px); }
+
+.bottom-sheet { 
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--sheet-bg); 
+    z-index: 201; border-radius: 24px 24px 0 0; transform: translateY(100%); 
+    transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
+    border-top: 1px solid var(--border-color); display: flex; flex-direction: column; max-height: 85vh;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5); color: #fff;
+}
+.bottom-sheet.active { transform: translateY(0); }
+.sheet-handle { width: 40px; height: 5px; background: var(--border-color); border-radius: 10px; margin: 12px auto; }
+
+.cm-header { 
+    padding: 15px 20px; border-bottom: 1px solid var(--border-color); 
+    display: flex; justify-content: space-between; align-items: center; 
+    font-weight: 800; font-size: 16px; background: var(--sheet-bg); 
+    z-index: 10; border-radius: 24px 24px 0 0; 
+}
+.cm-header i { position: relative; z-index: 100; padding: 10px !important; cursor: pointer; }
+.cm-body { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; background: var(--sheet-bg); }
+
+/* =========================================
+   4. منطقة الإدخال والفوتر المطور (Input Area)
+   ========================================= */
+.cm-footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #0d0d0f; border-top: 1px solid #222;
+    display: flex; flex-direction: column; z-index: 202;
+    transition: all 0.3s ease;
+}
+
+/* شريط الإيموجي المقترح */
+.suggested-emojis {
+    display: none; gap: 15px; padding: 10px 15px;
+    background: #0d0d0f; border-bottom: 1px solid #1a1a1a;
+    overflow-x: auto; scrollbar-width: none;
+}
+.cm-footer.expanded .suggested-emojis { display: flex; animation: slideUp 0.3s; }
+.suggested-emojis span { font-size: 24px; cursor: pointer; transition: 0.2s; }
+.suggested-emojis span:active { transform: scale(1.2); }
+
+/* حاوية الإدخال */
+.input-area-container {
+    display: flex; align-items: flex-end; padding: 10px 15px; gap: 10px;
+    background: #0d0d0f; position: relative;
+}
+
+/* الأزرار الخارجية (صور وهدايا) */
+.external-actions {
+    display: flex; gap: 5px; align-items: center; margin-bottom: 2px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 100px; opacity: 1; overflow: hidden;
+}
+.input-area-container.focused .external-actions { max-width: 0px; opacity: 0; margin: 0; padding: 0; }
+
+.ext-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; flex-shrink: 0; color: #fff; transition: 0.2s;
+}
+.ext-btn:active { transform: scale(0.95); }
+
+/* حقل الكتابة الذكي */
+.smart-input-wrapper {
+    flex: 1; background: #1f1f1f; border-radius: 20px;
+    border: 1px solid #333; min-height: 45px;
+    display: flex; align-items: center; transition: 0.3s;
+}
+.smart-textarea {
+    width: 100%; background: transparent; border: none; outline: none; color: #fff;
+    font-size: 15px; resize: none; max-height: 100px; padding: 12px 5px 12px 15px; 
+    line-height: 1.5; height: 45px;
+}
+
+/* زر الإرسال / المايك */
+.action-submit-btn {
+    width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.1); color: #fff; flex-shrink: 0; transition: 0.2s; cursor: pointer;
+}
+.action-submit-btn.send-mode { background: var(--primary); transform: scale(1.1); }
+
+/* واجهة التسجيل */
+.recording-overlay {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #1f1f1f; padding: 0 10px; border-radius: 20px; border: 1px solid rgba(255, 59, 48, 0.3);
+    position: absolute; top: 10px; left: 15px; right: 15px; height: 50px; z-index: 100;
+}
+.rec-info { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-weight: bold; }
+.rec-dot { width: 10px; height: 10px; background-color: #ff3b30; border-radius: 50%; animation: blink-rec 1s infinite; }
+
+/* =========================================
+   5. التعليقات والردود (Comments System)
+   ========================================= */
+.comment-item { display: flex; gap: 10px; margin-bottom: 18px; position: relative; }
+
+/* الأفاتار وحالة الأونلاين */
+.cm-avatar { 
+    width: 38px; height: 38px; border-radius: 50%; background: #333; 
+    flex-shrink: 0; background-size: cover; border: 1px solid var(--border-color); 
+    display: grid; place-items: center; position: relative; overflow: visible !important;
+}
+.cm-avatar.online::after {
+    content: ''; position: absolute; bottom: -2px; right: -2px;
+    width: 12px; height: 12px; background-color: #4cd964;
+    border: 2px solid #1a1a1a; border-radius: 50%; z-index: 10;
+    box-shadow: 0 0 5px rgba(76, 217, 100, 0.5);
+}
+
+.cm-content { flex: 1; max-width: 85%; }
+
+/* فقاعة التعليق */
+.cm-bubble {
+    background: #262626; border: 1px solid #333; padding: 10px 14px;
+    border-radius: 18px; border-top-right-radius: 2px; color: #eee;
+    min-width: 120px; position: relative;
+}
+.cm-bubble.owner-bubble { 
+    background: rgba(247, 37, 133, 0.25); border: 1px solid var(--primary); 
+    box-shadow: 0 0 10px rgba(247, 37, 133, 0.1); 
+}
+.cm-username { font-weight: 800; font-size: 13px; color: #ffffff !important; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.owner-badge { font-size: 10px; background: var(--primary); color: #fff; padding: 1px 6px; border-radius: 8px; }
+
+.cm-text { font-size: 15px; line-height: 1.6; color: #e0e0e0; white-space: pre-wrap; word-break: break-word; }
+.cm-text.collapsed { max-height: 60px; overflow: hidden; mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+.read-more-btn { color: var(--primary); font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 2px; display: inline-block; }
+
+.cm-meta-row { display: flex; gap: 15px; margin-top: 5px; margin-right: 12px; font-size: 11px; color: var(--secondary-text); font-weight: 600; }
+.cm-action { cursor: pointer; transition: 0.2s; }
+
+/* الردود (Tree Style) */
+.cm-bubble.colored-reply, .cm-bubble.colored-comment {
+    position: relative; transition: 0.2s; background: #1a1a1a;
+    border: 1px solid var(--user-color); border-right-width: 4px;
+    box-shadow: inset 0 0 10px -5px var(--user-color), 0 5px 15px -8px var(--user-color);
+}
+.cm-bubble.colored-reply .cm-username { color: var(--user-color) !important; filter: brightness(1.3); }
+
+.tree-connector { position: absolute; right: -24px; top: -20px; bottom: 0; width: 2px; background: #333; z-index: 0; }
+.reply-curve { position: absolute; right: -24px; top: 20px; width: 15px; height: 2px; background: #333; }
+.reply-mention-link { color: #2979ff; font-weight: 800; cursor: pointer; text-decoration: none; margin-left: 4px; }
+
+/* ألوان الفقاعات الديناميكية */
+.color-0 { --user-color: #5D5FEF; } .color-1 { --user-color: #34c759; }
+.color-2 { --user-color: #ff3b30; } .color-3 { --user-color: #ffb533; }
+.color-4 { --user-color: #bf5af2; } .color-5 { --user-color: #64d2ff; }
+.color-6 { --user-color: #ff9f0a; } .color-7 { --user-color: #ff375f; }
+.color-8 { --user-color: #ac8e68; } .color-9 { --user-color: #808080; }
+
+/* =========================================
+   6. الميديا في التعليقات (صور - فيديو - صوت)
+   ========================================= */
+/* الصور */
+.cm-media-wrapper {
+    position: relative; width: 100%; max-width: 260px; margin-top: 8px;
+    border-radius: 12px; overflow: hidden; background-color: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.cm-media-img { width: 100%; height: auto; max-height: 350px; object-fit: cover; display: block; cursor: pointer; }
+
+/* مشغل الفيديو المصغر */
+.custom-video-container {
+    position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: #000;
+}
+.custom-video-element { width: 100%; max-height: 350px; object-fit: contain; }
+.vid-center-play {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 45px; height: 45px; background: rgba(0,0,0,0.6); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #fff; pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.vid-controls {
+    position: absolute; bottom: 10px; right: 10px; left: 10px;
+    display: flex; justify-content: space-between; opacity: 0; transition: 0.3s;
+}
+.custom-video-container.playing .vid-controls, .custom-video-container:hover .vid-controls { opacity: 1; }
+.vid-btn {
+    width: 32px; height: 32px; background: rgba(0,0,0,0.6); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; backdrop-filter: blur(4px);
+}
+.vid-speed-btn { width: 35px !important; border-radius: 12px !important; font-size: 11px !important; font-weight: 900 !important; }
+
+/* مشغل الصوت (Voice Note) */
+.custom-audio-player {
+    display: flex; align-items: center; gap: 10px; background: #2a2a2a;
+    padding: 8px 12px; border-radius: 25px; width: 100%; max-width: 260px;
+    margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s;
+}
+.custom-audio-player.playing { border-color: var(--primary); background: #333; }
+.play-btn {
+    width: 35px; height: 35px; border-radius: 50%; background: var(--primary);
+    border: none; color: #fff; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; flex-shrink: 0; box-shadow: 0 4px 10px rgba(247, 37, 133, 0.3);
+}
+.audio-slider {
+    flex: 1; -webkit-appearance: none; height: 4px; background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px; outline: none; cursor: pointer;
+}
+.audio-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 12px; height: 12px; background: #fff;
+    border-radius: 50%; cursor: pointer; margin-top: -4px;
+}
+.audio-time { font-size: 11px; color: #aaa; font-weight: 600; min-width: 35px; text-align: right; font-family: monospace; }
+
+/* =========================================
+   7. نظام الهدايا الاحترافي (Pro Gift Style)
+   ========================================= */
+/* في قائمة الهدايا */
+.gift-tabs-container {
+    display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.05);
+    padding: 5px; border-radius: 15px; margin: 10px 15px; border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.gift-tab {
+    flex: 1; text-align: center; padding: 10px; border-radius: 12px; color: #888;
+    cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s;
+}
+.gift-tab.active { background: var(--primary); color: #fff; box-shadow: 0 0 15px rgba(247, 37, 133, 0.3); }
+
+.premium-gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 10px; }
+.premium-gift-card {
+    background: linear-gradient(145deg, rgba(30,30,35,0.8), rgba(20,20,25,0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 15px; padding: 15px 5px;
+    display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: 0.2s;
+}
+.premium-gift-card:active { transform: scale(0.95); border-color: var(--primary); }
+.pg-emoji { font-size: 35px; margin-bottom: 5px; }
+.pg-name { font-size: 11px; color: #fff; font-weight: bold; }
+.pg-price { font-size: 10px; color: #FFD700; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; margin-top: 3px; }
+
+/* شكل الهدية داخل التعليقات (New Gift Style) */
+.gift-wrapper-pro {
+    display: flex; align-items: flex-end; gap: 12px; width: 100%; margin-bottom: 15px; position: relative;
+}
+.gift-body {
+    display: flex; flex-direction: column; align-items: center; position: relative; padding-bottom: 10px;
+}
+.gift-hero-icon {
+    font-size: 85px; line-height: 1; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+    animation: giftFloat 3s ease-in-out infinite; z-index: 2;
+}
+.gift-gold-badge {
+    background: linear-gradient(90deg, #FFD700 0%, #FDB931 50%, #FFD700 100%);
+    background-size: 200% auto; color: #000; padding: 4px 18px;
+    border-radius: 20px; font-size: 11px; font-weight: 900; margin-top: -10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 2px solid #fff; z-index: 3;
+    animation: badgeShine 3s linear infinite; white-space: nowrap;
+}
+.gift-meta { font-size: 10px; color: #777; margin-top: 5px; font-weight: bold; }
+/* هدية مصغرة للردود */
+.reply-gift-container { transform: scale(0.85); transform-origin: right top; margin-right: -10px; margin-bottom: -10px; }
+
+.header-gift-preview {
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
+    padding: 5px 10px; border-radius: 12px; border: 1px solid #FFD700;
+}
+
+/* طبقة شفافة لغلق الهدايا */
+.gift-backdrop-layer {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 299; display: none; background: rgba(0,0,0,0);
+}
+.gift-backdrop-layer.active { display: block; }
+
+/* الاستيكرات */
+.stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; max-height: 350px; overflow-y: auto; }
+.sticker-option { font-size: 40px; text-align: center; cursor: pointer; transition: transform 0.1s; }
+.sticker-option:active { transform: scale(0.8); }
+
+/* =========================================
+   8. القوائم المنبثقة والخيارات (Modals & Menus)
+   ========================================= */
+/* القائمة العائمة (Glass Menu) */
+.floating-options-sheet {
+    position: fixed; bottom: 20px; left: 15px; right: 15px;
+    background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px; box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 10005; transform: translateY(150%); opacity: 0;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    padding: 8px; display: flex; flex-direction: column; gap: 5px;
+}
+.floating-options-sheet.active { transform: translateY(0); opacity: 1; }
+
+.compact-option {
+    display: flex; align-items: center; gap: 12px; padding: 12px 15px;
+    border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.compact-option:last-child { border-bottom: none; }
+.compact-option:active { background: rgba(255, 255, 255, 0.1); transform: scale(0.98); }
+.compact-option i { width: 25px; text-align: center; color: var(--primary); }
+.compact-option.danger-opt { color: #ff3b30; }
+.compact-option.danger-opt i { color: #ff3b30; }
+
+.cancel-btn-compact {
+    text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.05);
+    border-radius: 16px; font-weight: 800; color: #aaa; margin-top: 5px;
+}
+.popup-backdrop {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.4); z-index: 10004; display: none;
+}
+
+/* نافذة التأكيد */
+.custom-modal { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
+.modal-box { background: var(--card-color); width: 85%; max-width: 380px; border-radius: 24px; padding: 30px; border: 1px solid var(--border-color); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+
+/* التنبيهات (Toast) */
+#toast { 
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); 
+    background: #222; color: #fff; padding: 12px 24px; border-radius: 50px; 
+    opacity: 0; pointer-events: none; transition: 0.4s; z-index: 6000; 
+    display: flex; align-items: center; gap: 10px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* قائمة المنشن */
+.mention-dropdown { 
+    position: absolute; bottom: 60px; left: 15px; right: 15px; 
+    background: var(--sheet-bg); border: 1px solid var(--border-color); border-radius: 12px; 
+    max-height: 200px; overflow-y: auto; display: none; z-index: 205; 
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5); 
+}
+.mention-dropdown.active { display: block; }
+.mention-suggest-item { padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid #333; }
+
+/* =========================================
+   9. وضع السينما وعارض الصور (Lightbox)
+   ========================================= */
+/* عارض الصور */
+.lightbox {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.95); z-index: 10000;
+    display: none; align-items: center; justify-content: center;
+    backdrop-filter: blur(10px); opacity: 0; transition: opacity 0.3s ease;
+}
+.lightbox.active { display: flex; opacity: 1; }
+.lb-img {
+    max-width: 95%; max-height: 85%; border-radius: 12px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.5); transform: scale(0.9);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.lightbox.active .lb-img { transform: scale(1); }
+.lb-close { position: absolute; top: 20px; right: 20px; color: #fff; font-size: 40px; cursor: pointer; z-index: 10002; }
+.lb-save-btn {
+    position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+    background: var(--primary); color: #fff; padding: 10px 25px;
+    border-radius: 30px; font-weight: bold; display: flex; align-items: center;
+    gap: 8px; cursor: pointer; box-shadow: 0 0 20px rgba(247, 37, 133, 0.4); z-index: 10001;
+}
+
+/* وضع السينما (Fullscreen Video) */
+.fs-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 20000; display: none; flex-direction: column; 
+    justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s ease;
+}
+.fs-overlay.active { display: flex; opacity: 1; }
+.fs-video-element { width: 100%; height: 100%; object-fit: contain; }
+
+.fs-center-btn {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 70px; height: 70px; background: rgba(0,0,0,0.5); border-radius: 50%;
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    font-size: 30px; border: 1px solid rgba(255,255,255,0.3); cursor: pointer;
+}
+.fs-control-bar {
+    position: absolute; bottom: 40px; left: 20px; right: 20px;
+    display: flex; align-items: center; background: rgba(20, 20, 20, 0.85);
+    padding: 10px 15px; border-radius: 50px; backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* =========================================
+   10. الأنيميشن (Keyframes)
+   ========================================= */
+@keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes blink-rec { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+@keyframes ghostPulse { 0%, 100% { transform: scale(0.95); opacity: 0.3; } 50% { transform: scale(1.1); opacity: 0.6; filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.3)); } }
+@keyframes floatIndicator { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
+@keyframes giftFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes badgeShine { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+
+/* --- 1. إصلاح مسافة مشغل الصوت (الريكورد) --- */
+.custom-audio-player {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #2a2a2a;
+    padding: 8px 12px;
+    border-radius: 25px;
+    width: 100%;
+    max-width: 260px;
+    
+    /* التعديل هنا: ضفنا مسافة من فوق ومن تحت */
+    margin-top: 8px;      
+    margin-bottom: 12px;  /* دي اللي كانت ناقصة عشان تفصل عن اللي تحته */
+    
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: 0.3s;
+}
+
+/* --- 2. إصلاح مسافة الصور والفيديو --- */
+.cm-media-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 260px;
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: #000;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+
+    /* التعديل هنا: ضفنا مسافة من تحت */
+    margin-top: 8px;
+    margin-bottom: 12px; /* دي بتعمل فاصل بين الصورة/الفيديو واللي تحته */
+}
+
+/* =========================================
+   تحديث: واجهة المستخدم السفلية (Style Update)
+   ========================================= */
+
+/* تعديل منطقة المعلومات السفلية */
+.video-info {
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    right: 0;
+    padding: 20px 15px 40px 15px; /* مساحة من تحت عشان شريط التقدم */
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%);
+    z-index: 10; 
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+}
+
+.info-inner { 
+    pointer-events: auto; 
+    width: 100%; 
+    max-width: 80%; /* عشان ميكسيش على زراير الجنب */
+}
+/* حاوية السطر اللي فيه الصورة والاسم */
+.user-header-row {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* مسافة بين العناصر */
+    margin-bottom: 6px;
+    width: 100%; /* واخد العرض كله */
+    overflow: hidden; /* عشان مفيش حاجة تخرج بره */
+}
+
+/* الصورة */
+.header-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.9);
+    object-fit: cover;
+    flex-shrink: 0; /* عشان الصورة متفعصش لو الاسم طويل */
+}
+
+/* المنطقة اللي شايلة الاسم والتوثيق */
+.header-name-block {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1; /* ياخد المساحة المتبقية */
+    min-width: 0; /* ضروري جداً عشان الـ Truncate يشتغل */
+}
+
+/* تنسيق الاسم نفسه */
+.header-username {
+    font-weight: 700; 
+    font-size: 15px; 
+    color: #fff; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    
+    /* الخلطة السحرية للاسم الطويل */
+    white-space: nowrap;       /* يمنع النزول لسطر جديد */
+    overflow: hidden;          /* يخفي الزيادة */
+    text-overflow: ellipsis;   /* يحط ثلاث نقط ... في الآخر */
+    max-width: 100%;
+}
+
+/* علامة التوثيق */
+.verified-badge {
+    color: #20D5EC; /* اللون الأزرق السماوي */
+    font-size: 14px;
+    flex-shrink: 0; /* عشان العلامة متختفيش */
+    margin-top: 2px;
+}
+/* --- تصحيح المنطقة العلوية (Header Fix) --- */
+
+/* 1. تنسيق الاسم لضمان ظهوره */
+.header-name-block {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1; /* يأخذ المساحة المتبقية */
+    min-width: 0; /* ضروري جداً لمنع النص من الخروج */
+    justify-content: flex-start; /* التأكد من أن النص يبدأ من اليمين */
+}
+
+/* 2. تنسيق الاسم نفسه */
+.header-username {
+    display: block; /* مهم جداً عشان الـ truncating يشتغل */
+    font-weight: 700; 
+    font-size: 15px; 
+    color: #fff; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    
+    /* الخلطة السحرية للنص الطويل */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+/* 3. تنسيق زر المتابعة (إزالة المارجن المسبب للمشكلة) */
+.follow-btn-inline {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 11px; /* تكبير الخط قليلاً */
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0; /* منع الزر من الانكماش */
+    
+    /* 🔥 تم حذف margin-right: auto لأن الاسم واخد flex: 1 وهيزق الزرار لوحده */
+    margin-left: 0; 
+}
 
 
-        /* --- المعلومات --- */
-        .overlay-info { 
-            position: absolute; bottom: 25px; right: 15px; left: 80px; 
-            z-index: 10; text-shadow: 0 1px 3px rgba(0,0,0,0.8); pointer-events: none;
-        }
-        .info-content { pointer-events: auto; }
-        .v-username { font-weight: 800; font-size: 17px; color: #fff; display: flex; align-items: center; gap: 6px; }
-        .verified-badge { color: var(--verified-color); font-size: 14px; margin-right: 2px; }
-        .v-desc { font-size: 14px; line-height: 1.4; color: #eee; margin-top: 5px; }
-        .music-row { display: flex; align-items: center; gap: 8px; font-size: 13px; margin-top: 10px; }
-        .music-icon { animation: spin 4s linear infinite; }
+.follow-btn-inline:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.3);
+}
 
-        /* --- الأزرار الجانبية --- */
-        .side-actions { 
-            position: absolute; left: 10px; bottom: 100px; z-index: 20; 
-            display: flex; flex-direction: column; gap: 20px; align-items: center; 
-        }
-        .action-btn-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
-        .side-avatar { width: 48px; height: 48px; border-radius: 50%; border: 2px solid #fff; background-size: cover; display: grid; place-items: center; font-weight: bold; }
-        .follow-plus { position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%); background: var(--danger-color); color: #fff; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; transition: 0.3s; cursor: pointer; border: 2px solid #fff; }
-        .glass-icon { font-size: 32px; color: #fff; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5)); transition: 0.2s; }
-        .glass-icon:active { transform: scale(0.8); }
-        .action-label { font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+.video-desc { 
+    font-size: 13px; 
+    color: #eee; 
+    line-height: 1.4; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    margin-right: 5px; /* عشان يبقى تحت الاسم بالظبط */
+}
 
-        /* --- تأثير القلب --- */
-        .heart-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); color: var(--danger-color); font-size: 100px; z-index: 15; pointer-events: none; opacity: 0; filter: drop-shadow(0 0 20px rgba(255,59,48,0.8)); }
-        .animate-heart { animation: heartPop 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
-        @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 30% { transform: translate(-50%, -50%) scale(1.3) rotate(-15deg); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; } }
+/* تعديل الشريط الجانبي (شيلنا منه الصورة) */
+.side-bar {
+    position: absolute; 
+    left: 10px; /* خليناها شمال أو يمين حسب لغتك، هنا هي شمال عشان التيك توك العربي */
+    bottom: 120px; /* رفعناه شوية */
+    z-index: 20; 
+    display: flex; 
+    flex-direction: column;
+    gap: 20px; 
+    align-items: center;
+}
 
-        /* --- قرص الموسيقى --- */
-        .music-disc { width: 45px; height: 45px; background: #222; border-radius: 50%; border: 8px solid #111; display: grid; place-items: center; overflow: hidden; animation: spin 5s linear infinite; margin-top: 10px; }
-        .disc-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+/* تصغير أيقونات الجنب شوية عشان تبقى شيك */
+.icon-circle {
+    width: 40px; 
+    height: 40px; 
+    font-size: 20px;
+}
 
-        /* --- شريط تقدم الفيديو --- */
-        .video-progress-container {
-            position: absolute; bottom: 0; left: 0; right: 0; height: 15px; z-index: 60;
-            cursor: pointer; display: flex; align-items: flex-end; touch-action: none; 
-        }
-        .video-progress-bg {
-            width: 100%; height: 3px; background: rgba(255, 255, 255, 0.3);
-            position: relative; transition: height 0.2s;
-        }
-        .video-progress-container:active .video-progress-bg { height: 8px; }
-        .video-progress-fill {
-            height: 100%; width: 0%; background: var(--primary-color);
-            position: relative; border-radius: 0 4px 4px 0;
-        }
-        .video-progress-fill::after {
-            content: ''; position: absolute; right: -6px; top: 50%;
-            transform: translateY(-50%) scale(0); width: 12px; height: 12px;
-            background: #fff; border-radius: 50%; transition: transform 0.2s;
-            box-shadow: 0 0 5px rgba(0,0,0,0.5);
-        }
-        .video-progress-container:active .video-progress-fill::after { transform: translateY(-50%) scale(1); }
+/* --- ستايل التوثيق المطور (نبض + لمعان) --- */
+.nabd-badge {
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 4px;
+    font-size: 13px;
+    
+    /* 1. صناعة اللمعان باستخدام التدرج اللوني */
+    /* اللون الأزرق العادي، وفي النص لون أبيض (اللمعة) */
+    background: linear-gradient(
+        120deg, 
+        #1da1f2 30%, 
+        #ffffff 50%, 
+        #1da1f2 70%
+    );
+    
+    /* 2. تكبير الخلفية عشان نحركها */
+    background-size: 200% auto;
+    
+    /* 3. قص الخلفية على شكل الأيقونة فقط */
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    
+    /* 4. إضافة توهج خارجي (Glow) */
+    filter: drop-shadow(0 0 5px rgba(29, 161, 242, 0.6));
+    
+    /* 5. دمج الحركتين: اللمعان والنبض */
+    animation: 
+        shineMove 3s linear infinite,      /* حركة اللمعان */
+        heartbeat 1.5s infinite ease-in-out; /* حركة النبض */
+}
 
-        /* --- شيت التعليقات --- */
-        .overlay-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 150; display: none; backdrop-filter: blur(3px); }
-        .comments-sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #121212; height: 75vh; border-radius: 20px 20px 0 0; z-index: 200; display: flex; flex-direction: column; transform: translateY(100%); transition: 0.3s cubic-bezier(0.1, 0.7, 0.1, 1); border-top: 1px solid #333; }
-        .comments-sheet.active { transform: translateY(0); }
-        
-        .cm-item { display: flex; gap: 12px; margin-bottom: 18px; padding: 0 15px; align-items: flex-start; }
-        .cm-avatar { width: 36px; height: 36px; min-width: 36px; border-radius: 50%; background: #333; background-size: cover; background-position: center; border: 1px solid #444; display: grid; place-items: center; font-weight: bold; font-size: 12px; color: #fff; }
-        .cm-content { flex: 1; display: flex; flex-direction: column; }
-        .cm-username { font-size: 13px; color: #ccc; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; }
-        .cm-text { font-size: 14px; color: #fff; line-height: 1.4; }
-        .cm-meta { font-size: 11px; color: #777; margin-top: 6px; display: flex; gap: 15px; align-items: center; }
-        .cm-reply-link { font-weight: bold; color: #999; cursor: pointer; transition: 0.2s; }
-        .cm-reply-link:hover { color: var(--primary-color); }
+/* أنيميشن حركة اللمعان (مرور الضوء) */
+@keyframes shineMove {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 200% 50%;
+    }
+}
 
-        .reply-container { display: flex; gap: 10px; margin-top: 12px; }
-        .reply-avatar { width: 28px; height: 28px; min-width: 28px; border-radius: 50%; background: #333; background-size: cover; border: 1px solid #444; }
-        .reply-mention { color: var(--primary-color); font-weight: 700; margin-left: 4px; background: rgba(93, 95, 239, 0.1); padding: 1px 4px; border-radius: 4px; }
+/* أنيميشن النبض (الدقات) */
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    15% { transform: scale(1.2); }
+    30% { transform: scale(1); }
+    45% { transform: scale(1.2); }
+    60% { transform: scale(1); }
+    100% { transform: scale(1); }
+}
 
-        .cm-footer { padding: 10px 15px; background: #121212; border-top: 1px solid #333; display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
-        .reply-bar { display: none; justify-content: space-between; align-items: center; background: #222; padding: 8px 12px; border-radius: 8px; font-size: 12px; color: #aaa; border-right: 3px solid var(--primary-color); }
-        .input-row { display: flex; gap: 10px; align-items: center; }
-        .cm-input { flex: 1; background: #222; border: 1px solid #333; padding: 12px 20px; border-radius: 30px; color: #fff; outline: none; font-size: 14px; transition: 0.3s; }
-        .cm-input:focus { border-color: var(--primary-color); }
-        .send-btn-disabled { opacity: 0.5; pointer-events: none; cursor: default !important; }
+/* --- تصحيح المنطقة العلوية (Header Fix) --- */
 
-        /* صفحة البحث */
-        .search-overlay { position: fixed; inset: 0; background: #121212; z-index: 600; display: flex; flex-direction: column; transform: translateX(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .search-overlay.active { transform: translateX(0); }
-        .search-header { padding: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #333; }
-        .search-input { flex: 1; background: #2a2a2a; border: none; padding: 12px 15px; border-radius: 8px; color: #fff; font-size: 16px; outline: none; }
-        .search-results { flex: 1; overflow-y: auto; padding: 10px; }
-        .search-item { display: flex; align-items: center; gap: 12px; padding: 12px; border-bottom: 1px solid #222; cursor: pointer; }
-        .s-avatar { width: 45px; height: 45px; border-radius: 50%; background: #333; background-size: cover; display: grid; place-items: center; font-weight: bold; }
+/* 1. تنسيق الاسم لضمان ظهوره */
+.header-name-block {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1; /* يأخذ المساحة المتبقية */
+    min-width: 0; /* ضروري جداً لمنع النص من الخروج */
+    justify-content: flex-start; /* التأكد من أن النص يبدأ من اليمين */
+}
 
-        /* قائمة الضغط المطول */
-        .lp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 400; display: none; backdrop-filter: blur(3px); }
-        .lp-menu { position: fixed; bottom: 0; left: 0; right: 0; background: #1e1e1e; border-radius: 15px 15px 0 0; padding: 20px; z-index: 401; transform: translateY(100%); transition: 0.3s; color: #fff; }
-        .lp-menu.active { transform: translateY(0); }
-        .lp-row-icons { display: flex; justify-content: space-around; margin-bottom: 25px; }
-        .lp-icon-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
-        .lp-circle { width: 50px; height: 50px; border-radius: 50%; background: #333; display: grid; place-items: center; font-size: 20px; }
-        .lp-option { padding: 15px; border-bottom: 1px solid #333; cursor: pointer; font-size: 14px; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
-        .lp-option:last-child { border-bottom: none; }
-        .speed-control { display: flex; gap: 5px; background: #333; border-radius: 20px; padding: 2px; }
-        .speed-btn { padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
-        .speed-btn.active { background: #555; color: #fff; font-weight: bold; }
+/* 2. تنسيق الاسم نفسه */
+.header-username {
+    display: block; /* مهم جداً عشان الـ truncating يشتغل */
+    font-weight: 700; 
+    font-size: 15px; 
+    color: #fff; 
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    
+    /* الخلطة السحرية للنص الطويل */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
 
-        body.clear-mode .overlay-info, body.clear-mode .side-actions, body.clear-mode .top-bar { opacity: 0 !important; pointer-events: none !important; }
+/* 3. تنسيق زر المتابعة (إزالة المارجن المسبب للمشكلة) */
+.follow-btn-inline {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 11px; /* تكبير الخط قليلاً */
+    font-weight: bold;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0; /* منع الزر من الانكماش */
+    
+    /* 🔥 تم حذف margin-right: auto لأن الاسم واخد flex: 1 وهيزق الزرار لوحده */
+    margin-left: 0; 
+}
+
+
     </style>
 </head>
 <body>
 
-    <div class="search-overlay" id="searchOverlay">
-        <div class="search-header">
-            <i class="fa-solid fa-arrow-right" onclick="toggleSearch()" style="font-size: 20px; cursor: pointer; padding: 5px;"></i>
-            <input type="text" class="search-input" placeholder="بحث عن مستخدم..." oninput="doSearch(this.value)">
+    <div class="app-container" id="feed">
         </div>
-        <div id="searchResults" class="search-results"></div>
-    </div>
 
-    <div class="top-bar">
-        <i class="fa-solid fa-magnifying-glass icon-header search-pos" onclick="toggleSearch()"></i>
+  <div class="sheet-overlay" id="overlay" onclick="handleSmartOverlayClick()"></div>
+
+    <div class="bottom-sheet" id="cmSheet" style="height: 75vh;">
+        <div class="sheet-handle"></div>
+        <div class="cm-header">
+            <span id="cmCount">التعليقات</span>
+            <i class="fa-solid fa-xmark" onclick="closeAllSheets()" style="cursor:pointer; padding:5px"></i>
+        </div>
+        <div class="cm-body" id="cmList"></div>
         
-        <div class="tab-btn" id="tab-following" onclick="switchTab('following')">متابعك</div>
-        <div class="tab-btn active" id="tab-foryou" onclick="switchTab('foryou')">لك</div>
-        <div class="tab-btn" id="tab-trending" onclick="switchTab('trending')">الرائج</div>
-
-        <i class="fa-solid fa-camera icon-header camera-pos" onclick="window.location.href='create_media.html'"></i>
+        <div class="mention-dropdown" id="mentionDropdown"></div>
+<div class="cm-footer" id="commentFooter">
+    <div class="suggested-emojis" id="suggestedEmojis">
+        <span onclick="insertEmoji('😂')">😂</span>
+        <span onclick="insertEmoji('🥰')">🥰</span>
+        <span onclick="insertEmoji('😭')">😭</span>
+        <span onclick="insertEmoji('❤️')">❤️</span>
+        <span onclick="insertEmoji('🔥')">🔥</span>
+        <span onclick="insertEmoji('👏')">👏</span>
     </div>
 
-    <div class="videos-feed" id="feedContainer">
-        <div class="skeleton-card" id="initialSkeleton">
-            <div class="sk-item sk-side" style="bottom: 300px;"></div>
-            <div class="sk-item sk-side" style="bottom: 240px;"></div>
-            <div class="sk-item sk-side" style="bottom: 180px;"></div>
-            <div class="sk-item sk-side" style="bottom: 120px;"></div>
-            <div class="sk-item sk-text"></div>
-            <div class="sk-item sk-text-sm"></div>
-        </div>
-    </div>
+    <div class="input-area-container">
+        
+        <div id="normalModeUI" style="display: flex; width: 100%; align-items: flex-end; gap: 8px;">
+            
+            <div class="external-actions">
+                <label class="ext-btn" style="color: #4cd964;">
+                    <i class="fa-solid fa-image"></i>
+                    <input type="file" hidden accept="image/*,video/*" onchange="uploadCommentMedia(this)">
+                </label>
 
-    <div class="overlay-bg" id="cmOverlay" onclick="closeComments()"></div>
-    <div class="comments-sheet" id="cmSheet">
-        <div style="padding: 15px; text-align: center; border-bottom: 1px solid #333; font-weight: bold; font-size: 14px;">
-            التعليقات (<span id="cmCountTotal">0</span>)
-            <i class="fa-solid fa-xmark" onclick="closeComments()" style="position:absolute; left:15px; font-size:18px; cursor: pointer;"></i>
-        </div>
-        <div id="cmList" style="flex: 1; overflow-y: auto; padding-top: 15px;"></div>
-        <div class="cm-footer">
-            <div id="replyBar" class="reply-bar">
-                <span>الرد على <b id="replyToName" style="color:var(--primary-color)">...</b></span>
-                <i class="fa-solid fa-xmark" onclick="cancelReply()" style="cursor:pointer"></i>
-            </div>
-            <div class="input-row">
-                <input type="text" id="cmInput" class="cm-input" placeholder="أضف تعليقاً..." autocomplete="off">
-                <i class="fa-solid fa-paper-plane" id="sendBtnIcon" onclick="sendComment()" style="color:var(--primary-color); font-size:22px; padding:10px; cursor: pointer;"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="lp-overlay" id="lpOverlay" onclick="closeLongPressMenu()"></div>
-    <div class="lp-menu" id="lpMenu">
-        <div class="lp-row-icons">
-            <div class="lp-icon-btn" onclick="handleLongPressAction('download')">
-                <div class="lp-circle"><i class="fa-solid fa-download"></i></div>
-                <span style="font-size:12px; color:#ccc;">تنزيل</span>
-            </div>
-            <div class="lp-icon-btn" onclick="handleLongPressAction('not_interested')">
-                <div class="lp-circle"><i class="fa-regular fa-heart-crack"></i></div>
-                <span style="font-size:12px; color:#ccc;">غير مهتم</span>
-            </div>
-            <div class="lp-icon-btn" onclick="handleLongPressAction('report')">
-                <div class="lp-circle"><i class="fa-regular fa-flag"></i></div>
-                <span style="font-size:12px; color:#ccc;">إبلاغ</span>
-            </div>
-        </div>
-        <div style="background:#2a2a2a; border-radius:12px; overflow:hidden;">
-            <div class="lp-option" onclick="event.stopPropagation()">
-                <div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-gauge-high"></i> السرعة</div>
-                <div class="speed-control">
-                    <div class="speed-btn" onclick="changeSpeed(0.5, this)">0.5x</div>
-                    <div class="speed-btn active" onclick="changeSpeed(1.0, this)">1x</div>
-                    <div class="speed-btn" onclick="changeSpeed(1.5, this)">1.5x</div>
-                    <div class="speed-btn" onclick="changeSpeed(2.0, this)">2x</div>
+                <div class="ext-btn" onclick="GiftSystem.open()" style="color: #bf5af2; border-color: #bf5af2;">
+                    <i class="fa-solid fa-gift"></i>
                 </div>
             </div>
-            <div class="lp-option" onclick="toggleClearDisplay()">
-                <div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-expand"></i> شاشة خالية</div>
+
+            <div class="smart-input-wrapper">
+                <textarea id="cmInput" 
+                          class="smart-textarea" 
+                          placeholder="اكتب تعليقاً..." 
+                          rows="1" 
+                          onfocus="expandInputArea()" 
+                          oninput="handleInputTyping(this)"></textarea>
             </div>
-            <div class="lp-option" onclick="toggleAutoScroll()">
-                <div style="display:flex; align-items:center; gap:10px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> تمرير تلقائي</div>
-                <div id="autoScrollStatus" style="font-size:12px; color:#aaa;">إيقاف</div>
+
+            <div id="dynamicActionBtn" class="action-submit-btn mic-mode" onclick="toggleRecording()">
+                <i class="fa-solid fa-microphone" id="mainMicIcon"></i>
+                <i class="fa-solid fa-paper-plane" id="mainSendIcon" style="display: none;"></i>
+            </div>
+        </div>
+
+        <div id="recordingModeUI" class="recording-overlay" style="display: none;">
+            <div class="action-submit-btn" style="color:#ff3b30; background:rgba(255,59,48,0.1)" onclick="cancelRecording()">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <div class="rec-info">
+                <div class="rec-dot"></div> <span id="recordTimer">00:00</span>
+            </div>
+            <div class="action-submit-btn" style="background:var(--primary)" onclick="stopAndSendRecording()">
+                <i class="fa-solid fa-paper-plane" style="transform: rotate(180deg) scaleX(-1);"></i> 
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    </div>
+
+<div class="bottom-sheet" id="repliesSheet" style="height: 75vh; border-radius: 24px 24px 0 0;">
+    <div class="sheet-handle"></div>
+    
+    <div class="cm-header">
+        <i class="fa-solid fa-arrow-right" onclick="closeRepliesSheet()" style="cursor:pointer; padding:5px; font-size:18px;"></i>
+        <span style="flex:1; text-align:center;">الردود</span>
+        <i class="fa-solid fa-xmark" onclick="closeRepliesSheet()" style="cursor:pointer; padding:5px; font-size:18px;"></i>
+    </div>
+
+    <div class="cm-body" id="repliesList" style="padding-bottom: 90px;"></div>
+
+    <div class="cm-footer" id="replyFooter">
+        <div class="input-area-container">
+            
+            <div id="replyNormalModeUI" style="display: flex; width: 100%; align-items: flex-end; gap: 8px;">
+                
+                <div class="external-actions" id="replyExternalActions">
+                    <label class="ext-btn" style="color: #4cd964;">
+                        <i class="fa-solid fa-image"></i>
+                        <input type="file" hidden accept="image/*,video/*" onchange="uploadReplyMedia(this)">
+                    </label>
+
+                    <div class="ext-btn" onclick="GiftSystem.openForReply()" style="color: #bf5af2; border-color: #bf5af2;">
+                        <i class="fa-solid fa-gift"></i>
+                    </div>
+                </div>
+
+                <div class="smart-input-wrapper">
+                    <textarea id="replyInput" 
+                              class="smart-textarea" 
+                              placeholder="اكتب رداً..." 
+                              rows="1" 
+                              onfocus="expandReplyInputArea()" 
+                              oninput="handleReplyTyping(this)"></textarea>
+                </div>
+
+                <div id="replyDynamicActionBtn" class="action-submit-btn mic-mode" onclick="toggleReplyRecording()">
+                    <i class="fa-solid fa-microphone" id="replyMicIcon"></i>
+                    <i class="fa-solid fa-paper-plane" id="replySendIcon" style="display: none;"></i>
+                </div>
+            </div>
+
+            <div id="replyRecordingModeUI" class="recording-overlay" style="display: none;">
+                <div class="action-submit-btn" style="color:#ff3b30; background:rgba(255,59,48,0.1)" onclick="cancelReplyRecording()">
+                    <i class="fa-solid fa-trash-can"></i>
+                </div>
+                
+                <div class="rec-info">
+                    <div class="rec-dot"></div> <span id="replyRecordTimer">00:00</span>
+                </div>
+                
+                <div class="action-submit-btn" style="background:var(--primary)" onclick="stopAndSendReplyRecording()">
+                    <i class="fa-solid fa-paper-plane" style="transform: rotate(180deg) scaleX(-1);"></i> 
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+    <div class="bottom-sheet" id="giftSheet" style="height: 60vh;">
+        <div class="sheet-handle"></div>
+        <h3 style="color:var(--text-color); text-align:center; margin-bottom:10px; font-size: 16px;">
+            <i class="fa-solid fa-gift" style="color:var(--primary)"></i> متجر الهدايا
+        </h3>
+        <div class="gift-tabs-container">
+            <div class="gift-tab active" onclick="GiftSystem.switch('gifts', this)">هدايا</div>
+            <div class="gift-tab" onclick="GiftSystem.switch('stickers', this)">ملصقات</div>
+        </div>
+        <div id="giftSystemContent" style="flex:1; overflow-y:auto;"></div>
+    </div>
+
+    <div class="bottom-sheet" id="stickerSheet" style="height: auto; max-height: 60vh; z-index: 250;">
+        <div class="sheet-handle"></div>
+        <div style="padding: 15px; text-align: center; font-weight: 800; border-bottom: 1px solid var(--border-color); color:var(--text-color)">
+            استيكرات
+        </div>
+        <div class="stickers-grid" id="stickersGrid"></div>
+    </div>
+
+    <div class="bottom-sheet" id="commentOptionsSheet" style="height: auto;">
+        <div class="sheet-handle"></div>
+        <div id="cmOwnerOptions">
+            <div class="c-option-item" onclick="triggerEditComment()"><i class="fa-solid fa-pen"></i> تعديل التعليق</div>
+            <div class="c-option-item" onclick="triggerReplyComment()"><i class="fa-solid fa-reply"></i> رد</div>
+            <div class="c-option-item" onclick="triggerCopyComment()"><i class="fa-regular fa-copy"></i> نسخ</div>
+            <div class="c-option-item danger" onclick="triggerDeleteComment()"><i class="fa-solid fa-trash"></i> حذف التعليق</div>
+        </div>
+        <div id="cmViewerOptions" style="display:none">
+            <div class="c-option-item" onclick="triggerReplyComment()"><i class="fa-solid fa-reply"></i> رد</div>
+            <div class="c-option-item" onclick="triggerCopyComment()"><i class="fa-regular fa-copy"></i> نسخ</div>
+            <div id="ownerDeleteBtn" class="c-option-item danger" style="display:none" onclick="triggerDeleteComment()"><i class="fa-solid fa-trash"></i> حذف التعليق</div>
+            <div class="c-option-item danger" onclick="reportComment()"><i class="fa-solid fa-triangle-exclamation"></i> إبلاغ</div>
+        </div>
+    </div>
+
+
+    <div class="custom-modal" id="chicConfirmModal" style="z-index: 9999;">
+        <div class="modal-box">
+            <div style="font-size: 40px; margin-bottom: 15px;" id="chicIcon"></div>
+            <h3 id="chicTitle" style="margin-bottom: 10px; color: var(--text-color);">تأكيد</h3>
+            <p id="chicMessage" style="color: var(--secondary-text); font-size: 14px; margin-bottom: 25px; line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" onclick="closeChicModal()" style="flex: 1; padding: 10px; background: #333; color: #fff; border-radius: 10px;">إلغاء</button>
+                <button class="btn" id="chicConfirmBtn" style="flex: 1; padding: 10px; background: var(--danger-color); color: #fff; border-radius: 10px;">تأكيد</button>
             </div>
         </div>
     </div>
+
+    <div id="toast"><i class="fa-solid fa-check-circle" style="color:var(--success-color)"></i> <span id="toastMsg"></span></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
     <script>
-        moment.locale('ar');
+        // --- 1. إعدادات Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
             authDomain: "pools-e4381.firebaseapp.com",
@@ -296,534 +1011,2397 @@
             appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
         };
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore(), auth = firebase.auth();
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+        
+        moment.locale('ar');
 
-        let currentUser = null, currentVideoId = null, replyData = null;
-        let followingSet = new Set();
-        let currentTab = 'foryou'; 
-        let clickTimer = null;
+        // --- 2. المتغيرات العامة ---
+        let currentUser = null;
+        let currentUserData = null;
+        let lastDoc = null; 
+        let isLoading = false;
+
+        let currentOpenVideoId = null;
+        let currentPostOwnerUid = null;
+        let selectedComment = null; 
+        let selectedReply = null;
+        let isEditingComment = false;
+        let isEditingReply = false;
         let pressTimer;
-        let isLongPress = false;
-        let currentVideoElement = null;
-        let isAutoScroll = false;
-        let isSendingComment = false;
+        let currentParentComment = null;
+        let currentSubReplyTarget = null;
+        let isGhost = false;
+        let commentsUnsub = null;
+        let replyListener = null;
 
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let recordInterval;
+        let isRecording = false;
+let isGlobalMuted = true; 
+
+        const stickerCollection = ["🤣", "😂", "😅", "🥹", "😍", "🥰", "😘", "🤪", "😎", "😭", "😢", "😤", "😡", "🤬", "🤯", "😳", "😱", "😴", "🤮", "🤡", "💀", "👻", "👽", "💩", "👍", "👎", "👌", "✌️", "❤️", "💔", "🔥", "✨"];
+        const ghostColors = ["#ff0000", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#ff9900", "#9900ff", "#ffffff", "#00ff99"];
+
+        // --- 3. تشغيل التطبيق ---
         auth.onAuthStateChanged(async user => {
-            if (user) { 
-                currentUser = user; 
-                await loadFollowing(); 
-                loadVideos(); 
-            } 
-            else location.href='index.html'; 
+            if(user) {
+                currentUser = user;
+                const uDoc = await db.collection('users').doc(user.uid).get();
+                if(uDoc.exists) {
+                    currentUserData = uDoc.data();
+                    if(currentUserData.isGhost) isGhost = true;
+                }
+                loadVideos(true);
+            } else {
+                console.log("User not logged in");
+            }
         });
 
-        async function loadFollowing() {
-            try {
-                const snap = await db.collection('users').doc(currentUser.uid).collection('following').get();
-                snap.forEach(doc => followingSet.add(doc.id));
-            } catch(e){}
+        // --- 4. منطق الفيديو (Feed Logic) ---
+        async function loadVideos(isInitial = false) {
+    if (isLoading) return;
+    isLoading = true;
+
+    const feed = document.getElementById('feed');
+    let query = db.collection('posts').orderBy('createdAt', 'desc').limit(5);
+
+    if (!isInitial && lastDoc) {
+        query = query.startAfter(lastDoc);
+    }
+
+    try {
+        const snapshot = await query.get();
+        if (snapshot.empty) {
+            isLoading = false;
+            return;
         }
 
-        // --- نظام التحكم في الفيديو (الديكتاتور) ---
-        function playTargetVideo(targetVid) {
-            const allVideos = document.querySelectorAll('video');
-            for (let i = 0; i < allVideos.length; i++) {
-                if (allVideos[i] !== targetVid) {
-                    allVideos[i].pause();
-                    allVideos[i].currentTime = 0;
-                }
-            }
+        lastDoc = snapshot.docs[snapshot.docs.length - 1];
 
-            if (targetVid.paused) {
-                currentVideoElement = targetVid;
-                var playPromise = targetVid.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => { targetVid.muted = false; })
-                    .catch(error => { targetVid.muted = true; targetVid.play(); });
+        for (const doc of snapshot.docs) {
+            const data = doc.data();
+            const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+
+            if (videoMedia) {
+                // 1. تجهيز المتغيرات (الاسم، الصورة، والتوثيق)
+                let uName = "Unknown";
+                let uPic = "";
+                let isVerified = false; // المتغير الجديد
+
+                try {
+                    const uSnap = await db.collection('users').doc(data.uid).get();
+                    if (uSnap.exists) {
+                        const uData = uSnap.data();
+                        
+                        uName = uData.name || "مستخدم";
+                        uPic = uData.profilePic || "";
+                        
+                        // 2. جلب حالة التوثيق من الداتابيز
+                        isVerified = uData.isVerified || false; 
+                    }
+                } catch (e) {
+                    console.error("Error fetching user data:", e);
                 }
+
+                // 3. إرسال التوثيق (isVerified) مدمجاً مع بيانات الفيديو
+                const cardHTML = createVideoCard(
+                    doc.id, 
+                    { ...data, isVerified: isVerified }, // التعديل هنا مهم جداً
+                    videoMedia.url, 
+                    uName, 
+                    uPic, 
+                    data.uid
+                );
+                
+                feed.insertAdjacentHTML('beforeend', cardHTML);
+
+                const newCard = document.getElementById(`slide-${doc.id}`);
+                if (newCard) observer.observe(newCard);
             }
         }
+    } catch (e) {
+        console.error("Error loading videos:", e);
+    }
+    isLoading = false;
+}
 
+        function createVideoCard(id, data, url, uName, uPic, ownerUid) {
+    const isLiked = data.likes && data.likes[currentUser.uid];
+    const mutedClass = isGlobalMuted ? 'muted-state' : '';
+    
+    // 1. التوثيق (نتأكد إنه بيقرا من البيانات اللي جاية)
+    const isVerified = data.isVerified || false;
+    const verifiedBadgeHTML = getBadge(isVerified, false); 
+
+    // 2. 🔥 معالجة الاسم (عشان يظهر الاسم الأول أو الاسمين بس)
+    const displayName = formatSmartName(uName);
+
+    return `
+    <div class="video-slide ${mutedClass}" id="slide-${id}" data-id="${id}">
+    
+        <div class="brand-loader" id="loader-${id}">
+            <i class="fa-solid fa-heart-pulse brand-pulse-icon"></i>
+        </div>
+        
+        <div class="mute-indicator">
+            <i class="fa-solid fa-volume-xmark"></i> 
+        </div>
+
+        <video id="vid-${id}" loop playsinline muted preload="none" poster="${data.thumbnail || ''}">
+            <source src="${url}" type="video/mp4">
+        </video>
+        
+        <i class="fa-solid fa-heart big-heart" id="heart-anim-${id}"></i>
+        
+        <div class="interaction-layer" 
+             onclick="handleSingleClick('${id}')" 
+             ondblclick="handleDoubleClick('${id}')"></div>
+
+        <div class="side-bar">
+            <div class="action-btn" onclick="toggleLike('${id}')">
+                <div class="icon-circle">
+                    <i class="fa-solid fa-heart" id="like-icon-${id}" style="color: ${isLiked ? '#F72585' : '#fff'}"></i>
+                </div>
+                <span class="action-text" id="like-count-${id}">${data.likes ? Object.keys(data.likes).length : 0}</span>
+            </div>
+
+            <div class="action-btn" onclick="openComments('${id}', '${ownerUid}')">
+                <div class="icon-circle"><i class="fa-solid fa-comment-dots"></i></div>
+                <span class="action-text" id="comment-count-${id}">${data.commentsCount || 0}</span>
+            </div>
+
+            <div class="action-btn" onclick="shareVideo('${id}', '${data.text}')">
+                <div class="icon-circle"><i class="fa-solid fa-share"></i></div>
+                <span class="action-text">مشاركة</span>
+            </div>
+            
+             <div class="action-btn">
+                <div class="icon-circle" style="background:none; border:none; box-shadow:none;"><i class="fa-solid fa-ellipsis" style="font-size:25px;"></i></div>
+            </div>
+        </div>
+
+        <div class="video-info">
+            <div class="info-inner">
+                
+                <div class="user-header-row">
+                    <img src="${uPic || 'https://via.placeholder.com/50'}" class="header-avatar" onclick="location.href='profile.html?uid=${ownerUid}'">
+                    
+                    <div class="header-name-block" onclick="location.href='profile.html?uid=${ownerUid}'">
+                        <span class="header-username" dir="auto">${displayName}</span> ${verifiedBadgeHTML}
+                    </div>
+
+                    <div class="follow-btn-inline" onclick="toggleFollow('${ownerUid}', this)">متابعة</div>
+                </div>
+
+                <div class="video-desc">${data.text || ''}</div>
+                
+                <div style="font-size:12px; color:#fff; display:flex; align-items:center; gap:5px; margin-top:5px; opacity:0.8;">
+                    <i class="fa-solid fa-music"></i> 
+                    <marquee scrollamount="4" style="width:150px;">الصوت الأصلي - ${displayName}</marquee>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="progress-container" onclick="seekVideo(event, '${id}')">
+            <div class="progress-bar" id="prog-${id}"></div>
+        </div>
+    </div>`;
+}
+
+
+        const observerOptions = { root: document.getElementById('feed'), threshold: 0.6 };
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                const vid = entry.target;
-                if (entry.isIntersecting && entry.intersectionRatio > 0.8) {
-                    if (vid.dataset.manualPause !== "true") {
-                        playTargetVideo(vid); 
-                    }
-                    vid.onended = () => {
-                        if (isAutoScroll) {
-                            document.querySelector('.videos-feed').scrollBy({ top: window.innerHeight, behavior: 'smooth' });
-                        } else {
-                            vid.play();
-                        }
-                    };
+                const slide = entry.target;
+                const vid = slide.querySelector('video');
+                const id = slide.dataset.id;
+                if (entry.isIntersecting) {
+                    playVideo(vid, id);
+                    if(slide.nextElementSibling === null) loadVideos();
                 } else {
-                    vid.pause();
+                    pauseVideo(vid);
                 }
             });
-        }, { threshold: [0.8] });
+        }, observerOptions);
 
-        // --- تحميل الفيديوهات مع إزالة الـ Skeleton ---
-        async function loadVideos() {
-            // ملاحظة: لا نعرض Loader، الـ Skeleton موجود بالفعل في HTML
-            const container = document.getElementById('feedContainer');
-            // لا نفرغ الـ container الآن حتى لا تختفي الشاشة الوهمية
+        // --- 1. دالة التشغيل المحدثة (الذكية) ---
+function playVideo(vid, id) {
+    const loader = document.getElementById(`loader-${id}`);
+    const slide = document.getElementById(`slide-${id}`); 
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const mode = urlParams.get('mode'); 
-            const targetUid = urlParams.get('uid'); 
-            const startAtId = urlParams.get('startAt') || urlParams.get('post');
+    // تحديث شريط التقدم
+    vid.ontimeupdate = () => {
+        const pct = (vid.currentTime / vid.duration) * 100;
+        const prog = document.getElementById(`prog-${id}`);
+        if(prog) prog.style.width = `${pct}%`;
+    };
 
-            let allVideos = [];
+    // إدارة اللودر
+    vid.onwaiting = () => { if(loader) loader.style.display = 'block'; };
+    vid.onplaying = () => { if(loader) loader.style.display = 'none'; };
 
-            try {
-                let q;
-                const postsRef = db.collection('posts');
+    // 1. إعداد الحالة المبدئية بناءً على وضع التطبيق
+    if (isGlobalMuted) {
+        vid.muted = true;
+        if(slide) slide.classList.add('muted-state');
+    } else {
+        vid.muted = false;
+        if(slide) slide.classList.remove('muted-state');
+    }
 
-                if (mode === 'profile' && targetUid) {
-                    document.querySelector('.top-bar').style.display = 'none'; 
-                    q = postsRef.where('uid', '==', targetUid).orderBy('createdAt', 'desc').limit(50);
-                } 
-                else {
-                    document.querySelector('.top-bar').style.display = 'flex'; 
-                    
-                    if (startAtId && !mode) {
-                        const targetDoc = await postsRef.doc(startAtId).get();
-                        if (targetDoc.exists) {
-                            const d = targetDoc.data();
-                            const vObj = d.media && d.media.find(m => m.type === 'video');
-                            if (vObj) allVideos.push({ id: targetDoc.id, ...d, videoUrl: vObj.url, poster: vObj.thumbnail || "" });
-                        }
-                    }
+    // 2. محاولة التشغيل (الذكية)
+    var playPromise = vid.play();
 
-                    if (currentTab === 'trending') q = postsRef.orderBy('commentsCount', 'desc').limit(50); 
-                    else if (currentTab === 'following') q = postsRef.orderBy('createdAt', 'desc').limit(50);
-                    else q = postsRef.orderBy('createdAt', 'desc').limit(50); 
+    if (playPromise !== undefined) {
+        playPromise
+        .then(_ => {
+            // نجح التشغيل! (سواء بصوت أو بدون)
+            // لا تفعل شيئاً، الفيديو يعمل الآن
+            if(loader) loader.style.display = 'none';
+        })
+        .catch(error => {
+            // فشل التشغيل (غالباً بسبب منع الصوت)
+            console.log("Autoplay blocked, switching to muted...");
+
+            // 🔥 الحل: الإجبار على الوضع الصامت والتشغيل فوراً
+            vid.muted = true;
+            if(slide) slide.classList.add('muted-state'); // أظهر زر "اضغط للصوت"
+            
+            // محاولة ثانية مؤكدة
+            vid.play().then(() => {
+                 if(loader) loader.style.display = 'none';
+                 
+            });
+        });
+    }
+}
+
+
+// --- 2. دالة الإيقاف المحدثة (بتنضف اللودر) ---
+function pauseVideo(vid) { 
+    vid.pause(); 
+    
+    // 🔥 أهم تعديل: نخفي اللودر لما الفيديو يقف
+    // عشان لو قلبت بسرعة ميفضلش يلف في الفيديو اللي فات
+    const id = vid.id.split('-')[1]; // بنجيب رقم الفيديو من الـ ID بتاعه
+    const loader = document.getElementById(`loader-${id}`);
+    if(loader) loader.style.display = 'none';
+}
+
+        function pauseVideo(vid) { vid.pause(); }
+        
+        function seekVideo(e, id) {
+            e.stopPropagation();
+            const vid = document.getElementById(`vid-${id}`);
+            const rect = e.currentTarget.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            vid.currentTime = pct * vid.duration;
+        }
+
+        // --- تعديل: تحسين استجابة الضغط وإلغاء الكتم ---
+let lastClickTime = 0;
+
+function handleSingleClick(id) {
+    const slide = document.getElementById(`slide-${id}`); // الكارت نفسه
+    const vid = document.getElementById(`vid-${id}`);     // الفيديو
+    const now = new Date().getTime();
+
+    if (now - lastClickTime < 250) { 
+        handleDoubleClick(id); 
+        lastClickTime = now;
+        return;
+    }
+    lastClickTime = now;
+
+    setTimeout(() => {
+        if (new Date().getTime() - lastClickTime < 250) return;
+
+        // الحالة 1: الصوت مكتوم (أول مرة تضغط)
+        if (isGlobalMuted) {
+            isGlobalMuted = false;
+            vid.muted = false;
+            
+            // 👇 إخفاء الزر الشفاف من الفيديو ده ومن كل الفيديوهات
+            slide.classList.remove('muted-state');
+            document.querySelectorAll('.video-slide').forEach(s => s.classList.remove('muted-state'));
+            document.querySelectorAll('video').forEach(v => v.muted = false);
+            
+            return;
+        }
+
+        // الحالة 2: الصوت شغال (توقف أو تشغل)
+        if (vid.paused) {
+            vid.play();
+        } else {
+            vid.pause();
+        }
+
+    }, 250);
+}
+
+
+        function handleDoubleClick(id) {
+            const heart = document.getElementById(`heart-anim-${id}`);
+            heart.classList.add('animate'); setTimeout(() => heart.classList.remove('animate'), 1000);
+            const icon = document.getElementById(`like-icon-${id}`);
+            if(icon.style.color !== 'rgb(247, 37, 133)') toggleLike(id);
+        }
+
+        function toggleLike(id) {
+            const icon = document.getElementById(`like-icon-${id}`);
+            const countSpan = document.getElementById(`like-count-${id}`);
+            let count = parseInt(countSpan.innerText);
+            const isLiked = icon.style.color === 'rgb(247, 37, 133)';
+            
+            if(isLiked) {
+                icon.style.color = '#fff'; countSpan.innerText = count - 1;
+                db.collection('posts').doc(id).update({ [`likes.${currentUser.uid}`]: firebase.firestore.FieldValue.delete() });
+            } else {
+                icon.style.color = '#F72585'; countSpan.innerText = count + 1;
+                db.collection('posts').doc(id).update({ [`likes.${currentUser.uid}`]: true });
+            }
+        }
+
+        // =========================================================================
+        // ==================== منطق التعليقات (المُحسن) =========================
+        // =========================================================================
+
+        function getGhostIdentity(uid) {
+            if (!uid) return { id: '0000', color: '#ff0000' };
+            let hash = 0;
+            for (let i = 0; i < uid.length; i++) hash = uid.charCodeAt(i) + ((hash << 5) - hash);
+            hash = Math.abs(hash);
+            const ghostID = (hash % 9000) + 1000;
+            const colorIndex = hash % ghostColors.length;
+            return { id: ghostID, color: ghostColors[colorIndex] };
+        }
+
+        function generateColor(uid) {
+            const c=["#5D5FEF","#34c759","#ff3b30","#ffb533","#2AF598","#009EFD"];
+            let h=0; for(let i=0;i<uid.length;i++) h=uid.charCodeAt(i)+((h<<5)-h);
+            return c[Math.abs(h)%c.length];
+        }
+
+        // متغير عشان نتأكد إننا شغلنا المنشن مرة واحدة بس
+let isMentionSetup = false; 
+
+function openComments(pid, ownerUid) {
+    currentOpenVideoId = pid;
+    currentPostOwnerUid = ownerUid;
+    
+    // 1. تجميد الخلفية
+    document.body.classList.add('no-scroll'); 
+    
+    // 2. إظهار القوائم
+    document.getElementById('overlay').style.display = 'block';
+    document.getElementById('cmSheet').classList.add('active');
+
+    // 3. 🔥 التعديل الهام: تنظيف القائمة تماماً قبل تحميل الجديد
+    const list = document.getElementById('cmList');
+    list.innerHTML = '<div id="loading-spinner" style="text-align:center; padding:20px; color:#aaa"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
+
+    // 4. تفريغ خانة الكتابة وإعدادها
+    resetCommentInput();
+    
+    // تشغيل المنشن مرة واحدة فقط عشان ميتكررش
+    if (!isMentionSetup) {
+        setupMentionListener('cmInput', 'mentionDropdown');
+        isMentionSetup = true;
+    }
+
+    // 5. إيقاف المستمع القديم (عشان منجبش تعليقات الفيديو اللي فات)
+    if(commentsUnsub) commentsUnsub(); 
+
+    // 6. تشغيل المستمع الجديد
+    commentsUnsub = db.collection("posts").doc(pid).collection("comments")
+    .orderBy('createdAt', 'asc')
+    .onSnapshot(snap => {
+        // أول ما البيانات توصل، شيل علامة التحميل
+        const spinner = document.getElementById('loading-spinner');
+        if(spinner) spinner.remove();
+
+        // تحديث العداد
+        document.getElementById('cmCount').innerText = `التعليقات (${snap.size})`;
+        const uiCount = document.getElementById(`comment-count-${pid}`);
+        if(uiCount) uiCount.innerText = snap.size;
+
+        if(snap.empty) {
+            list.innerHTML = '<div class="empty-msg" style="text-align:center; color:#777; margin-top:20px">كن أول من يعلق!</div>';
+            return;
+        } else {
+            // لو فيه تعليقات، تأكد إن رسالة "فارغ" مش موجودة
+            const emptyMsg = list.querySelector('.empty-msg');
+            if(emptyMsg) emptyMsg.remove();
+        }
+
+        // التعامل مع التغييرات (إضافة / تعديل / حذف)
+        snap.docChanges().forEach(change => {
+            const data = change.doc.data();
+            data.id = change.doc.id;
+
+            if (change.type === "added") {
+                const el = createCommentElement(data);
+                list.appendChild(el);
+                // انزل لتحت تلقائي عشان تشوف أجدد تعليق
+                if(list.scrollHeight - list.scrollTop < 600) { // شرط ذكي: انزل بس لو المستخدم مش طالع فوق
+                     list.scrollTop = list.scrollHeight;
                 }
+            }
+            if (change.type === "modified") {
+                const oldEl = document.getElementById(`comment-${data.id}`);
+                if(oldEl) {
+                    const newEl = createCommentElement(data);
+                    list.replaceChild(newEl, oldEl);
+                }
+            }
+            if (change.type === "removed") {
+                const el = document.getElementById(`comment-${data.id}`);
+                if(el) el.remove();
+            }
+        });
+    });
+}
+        // دالة إنشاء عنصر التعليق (مفصولة لتستخدم في الإضافة والتعديل)
+        function createCommentElement(c) {
+    // ---------------------------------------------------------
+    // 1. تجهيز البيانات الأساسية
+    // ---------------------------------------------------------
+    let displayName = c.name || 'مستخدم';
+    let displayPic = c.pic;
+    let verifiedDisplay = c.isVerified;
+    let uidSafe = c.uid || 'user';
+    let clickAction = `location.href='profile.html?uid=${uidSafe}'`;
+    let avatarContent = displayPic ? '' : (displayName[0]);
+    let avatarStyle = "";
+    let nameColorStyle = "";
 
-                const snap = await q.get();
+
+    // معالجة وضع الشبح (Ghost Mode)
+    if (c.isGhost) {
+        const ghostIdentity = getGhostIdentity(uidSafe);
+        displayName = `مستخدم نبض #${ghostIdentity.id}`;
+        displayPic = "";
+        verifiedDisplay = false;
+        avatarContent = `<i class="fa-solid fa-user-secret" style="color:${ghostIdentity.color}; font-size:18px;"></i>`;
+        avatarStyle = `background: #000; border: 1px solid ${ghostIdentity.color}; display:grid; place-items:center; box-shadow: 0 0 5px ${ghostIdentity.color}40;`;
+        nameColorStyle = `color: ${ghostIdentity.color} !important; text-shadow: 0 0 5px ${ghostIdentity.color}40;`;
+        clickAction = "showToast('⛔ هوية محمية')";
+    } else {
+        avatarStyle = displayPic ? 
+            `background: url('${displayPic}') center/cover no-repeat; border: 1px solid var(--border-color);` : 
+            `background: ${generateColor(uidSafe)}; border: 1px solid var(--border-color); display:grid; place-items:center;`;
+    }
+
+    let timeString = c.createdAt ? moment(c.createdAt.toDate()).fromNow() : 'الآن';
+   
+   const verifiedIcon = getBadge(c.isVerified, c.isGhost);
+
+   
+    // إنشاء العنصر الرئيسي الحاوي
+    const el = document.createElement('div');
+    el.className = 'comment-item';
+    el.id = `comment-${c.id}`;
+
+    // ---------------------------------------------------------
+    // 2. تفعيل الأحداث (Events) - مشترك للكل
+    // ---------------------------------------------------------
+    
+    // أ) ضغطة مطولة (للقائمة)
+    el.addEventListener('touchstart', () => { pressTimer = setTimeout(() => openCommentOptions(c), 600); });
+    el.addEventListener('touchend', () => clearTimeout(pressTimer));
+    el.addEventListener('touchmove', () => clearTimeout(pressTimer));
+
+    // ب) ضغطة مزدوجة (للايك)
+    let lastTap = 0;
+    el.addEventListener('touchend', function(e) {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+        if (tapLength < 300 && tapLength > 0 && !e.target.closest('.cm-action') && !e.target.closest('.play-btn')) {
+            e.preventDefault();
+            toggleCommentLike(c.id);
+            // أنيميشن القلب
+            const heartContainer = c.isGift ? el.querySelector('.gift-body') : el.querySelector('.cm-bubble');
+            if(heartContainer) {
+                const heart = document.createElement('i');
+                heart.className = 'fa-solid fa-heart';
+                heart.style.cssText = `position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(0); font-size: 40px; color: #ff3b30; pointer-events: none; z-index: 100; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); transition: transform 0.3s;`;
+                heartContainer.appendChild(heart);
+                setTimeout(() => heart.style.transform = 'translate(-50%, -50%) scale(1.5)', 50);
+                setTimeout(() => { heart.style.opacity = '0'; setTimeout(() => heart.remove(), 300); }, 600);
+            }
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+        lastTap = currentTime;
+    });
+
+    // ج) ضغطة عادية (للردود)
+    el.onclick = (e) => { 
+        if (!e.target.classList.contains('cm-action') && 
+            !e.target.closest('.play-btn') && 
+            !e.target.closest('.vid-btn') && 
+            !e.target.closest('.cm-media-img') &&
+            !e.target.closest('.read-more-btn') && 
+            !e.target.closest('.custom-video-container')) {
+            
+            openRepliesSheet(
+                c.id, c.uid, c.name, c.pic, c.isVerified, 
+                c.text, c.isGhost, c.isAudio, c.duration
+            ); 
+        }
+    };
+
+    // ---------------------------------------------------------
+    // 3. بناء الـ HTML حسب النوع (هدية VS عادي)
+    // ---------------------------------------------------------
+
+    // 🔥🔥🔥 الحالة الأولى: هدية (الشكل الاحترافي الجديد) 🔥🔥🔥
+    if (c.isGift) {
+        // نغير كلاس الحاوية عشان نظبط المسافات
+        el.className = 'comment-item gift-wrapper-pro';
+
+        el.innerHTML = `
+            <div class="cm-avatar" style="${avatarStyle}; width:35px; height:35px; border: 2px solid #FFD700; box-shadow:0 0 10px rgba(255,215,0,0.3);" onclick="${clickAction}">${avatarContent}</div>
+            
+            <div class="gift-body">
+                <div class="gift-hero-icon">${c.giftEmoji || '🎁'}</div>
                 
-                snap.forEach(doc => {
-                    if (startAtId && !mode && doc.id === startAtId) return;
-                    const d = doc.data();
-                    if (!mode && currentTab === 'following' && !followingSet.has(d.uid)) return;
-                    
-                    if (d.media && Array.isArray(d.media)) {
-                        const vObj = d.media.find(m => m.type === 'video');
-                        if (vObj) {
-                            allVideos.push({ id: doc.id, ...d, videoUrl: vObj.url, poster: vObj.thumbnail || "" });
-                        }
-                    }
-                });
+                <div class="gift-gold-badge">
+                     أرسل ${c.giftName || 'هدية'}
+                </div>
 
-                // الآن وصلت البيانات: احذف الشاشة الوهمية
-                const skeleton = document.getElementById('initialSkeleton');
-                if(skeleton) skeleton.remove();
+                <div class="gift-meta">
+                    <span style="color:#FFD700">${displayName}</span> • ${timeString} • 
+              <span class="cm-action" style="color:#fff; cursor:pointer;" onclick="event.stopPropagation(); openRepliesSheet({
+    id: '${c.id}', 
+    uid: '${c.uid}', 
+    name: '${displayName}', 
+    pic: '${displayPic}', 
+    isVerified: ${c.isVerified||false}, 
+    text: '${(c.text||"").replace(/'/g, "\\'")}', 
+    isGift: true,
+    giftEmoji: '${c.giftEmoji}',
+    giftName: '${c.giftName}'
+})">رد</span>
 
-                if (allVideos.length === 0) {
-                    container.innerHTML = '<div style="display:flex; height:100vh; align-items:center; justify-content:center; color:#777; flex-direction:column;"><i class="fa-solid fa-video-slash" style="font-size:40px; margin-bottom:15px;"></i><p>لا توجد فيديوهات حالياً</p></div>';
-                }
+                </div>
+            </div>
+        `;
+    } 
+    
+    // 🔵🔵🔵 الحالة الثانية: تعليق عادي (نص، صوت، صورة، فيديو) 🔵🔵🔵
+    else {
+        // تجهيز كلاسات الفقاعة
+        let hash = 0; 
+        if(c.uid) { for (let i = 0; i < c.uid.length; i++) hash = c.uid.charCodeAt(i) + ((hash << 5) - hash); }
+        const colorClass = `color-${Math.abs(hash) % 10}`;
+        const isPostOwner = (c.uid === currentPostOwnerUid);
+        
+        let bubbleClass = `cm-bubble colored-comment ${colorClass}`;
+        if (isPostOwner) bubbleClass += ' owner-bubble';
+        if (c.isSticker) bubbleClass += " sticker-comment"; 
 
-                for (const v of allVideos) {
-                    await renderVideoCard(v, container);
-                }
+        // تجهيز المحتوى الداخلي
+        let contentHtml = "";
 
-                if (startAtId) {
-                    const targetCard = document.getElementById(`card-${startAtId}`);
-                    if (targetCard) {
-                        setTimeout(() => {
-                            targetCard.scrollIntoView({ behavior: 'auto', block: 'start' });
-                            playTargetVideo(targetCard.querySelector('video'));
-                        }, 200);
-                    }
-                } else {
-                    playFirstVideo(container);
-                }
+        if (c.isAudio) {
+            contentHtml = `
+            <div class="custom-audio-player" id="player_${c.id}" onclick="event.stopPropagation()">
+                <button class="play-btn" id="btn_${c.id}" onclick="toggleAudio('${c.id}', event)"><i class="fa-solid fa-play"></i></button>
+                <input type="range" class="audio-slider" id="range_${c.id}" value="0" oninput="seekAudio('${c.id}', event)">
+                <span id="dur_${c.id}" class="audio-time">${c.duration || '00:00'}</span>
+                <audio id="audio_${c.id}" src="${c.text}" preload="metadata" ontimeupdate="updateAudioProgress('${c.id}')" onended="resetAudio('${c.id}')"></audio>
+            </div>`;
+        } 
+        else if (c.isImage) {
+            contentHtml = `<div class="cm-media-wrapper"><img src="${c.text}" class="cm-media-img" loading="lazy" onclick="viewImageWithSave('${c.text}')"></div>`;
+        } 
+        else if (c.isVideo) {
+            contentHtml = `
+            <div class="cm-media-wrapper">
+                <div class="custom-video-container" id="vid_cont_${c.id}" onclick="toggleCommentVideo('${c.id}')">
+                    <video src="${c.text}" id="vid_${c.id}" class="custom-video-element" loop playsinline preload="metadata"></video>
+                    <div class="vid-center-play" id="play_icon_${c.id}"><i class="fa-solid fa-play"></i></div>
+                    <div class="vid-controls">
+                        <div class="vid-btn" onclick="toggleCommentMute('${c.id}', event)"><i class="fa-solid fa-volume-xmark" id="mute_icon_${c.id}"></i></div>
+                        <div class="vid-btn vid-speed-btn" id="speed_btn_${c.id}" onclick="changeVideoSpeed('${c.id}', event)">1x</div>
+                        <div class="vid-btn" onclick="toggleCommentFullscreen('${c.id}', event)"><i class="fa-solid fa-expand"></i></div>
+                    </div>
+                </div>
+            </div>`;
+        } 
+        else {
+            // نص عادي أو ستيكر
+            let displayText = c.text || "";
+            if (!c.isSticker && c.replyToUid && c.replyToName && displayText.startsWith(c.replyToName)) {
+                const cleanText = displayText.substring(c.replyToName.length);
+                displayText = `<span class="reply-mention-link" onclick="event.stopPropagation(); location.href='profile.html?uid=${c.replyToUid}'">${c.replyToName}</span> <span style="color:inherit">${cleanText}</span>`;
+            }
+            
+            let extraClass = ""; let btnHtml = "";
+            if (!c.isSticker && (c.text || "").length > 150) {
+                extraClass = "collapsed";
+                btnHtml = `<span class="read-more-btn" onclick="toggleReadMore(this)">قراءة المزيد... 👇</span>`;
+            }
+            contentHtml = `<div class="cm-text ${extraClass}" style="${c.isSticker ? 'font-size:45px' : ''}">${displayText}</div>${btnHtml}`;
+        }
 
-            } catch (e) { 
-                console.error("Error loading videos:", e); 
-                // في حالة الخطأ، احذف الشاشة الوهمية واعرض رسالة
-                const skeleton = document.getElementById('initialSkeleton');
-                if(skeleton) skeleton.remove();
+        // بناء HTML التعليق العادي
+        el.innerHTML = `
+            <div class="cm-avatar" style="${avatarStyle}" onclick="${clickAction}">${avatarContent}</div>
+            <div class="cm-content">
+                <div class="${bubbleClass}"> 
+                    <div class="cm-username" style="${nameColorStyle}">
+                        ${displayName} ${verifiedIcon}
+                        ${isPostOwner && !c.isGhost ? '<span class="owner-badge">مؤلف</span>' : ''} 
+                    </div>
+                    ${contentHtml}
+                </div>
+                <div class="cm-meta-row">
+                    <span>${timeString}</span>
+                    <span class="cm-action" onclick="event.stopPropagation(); openRepliesSheet({
+    id: '${c.id}', 
+    uid: '${c.uid}', 
+    name: '${displayName}', 
+    pic: '${displayPic}', 
+    isVerified: ${c.isVerified||false}, 
+    text: '${(c.text || "").replace(/'/g, "\\'")}', 
+    isGhost: ${c.isGhost||false}, 
+    isAudio: ${c.isAudio||false}, 
+    duration: '${c.duration||"00:00"}',
+    isImage: ${c.isImage||false},
+    isVideo: ${c.isVideo||false}
+})">رد</span>
+                </div>
+            </div>
+        `;
+    }
+
+    // تشغيل لمبة الأونلاين (مشترك)
+    setTimeout(() => {
+        if(!c.isGhost && typeof checkAndColorAvatar === 'function') checkAndColorAvatar(c.uid, el.querySelector('.cm-avatar'));
+    }, 0);
+
+    return el;
+}
+
+
+        // باقي الدوال كما هي دون حذف...
+        function handleInputTyping(textarea) {
+            const actionBtn = document.getElementById('dynamicActionBtn');
+            const micIcon = document.getElementById('mainMicIcon');
+            const sendIcon = document.getElementById('mainSendIcon');
+            
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+
+            if (textarea.value.trim().length > 0) {
+                micIcon.style.display = 'none';
+                sendIcon.style.display = 'block';
+                actionBtn.classList.remove('mic-mode');
+                actionBtn.classList.add('send-mode');
+                actionBtn.onclick = function() { handleCommentAction(); };
+            } else {
+                micIcon.style.display = 'block';
+                sendIcon.style.display = 'none';
+                actionBtn.classList.add('mic-mode');
+                actionBtn.classList.remove('send-mode');
+                actionBtn.onclick = function() { toggleRecording(); };
+                textarea.style.height = '45px';
             }
         }
 
-        function playFirstVideo(container) {
-            const firstVid = container.querySelector('.video-card video');
-            if (firstVid) {
-                setTimeout(() => {
-                    playTargetVideo(firstVid);
-                }, 300);
+        function resetCommentInput() {
+            const inp = document.getElementById('cmInput');
+            if(inp) {
+                inp.value = ""; 
+                handleInputTyping(inp);
             }
+            isEditingComment = false;
         }
 
-        async function renderVideoCard(v, container) {
-            let uName = "مستخدم", uChar = "U", uPic = null, isVerified = false;
+        async function toggleRecording() {
+            if(isRecording) { stopAndSendRecording(); return; }
             try {
-                const uSnap = await db.collection('users').doc(v.uid).get();
-                if(uSnap.exists) { 
-                    const ud = uSnap.data(); 
-                    uName = ud.name; uPic = ud.profilePic; uChar = uName[0].toUpperCase();
-                    isVerified = ud.isVerified === true;
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                document.getElementById("normalModeUI").style.display = "none";
+                document.getElementById("recordingModeUI").style.display = "flex";
+                let seconds = 0;
+                document.getElementById("recordTimer").innerText = "00:00";
+                recordInterval = setInterval(() => {
+                    seconds++;
+                    const m = Math.floor(seconds/60).toString().padStart(2,'0');
+                    const s = (seconds%60).toString().padStart(2,'0');
+                    document.getElementById("recordTimer").innerText = `${m}:${s}`;
+                }, 1000);
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.start();
+                isRecording = true;
+                if(navigator.vibrate) navigator.vibrate(50);
+            } catch(e) {
+                showToast("⚠️ الميكروفون غير متاح");
+                console.error(e);
+            }
+        }
+
+        function cancelRecording() {
+            if(mediaRecorder) mediaRecorder.stop();
+            clearInterval(recordInterval);
+            isRecording = false;
+            audioChunks = [];
+            resetUI();
+        }
+
+ async function stopAndSendRecording() {
+    if (!mediaRecorder || mediaRecorder.state === "inactive") {
+        resetUI();
+        return;
+    }
+
+    mediaRecorder.stop(); // وقف التسجيل
+
+    mediaRecorder.onstop = async () => {
+        resetUI(); // رجع شكل الزرار طبيعي
+
+        if (audioChunks.length === 0) {
+            showToast("⚠️ التسجيل فارغ");
+            return;
+        }
+
+        // 1. تجهيز ملف الصوت
+        let mimeType = 'audio/webm';
+        if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+        
+        const audioBlob = new Blob(audioChunks, { type: mimeType });
+        const ext = mimeType.includes('mp4') ? 'm4a' : 'webm';
+        
+        // 🔥 التصحيح: استخدام currentOpenVideoId بدلاً من currentPostId
+        const voicePath = `comments_media_v2/${currentOpenVideoId}/voices/${Date.now()}_${currentUser.uid}.${ext}`; 
+        const ref = storage.ref().child(voicePath);
+
+        showToast("جاري إرسال التعليق الصوتي... 🎙️");
+
+        try {
+            // 3. الرفع
+            const snapshot = await ref.put(audioBlob);
+            const url = await snapshot.ref.getDownloadURL();
+            
+            // 4. جلب بيانات المستخدم
+            const uDoc = await db.collection('users').doc(currentUser.uid).get();
+            const uData = uDoc.data();
+            
+            // حساب المدة (مهم جداً للعرض)
+            // ملاحظة: تأكد أن متغير recordSeconds معرف لديك أو استخدم طريقة حساب أخرى
+            // هنا سنفترض أن التايمر في الواجهة هو المصدر
+            const durationTxt = document.getElementById("recordTimer").innerText; 
+
+            // 5. الحفظ في الداتابيز
+            // 🔥 التصحيح: استخدام currentOpenVideoId
+            await db.collection('posts').doc(currentOpenVideoId).collection('comments').add({
+                uid: currentUser.uid,
+                name: uData.name || "مستخدم",
+                pic: uData.profilePic || "",
+                isVerified: uData.isVerified || false,
+                text: url,          
+                isAudio: true,      
+                duration: durationTxt, 
+                isGhost: (typeof isGhost !== 'undefined' ? isGhost : false),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // تحديث العداد
+            await db.collection('posts').doc(currentOpenVideoId).update({
+                commentsCount: firebase.firestore.FieldValue.increment(1)
+            });
+
+            // إشعار (اختياري)
+            if (typeof currentPostOwnerUid !== 'undefined' && currentPostOwnerUid !== currentUser.uid) {
+                // تأكد أن دالة pushNotification موجودة لديك
+                // pushNotification(currentPostOwnerUid, 'comment', 'أرسل تعليقاً صوتياً 🎙️', null, currentOpenVideoId);
+            }
+
+            showToast("تم الإرسال ✅");
+            // playSound('sent'); // تأكد أن دالة الصوت موجودة
+
+        } catch(e) {
+            console.error(e);
+            showToast("فشل الرفع: " + e.message);
+        }
+    };
+}
+
+        function resetUI() {
+            document.getElementById("recordingModeUI").style.display = "none";
+            document.getElementById("normalModeUI").style.display = "flex";
+            isRecording = false;
+        }
+
+        async function handleCommentAction(stickerContent = null, isSticker = false, giftData = null) {
+    const inp = document.getElementById('cmInput');
+    const txt = stickerContent || inp.value.trim();
+    
+    // التحقق من وجود محتوى
+    if(!txt && !isSticker && !giftData) return;
+
+    // 1. تفريغ الخانة (مسح النص)
+    inp.value = "";
+    
+    // 🔥🔥 التعديل الهام جداً هنا 🔥🔥
+    // بنستدعي دالة الكتابة تاني عشان تشوف إن المربع فاضي فتقوم مصغراه ومرجعة الأزرار
+    handleInputTyping(inp); 
+    
+    // (اختياري) لو عايز تشيل التركيز من الكيبورد (ينزل الكيبورد)
+    // inp.blur(); 
+
+    if(typeof playSound === 'function') playSound('sent'); 
+
+    try {
+        const uDoc = await db.collection('users').doc(currentUser.uid).get();
+        const uData = uDoc.data();
+
+        const commentData = {
+            uid: currentUser.uid,
+            name: uData.name || "مستخدم",
+            pic: uData.profilePic || "",
+            isVerified: uData.isVerified || false,
+            text: txt,
+            isSticker: isSticker,
+            isGift: !!giftData, 
+            giftEmoji: giftData ? giftData.emoji : null,
+            giftName: giftData ? giftData.name : null,
+            giftEffect: giftData ? giftData.effect : null,
+            isGhost: (typeof isGhost !== 'undefined' ? isGhost : false),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        await db.collection('posts').doc(currentOpenVideoId).collection('comments').add(commentData);
+
+        await db.collection('posts').doc(currentOpenVideoId).update({
+            commentsCount: firebase.firestore.FieldValue.increment(1)
+        });
+
+    } catch (e) {
+        console.error("Error sending comment:", e);
+        showToast("فشل الإرسال: " + e.message);
+    }
+}
+
+const GiftSystem = {
+    // 1. البيانات
+    data: {
+        gifts: [
+            { name: 'تاج', emoji: '👑', price: 1000, effect: 'rain' },
+            { name: 'ألماس', emoji: '💎', price: 500, effect: 'sparkle' },
+            { name: 'سيارة', emoji: '🏎️', price: 2000, effect: 'slide' },
+            { name: 'وردة', emoji: '🌹', price: 50, effect: 'float' },
+            { name: 'قلب', emoji: '❤️', price: 10, effect: 'pulse' },
+            { name: 'شعلة', emoji: '🔥', price: 100, effect: 'burn' }
+        ],
+        stickers: ['😀','😂','😍','😎','😭','😡','👍','🎉','👀','👻']
+    },
+
+    targetType: 'comment', 
+
+    // 2. الفتح للتعليقات
+    open: function() {
+        this.targetType = 'comment';
+        this._showSheet();
+    },
+
+    // 3. الفتح للردود
+    openForReply: function() {
+        this.targetType = 'reply';
+        this._showSheet();
+    },
+
+    // 🔥🔥 دالة العرض (تم تعديلها لتشغيل الخلفية) 🔥🔥
+    _showSheet: function() {
+        const giftSheet = document.getElementById('giftSheet');
+        const backdrop = document.getElementById('giftBackdrop'); // ده العنصر الجديد
+        
+        // فتح القائمة
+        giftSheet.classList.add('active');
+        
+        // رفع الطبقة فوق التعليقات
+        giftSheet.style.zIndex = '300'; 
+
+        // تشغيل الخلفية الشفافة (عشان نقفل لما نضغط بره)
+        if(backdrop) backdrop.classList.add('active');
+
+        // تشغيل التاب الافتراضي
+        this.switch('gifts', document.querySelector('.gift-tab'));
+    },
+
+    switch: function(type, el) {
+        document.querySelectorAll('.gift-tab').forEach(t => t.classList.remove('active'));
+        if(el) el.classList.add('active');
+        
+        const container = document.getElementById('giftSystemContent');
+        
+        if(type === 'gifts') {
+            let html = '<div class="premium-gift-grid">';
+            this.data.gifts.forEach(g => {
+                html += `
+                <div class="premium-gift-card" onclick="GiftSystem.send('${g.emoji}', '${g.name}', '${g.effect}')">
+                    <div class="pg-emoji">${g.emoji}</div>
+                    <div class="pg-name">${g.name}</div>
+                    <div class="pg-price">${g.price}</div>
+                </div>`;
+            });
+            container.innerHTML = html + '</div>';
+        } 
+        else {
+            let html = '<div class="stickers-grid">';
+            this.data.stickers.forEach(s => {
+                html += `<div class="sticker-option" onclick="GiftSystem.sendSticker('${s}')">${s}</div>`;
+            });
+            container.innerHTML = html + '</div>';
+        }
+    },
+
+    send: function(emoji, name, effect) {
+        const giftData = { emoji: emoji, name: name, effect: effect };
+        
+        if (this.targetType === 'reply') {
+            sendReplyToComment(`أرسل ${name} ${emoji}`, false, giftData);
+        } else {
+            handleCommentAction(`أرسل ${name} ${emoji}`, false, giftData);
+        }
+        
+        this.playEffect(emoji, effect);
+        showToast(`تم إرسال ${name} بنجاح! 🎉`);
+        
+        // هنا مش بنقفل القائمة عشان اليوزر يبعت براحته
+    },
+
+    sendSticker: function(stickerEmoji) {
+        if (this.targetType === 'reply') {
+            sendReplyToComment(stickerEmoji, true); 
+        } else {
+            handleCommentAction(stickerEmoji, true);
+        }
+        // هنا بنقفل بعد اختيار الستيكر
+        this.closeGiftOnly(); 
+    },
+
+    playEffect: function(emoji, type) {
+        const overlay = document.body;
+        if(!overlay) return;
+        const count = 30;
+        for(let i=0; i<count; i++) {
+            const el = document.createElement('div');
+            el.innerText = emoji;
+            el.style.position = 'fixed';
+            el.style.left = Math.random() * 100 + '%';
+            el.style.top = -50 + 'px';
+            el.style.fontSize = (Math.random() * 30 + 20) + 'px';
+            el.style.transition = `top ${Math.random() * 2 + 1.5}s ease-in, opacity 1s`;
+            el.style.zIndex = "99999";
+            el.style.pointerEvents = "none";
+            overlay.appendChild(el);
+            setTimeout(() => {
+                el.style.top = (window.innerHeight + 100) + 'px';
+                el.style.opacity = 0;
+            }, 50);
+            setTimeout(() => el.remove(), 4000);
+        }
+    },
+
+    // 🔥🔥 دالة الإغلاق (تم تعديلها لإخفاء الخلفية) 🔥🔥
+    closeGiftOnly: function() {
+        document.getElementById('giftSheet').classList.remove('active');
+        
+        // نخفي الخلفية الشفافة كمان
+        const backdrop = document.getElementById('giftBackdrop');
+        if(backdrop) backdrop.classList.remove('active');
+    }
+};
+
+
+
+
+        // --- دوال مساعدة إضافية ---
+        function openCommentOptions(commentData) {
+    if(navigator.vibrate) navigator.vibrate(50);
+    selectedComment = commentData;
+    
+    // تمييز التعليق
+    document.querySelectorAll('.cm-bubble').forEach(b => b.classList.remove('highlight'));
+    const bubble = document.getElementById(`comment-${commentData.id}`).querySelector('.cm-bubble');
+    if(bubble) bubble.classList.add('highlight');
+
+    const isMyComment = (commentData.uid === currentUser.uid);
+    const isPostOwner = (currentPostOwnerUid === currentUser.uid); // صاحب المنشور
+
+    // تحديد القائمة المطلوبة
+    const ownerMenu = document.getElementById('cmOwnerOptionsNew');
+    const viewerMenu = document.getElementById('cmViewerOptionsNew');
+
+    if (isMyComment) {
+        ownerMenu.style.display = 'flex';
+        viewerMenu.style.display = 'none';
+    } else {
+        ownerMenu.style.display = 'none';
+        viewerMenu.style.display = 'flex';
+        
+        // لو أنا صاحب البوست، أقدر أمسح أي كومنت (ميزة إضافية)
+        // ممكن تضيف زرار حذف إضافي هنا برمجياً لو حابب
+    }
+
+    // إظهار القائمة والخلفية
+    document.getElementById('commentOptionsSheetNew').classList.add('active');
+    document.getElementById('optionsBackdrop').style.display = 'block';
+}
+
+function closeFloatingMenu() {
+    document.getElementById('commentOptionsSheetNew').classList.remove('active');
+    document.getElementById('optionsBackdrop').style.display = 'none';
+}
+
+
+        /* --- تصحيح أزرار قائمة الخيارات (عشان تقفل لما تضغط عليها) --- */
+
+// 1. دالة التعديل المصححة
+function triggerEditComment() {
+    // أول حاجة: اقفل القائمة اللي في وشك
+    closeFloatingMenu(); 
+
+    // باقي الكود: حط النص في المربع وجهزه للتعديل
+    const inp = document.getElementById('cmInput');
+    if(inp && selectedComment) {
+        inp.value = selectedComment.text; 
+        inp.focus();
+        
+        // تحديث حالة الزرار (عشان يظهر زرار الإرسال)
+        handleInputTyping(inp); 
+        
+        isEditingComment = true;
+    }
+}
+
+// 2. دالة النسخ المصححة
+function triggerCopyComment() {
+    // اقفل القائمة فوراً
+    closeFloatingMenu();
+
+    if(selectedComment) {
+        navigator.clipboard.writeText(selectedComment.text);
+        showToast("تم نسخ النص 📋");
+    }
+}
+
+// 3. دالة الحذف المصححة
+function triggerDeleteComment() {
+    // اقفل القائمة فوراً
+    closeFloatingMenu();
+
+    if(selectedComment) {
+        showChicConfirm(
+            "حذف التعليق؟", 
+            "لا يمكن التراجع عن هذا الإجراء.", 
+            '<i class="fa-solid fa-trash-can" style="color:var(--danger-color)"></i>', 
+            async function() {
+                try {
+                    await db.collection("posts").doc(currentOpenVideoId)
+                        .collection("comments").doc(selectedComment.id).delete();
+                        
+                    // تحديث العداد
+                    await db.collection("posts").doc(currentOpenVideoId).update({ 
+                        commentsCount: firebase.firestore.FieldValue.increment(-1) 
+                    });
+                    
+                    showToast("تم الحذف بنجاح 🗑️");
+                } catch(e) {
+                    console.error(e);
+                    showToast("فشل الحذف");
                 }
-            } catch(e){}
+            }
+        );
+    }
+}
 
-            const isLiked = v.likes && v.likes[currentUser.uid];
-            const likesCount = v.likes ? Object.keys(v.likes).length : 0;
-            const isMe = v.uid === currentUser.uid;
-            const showFollowBtn = !isMe && !followingSet.has(v.uid);
-            const badgeHtml = isVerified ? `<i class="fa-solid fa-circle-check verified-badge"></i>` : '';
+// 4. دالة الرد المصححة (للمشاهد)
+function triggerReplyComment() {
+    closeFloatingMenu();
+    if(selectedComment) {
+        openRepliesSheet(
+            selectedComment.id, selectedComment.uid, selectedComment.name, 
+            selectedComment.pic, selectedComment.isVerified, selectedComment.text, 
+            selectedComment.isGhost, selectedComment.isAudio, selectedComment.duration
+        );
+    }
+}
 
-            const html = `
-                <div class="video-card" id="card-${v.id}">
-                    <video class="video-player" 
-                           src="${v.videoUrl}" 
-                           poster="${v.poster}" 
-                           loop playsinline preload="auto"
-                           ontimeupdate="updateProgressBar(this, '${v.id}')"></video>
-                    
-                    <div class="click-layer" 
-                         ontouchstart="handleTouchStart(event)" 
-                         ontouchend="handleTouchEnd(event, '${v.id}')"
-                         ontouchmove="handleTouchMove()">
-                    </div>
-                    
-                    <i class="fa-solid fa-heart heart-center" id="heart-${v.id}"></i>
 
-                    <div class="overlay-info">
-                        <div class="info-content">
-                            <div class="user-row" onclick="location.href='profile.html?uid=${v.uid}'">
-                                <div class="v-username">${uName} ${badgeHtml}</div>
-                            </div>
-                            <div class="v-desc">${v.text || ''}</div>
-                            <div class="music-row"><i class="fa-solid fa-music music-icon"></i> الصوت الأصلي</div>
-                        </div>
-                    </div>
+  function openRepliesSheet(idOrObj, uid, name, pic, isVerified, text, isGhostUser, isAudio, duration, isImage, isVideo, isGift, giftEmoji, giftName) {
+    // دعم الطريقتين (Object أو Parameters)
+    let commentData = {};
+    if (typeof idOrObj === 'object') {
+        commentData = idOrObj;
+    } else {
+        // 🔥 تم إضافة استقبال بيانات الهدية هنا
+        commentData = { id: idOrObj, uid, name, pic, isVerified, text, isGhost: isGhostUser, isAudio, duration, isImage, isVideo, isGift, giftEmoji, giftName };
+    }
 
-                    <div class="side-actions">
-                        <div class="avatar-container" onclick="location.href='profile.html?uid=${v.uid}'">
-                            <div class="side-avatar" style="background-image: url('${uPic || ''}'); background-color: #555;">${uPic ? '' : uChar}</div>
-                            ${showFollowBtn ? `<div class="follow-plus" id="follow-${v.uid}" onclick="followUser(event, '${v.uid}')"><i class="fa-solid fa-plus"></i></div>` : ''}
-                        </div>
+    currentParentComment = commentData;
+    
+    // فتح القائمة
+    document.getElementById('repliesSheet').classList.add('active');
+    
+    // تجهيز عرض "التعليق الأب" في رأس القائمة
+    let parentContentHtml = "";
+    
+    // 1. لو الأب هدية 🎁
+    if (commentData.isGift) {
+        parentContentHtml = `
+        <div class="header-gift-preview">
+            <span style="font-size:25px;">${commentData.giftEmoji || '🎁'}</span>
+            <span style="color:#FFD700; font-weight:bold; font-size:12px;">أرسل ${commentData.giftName || 'هدية مميزة'}</span>
+        </div>`;
+    }
+    // 2. لو صوت
+    else if (commentData.isAudio || (typeof commentData.text === 'string' && (commentData.text.includes('.m4a') || commentData.text.includes('.webm')))) {
+        parentContentHtml = `
+        <div class="custom-audio-player" id="player_parent_${commentData.id}" onclick="event.stopPropagation()" style="width: 100%; margin-top: 5px; transform: scale(0.9); transform-origin: right;">
+            <button class="play-btn" id="btn_parent_${commentData.id}" onclick="toggleAudio('parent_${commentData.id}', event)">
+                <i class="fa-solid fa-play"></i>
+            </button>
+            <input type="range" class="audio-slider" id="range_parent_${commentData.id}" value="0" oninput="seekAudio('parent_${commentData.id}', event)">
+            <span id="dur_parent_${commentData.id}" class="audio-time">${commentData.duration || '00:00'}</span>
+            <audio id="audio_parent_${commentData.id}" src="${commentData.text}" preload="metadata" ontimeupdate="updateAudioProgress('parent_${commentData.id}')" onended="resetAudio('parent_${commentData.id}')"></audio>
+        </div>`;
+    } 
+    // ... باقي الشروط (صورة، فيديو، نص) كما هي ...
+    else if (commentData.isImage) {
+        parentContentHtml = `<div class="cm-media-wrapper" style="max-height: 100px;"><img src="${commentData.text}" class="cm-media-img" onclick="viewImageWithSave('${commentData.text}')"></div>`;
+    }
+    else if (commentData.isVideo) {
+         parentContentHtml = `<div style="font-size:12px; color:#aaa;"><i class="fa-solid fa-video"></i> فيديو</div>`;
+    }
+    else {
+        parentContentHtml = `<div style="font-size:14px; color:#ddd; margin-top:5px;">${commentData.text || ''}</div>`;
+    }
 
-                        <div class="action-btn-wrapper" onclick="toggleLike('${v.id}')">
-                            <i class="fa-solid fa-heart glass-icon" id="like-icon-${v.id}" style="color:${isLiked ? '#ff3b30' : '#fff'}"></i>
-                            <span class="action-label" id="like-count-${v.id}">${likesCount}</span>
-                        </div>
+    // استخدم الدالة لتوليد الشارة
+    const parentBadge = getBadge(commentData.isVerified, commentData.isGhost);
+    
+    
+    // رسم الهيدر
+    const list = document.getElementById('repliesList');
+    list.innerHTML = `
+        <div style="padding:15px; border-bottom:1px solid #333; background:rgba(255,255,255,0.02)">
+            <div style="font-size:12px; color:#aaa; margin-bottom:5px;">الرد على:</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <div class="cm-avatar" style="width:35px; height:35px; background-image:url('${commentData.pic||''}'); background-size:cover;"></div>
+                
+  <div style="font-weight:bold; font-size:13px; color:#fff;">
+        ${commentData.name} ${parentBadge}
+    </div>
 
-                        <div class="action-btn-wrapper" onclick="openComments('${v.id}')">
-                            <i class="fa-solid fa-comment-dots glass-icon"></i>
-                            <span class="action-label">${v.commentsCount || 0}</span>
-                        </div>
+            </div>
+        </div>
+        <div id="actualReplies"></div>`;
+        
+    loadRealtimeReplies(commentData.id);
+}
 
-                        <div class="action-btn-wrapper" onclick="openLongPressMenu()">
-                            <i class="fa-solid fa-share glass-icon"></i>
-                            <span class="action-label">المزيد</span>
-                        </div>
+        function loadRealtimeReplies(commentId) {
+    const container = document.getElementById('actualReplies');
+    if(replyListener) replyListener();
 
-                        <div class="music-disc">
-                            <img src="${uPic || 'https://via.placeholder.com/50'}" class="disc-img">
-                        </div>
-                    </div>
+    replyListener = db.collection("posts").doc(currentOpenVideoId)
+    .collection("comments").doc(commentId)
+    .collection("replies").orderBy("createdAt", "asc")
+    .onSnapshot(snap => {
+        container.innerHTML = "";
+        
+        let participants = [currentParentComment.uid];
 
-                    <div class="video-progress-container" 
-                         onclick="seekVideo(event, '${v.id}')"
-                         ontouchmove="scrubVideo(event, '${v.id}')">
-                        <div class="video-progress-bg">
-                            <div class="video-progress-fill" id="prog-${v.id}"></div>
+        snap.forEach((doc, index) => {
+            const r = {id: doc.id, ...doc.data()};
+            
+            // 1. تجهيز بيانات المستخدم
+            let displayName = r.name, displayPic = r.pic;
+            let avatarStyle = "";
+            let nameStyle = "";
+
+            if(r.isGhost) {
+                const g = getGhostIdentity(r.uid);
+                displayName = `مستخدم #${g.id}`; displayPic = "";
+                avatarStyle = `background:#000; border:1px solid ${g.color}; display:grid; place-items:center;`;
+                nameStyle = `color:${g.color} !important;`;
+            } else {
+                avatarStyle = displayPic ? `background-image:url('${displayPic}')` : `background:${generateColor(r.uid)}`;
+            }
+
+            // 2. تجهيز التوثيق (القلب النابض) - تعريف مرة واحدة فقط هنا
+            const badgeHTML = getBadge(r.isVerified, r.isGhost);
+
+            // 3. تجهيز شجرة الردود
+            let userIndex = participants.indexOf(r.uid);
+            if (userIndex === -1) { participants.push(r.uid); userIndex = participants.length - 1; }
+            const colorClass = `color-${userIndex % 10}`;
+            
+            const isLast = index === snap.size - 1;
+            const treeLineStyle = isLast ? "height: 25px;" : "bottom: -15px;";
+
+            // 4. معالجة المحتوى (هدية / صوت / صورة / فيديو / نص)
+            let contentHtml = "";
+
+            if (r.isGift) {
+                contentHtml = `
+                <div class="reply-gift-container">
+                    <div class="gift-body" style="align-items: flex-start;">
+                        <div class="gift-hero-icon" style="font-size: 60px;">${r.giftEmoji || '🎁'}</div>
+                        <div class="gift-gold-badge" style="margin-top: -5px; font-size: 9px; padding: 2px 10px;">
+                             أرسل ${r.giftName || 'هدية'}
                         </div>
                     </div>
                 </div>`;
-            
-            container.insertAdjacentHTML('beforeend', html);
-            observer.observe(container.lastElementChild.querySelector('video'));
-        }
-
-        // --- دوال شريط التقدم ---
-        function updateProgressBar(vid, id) {
-            const bar = document.getElementById(`prog-${id}`);
-            if (vid.duration) {
-                const percentage = (vid.currentTime / vid.duration) * 100;
-                bar.style.width = `${percentage}%`;
             }
-        }
-
-        function seekVideo(e, id) {
-            e.stopPropagation();
-            const container = e.currentTarget;
-            const vid = document.querySelector(`#card-${id} video`);
-            if (vid && vid.duration) {
-                const rect = container.getBoundingClientRect();
-                const percentage = (e.clientX - rect.left) / rect.width;
-                vid.currentTime = percentage * vid.duration;
+            else if (r.isAudio || (typeof r.text === 'string' && (r.text.includes('.m4a') || r.text.includes('.webm') || r.text.includes('.mp3')))) {
+                contentHtml = `
+                <div class="custom-audio-player" id="player_${r.id}" onclick="event.stopPropagation()" style="width: 200px !important; margin-top:5px;">
+                    <button class="play-btn" id="btn_${r.id}" onclick="toggleAudio('${r.id}', event)"><i class="fa-solid fa-play"></i></button>
+                    <input type="range" class="audio-slider" id="range_${r.id}" value="0" oninput="seekAudio('${r.id}', event)">
+                    <span id="dur_${r.id}" class="audio-time">${r.duration || '00:00'}</span>
+                    <audio id="audio_${r.id}" src="${r.text}" preload="metadata" ontimeupdate="updateAudioProgress('${r.id}')" onended="resetAudio('${r.id}')"></audio>
+                </div>`;
             }
-        }
-
-        function scrubVideo(e, id) {
-            e.stopPropagation();
-            const container = e.currentTarget;
-            const vid = document.querySelector(`#card-${id} video`);
-            if (vid && vid.duration) {
-                const rect = container.getBoundingClientRect();
-                let percentage = (e.touches[0].clientX - rect.left) / rect.width;
-                percentage = Math.max(0, Math.min(1, percentage));
-                vid.currentTime = percentage * vid.duration;
-                document.getElementById(`prog-${id}`).style.width = `${percentage * 100}%`;
+            else if (r.isImage) {
+                contentHtml = `<div class="cm-media-wrapper" style="max-width: 180px;"><img src="${r.text}" class="cm-media-img" onclick="viewImageWithSave('${r.text}')"></div>`;
             }
-        }
+            else if (r.isVideo) {
+                contentHtml = `
+                <div class="cm-media-wrapper" style="max-width: 200px;">
+                    <div class="custom-video-container" id="vid_cont_${r.id}" onclick="toggleCommentVideo('${r.id}')">
+                        <video src="${r.text}" id="vid_${r.id}" class="custom-video-element"></video>
+                        <div class="vid-center-play" id="play_icon_${r.id}"><i class="fa-solid fa-play"></i></div>
+                        <div class="vid-controls">
+                            <div class="vid-btn" onclick="toggleCommentMute('${r.id}', event)"><i class="fa-solid fa-volume-xmark" id="mute_icon_${r.id}"></i></div>
+                            <div class="vid-btn" onclick="toggleCommentFullscreen('${r.id}', event)"><i class="fa-solid fa-expand"></i></div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            else {
+                let displayText = r.text;
+                if (!r.isSticker && r.replyToUid && r.replyToName && displayText.startsWith(r.replyToName)) {
+                    const cleanText = displayText.substring(r.replyToName.length);
+                    displayText = `<span class="reply-mention-link" onclick="event.stopPropagation(); location.href='profile.html?uid=${r.replyToUid}'">${r.replyToName}</span> ${cleanText}`;
+                }
+                contentHtml = `<div class="${r.isSticker ? '' : 'cm-text'}" style="${r.isSticker?'font-size:40px':''}">${displayText}</div>`;
+            }
 
-        function handleTouchStart(e) {
-            isLongPress = false;
-            pressTimer = setTimeout(() => {
-                isLongPress = true;
-                openLongPressMenu();
-                if(navigator.vibrate) navigator.vibrate(50);
-            }, 500);
-        }
+            // 5. تجهيز الفقاعة
+            let bubbleWrapperStart = "";
+            let bubbleWrapperEnd = `</div>`;
 
-        function handleTouchEnd(e, id) {
-            clearTimeout(pressTimer);
-            if (!isLongPress) handleTap(e, id);
-        }
-
-        function handleTouchMove() { clearTimeout(pressTimer); }
-
-        function handleTap(e, id) {
-            const vid = document.querySelector(`#card-${id} video`);
-            const heartIcon = document.getElementById(`like-icon-${id}`);
-            
-            if (clickTimer) {
-                clearTimeout(clickTimer); clickTimer = null;
-                showBigHeart(id);
-                if (heartIcon.style.color !== 'rgb(255, 59, 48)') toggleLike(id);
+            if (r.isGift) {
+                bubbleWrapperStart = `<div class="" style="margin-top:5px;">`; 
             } else {
-                clickTimer = setTimeout(() => {
-                    if (vid.paused) {
-                        playTargetVideo(vid); 
-                        vid.dataset.manualPause = "false";
-                    } else {
-                        vid.pause();
-                        vid.dataset.manualPause = "true";
-                    }
-                    clickTimer = null;
-                }, 250);
+                let bubbleClasses = `cm-bubble colored-reply ${colorClass}`;
+                if (r.isSticker) bubbleClasses += " sticker-comment";
+                bubbleWrapperStart = `<div class="${bubbleClasses}">`;
             }
-        }
 
-        function openLongPressMenu() {
-            document.getElementById('lpOverlay').style.display = 'block';
-            document.getElementById('lpMenu').classList.add('active');
-        }
-
-        function closeLongPressMenu() {
-            document.getElementById('lpMenu').classList.remove('active');
-            document.getElementById('lpOverlay').style.display = 'none';
-        }
-
-        function handleLongPressAction(action) {
-            closeLongPressMenu();
-            if (action === 'download' && currentVideoElement) {
-                const a = document.createElement('a'); a.href = currentVideoElement.src; a.download = `NABD_${Date.now()}.mp4`; a.click();
-            } else if (action === 'not_interested') {
-                Swal.fire({icon: 'info', title: 'تم', toast: true, position: 'top', showConfirmButton: false, timer: 1500, background:'#222', color:'#fff'});
-            } else if (action === 'report') {
-                Swal.fire({title:'إبلاغ', input:'text', background:'#222', color:'#fff', confirmButtonText:'إرسال'});
-            }
-        }
-
-        function changeSpeed(rate, btn) {
-            if (currentVideoElement) currentVideoElement.playbackRate = rate;
-            document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-        }
-
-        function toggleClearDisplay() {
-            document.body.classList.toggle('clear-mode');
-            closeLongPressMenu();
-        }
-
-        function toggleAutoScroll() {
-            isAutoScroll = !isAutoScroll;
-            document.getElementById('autoScrollStatus').innerText = isAutoScroll ? 'تشغيل' : 'إيقاف';
-            document.getElementById('autoScrollStatus').style.color = isAutoScroll ? '#34c759' : '#aaa';
-        }
-
-        function openComments(id) {
-            currentVideoId = id;
-            document.getElementById('cmOverlay').style.display = 'block';
-            document.getElementById('cmSheet').classList.add('active');
+            // 6. رسم الرد
+            const replyWrapper = document.createElement('div');
+            replyWrapper.style.cssText = "position:relative; margin-right:25px; margin-bottom:15px; margin-top:10px;";
             
-            db.collection('posts').doc(id).collection('comments').orderBy('createdAt', 'desc').onSnapshot(snap => {
-                const list = document.getElementById('cmList'); list.innerHTML = "";
-                document.getElementById('cmCountTotal').innerText = snap.size;
-                
-                snap.forEach(async doc => {
-                    const c = doc.data();
-                    const u = await getUser(c.uid);
-                    const badge = u.isVerified ? `<i class="fa-solid fa-circle-check verified-badge" style="font-size:12px;"></i>` : '';
-                    const uPic = u.profilePic ? `url('${u.profilePic}')` : 'none';
-                    const uChar = u.profilePic ? '' : (u.name[0] || 'U');
+            replyWrapper.addEventListener('touchstart', () => { pressTimer = setTimeout(() => openReplyOptions(r), 600); });
+            replyWrapper.addEventListener('touchend', () => clearTimeout(pressTimer));
 
-                    const itemHtml = `
-                        <div class="cm-item">
-                            <div class="cm-avatar" style="background-image:${uPic}" onclick="location.href='profile.html?uid=${c.uid}'">${uChar}</div>
-                            <div class="cm-content">
-                                <div class="cm-username">${u.name} ${badge}</div>
-                                <div class="cm-text">${c.text}</div>
-                                <div class="cm-meta">
-                                    <span>${moment(c.createdAt?.toDate()).fromNow()}</span>
-                                    <span class="cm-reply-link" onclick="prepareReply('${doc.id}', '${u.name}', '${c.uid}')">رد</span>
-                                </div>
-                                <div id="replies-${doc.id}"></div>
+            replyWrapper.innerHTML = `
+                <div class="tree-connector" style="${treeLineStyle}"></div>
+                <div class="reply-curve"></div>
+                <div style="display:flex; gap:10px; align-items: flex-start;">
+                    <div class="cm-avatar" style="width:30px; height:30px; ${avatarStyle}; background-size:cover;">
+                        ${r.isGhost ? '<i class="fa-solid fa-user-secret"></i>' : ''}
+                    </div>
+                    <div class="cm-content">
+                        ${bubbleWrapperStart}
+                            <div class="cm-username" style="font-size:12px; ${nameStyle}">
+                                ${displayName} ${badgeHTML} 
                             </div>
-                        </div>`;
-                    
-                    list.insertAdjacentHTML('beforeend', itemHtml);
-                    loadReplies(id, doc.id);
-                });
-            });
+                            ${contentHtml}
+                        ${bubbleWrapperEnd}
+                        
+                        <div class="cm-meta-row" style="margin-right:5px; font-size:10px;">
+                            ${!r.isGhost ? `<span class="cm-action" onclick="prepareSubReply('${r.uid}', '${displayName}')">رد</span>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+            container.appendChild(replyWrapper);
+        });
+    });
+}
+
+        function prepareReply(cid, uid, name) {
+            openRepliesSheet({id: cid, uid: uid, name: name, text: "..."});
         }
 
-        function loadReplies(postId, commentId) {
-            db.collection('posts').doc(postId).collection('comments').doc(commentId).collection('replies').orderBy('createdAt', 'asc').onSnapshot(async snap => {
-                const container = document.getElementById(`replies-${commentId}`); container.innerHTML = "";
-                for (const doc of snap.docs) {
-                    const r = doc.data();
-                    const u = await getUser(r.uid);
-                    const badge = u.isVerified ? `<i class="fa-solid fa-circle-check verified-badge" style="font-size:10px;"></i>` : '';
-                    const uPic = u.profilePic ? `url('${u.profilePic}')` : 'none';
-                    
-                    container.innerHTML += `
-                        <div class="reply-container">
-                            <div class="reply-avatar" style="background-image:${uPic}" onclick="location.href='profile.html?uid=${r.uid}'"></div>
-                            <div class="cm-content">
-                                <div class="cm-username" style="font-size:12px;">${u.name} ${badge}</div>
-                                <div class="cm-text" style="font-size:13px;">
-                                    <span class="reply-mention">${r.replyToName}</span> ${r.text}
-                                </div>
-                            </div>
-                        </div>`;
-                }
-            });
+        function prepareSubReply(uid, name) {
+            currentSubReplyTarget = { uid: uid, name: name };
+            const inp = document.getElementById('replyInput');
+            inp.value = name + " "; inp.focus();
         }
 
-        function prepareReply(cid, name, uid) {
-            replyData = { id: cid, name: name, uid: uid };
-            document.getElementById('replyBar').style.display = 'flex';
-            document.getElementById('replyToName').innerText = name;
-            document.getElementById('cmInput').focus();
-        }
+ async function sendReplyToComment(stickerContent = null, isSticker = false, giftData = null) {
+    const inp = document.getElementById('replyInput');
+    let txt = stickerContent || inp.value.trim();
+    
+    // السماح بالإرسال لو فيه نص، أو ستيكر، أو هدية
+    if((!txt && !isSticker && !giftData) || !currentParentComment) return;
+    
+    if(!isSticker) txt = txt.replace(/^@/, '');
 
-        function cancelReply() {
-            replyData = null;
-            document.getElementById('replyBar').style.display = 'none';
-        }
+    let replyToUid = null, replyToName = null;
+    if (!isSticker && !giftData && currentSubReplyTarget && txt.startsWith(currentSubReplyTarget.name)) {
+        replyToUid = currentSubReplyTarget.uid; replyToName = currentSubReplyTarget.name;
+    }
 
-        async function sendComment() {
-            if(isSendingComment) return;
-            const inp = document.getElementById('cmInput');
-            const txt = inp.value.trim();
-            const btn = document.getElementById('sendBtnIcon');
-
-            if(!txt) return; 
-            isSendingComment = true;
-            btn.classList.add('send-btn-disabled'); 
-            inp.value = "";
+    try {
+        await db.collection("posts").doc(currentOpenVideoId).collection("comments").doc(currentParentComment.id).collection("replies").add({
+            uid: currentUser.uid,
+            name: currentUserData?.name || "مستخدم",
+            pic: currentUserData?.profilePic || "", 
+            isVerified: currentUserData?.isVerified || false,
             
-            try {
-                const payload = {
-                    uid: currentUser.uid, 
-                    text: txt, 
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                };
+            text: txt, // سيحتوي على نص "أرسل تاج" مثلاً
+            
+            isSticker: isSticker,
+            
+            // 🔥 بيانات الهدية (الجديد)
+            isGift: !!giftData,
+            giftEmoji: giftData ? giftData.emoji : null,
+            giftName: giftData ? giftData.name : null,
+            giftEffect: giftData ? giftData.effect : null,
 
-                if (replyData) {
-                    payload.replyToName = replyData.name;
-                    payload.replyToUid = replyData.uid;
-                    await db.collection('posts').doc(currentVideoId).collection('comments').doc(replyData.id).collection('replies').add(payload);
+            isGhost: isGhost,
+            replyToUid: replyToUid, replyToName: replyToName,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        inp.value = ""; 
+        currentSubReplyTarget = null;
+        if(typeof playSound === 'function') playSound('sent');
+
+    } catch(e) { console.error(e); }
+}
+
+
+        function openReplyOptions(r) {
+            selectedReply = r;
+            const isMyReply = (r.uid === currentUser.uid);
+            document.getElementById('replyOwnerOptions').style.display = isMyReply ? 'block' : 'none';
+            document.getElementById('replyViewerOptions').style.display = isMyReply ? 'none' : 'block';
+            if (!isMyReply) document.getElementById('replyToUserBtn').innerHTML = `<i class="fa-solid fa-reply"></i> رد على ${r.name}`;
+            document.getElementById('replyOptionsSheet').classList.add('active');
+        }
+
+        function triggerEditReplyAction() { /* ... تنفيذ التعديل ... */ }
+        function triggerDeleteReply() { /* ... تنفيذ الحذف ... */ }
+        function triggerReplyToUser() { /* ... */ }
+
+        function setupMentionListener(inputId, dropdownId) {
+            const inp = document.getElementById(inputId);
+            const drop = document.getElementById(dropdownId);
+            inp.addEventListener('keyup', async () => {
+                const val = inp.value;
+                const lastWord = val.split(" ").pop();
+                if (lastWord.startsWith('@')) {
+                    drop.classList.add('active');
+                    drop.innerHTML = '<div style="padding:10px;">بحث...</div>';
+                    const q = lastWord.substring(1);
+                    const snap = await db.collection('users').orderBy('name').startAt(q).endAt(q+'\uf8ff').limit(5).get();
+                    drop.innerHTML = '';
+                    snap.forEach(doc => {
+                        const d = doc.data();
+                        const item = document.createElement('div');
+                        item.className = 'mention-suggest-item';
+                        item.innerText = d.name;
+                        item.onclick = () => {
+                            inp.value = val.replace(lastWord, d.name + " ");
+                            drop.classList.remove('active');
+                        };
+                        drop.appendChild(item);
+                    });
                 } else {
-                    await db.collection('posts').doc(currentVideoId).collection('comments').add(payload);
-                    await db.collection('posts').doc(currentVideoId).update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
+                    drop.classList.remove('active');
                 }
-                cancelReply();
-            } catch (e) { console.error(e); } 
-            finally {
-                isSendingComment = false;
-                btn.classList.remove('send-btn-disabled');
-            }
+            });
         }
 
-        async function getUser(uid) {
-            const d = await db.collection('users').doc(uid).get(); 
-            const data = d.data() || {};
-            return { 
-                name: data.name || "مستخدم", 
-                profilePic: data.profilePic, 
-                char: (data.name?data.name[0]:'U').toUpperCase(),
-                isVerified: data.isVerified === true 
+        function closeAllSheets() {
+            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('active'));
+            document.getElementById('overlay').style.display = 'none';
+            
+            document.body.classList.remove('no-scroll'); 
+
+            document.body.classList.remove('no-scroll');
+            isEditingComment = false; isEditingReply = false;
+            resetCommentInput();
+        }
+
+        function showChicConfirm(title, message, iconHTML, callback) {
+            document.getElementById('chicTitle').innerText = title;
+            document.getElementById('chicMessage').innerText = message;
+            document.getElementById('chicIcon').innerHTML = iconHTML;
+            document.getElementById('chicConfirmModal').style.display = 'flex';
+            document.getElementById('chicConfirmBtn').onclick = () => {
+                callback();
+                closeChicModal();
             };
         }
-
-        function closeComments() { document.getElementById('cmSheet').classList.remove('active'); document.getElementById('cmOverlay').style.display = 'none'; }
+        function closeChicModal() { document.getElementById('chicConfirmModal').style.display = 'none'; }
         
-        async function toggleLike(id) {
-            const icon = document.getElementById(`like-icon-${id}`);
-            const span = document.getElementById(`like-count-${id}`);
-            let count = parseInt(span.innerText);
-            const isLiked = icon.style.color === 'rgb(255, 59, 48)';
-            icon.style.color = isLiked ? '#fff' : '#ff3b30';
-            span.innerText = isLiked ? Math.max(0, count - 1) : count + 1;
-            const ref = db.collection('posts').doc(id);
-            if (isLiked) await ref.update({ [`likes.${currentUser.uid}`]: firebase.firestore.FieldValue.delete() });
-            else await ref.update({ [`likes.${currentUser.uid}`]: true });
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
-
-        async function followUser(e, uid) {
-            e.stopPropagation();
-            const btn = document.getElementById(`follow-${uid}`);
-            btn.style.transform = "scale(0)";
-            setTimeout(() => btn.remove(), 300);
-            try {
-                await db.collection('users').doc(currentUser.uid).collection('following').doc(uid).set({ at: firebase.firestore.FieldValue.serverTimestamp() });
-                await db.collection('users').doc(uid).collection('followers').doc(currentUser.uid).set({ at: firebase.firestore.FieldValue.serverTimestamp() });
-                followingSet.add(uid);
-            } catch(e){}
+        
+        function reportComment() {
+            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('active'));
+            showToast("تم الإبلاغ للإدارة");
         }
+        
+        // --- 1. دالة توسيع المربع عند الكتابة ---
+function expandInputArea() {
+    document.querySelector('.input-area-container').classList.add('focused');
+    document.getElementById('commentFooter').classList.add('expanded');
+}
 
-        function showBigHeart(id) {
-            const heart = document.getElementById(`heart-${id}`);
-            heart.classList.remove('animate-heart');
-            void heart.offsetWidth;
-            heart.classList.add('animate-heart');
+// --- 2. دالة إدراج الإيموجي ---
+function insertEmoji(emoji) {
+    const input = document.getElementById('cmInput');
+    input.value += emoji;
+    input.focus();
+    handleInputTyping(input); // تحديث زر الإرسال
+}
+
+// --- 3. دالة رفع الصور والفيديو (الأهم) ---
+async function uploadCommentMedia(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    input.value = ''; // تصفير عشان لو حبيت ترفع نفس الملف تاني
+
+    let fileType = '';
+    let folder = '';
+
+    // تحديد النوع
+    if (file.type.startsWith('image/')) {
+        fileType = 'image';
+        folder = 'images';
+        if (file.size > 10 * 1024 * 1024) { showToast("⚠️ حجم الصورة كبير"); return; }
+    } else if (file.type.startsWith('video/')) {
+        fileType = 'video';
+        folder = 'videos';
+        if (file.size > 50 * 1024 * 1024) { showToast("⚠️ حجم الفيديو كبير"); return; }
+    } else {
+        showToast("⚠️ مسموح فقط بالصور والفيديوهات"); return;
+    }
+
+    showToast(`جاري رفع ${fileType === 'image' ? 'الصورة' : 'الفيديو'}... ⏳`);
+
+    const safeName = Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const extension = file.name.split('.').pop();
+    const storagePath = `comments_media_v2/${currentOpenVideoId}/${folder}/${safeName}.${extension}`;
+    const storageRef = storage.ref().child(storagePath);
+    
+    try {
+        const snapshot = await storageRef.put(file);
+        const url = await snapshot.ref.getDownloadURL();
+
+        // إرسال التعليق للداتابيز
+        await db.collection('posts').doc(currentOpenVideoId).collection('comments').add({
+            uid: currentUser.uid,
+            name: currentUserData?.name || "مستخدم",
+            pic: currentUserData?.profilePic || "",
+            isVerified: currentUserData?.isVerified || false,
+            text: url, 
+            isImage: (fileType === 'image'), // علامة للصورة
+            isVideo: (fileType === 'video'), // علامة للفيديو
+            isAudio: false,
+            isSticker: false,
+            isGhost: isGhost,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // زيادة العداد
+        await db.collection('posts').doc(currentOpenVideoId).update({
+            commentsCount: firebase.firestore.FieldValue.increment(1)
+        });
+        
+        showToast("تم الإرسال ✅");
+
+    } catch (e) {
+        console.error(e);
+        showToast("فشل الرفع");
+    }
+}
+
+// --- 4. تحديث دالة الكتابة (عشان تخفي زرار الصور لما تكتب) ---
+// (استبدل دالة handleInputTyping القديمة بهذه)
+function handleInputTyping(textarea) {
+    const actionBtn = document.getElementById('dynamicActionBtn');
+    const micIcon = document.getElementById('mainMicIcon');
+    const sendIcon = document.getElementById('mainSendIcon');
+    const extActions = document.querySelector('.external-actions');
+    const footer = document.getElementById('commentFooter'); // الشريط كله
+    const container = document.querySelector('.input-area-container'); // الحاوية
+
+    // ضبط الارتفاع تلقائياً
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+
+    if (textarea.value.trim().length > 0) {
+        // --- وضع الكتابة (Expand) ---
+        micIcon.style.display = 'none';
+        sendIcon.style.display = 'block';
+        
+        actionBtn.classList.remove('mic-mode');
+        actionBtn.classList.add('send-mode');
+        actionBtn.onclick = function() { handleCommentAction(); };
+        
+        // إخفاء الأزرار الجانبية لتوسيع المساحة
+        if(extActions) extActions.style.display = 'none'; 
+        
+    } else {
+        // --- وضع السكون (Reset / Nature) ---
+        micIcon.style.display = 'block';
+        sendIcon.style.display = 'none';
+        
+        actionBtn.classList.add('mic-mode');
+        actionBtn.classList.remove('send-mode');
+        actionBtn.onclick = function() { toggleRecording(); };
+        
+        // 🔥 إظهار الأزرار الجانبية مرة أخرى
+        if(extActions) extActions.style.display = 'flex';
+        
+        // 🔥 تصغير المربع للحجم الأصلي
+        textarea.style.height = '45px';
+
+        // إلغاء كلاسات التوسيع
+        if(footer) footer.classList.remove('expanded');
+        if(container) container.classList.remove('focused');
+    }
+}
+
+
+// --- دوال تشغيل الميديا في التعليقات ---
+
+// 1. تشغيل/إيقاف الفيديو
+function toggleCommentVideo(id) {
+    const vid = document.getElementById(`vid_${id}`);
+    const container = document.getElementById(`vid_cont_${id}`);
+    const playIcon = document.getElementById(`play_icon_${id}`);
+
+    // إيقاف أي فيديو آخر شغال
+    document.querySelectorAll('video').forEach(v => { if(v !== vid) v.pause(); });
+
+    if (vid.paused) {
+        vid.play();
+        container.classList.add('playing');
+        playIcon.style.opacity = '0';
+    } else {
+        vid.pause();
+        container.classList.remove('playing');
+        playIcon.style.opacity = '1';
+    }
+}
+
+// 2. كتم الصوت
+function toggleCommentMute(id, e) {
+    e.stopPropagation();
+    const vid = document.getElementById(`vid_${id}`);
+    const icon = document.getElementById(`mute_icon_${id}`);
+    vid.muted = !vid.muted;
+    icon.className = vid.muted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+}
+
+// 3. تكبير الشاشة
+/* --- دوال الفيديو الاحترافي (Cinema Mode) --- */
+
+// 1. فتح الفيديو في وضع السينما
+function toggleCommentFullscreen(id, e) {
+    if(e) e.stopPropagation();
+    
+    const smallVideo = document.getElementById(`vid_${id}`);
+    const overlay = document.getElementById('cinemaOverlay');
+    const bigVideo = document.getElementById('fsVideoPlayer');
+    const bigPlayIcon = document.getElementById('fsPlayIcon');
+    const bigSpeedBtn = document.getElementById('fsSpeedBtn');
+    
+    // نقل حالة الفيديو الصغير للكبير
+    bigVideo.src = smallVideo.src;
+    bigVideo.currentTime = smallVideo.currentTime;
+    bigVideo.muted = smallVideo.muted;
+    bigVideo.playbackRate = smallVideo.playbackRate;
+    
+    // تحديث الأزرار
+    if(bigSpeedBtn) bigSpeedBtn.innerText = smallVideo.playbackRate + 'x';
+    updateFsMuteIcon(bigVideo.muted);
+
+    // إيقاف الصغير وتشغيل الكبير
+    smallVideo.pause();
+    overlay.classList.add('active');
+    
+    const playPromise = bigVideo.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => { bigPlayIcon.style.opacity = '0'; })
+                   .catch(() => { bigPlayIcon.style.opacity = '1'; });
+    }
+
+    // تحديث شريط الوقت (Seeker)
+    bigVideo.ontimeupdate = () => {
+        const percent = (bigVideo.currentTime / bigVideo.duration) * 100;
+        document.getElementById('fsSeeker').value = percent || 0;
+    };
+}
+
+// 2. إغلاق وضع السينما
+function closeCinemaMode() {
+    const overlay = document.getElementById('cinemaOverlay');
+    const bigVideo = document.getElementById('fsVideoPlayer');
+    overlay.classList.remove('active');
+    bigVideo.pause();
+    // (اختياري: ممكن ترجع تشغل الفيديو الصغير من نفس الثانية لو حابب)
+}
+
+// 3. تشغيل/إيقاف من الزرار الكبير
+function toggleFsPlay() {
+    const v = document.getElementById('fsVideoPlayer');
+    const icon = document.getElementById('fsPlayIcon');
+    if(v.paused) { v.play(); icon.style.opacity = '0'; }
+    else { v.pause(); icon.style.opacity = '1'; }
+}
+
+// 4. كتم الصوت
+function toggleFsMute() {
+    const v = document.getElementById('fsVideoPlayer');
+    v.muted = !v.muted;
+    updateFsMuteIcon(v.muted);
+}
+
+function updateFsMuteIcon(isMuted) {
+    const icon = document.getElementById('fsMuteIcon');
+    icon.className = isMuted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+}
+
+// 5. تقديم وتأخير
+function seekFsVideo(input) {
+    const v = document.getElementById('fsVideoPlayer');
+    if(v.duration) v.currentTime = (input.value / 100) * v.duration;
+}
+
+// 6. تغيير السرعة في الوضع الكبير
+function changeFsSpeed(btnElement) {
+    const video = document.getElementById('fsVideoPlayer');
+    let r = video.playbackRate;
+    let newRate = (r === 1.0) ? 1.5 : (r === 1.5) ? 2.0 : 1.0;
+    video.playbackRate = newRate;
+    btnElement.innerText = newRate + 'x';
+}
+
+// 4. فتح الصورة (بسيط)
+function viewImageWithSave(url) {
+    window.open(url, '_blank');
+}
+
+/* --- دوال عارض الصور وحفظها --- */
+function viewImageWithSave(url) {
+    const lb = document.getElementById('imgLightbox');
+    const img = document.getElementById('lbImage');
+    
+    // تنظيف الزر القديم إن وجد
+    const oldBtn = document.getElementById('lbSaveBtn');
+    if(oldBtn) oldBtn.remove();
+
+    // إنشاء زر الحفظ
+    const saveBtn = document.createElement('div');
+    saveBtn.id = 'lbSaveBtn';
+    saveBtn.className = 'lb-save-btn';
+    saveBtn.innerHTML = `<i class="fa-solid fa-download"></i> حفظ الصورة`;
+    saveBtn.onclick = (e) => { e.stopPropagation(); saveImageAction(url); };
+    
+    lb.appendChild(saveBtn);
+    img.src = url;
+    lb.style.display = 'flex';
+    setTimeout(() => lb.classList.add('active'), 10);
+}
+
+function closeLightbox() {
+    const lb = document.getElementById('imgLightbox');
+    lb.classList.remove('active');
+    setTimeout(() => { lb.style.display = 'none'; document.getElementById('lbImage').src = ''; }, 300);
+}
+
+function saveImageAction(url) {
+    showToast("جاري الحفظ... 🖼️");
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Wareed_IMG_${Date.now()}.jpg`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+/* --- دالة تغيير سرعة الفيديو --- */
+function changeVideoSpeed(id, e) {
+    e.stopPropagation();
+    const video = document.getElementById(`vid_${id}`);
+    const btn = document.getElementById(`speed_btn_${id}`);
+    
+    let current = video.playbackRate;
+    let newRate = (current === 1.0) ? 1.5 : (current === 1.5) ? 2.0 : 1.0;
+    
+    video.playbackRate = newRate;
+    btn.innerText = newRate + 'x';
+}
+
+function toggleReadMore(btn) {
+    const textDiv = btn.previousElementSibling; // النص اللي قبل الزرار
+    if (textDiv.classList.contains('collapsed')) {
+        textDiv.classList.remove('collapsed'); // توسيع
+        textDiv.style.maskImage = 'none';
+        textDiv.style.webkitMaskImage = 'none';
+        btn.innerText = 'عرض أقل';
+    } else {
+        textDiv.classList.add('collapsed'); // طي
+        textDiv.style.maskImage = ''; // استرجاع التلاشي
+        textDiv.style.webkitMaskImage = '';
+        btn.innerText = 'قراءة المزيد... 👇';
+    }
+}
+
+/* --- نظام الأونلاين (Presence System) --- */
+
+// 1. دالة لتلوين الصورة لو المستخدم فاتح
+function checkAndColorAvatar(uid, avatarElement) {
+    if (!uid || !avatarElement) return;
+
+    // بنجيب بيانات المستخدم صاحب التعليق
+    db.collection('users').doc(uid).get().then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            if (data.lastSeen) {
+                const lastSeen = data.lastSeen.toDate();
+                const now = new Date();
+                // حساب الفرق بالدقائق
+                const diff = (now - lastSeen) / 1000 / 60;
+                
+                // لو كان فاتح في آخر 5 دقايق، نعتبره أونلاين
+                if (diff < 5) {
+                    avatarElement.classList.add('online');
+                }
+            }
         }
+    });
+}
 
-        function toggleSearch() {
-            const ol = document.getElementById('searchOverlay');
-            ol.style.transform = ol.style.transform === 'translateX(0px)' ? 'translateX(100%)' : 'translateX(0px)';
-        }
+// 2. تحديث تواجدك أنت (عشان تظهر أونلاين للناس)
+function startPresenceSystem() {
+    if (!currentUser) return;
 
-        function doSearch(val) {
-            if(!val.trim()) { document.getElementById('searchResults').innerHTML = ""; return; }
-            db.collection('users').orderBy('name').startAt(val).endAt(val+'\uf8ff').limit(10).get().then(snap => {
-                const container = document.getElementById('searchResults'); container.innerHTML = "";
-                snap.forEach(doc => {
-                    const u = doc.data();
-                    const uPic = u.profilePic ? `url('${u.profilePic}')` : 'none';
-                    container.innerHTML += `
-                        <div class="search-item" onclick="location.href='profile.html?uid=${doc.id}'">
-                            <div class="s-avatar" style="background-image:${uPic}"></div><div style="color:#fff;">${u.name}</div>
-                        </div>`;
-                });
+    const updateStatus = () => {
+        db.collection('users').doc(currentUser.uid).update({
+            lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(e => console.log("Presence update ignored")); // تجاهل الأخطاء الصامتة
+    };
+
+    // تحديث فوراً عند الدخول
+    updateStatus();
+
+    // تحديث كل دقيقتين طول ما أنت فاتح الموقع
+    setInterval(updateStatus, 2 * 60 * 1000);
+}
+
+// تشغيل النظام عند تسجيل الدخول (ضيف السطر ده جوه auth observer لو مش موجود)
+// أو خليه هنا وهو هيشتغل لما المستخدم يسجل
+auth.onAuthStateChanged(user => {
+    if (user) startPresenceSystem();
+});
+
+/* ==========================================
+   👆 نظام سحب القوائم للإغلاق (Swipe to Dismiss)
+   ========================================== */
+/* ==========================================
+   👆 نظام سحب القوائم المطور (Smart Swipe)
+   ========================================== */
+/* ==========================================
+   👆 نظام سحب القوائم المطور (تم إصلاح أزرار الهيدر)
+   ========================================== */
+function initSwipeToClose() {
+    const sheets = document.querySelectorAll('.bottom-sheet');
+    
+    sheets.forEach(sheet => {
+        const handle = sheet.querySelector('.sheet-handle');
+        // هنا بنحدد الهيدر
+        const header = sheet.querySelector('.cm-header') || sheet.querySelector('h3'); 
+        
+        const attachDrag = (element) => {
+            if(!element) return;
+            
+            let startY = 0;
+            let currentY = 0;
+            let isDragging = false;
+            
+            element.addEventListener('touchstart', (e) => {
+                // 🔥🔥 التعديل السحري هنا 🔥🔥
+                // لو الضغطة جت على أيقونة (i) أو زرار، نخرج من دالة السحب فوراً
+                if (e.target.tagName === 'I' || e.target.classList.contains('fa-xmark') || e.target.classList.contains('fa-arrow-right')) {
+                    return; 
+                }
+
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                sheet.style.transition = 'none';
+            }, {passive: false}); // passive: false مهم عشان نقدر نتحكم
+            
+            element.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const touchY = e.touches[0].clientY;
+                const diff = touchY - startY;
+                
+                // بنسمح بالسحب فقط للأسفل
+                if (diff > 0) { 
+                    if(e.cancelable) e.preventDefault(); // منع سكرول الصفحة أثناء سحب القائمة
+                    currentY = diff;
+                    sheet.style.transform = `translateY(${currentY}px)`;
+                }
+            }, {passive: false});
+            
+            element.addEventListener('touchend', () => {
+                if (!isDragging) return;
+                isDragging = false;
+                sheet.style.transition = 'transform 0.3s cubic-bezier(0.19, 1, 0.22, 1)';
+                
+                if (currentY > 100) { 
+                    // منطق الإغلاق
+                    if (sheet.id === 'giftSheet') {
+                        if(typeof GiftSystem !== 'undefined') GiftSystem.closeGiftOnly();
+                        else sheet.classList.remove('active');
+                    } 
+                    else if (sheet.id === 'repliesSheet') {
+                        closeRepliesSheet(); // استخدام دالة الإغلاق الصحيحة
+                    } 
+                    else {
+                        closeAllSheets();
+                    }
+
+                    setTimeout(() => { sheet.style.transform = ''; }, 300);
+                } else {
+                    sheet.style.transform = ''; 
+                }
+                currentY = 0;
             });
-        }
+        };
 
-        function switchTab(t) {
-            currentTab = t;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`tab-${t}`).classList.add('active');
-            loadVideos();
+        attachDrag(handle);
+        attachDrag(header);
+    });
+}
+
+// تشغيل النظام فوراً عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', initSwipeToClose);
+// وتشغيله مرة أخرى للتأكيد (في حالة التبديل بين الصفحات)
+initSwipeToClose();
+
+function handleOverlayClick() {
+    const repliesSheet = document.getElementById('repliesSheet');
+    
+    // فحص: هل قائمة الردود مفتوحة الآن؟
+    if (repliesSheet.classList.contains('active')) {
+        // لو مفتوحة، اقفل الردود بس (ورجعني للتعليقات)
+        closeRepliesSheet();
+    } else {
+        // لو مش مفتوحة، يبقى أكيد احنا في التعليقات، اقفل كله
+        closeAllSheets();
+    }
+}
+
+/* ==========================================
+   وظائف الردود المتقدمة (Repliles Pro Features)
+   ========================================== */
+
+// 1. التحكم في شكل المربع عند الكتابة (إخفاء الأزرار)
+function handleReplyTyping(textarea) {
+    const actionBtn = document.getElementById('replyDynamicActionBtn');
+    const micIcon = document.getElementById('replyMicIcon');
+    const sendIcon = document.getElementById('replySendIcon');
+    const extActions = document.getElementById('replyExternalActions');
+
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+
+    if (textarea.value.trim().length > 0) {
+        // وضع الإرسال
+        micIcon.style.display = 'none';
+        sendIcon.style.display = 'block';
+        actionBtn.classList.remove('mic-mode');
+        actionBtn.classList.add('send-mode');
+        // تغيير وظيفة الزر للإرسال النصي
+        actionBtn.onclick = function() { sendReplyToComment(); };
+        
+        // إخفاء أزرار الميديا والهدايا
+        if(extActions) {
+            extActions.style.maxWidth = '0px';
+            extActions.style.opacity = '0';
+            extActions.style.margin = '0';
+            extActions.style.padding = '0';
         }
+    } else {
+        // وضع المايك
+        micIcon.style.display = 'block';
+        sendIcon.style.display = 'none';
+        actionBtn.classList.add('mic-mode');
+        actionBtn.classList.remove('send-mode');
+        // تغيير وظيفة الزر للتسجيل
+        actionBtn.onclick = function() { toggleReplyRecording(); };
+        
+        // إظهار الأزرار مرة أخرى
+        if(extActions) {
+            extActions.style.maxWidth = '100px'; // الحجم الأصلي
+            extActions.style.opacity = '1';
+            extActions.style.margin = '';
+            extActions.style.padding = '';
+        }
+        textarea.style.height = '45px';
+    }
+}
+
+function expandReplyInputArea() {
+    // ممكن نضيف كلاس هنا لو عايزين تأثيرات إضافية
+    document.getElementById('replyFooter').classList.add('expanded');
+}
+
+// 2. رفع الميديا في الردود (صور وفيديو)
+async function uploadReplyMedia(input) {
+    const file = input.files[0];
+    if (!file || !currentParentComment) return;
+
+    input.value = ''; // تصفير
+
+    let fileType = '';
+    let isImg = false;
+    let isVid = false;
+
+    // تحديد النوع
+    if (file.type.startsWith('image/')) {
+        fileType = 'image';
+        isImg = true;
+    } else if (file.type.startsWith('video/')) {
+        fileType = 'video';
+        isVid = true;
+        if (file.size > 50 * 1024 * 1024) { showToast("⚠️ الفيديو كبير جداً"); return; }
+    } else { 
+        showToast("⚠️ الملف غير مدعوم"); return; 
+    }
+    
+    showToast(`جاري رفع ${fileType === 'image' ? 'الصورة' : 'الفيديو'} في الرد... ⏳`);
+
+    const safeName = Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const extension = file.name.split('.').pop();
+    // استخدام currentOpenVideoId الخاص بـ NABD Pro
+    const storagePath = `replies_media/${currentOpenVideoId}/${currentParentComment.id}/${safeName}.${extension}`;
+    
+    try {
+        const snapshot = await storage.ref().child(storagePath).put(file);
+        const url = await snapshot.ref.getDownloadURL();
+
+        // إرسال الرد للداتابيز
+        await db.collection("posts").doc(currentOpenVideoId)
+            .collection("comments").doc(currentParentComment.id)
+            .collection("replies").add({
+                uid: currentUser.uid,
+                name: currentUserData?.name || "مستخدم",
+                pic: currentUserData?.profilePic || "",
+                isVerified: currentUserData?.isVerified || false,
+                text: url,
+                isImage: isImg, // 🟢 مهم جداً
+                isVideo: isVid, // 🟢 مهم جداً
+                isAudio: false,
+                isSticker: false,
+                isGhost: isGhost,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+        showToast("تم إرسال الرد ✅");
+
+    } catch (e) {
+        console.error(e);
+        showToast("فشل الرفع");
+    }
+}
+
+// 3. تسجيل الصوت في الردود (Voice Note)
+let replyMediaRecorder = null;
+let replyAudioChunks = [];
+let replyRecordInterval;
+
+async function toggleReplyRecording() {
+    if (!currentParentComment) return;
+    
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        replyMediaRecorder = new MediaRecorder(stream);
+        replyAudioChunks = [];
+        
+        document.getElementById("replyNormalModeUI").style.display = "none";
+        document.getElementById("replyRecordingModeUI").style.display = "flex";
+        
+        let seconds = 0;
+        document.getElementById("replyRecordTimer").innerText = "00:00";
+        
+        replyRecordInterval = setInterval(() => {
+            seconds++;
+            const m = Math.floor(seconds/60).toString().padStart(2,'0');
+            const s = (seconds%60).toString().padStart(2,'0');
+            document.getElementById("replyRecordTimer").innerText = `${m}:${s}`;
+        }, 1000);
+        
+        replyMediaRecorder.ondataavailable = e => replyAudioChunks.push(e.data);
+        replyMediaRecorder.start();
+        if(navigator.vibrate) navigator.vibrate(50);
+        
+    } catch(e) {
+        showToast("⚠️ الميكروفون غير متاح");
+    }
+}
+
+function cancelReplyRecording() {
+    if(replyMediaRecorder) replyMediaRecorder.stop();
+    clearInterval(replyRecordInterval);
+    document.getElementById("replyRecordingModeUI").style.display = "none";
+    document.getElementById("replyNormalModeUI").style.display = "flex";
+}
+
+function stopAndSendReplyRecording() {
+    if(!replyMediaRecorder) return;
+    replyMediaRecorder.stop();
+    
+    replyMediaRecorder.onstop = async () => {
+        clearInterval(replyRecordInterval);
+        document.getElementById("replyRecordingModeUI").style.display = "none";
+        document.getElementById("replyNormalModeUI").style.display = "flex";
+        
+        if(replyAudioChunks.length === 0) return;
+        
+        const blob = new Blob(replyAudioChunks, { type: 'audio/webm' });
+        const voicePath = `replies_voice/${currentParentComment.id}/${Date.now()}.webm`;
+        
+        showToast("جاري إرسال الصوت... ⏳");
+        
+        try {
+            const snapshot = await storage.ref().child(voicePath).put(blob);
+            const url = await snapshot.ref.getDownloadURL();
+            
+            await db.collection("posts").doc(currentOpenVideoId)
+                .collection("comments").doc(currentParentComment.id)
+                .collection("replies").add({
+                    uid: currentUser.uid,
+                    name: currentUserData?.name || "مستخدم",
+                    pic: currentUserData?.profilePic || "",
+                    text: url,
+                    isAudio: true,
+                    duration: document.getElementById("replyRecordTimer").innerText,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            
+            showToast("تم إرسال الصوت ✅");
+            
+        } catch(e) {
+            showToast("فشل الإرسال");
+        }
+    };
+}
+
+
+function handleSmartOverlayClick() {
+    const giftSheet = document.getElementById('giftSheet');
+    const repliesSheet = document.getElementById('repliesSheet');
+    const commentsSheet = document.getElementById('cmSheet');
+
+    // 1. لو الهدايا مفتوحة، اقفلها هي بس
+    if (giftSheet.classList.contains('active')) {
+        giftSheet.classList.remove('active');
+        return; // واخرج من الدالة عشان ميقفلش اللي تحتها
+    }
+
+    // 2. لو الردود مفتوحة، اقفلها وارجع للتعليقات
+    if (repliesSheet.classList.contains('active')) {
+        repliesSheet.classList.remove('active');
+        return;
+    }
+
+    // 3. لو مفيش غير التعليقات، اقفل كله
+    closeAllSheets();
+}
+
+// --- منطق مشغل الصوت (Voice Note Logic) ---
+
+let currentlyPlayingAudio = null; // عشان نعرف مين شغال دلوقتي ونوقفه لو شغلنا غيره
+let currentPlayButtonId = null;   // عشان نرجع زرار التشغيل لشكله الطبيعي
+
+function toggleAudio(id, event) {
+    if(event) event.stopPropagation(); // عشان ميعملش لايك أو يفتح الردود بالغلط
+
+    const audio = document.getElementById(`audio_${id}`);
+    const btnIcon = document.getElementById(`btn_${id}`).querySelector('i');
+    const playerContainer = document.getElementById(`player_${id}`);
+
+    // 1. لو فيه صوت تاني شغال، وقفه الأول
+    if (currentlyPlayingAudio && currentlyPlayingAudio !== audio) {
+        currentlyPlayingAudio.pause();
+        if(currentPlayButtonId) {
+            // رجع أيقونة الصوت اللي فات لـ "تشغيل"
+            const oldBtn = document.getElementById(currentPlayButtonId);
+            if(oldBtn) oldBtn.querySelector('i').className = "fa-solid fa-play";
+            // شيل ستايل التشغيل من الكونتينر القديم
+            const oldContainerId = currentPlayButtonId.replace('btn_', 'player_');
+            const oldCont = document.getElementById(oldContainerId);
+            if(oldCont) oldCont.classList.remove('playing');
+        }
+    }
+
+    // 2. التعامل مع الصوت الحالي
+    if (audio.paused) {
+        audio.play().then(() => {
+            currentlyPlayingAudio = audio;
+            currentPlayButtonId = `btn_${id}`;
+            btnIcon.className = "fa-solid fa-pause"; // غير الأيقونة لإيقاف
+            playerContainer.classList.add('playing'); // ضيف تأثير للتصميم
+        }).catch(err => console.error("Audio Play Error:", err));
+    } else {
+        audio.pause();
+        btnIcon.className = "fa-solid fa-play"; // رجع الأيقونة لتشغيل
+        playerContainer.classList.remove('playing');
+        currentlyPlayingAudio = null;
+    }
+}
+
+function updateAudioProgress(id) {
+    const audio = document.getElementById(`audio_${id}`);
+    const slider = document.getElementById(`range_${id}`);
+    const timer = document.getElementById(`dur_${id}`);
+    
+    // تأكد إن الأرقام سليمة (مش NaN)
+    if (isNaN(audio.duration)) return;
+
+    // 1. تحديث مكان الشريط
+    const percentage = (audio.currentTime / audio.duration) * 100;
+    slider.value = percentage;
+    
+    // تلوين الشريط (الجزء اللي اتسمع بلون، والباقي بلون تاني)
+    slider.style.background = `linear-gradient(to right, var(--primary) ${percentage}%, rgba(255,255,255,0.2) ${percentage}%)`;
+
+    // 2. تحديث الوقت (تنازلي أو تصاعدي - هنا هنعمله: الوقت المتبقي)
+    // لو عايز الوقت اللي مر: currentTime
+    // لو عايز المتبقي: duration - currentTime
+    const timeLeft = audio.duration - audio.currentTime;
+    const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+    const s = Math.floor(timeLeft % 60).toString().padStart(2, '0');
+    timer.innerText = `${m}:${s}`;
+}
+
+function seekAudio(id, event) {
+    if(event) event.stopPropagation();
+    
+    const audio = document.getElementById(`audio_${id}`);
+    const slider = document.getElementById(`range_${id}`);
+    
+    if (audio.duration) {
+        const seekTime = (slider.value / 100) * audio.duration;
+        audio.currentTime = seekTime;
+        updateAudioProgress(id); // تحديث فوري للشكل
+    }
+}
+
+function resetAudio(id) {
+    // لما الصوت يخلص
+    const btnIcon = document.getElementById(`btn_${id}`).querySelector('i');
+    const slider = document.getElementById(`range_${id}`);
+    const playerContainer = document.getElementById(`player_${id}`);
+    
+    btnIcon.className = "fa-solid fa-play";
+    slider.value = 0;
+    slider.style.background = `rgba(255,255,255,0.2)`; // تصفير اللون
+    playerContainer.classList.remove('playing');
+    
+    currentlyPlayingAudio = null;
+}
+
+function closeRepliesSheet() {
+    // 1. إخفاء قائمة الردود
+    const sheet = document.getElementById('repliesSheet');
+    if(sheet) sheet.classList.remove('active');
+    
+    // 2. تصفير المتغير الخاص بالتعليق الأب
+    currentParentComment = null;
+
+    // 3. (اختياري) لو فيه صوت شغال في الردود، نوقفه
+    if(typeof currentlyPlayingAudio !== 'undefined' && currentlyPlayingAudio) {
+        currentlyPlayingAudio.pause();
+        currentlyPlayingAudio = null;
+    }
+
+    // ملحوظة: مش هنشيل no-scroll لأن قائمة التعليقات الأساسية لسه مفتوحة تحتها
+}
+
+function toggleCommentLike(commentId) {
+    // بما إننا لسه معملناش نظام اللايكات في الداتابيز، هنعمل تأثير شكلي بس حالياً
+    const heartIcon = document.querySelector(`#comment-${commentId} .fa-heart`); // افتراض مكان الأيقونة
+    if(heartIcon) {
+        if(heartIcon.style.color === 'rgb(255, 59, 48)') {
+            heartIcon.style.color = '#fff'; // إلغاء اللايك
+        } else {
+            heartIcon.style.color = '#ff3b30'; // تفعيل اللايك
+            // هنا ممكن تضيف كود الفايربيس مستقبلاً
+        }
+    }
+    // هزاز للموبايل
+    if(navigator.vibrate) navigator.vibrate(50);
+}
+
+async function shareVideo(id, text) {
+    const shareData = {
+        title: 'NABD Pro',
+        text: text || 'شاهد هذا الفيديو الرائع على نبض!',
+        url: window.location.href // أو رابط الفيديو المباشر
+    };
+
+    if (navigator.share) {
+        try {
+            await navigator.share(shareData);
+        } catch (err) {
+            console.log('Error sharing:', err);
+        }
+    } else {
+        // Fallback: نسخ الرابط
+        navigator.clipboard.writeText(shareData.url);
+        showToast("تم نسخ الرابط للحافظة 📋");
+    }
+}
+
+function toggleFollow(uid, btn) {
+    // هنا هتعمل كود الفايربيس بتاعك للمتابعة
+    // ده كود شكلي بس:
+    if (btn.innerText === "متابعة") {
+        btn.innerText = "متابع";
+        btn.style.background = "transparent";
+        btn.style.border = "1px solid rgba(255,255,255,0.2)";
+        btn.style.color = "#ccc";
+    } else {
+        btn.innerText = "متابعة";
+        btn.style.background = "rgba(255, 255, 255, 0.15)";
+        btn.style.border = "1px solid rgba(255, 255, 255, 0.4)";
+        btn.style.color = "#fff";
+    }
+}
+
+// دالة توليد أيقونة التوثيق
+function getBadge(isVerified, isGhost) {
+    // لو وضع الشبح مفعل، مفيش توثيق بيظهر
+    if (isGhost) return '';
+    
+    // لو الحساب موثق، رجع القلب النابض
+    // استخدمنا fa-heart-circle-check عشان تدي شكل القلب الموثق
+    return isVerified ? `<i class="fa-solid fa-heart-circle-check nabd-badge"></i>` : '';
+}
+
+// دالة ذكية لاختصار الاسم
+// دالة ذكية لاختصار الاسم
+function formatSmartName(name) {
+    if (!name) return "مستخدم"; // حماية في حالة عدم وجود اسم
+    
+    // تنظيف الاسم
+    const cleanName = name.trim();
+    
+    // تقسيم الاسم
+    const words = cleanName.split(/\s+/);
+
+    // لو الاسم طويل نرجع أول اسمين فقط عشان التصميم ميبوظش
+    if (words.length > 2) {
+        return words.slice(0, 2).join(' ');
+    }
+    
+    return cleanName;
+}
+
+
     </script>
+    
+    <div class="lightbox" id="imgLightbox" onclick="closeLightbox()">
+    <span class="lb-close">&times;</span>
+    <img class="lb-img" id="lbImage">
+    </div>
+
+    <div id="cinemaOverlay" class="fs-overlay">
+    <video id="fsVideoPlayer" class="fs-video-element" loop playsinline></video>
+    
+    <div class="fs-center-btn" id="fsPlayIcon" onclick="toggleFsPlay()">
+        <i class="fa-solid fa-play"></i>
+    </div>
+
+    <div class="fs-control-bar" onclick="event.stopPropagation()">
+        <div class="vid-btn" onclick="toggleFsMute()">
+            <i class="fa-solid fa-volume-high" id="fsMuteIcon"></i>
+        </div>
+        
+        <div class="vid-btn vid-speed-btn" id="fsSpeedBtn" onclick="changeFsSpeed(this)" style="margin: 0 10px;">1x</div>
+        
+        <input type="range" class="audio-slider" id="fsSeeker" value="0" min="0" max="100" step="0.1" oninput="seekFsVideo(this)" style="flex:1; margin: 0 10px;">
+        
+        <div class="vid-btn" onclick="closeCinemaMode()">
+            <i class="fa-solid fa-compress"></i>
+        </div>
+    </div>
+</div>
+
+   <div class="floating-options-sheet" id="commentOptionsSheetNew">
+    <div id="cmOwnerOptionsNew" style="display:none; flex-direction:column;">
+        <div class="compact-option" onclick="triggerEditComment()">
+            <i class="fa-solid fa-pen"></i> تعديل
+        </div>
+        <div class="compact-option" onclick="triggerCopyComment()">
+            <i class="fa-regular fa-copy"></i> نسخ
+        </div>
+        <div class="compact-option danger-opt" onclick="triggerDeleteComment()">
+            <i class="fa-solid fa-trash"></i> حذف
+        </div>
+    </div>
+
+    <div id="cmViewerOptionsNew" style="display:none; flex-direction:column;">
+        <div class="compact-option" onclick="triggerReplyComment()">
+            <i class="fa-solid fa-reply"></i> رد
+        </div>
+        <div class="compact-option" onclick="triggerCopyComment()">
+            <i class="fa-regular fa-copy"></i> نسخ
+        </div>
+        <div class="compact-option danger-opt" onclick="reportComment()">
+            <i class="fa-solid fa-triangle-exclamation"></i> إبلاغ
+        </div>
+    </div>
+
+    <div class="cancel-btn-compact" onclick="closeFloatingMenu()">
+        إلغاء
+    </div>
+</div>
+
+<div id="optionsBackdrop" class="popup-backdrop" onclick="closeFloatingMenu()"></div>
+ 
+ <div class="sheet-overlay" id="overlay" onclick="handleSmartOverlayClick()"></div>
+<div class="gift-backdrop-layer" id="giftBackdrop" onclick="GiftSystem.closeGiftOnly()"></div>
+
 </body>
 </html>
+

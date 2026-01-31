@@ -4317,6 +4317,182 @@ body {
     -webkit-text-stroke: 0.5px var(--primary-color);
 }
 
+/* ================= تصميم نظام الهدايا (Wareed Style) ================= */
+
+/* حاوية التبويبات */
+.gift-tabs-container {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 5px;
+    border-radius: 15px;
+    margin: 10px 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.gift-tab {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    border-radius: 12px;
+    color: #888;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.gift-tab.active {
+    background: var(--primary-color); /* اللون السماوي */
+    color: #fff;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+}
+
+/* منطقة المحتوى */
+.gift-content-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 15px;
+    min-height: 300px;
+}
+
+/* 1. شبكة الهدايا (Gifts) */
+.premium-gift-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.premium-gift-card {
+    background: linear-gradient(145deg, rgba(30,30,35,0.8), rgba(20,20,25,0.9));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 15px 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-gift-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary-color);
+    background: rgba(0, 198, 255, 0.05);
+}
+
+.pg-emoji { font-size: 40px; margin-bottom: 5px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+.pg-name { font-size: 11px; color: #fff; margin-bottom: 3px; font-weight: bold; }
+.pg-price { 
+    font-size: 10px; color: #FFD700; /* ذهبي للسعر */
+    background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px;
+}
+
+/* 2. شبكة الملصقات (Stickers) */
+.sticker-grid-pro {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+.sticker-item-pro {
+    aspect-ratio: 1/1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background: rgba(255,255,255,0.02);
+    border-radius: 12px;
+}
+.sticker-item-pro:active { transform: scale(0.8); }
+
+/* 3. شبكة الصور المتحركة (GIFs) */
+.gif-search-box {
+    width: 100%;
+    padding: 12px 40px 12px 15px;
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: #fff;
+    margin-bottom: 15px;
+    font-family: 'Cairo', sans-serif;
+    outline: none;
+}
+.gif-search-box:focus { border-color: var(--primary-color); }
+
+.gif-grid {
+    column-count: 2; /* نظام Masonry */
+    column-gap: 10px;
+}
+.gif-item {
+    width: 100%;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    display: block;
+    transition: opacity 0.2s;
+    background: #222;
+    min-height: 80px;
+}
+.gif-item:hover { opacity: 0.8; border: 1px solid var(--primary-color); }
+
+/* تأثير اللودر */
+.loader-spinner {
+    text-align: center;
+    padding: 50px;
+    color: var(--primary-color);
+    font-size: 20px;
+}
+
+/* طبقة المؤثرات البصرية (FX) */
+#fxOverlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 99999; overflow: hidden;
+}
+.fx-element {
+    position: absolute;
+    animation-timing-function: ease-out;
+}
+/* تعديل مربع الكتابة ليشيل المسافات الزيادة */
+.smart-textarea {
+    padding-left: 15px !important; /* إلغاء الـ 110px القديمة */
+    padding-right: 15px !important;
+}
+
+/* تعديل زر الإجراء الرئيسي (المايك/الإرسال) */
+.action-submit-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: 0.2s all;
+    font-size: 18px;
+    margin-bottom: 0; /* محاذاة مع المربع */
+}
+
+/* لما الزرار يبقى إرسال (أزرق) */
+.action-submit-btn.send-mode {
+    background: var(--primary-color) !important;
+    color: #fff !important;
+    transform: scale(1.1);
+}
+
+/* لما الزرار يبقى مايك (رمادي) */
+.action-submit-btn.mic-mode {
+    background: rgba(255,255,255,0.08) !important;
+    color: #fff !important;
+}
+
 </style>
     
 </head>
@@ -4429,9 +4605,7 @@ body {
 
     <div class="cm-body" id="cmList">
     </div>
-
 <div class="cm-footer" id="commentFooter">
-    
     <div class="suggested-emojis" id="suggestedEmojis">
         <span onclick="insertEmoji('😂')">😂</span>
         <span onclick="insertEmoji('🥰')">🥰</span>
@@ -4443,65 +4617,57 @@ body {
 
     <div class="input-area-container">
         
-        <div id="normalModeUI" style="display: flex; width: 100%; align-items: center; gap: 5px;">
+        <div id="normalModeUI" style="display: flex; width: 100%; align-items: flex-end; gap: 8px;">
             
-            <div class="external-actions" style="display: flex; gap: 5px; align-items: center; margin-left: 5px;">
+            <div class="external-actions" style="display: flex; gap: 5px; align-items: center; margin-bottom: 2px;">
+                
                 <label class="ext-btn" style="color: #4cd964;">
                     <i class="fa-solid fa-image"></i>
                     <input type="file" hidden accept="image/*,video/*" onchange="uploadCommentMedia(this)">
                 </label>
 
-                <div class="ext-btn" id="micBtnExt" onclick="toggleRecording()" style="color: #ff3b30;">
-                    <i class="fa-solid fa-microphone"></i>
+                <div class="ext-btn" onclick="GiftSystem.open()" style="color: #bf5af2; border-color: #bf5af2;">
+                    <i class="fa-solid fa-gift"></i>
                 </div>
+
             </div>
 
-            <div class="smart-input-wrapper">
+            <div class="smart-input-wrapper" style="border-radius: 25px; padding: 0;">
                 <textarea id="cmInput" 
                           class="smart-textarea" 
                           placeholder="اكتب تعليقاً..." 
                           rows="1" 
                           onfocus="expandInputArea()" 
-                          oninput="handleInputTyping(this)"></textarea>
+                          oninput="handleInputTyping(this)"
+                          style="padding: 12px 15px !important; padding-left: 15px !important;"></textarea>
                 
-                <div class="input-tools">
-                    <i class="fa-solid fa-at icon-tool" onclick="triggerMention()"></i>
-                    <i class="fa-solid fa-face-smile icon-tool" onclick="toggleStickerSheet('main')"></i>
-                    <label style="margin:0; display:flex; cursor:pointer;">
-                        <i class="fa-solid fa-image icon-tool" style="color: #4cd964;"></i>
-                        <input type="file" hidden accept="image/*,video/*" onchange="uploadCommentMedia(this)">
-                    </label>
-                    <i class="fa-solid fa-microphone icon-tool" id="micBtnInt" onclick="toggleRecording()"></i>
                 </div>
+
+            <div id="dynamicActionBtn" class="action-submit-btn" onclick="toggleRecording()" style="opacity: 1; pointer-events: auto; background: rgba(255,255,255,0.1); color: var(--text-color);">
+                <i class="fa-solid fa-microphone" id="mainMicIcon"></i>
+                
+                <i class="fa-solid fa-paper-plane" id="mainSendIcon" style="display: none;"></i>
             </div>
 
-            <div id="sendActionContainer" class="action-submit-btn">
-                <i class="fa-solid fa-paper-plane" id="cmSendBtn" onclick="handleCommentAction()"></i>
-            </div>
         </div>
 
         <div id="recordingModeUI" class="recording-overlay" style="display: none;">
-            
             <div class="rec-action-btn delete" onclick="cancelRecording()">
                 <i class="fa-solid fa-trash-can"></i>
             </div>
-
             <div class="rec-info">
                 <div class="rec-dot"></div> <span id="recordTimer">00:00</span>
                 <span style="font-size: 12px; color: #aaa; margin-right: 8px;">جاري التسجيل...</span>
             </div>
-
             <div class="rec-action-btn send" onclick="stopAndSendRecording()">
-                <i class="fa-solid fa-paper-plane" style="transform: rotate(180deg) scaleX(-1);"></i> </div>
-
+                <i class="fa-solid fa-paper-plane" style="transform: rotate(180deg) scaleX(-1);"></i> 
+            </div>
         </div>
 
     </div>
 </div>
-
-
     </div>
-
+</div>
 
 <div class="floating-options-sheet" id="commentOptionsSheet">
     <div id="cmOwnerOptions" style="display:none; flex-direction:column;">
@@ -6335,8 +6501,20 @@ function stopRecordingProcess() {
 // 2. دالة رفع الملف (مهمة جداً)
 
 
-        function openRepliesSheet(cid, uid, name, pic, isVerified, text, isGhostUser, isAudio = false, duration = "00:00") {
+        function openRepliesSheet(cid, uid, name, pic, isVerified, text, isGhostUser, isAudio = false, duration = "00:00", isImage = false, isVideo = false) {
     playSound('tab');
+    
+    // بنجيب العنصر الأصلي من الصفحة عشان نتأكد من نوع الميديا بدقة لو البيانات ناقصة
+    const originalCommentEl = document.getElementById(`comment-${cid}`);
+    if(originalCommentEl) {
+        // فحص سريع لو البيانات مبعوتة ناقصة
+        if(!isAudio && !isImage && !isVideo) {
+            if(originalCommentEl.querySelector('video')) isVideo = true;
+            else if(originalCommentEl.querySelector('.cm-media-img')) isImage = true;
+            else if(originalCommentEl.querySelector('audio')) isAudio = true;
+        }
+    }
+
     currentParentComment = {id: cid, uid: uid, name: name}; 
     activeStickerContext = 'reply'; 
 
@@ -6350,34 +6528,37 @@ function stopRecordingProcess() {
         avatarStyle = pic ? `background-image:url('${pic}')` : `background-color:${generateColor(uid)}`; 
     }
 
-    // 🔥 فحص ذكي: لو المتغير isAudio مش مبعوت، نحاول نكتشفه من الرابط
-    if (!isAudio && (text.includes('.m4a') || text.includes('.mp3') || text.includes('.webm'))) {
-        isAudio = true;
-    }
-
-    // 🔥 بناء محتوى الهيدر (Parent Content)
+    // --- 🔥 عرض الميديا في الهيدر (الكومنت الأصلي) 🔥 ---
     let parentContentHtml = "";
     
-    if (isAudio) {
-        // تصميم المشغل المصغر في الهيدر
-        // لاحظ: استخدمنا IDs مميزة بإضافة prefix مثل "parent_" عشان ميتعارضش مع اللي في القائمة
+    if (isAudio || (typeof text === 'string' && (text.includes('.m4a') || text.includes('.mp3') || text.includes('.webm')))) {
         parentContentHtml = `
         <div class="custom-audio-player" id="player_parent_${cid}" onclick="event.stopPropagation()" dir="ltr" style="margin-top:5px; width: 100% !important;">
-            <button class="play-btn" id="btn_parent_${cid}" onclick="toggleAudio('parent_${cid}', event)">
-                <i class="fa-solid fa-play"></i>
-            </button>
-            <div class="audio-waves" style="display:none;"></div>
+            <button class="play-btn" id="btn_parent_${cid}" onclick="toggleAudio('parent_${cid}', event)"><i class="fa-solid fa-play"></i></button>
             <input type="range" class="audio-slider" id="range_parent_${cid}" value="0" min="0" max="100" step="0.1" oninput="seekAudio('parent_${cid}', event)" style="flex:1; margin:0 5px;">
             <span id="dur_parent_${cid}" style="font-size:10px; color:#aaa; min-width:30px; text-align:center;">${duration}</span>
             <audio id="audio_parent_${cid}" src="${text}" preload="metadata" ontimeupdate="updateAudioProgress('parent_${cid}')" onended="resetAudio('parent_${cid}')"></audio>
         </div>`;
     } 
-    else if (text.startsWith('http') && (text.includes('.jpg') || text.includes('.png') || text.includes('firebasestorage'))) {
-        // لو صورة
-        parentContentHtml = `<div style="margin-top:5px;"><img src="${text}" style="max-height:150px; border-radius:8px;" onclick="viewImage('${text}')"></div>`;
+    else if (isImage || (typeof text === 'string' && (text.includes('firebasestorage') && text.includes('token') && !text.includes('.mp4')))) {
+        parentContentHtml = `<div style="margin-top:8px; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);">
+            <img src="${text}" style="max-height:200px; width:100%; object-fit:cover;" onclick="viewImageWithSave('${text}')">
+        </div>`;
     } 
+    else if (isVideo) {
+        parentContentHtml = `
+        <div class="cm-media-wrapper" style="margin-top:8px; width:100%;">
+            <div class="custom-video-container" id="vid_cont_parent_${cid}" onclick="toggleCommentVideo('parent_${cid}')">
+                <video src="${text}" id="vid_parent_${cid}" class="custom-video-element" loop playsinline preload="metadata"></video>
+                <div class="vid-center-play" id="play_icon_parent_${cid}"><i class="fa-solid fa-play"></i></div>
+                <div class="vid-controls">
+                    <div class="vid-btn" onclick="toggleCommentMute('parent_${cid}', event)"><i class="fa-solid fa-volume-xmark" id="mute_icon_parent_${cid}"></i></div>
+                    <div class="vid-btn" onclick="toggleCommentFullscreen('parent_${cid}', event)"><i class="fa-solid fa-expand"></i></div>
+                </div>
+            </div>
+        </div>`;
+    }
     else {
-        // لو نص عادي
         parentContentHtml = `<div style="font-size:15px; color:#eee; white-space:pre-wrap; line-height:1.5;">${text}</div>`;
     }
 
@@ -6400,33 +6581,113 @@ function stopRecordingProcess() {
         <div id="actualRepliesContainer"></div>`;
         
     document.getElementById('repliesSheet').classList.add('active');
-    setupSmartInputListener('replyInput', 'mentionDropdown');
-    loadRealtimeReplies(cid); 
+    document.querySelector('.fb-icons').classList.add('hide-nav');
 
+    loadRealtimeReplies(cid); 
+    
+    // (باقي كود الفوتر ومربع الكتابة كما هو في كودك الأصلي...)
+    // ...
+
+    // 🔥🔥🔥🔥🔥 التعديل الجذري هنا 🔥🔥🔥🔥🔥
     const footer = document.querySelector('#repliesSheet .cm-footer');
     footer.innerHTML = `
-    <div class="cm-input-wrapper">
-        <div id="replyRecordingInterface" class="recording-ui" style="display:none; flex:1; align-items:center; gap:10px;">
-            <div class="rec-dot" style="width:12px; height:12px; background:#ff3b30; border-radius:50%; animation:pulse 1s infinite;"></div>
-            <span id="replyRecordTimer" style="color:#ff3b30; font-weight:bold;">00:00</span>
-            <span style="flex:1"></span>
-            <span style="color:#aaa; font-size:12px; cursor:pointer;" onclick="cancelReplyRecording()">إلغاء</span>
+    <div class="input-area-container" style="padding: 10px 15px; background: #0d0d0f;">
+        
+        <div id="replyNormalModeUI" style="display: flex; width: 100%; align-items: flex-end; gap: 8px;">
+            
+            <div class="external-actions" style="display: flex; gap: 5px; align-items: center; margin-bottom: 2px;">
+                
+                <label class="ext-btn" style="color: #4cd964;">
+                    <i class="fa-solid fa-image"></i>
+                    <input type="file" hidden accept="image/*,video/*" onchange="uploadReplyMedia(this)">
+                </label>
+
+                <div class="ext-btn" onclick="activeStickerContext='reply'; GiftSystem.open()" style="color: #bf5af2; border-color: #bf5af2;">
+                    <i class="fa-solid fa-gift"></i>
+                </div>
+
+            </div>
+
+            <div class="smart-input-wrapper" style="border-radius: 25px; padding: 0; flex: 1;">
+                <textarea id="replyInput" 
+                          class="smart-textarea" 
+                          placeholder="اكتب رداً..." 
+                          rows="1" 
+                          oninput="handleReplyInputTyping(this)"
+                          style="padding: 12px 15px !important;"></textarea>
+            </div>
+
+            <div id="replyDynamicActionBtn" class="action-submit-btn" onclick="toggleReplyRecording()" style="opacity: 1; pointer-events: auto; background: rgba(255,255,255,0.1); color: var(--text-color);">
+                <i class="fa-solid fa-microphone" id="replyMicIcon"></i>
+                <i class="fa-solid fa-paper-plane" id="replySendIcon" style="display: none;"></i>
+            </div>
+
         </div>
 
-        <div id="replyNormalInterface" style="display:flex; flex:1; align-items:center;">
-            <i class="fa-solid fa-face-laugh-beam sticker-trigger-btn" onclick="toggleStickerSheet('reply')"></i>
-            <input type="text" class="cm-input" id="replyInput" placeholder="اكتب رداً..." autocomplete="off">
+        <div id="replyRecordingModeUI" class="recording-overlay" style="display: none;">
+            <div class="rec-action-btn delete" onclick="cancelReplyRecording()">
+                <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <div class="rec-info">
+                <div class="rec-dot"></div> <span id="replyRecordTimer">00:00</span>
+                <span style="font-size: 12px; color: #aaa; margin-right: 8px;">جاري التسجيل...</span>
+            </div>
+            <div class="rec-action-btn send" onclick="stopAndSendReplyRecording()">
+                <i class="fa-solid fa-paper-plane" style="transform: rotate(180deg) scaleX(-1);"></i> 
+            </div>
         </div>
-        
-        <label style="margin: 0 5px; cursor: pointer; display: flex; align-items: center;">
-            <i class="fa-solid fa-camera" style="color:var(--secondary-text); font-size:18px;"></i>
-            <input type="file" hidden accept="image/*" onchange="uploadReplyImage(this)">
-        </label>
 
-        <i class="fa-solid fa-paper-plane cm-send-btn" id="replySendBtn" onclick="sendReplyToComment()"></i>
-        
-        <i class="fa-solid fa-microphone mic-btn" id="replyMicBtn" onclick="toggleReplyRecording()" style="padding:0 8px; cursor:pointer;"></i>
     </div>`;
+    
+    // تفعيل المنشن في الردود
+    setupSmartInputListener('replyInput', 'mentionDropdown');
+}
+
+
+function handleReplyInputTyping(textarea) {
+    const actionBtn = document.getElementById('replyDynamicActionBtn');
+    const micIcon = document.getElementById('replyMicIcon');
+    const sendIcon = document.getElementById('replySendIcon');
+    const externalActions = textarea.closest('.input-area-container').querySelector('.external-actions');
+    
+    // 1. تمدد النص تلقائياً
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+
+    const textLength = textarea.value.trim().length;
+
+    if (textLength > 0) {
+        // --- حالة الكتابة ---
+        micIcon.style.display = 'none';
+        sendIcon.style.display = 'block';
+        
+        // إخفاء الأزرار الخارجية (صور وهدايا) عشان نوسع للمربع
+        if(externalActions) externalActions.style.display = 'none';
+
+        // تغيير شكل الزرار للأزرق
+        actionBtn.classList.add('send-mode');
+        actionBtn.classList.remove('mic-mode');
+        
+        // تغيير الوظيفة لإرسال
+        actionBtn.onclick = function() { sendReplyToComment(); };
+        
+    } else {
+        // --- حالة الفراغ ---
+        micIcon.style.display = 'block';
+        sendIcon.style.display = 'none';
+        
+        // إظهار الأزرار الخارجية
+        if(externalActions) externalActions.style.display = 'flex';
+
+        // إرجاع شكل الزرار للرمادي
+        actionBtn.classList.remove('send-mode');
+        actionBtn.classList.add('mic-mode');
+        
+        // تغيير الوظيفة لتسجيل
+        actionBtn.onclick = function() { toggleReplyRecording(); };
+        
+        textarea.style.height = '45px';
+    }
 }
 
         function loadRealtimeReplies(cid) {
@@ -6442,43 +6703,68 @@ function stopRecordingProcess() {
         }
 
         function renderReplyItem(r, container, isLast, participants) {
-    let name = r.name; let pic = r.pic; let style = ""; let nameStyle = "";
+    let name = r.name; 
+    let pic = r.pic; 
+    let style = ""; 
+    let nameStyle = "";
     let clickAction = `playSound('click'); goToProfile('${r.uid}')`;
     
+    // إعداد هوية الشبح أو المستخدم العادي
     if(r.isGhost) { 
-        const g = getGhostIdentity(r.uid); name = `مستخدم نبض #${g.id}`; pic = null; 
+        const g = getGhostIdentity(r.uid); 
+        name = `مستخدم نبض #${g.id}`; 
+        pic = null; 
         style = `border:1px solid ${g.color}; color:${g.color}; display:grid; place-items:center; background:#000`;
         nameStyle = `color:${g.color} !important; text-shadow:0 0 5px ${g.color}40`;
         clickAction = "showToast('⛔ هوية محمية')";
     } else { 
-        let finalPic = pic || defaultAvatar;
+        let finalPic = pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         style = `background-image:url('${finalPic}'); background-color:transparent;`; 
     }
 
+    // --- 🔥 بداية السحر: معالجة الميديا (فيديو، صورة، صوت) 🔥 ---
     let contentHtml = "";
     
-    // 🔥 هنا التعديل: استخدام تصميم المشغل المصغر (Ultra-Mini) للردود الصوتية
+    // 1. الصوت (Voice Note)
     if (r.isAudio || (typeof r.text === 'string' && (r.text.includes('.m4a') || r.text.includes('.webm') || r.text.includes('.mp3')))) {
         let displayDuration = r.duration || "00:00";
-        
         contentHtml = `
-        <div class="custom-audio-player" id="player_${r.id}" onclick="event.stopPropagation()" dir="ltr" style="margin-top:5px; width: 200px !important;">
+        <div class="custom-audio-player" id="player_${r.id}" onclick="event.stopPropagation()" dir="ltr" style="margin-top:5px; width: 220px !important;">
             <button class="play-btn" id="btn_${r.id}" onclick="toggleAudio('${r.id}', event)">
                 <i class="fa-solid fa-play"></i>
             </button>
-            <div class="audio-waves" id="wave_${r.id}" style="display:none;"></div>
-            
+            <div class="audio-waves" style="display:none;"></div>
             <input type="range" class="audio-slider" id="range_${r.id}" value="0" min="0" max="100" step="0.1" oninput="seekAudio('${r.id}', event)" style="flex:1; margin:0 5px;">
-            
             <span id="dur_${r.id}" class="audio-time" style="font-size:9px; color:#aaa; min-width:25px; text-align:center;">${displayDuration}</span>
             <audio id="audio_${r.id}" src="${r.text}" preload="metadata" ontimeupdate="updateAudioProgress('${r.id}')" onended="resetAudio('${r.id}')"></audio>
         </div>`;
     } 
+    // 2. الصورة (Image) - بتفتح في Lightbox
     else if (r.isImage) {
-        contentHtml = `<div style="margin-top:5px;"><img src="${r.text}" style="max-width:150px; border-radius:12px;" onclick="viewImage('${r.text}')"></div>`;
+        contentHtml = `
+        <div class="cm-media-wrapper" style="max-width: 200px;">
+            <img src="${r.text}" class="cm-media-img" loading="lazy" onclick="viewImageWithSave('${r.text}')">
+        </div>`;
     } 
+    // 3. الفيديو (Video) - المشغل الاحترافي
+    else if (r.isVideo) {
+        contentHtml = `
+        <div class="cm-media-wrapper" style="max-width: 220px;">
+            <div class="custom-video-container" id="vid_cont_${r.id}" onclick="toggleCommentVideo('${r.id}')">
+                <video src="${r.text}" id="vid_${r.id}" class="custom-video-element" loop playsinline preload="metadata"></video>
+                <div class="vid-center-play" id="play_icon_${r.id}"><i class="fa-solid fa-play"></i></div>
+                <div class="vid-controls">
+                    <div class="vid-btn" onclick="toggleCommentMute('${r.id}', event)"><i class="fa-solid fa-volume-xmark" id="mute_icon_${r.id}"></i></div>
+                    <div class="vid-btn vid-speed-btn" id="speed_btn_${r.id}" onclick="changeVideoSpeed('${r.id}', event)">1x</div>
+                    <div class="vid-btn" onclick="toggleCommentFullscreen('${r.id}', event)"><i class="fa-solid fa-expand"></i></div>
+                </div>
+            </div>
+        </div>`;
+    } 
+    // 4. النص العادي أو الستيكر
     else {
         let displayText = r.text;
+        // معالجة المنشن في الردود
         if(!r.isSticker && r.replyToUid && r.replyToName && r.text.startsWith(r.replyToName)) {
             const clean = r.text.substring(r.replyToName.length);
             displayText = `<span class="reply-mention-link" onclick="event.stopPropagation(); goToProfile('${r.replyToUid}')">${r.replyToName}</span> ${processPostText(clean)}`;
@@ -6488,6 +6774,7 @@ function stopRecordingProcess() {
         contentHtml = `<div class="cm-text" style="${r.isSticker?'font-size:45px':''}">${displayText}</div>`;
     }
 
+    // تجهيز شجرة الردود والألوان
     let userIndex = participants.indexOf(r.uid);
     if (userIndex === -1) { participants.push(r.uid); userIndex = participants.length - 1; }
     const colorClass = `color-${userIndex % 10}`;
@@ -7006,7 +7293,8 @@ function openReplyOptions(r) {
                 
                 <div style="font-size:11px; color:#aaa; margin-top:5px; display:flex; gap:15px; align-items:center;">
                     <span>${moment(c.createdAt?.toDate()).fromNow()}</span>
-                    <span style="cursor:pointer; font-weight:bold; color:#fff;" onclick="openRepliesSheet('${c.id}', '${c.uid}', '${c.name||name}', '${c.pic||defaultAvatar}', ${c.isVerified||false}, '${safeText}', ${c.isGhost}, ${isAudioFlag}, '${audioDur}')">رد</span>
+                    <span style="cursor:pointer; font-weight:bold; color:#fff;" onclick="openRepliesSheet('${c.id}', '${c.uid}', '${c.name||name}', '${c.pic||defaultAvatar}', ${c.isVerified||false}, '${safeText}', ${c.isGhost}, ${isAudioFlag}, '${audioDur}', ${c.isImage||false}, ${c.isVideo||false})"
+>رد</span>
                 </div>
             </div>
 
@@ -10170,10 +10458,9 @@ async function toggleReplyRecording() {
             replyMediaRecorder = new MediaRecorder(stream);
             replyAudioChunks = [];
             
-            // واجهة الرد
-            document.getElementById("replyNormalInterface").style.display = "none";
-            document.getElementById("replyRecordingInterface").style.display = "flex";
-            document.getElementById("replyMicBtn").classList.add("recording");
+            // 🔥 التعديل هنا: التبديل بين الواجهات الجديدة
+            document.getElementById("replyNormalModeUI").style.display = "none";
+            document.getElementById("replyRecordingModeUI").style.display = "flex";
             
             let seconds = 0;
             document.getElementById("replyRecordTimer").innerText = "00:00";
@@ -10192,9 +10479,10 @@ async function toggleReplyRecording() {
 
         } catch(e) { showToast("⚠️ الميكروفون غير متاح"); }
     } else {
-        stopAndSendReplyRecording(); // إيقاف وإرسال
+        stopAndSendReplyRecording(); 
     }
 }
+
 
 // 2. إيقاف وإرسال الريكورد للردود
 async function stopAndSendReplyRecording() {
@@ -10261,11 +10549,15 @@ async function stopAndSendReplyRecording() {
 function cancelReplyRecording() {
     clearInterval(replyRecordInterval);
     if(replyMediaRecorder) replyMediaRecorder.stop();
-    document.getElementById("replyRecordingInterface").style.display = "none";
-    document.getElementById("replyNormalInterface").style.display = "flex";
-    document.getElementById("replyMicBtn").classList.remove("recording");
+    
+    // إرجاع الواجهة الطبيعية
+    document.getElementById("replyRecordingModeUI").style.display = "none";
+    document.getElementById("replyNormalModeUI").style.display = "flex";
+    
     replyIsRecording = false;
+    showToast("تم إلغاء التسجيل 🗑️");
 }
+
 
 async function uploadCommentMedia(input) {
     const file = input.files[0];
@@ -10623,43 +10915,63 @@ function expandInputArea() {
 }
 
 // 2. دالة التعامل مع الكتابة (Typing)
+// دالة التعامل مع الكتابة (المطورة)
 function handleInputTyping(textarea) {
-    const wrapper = textarea.parentElement; // الغلاف المحيط بالمربع
-    const sendBtn = document.getElementById('sendActionContainer');
+    const wrapper = textarea.parentElement;
+    const actionBtn = document.getElementById('dynamicActionBtn');
+    const micIcon = document.getElementById('mainMicIcon');
+    const sendIcon = document.getElementById('mainSendIcon');
     
-    // ضبط ارتفاع النص تلقائياً
+    // 1. ضبط ارتفاع النص تلقائياً (Auto Resize)
     textarea.style.height = 'auto';
     textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
 
-    // لو فيه نص مكتوب
-    if (textarea.value.trim().length > 0) {
-        wrapper.classList.add('typing'); // يخفي الأدوات الداخلية ويسيب الإيموجي
-        sendBtn.classList.add('active'); // ينور زر الإرسال
+    // 2. منطق التبديل (مايك <-> إرسال)
+    const textLength = textarea.value.trim().length;
+
+    if (textLength > 0) {
+        // --- حالة الكتابة (زر الإرسال يظهر) ---
+        micIcon.style.display = 'none';       // إخفاء المايك
+        sendIcon.style.display = 'block';     // إظهار الإرسال
+        
+        // تغيير شكل الزرار للأزرق
+        actionBtn.classList.add('send-mode');
+        actionBtn.classList.remove('mic-mode');
+        
+        // تغيير وظيفة الزرار لـ "إرسال"
+        actionBtn.onclick = function() { handleCommentAction(); };
+        
     } else {
-        wrapper.classList.remove('typing'); // يرجع الأدوات
-        sendBtn.classList.remove('active'); // يطفي زر الإرسال
-        textarea.style.height = '40px'; // يرجع الحجم الطبيعي
+        // --- حالة الفراغ (زر المايك يظهر) ---
+        micIcon.style.display = 'block';      // إظهار المايك
+        sendIcon.style.display = 'none';      // إخفاء الإرسال
+        
+        // إرجاع شكل الزرار للرمادي
+        actionBtn.classList.remove('send-mode');
+        actionBtn.classList.add('mic-mode');
+        
+        // تغيير وظيفة الزرار لـ "تسجيل"
+        actionBtn.onclick = function() { toggleRecording(); };
+        
+        // استعادة حجم المربع للطبيعي
+        textarea.style.height = '45px';
     }
 }
 
-// 3. دالة العودة للوضع الطبيعي عند الخروج (Blur)
-// ضيف الكود ده في أي مكان في السكريبت (يفضل في الآخر)
-document.addEventListener('click', function(e) {
-    const container = document.querySelector('.input-area-container');
-    const input = document.getElementById('cmInput');
-    const footer = document.getElementById('commentFooter');
-
-    // لو الضغطة خارج منطقة الكتابة + المربع فاضي
-    if (container && !container.contains(e.target) && !e.target.closest('#suggestedEmojis')) {
-        if (input.value.trim() === '') {
-            // رجع كل حاجة لطبيعتها
-            container.classList.remove('focused'); // يرجع الزراير الخارجية
-            container.querySelector('.smart-input-wrapper').classList.remove('typing'); // يرجع الداخلية (للتأكيد)
-            if(footer) footer.classList.remove('expanded'); // يخفي الإيموجي المقترح
-            input.style.height = '40px';
-        }
+// تعديل بسيط لدالة الإرسال عشان ترجع المايك بعد ما الرسالة تتبعت
+const originalHandleCommentAction = handleCommentAction;
+handleCommentAction = async function(sticker = null) {
+    // تنفيذ الإرسال الأصلي
+    await originalHandleCommentAction(sticker);
+    
+    // بعد الإرسال، فضي المربع ورجع زرار المايك
+    const textarea = document.getElementById('cmInput');
+    if(textarea) {
+        textarea.value = ""; // تفريغ
+        handleInputTyping(textarea); // استدعاء الدالة عشان ترجع شكل المايك
     }
-});
+};
+
 
 // 4. إدراج الإيموجي
 function insertEmoji(emoji) {
@@ -10682,8 +10994,7 @@ function triggerMention() {
 
 // 6. فتح الهدايا (Placeholder)
 function openGiftsModal() {
-    playSound('click');
-    showToast("🎁 قريباً: قائمة الهدايا!");
+    GiftSystem.open();
 }
 
 /* --- 4. كود إخفاء الكيبورد واستعادة الزراير عند السكرول --- */
@@ -10761,6 +11072,335 @@ const textResizeObserver = new IntersectionObserver((entries, observer) => {
         }
     });
 }, { rootMargin: "50px" }); // يبدأ يجهز قبل ما البوست يظهر بـ 50 بيكسل
+
+// ================= نظام الهدايا الاحترافي (Wareed Gift System) =================
+
+const GiftSystem = {
+    // إعدادات Tenor API (مفتاح تجريبي)
+    apiConfig: {
+        key: "LIVDSRZULELA", 
+        limit: 8 
+    },
+
+    // قاعدة البيانات المحلية
+    data: {
+        gifts: [
+            { name: 'تاج', emoji: '👑', price: 1000, effect: 'rain' },
+            { name: 'ألماس', emoji: '💎', price: 500, effect: 'sparkle' },
+            { name: 'سيارة', emoji: '🏎️', price: 2000, effect: 'slide' },
+            { name: 'وردة', emoji: '🌹', price: 50, effect: 'float' },
+            { name: 'قلب', emoji: '❤️', price: 10, effect: 'pulse' },
+            { name: 'شعلة', emoji: '🔥', price: 100, effect: 'burn' },
+            { name: 'صاروخ', emoji: '🚀', price: 300, effect: 'fly' },
+            { name: 'كيكة', emoji: '🎂', price: 200, effect: 'pop' },
+            { name: 'أسد', emoji: '🦁', price: 5000, effect: 'shake' }
+        ],
+        stickers: [
+            '😀','😂','😍','😎','😭','😡','👍','🎉','👀','👻','💀','🙈',
+            '😹','💩','🤡','🤝','👋','💪','🧠','🧜‍♂️','🧞‍♂️','🧟','🧚‍♀️'
+        ]
+    },
+
+    searchTimeout: null,
+
+    // دالة فتح القائمة
+    open: function() {
+        playSound('click');
+        // إغلاق القوائم الأخرى
+        closeAllSheets(); 
+        
+        document.body.classList.add('no-scroll'); 
+
+        
+        const sheet = document.getElementById('giftSheet');
+        sheet.classList.add('active');
+        document.getElementById('globalOverlay').style.display = 'block';
+        
+        // تفعيل أول تبويب افتراضياً
+        const firstTab = sheet.querySelector('.gift-tab');
+        this.switch('gifts', firstTab);
+    },
+
+    // دالة التبديل بين الأقسام
+    switch: function(tabName, element) {
+        document.querySelectorAll('.gift-tab').forEach(el => el.classList.remove('active'));
+        element.classList.add('active');
+
+        const container = document.getElementById('giftSystemContent');
+        container.innerHTML = '<div class="loader-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+
+        setTimeout(() => {
+            if (tabName === 'gifts') this.renderGifts(container);
+            else if (tabName === 'stickers') this.renderStickers(container);
+            else if (tabName === 'gifs') {
+                this.renderGIFsUI(container);
+                this.fetchGIFs('');
+            }
+        }, 100);
+    },
+
+    // 1. عرض الهدايا
+    renderGifts: function(container) {
+        let html = '<div class="premium-gift-grid">';
+        this.data.gifts.forEach(g => {
+            html += `
+                <div class="premium-gift-card" onclick="GiftSystem.sendGiftItem('${g.emoji}', '${g.name}', '${g.effect}')">
+                    <div class="pg-emoji">${g.emoji}</div>
+                    <div class="pg-name">${g.name}</div>
+                    <div class="pg-price">${g.price}</div>
+                </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    },
+
+    // 2. عرض الملصقات
+    renderStickers: function(container) {
+        let html = '<div class="sticker-grid-pro">';
+        this.data.stickers.forEach(s => {
+            html += `
+                <div class="sticker-item-pro" onclick="handleCommentAction('${s}'); closeAllSheets();">
+                    ${s}
+                </div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    },
+
+    // 3. واجهة الـ GIF
+    renderGIFsUI: function(container) {
+        container.innerHTML = `
+            <div style="position:relative; margin-bottom:10px;">
+                <input type="text" class="gif-search-box" placeholder="ابحث عن GIF..." 
+                    oninput="GiftSystem.handleSearch(this.value)">
+                <i class="fa-solid fa-magnifying-glass" style="position:absolute; left:25px; top:50%; transform:translateY(-50%); color:#666;"></i>
+            </div>
+            <div id="gifResults" class="gif-grid"></div>
+        `;
+    },
+
+    handleSearch: function(query) {
+        clearTimeout(this.searchTimeout);
+        document.getElementById('gifResults').style.opacity = '0.5';
+        this.searchTimeout = setTimeout(() => {
+            this.fetchGIFs(query);
+        }, 600);
+    },
+
+    fetchGIFs: async function(query) {
+        const resultsDiv = document.getElementById('gifResults');
+        let url = query.trim() === "" 
+            ? `https://g.tenor.com/v1/trending?key=${this.apiConfig.key}&limit=${this.apiConfig.limit}`
+            : `https://g.tenor.com/v1/search?q=${query}&key=${this.apiConfig.key}&limit=${this.apiConfig.limit}`;
+
+        try {
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            let html = '';
+            if(data.results && data.results.length > 0) {
+                data.results.forEach(gif => {
+                    const gifUrl = gif.media[0].nanogif.url; 
+                    const fullUrl = gif.media[0].gif.url;
+                    
+                    html += `<img src="${gifUrl}" class="gif-item" loading="lazy" onclick="GiftSystem.sendGIF('${fullUrl}')">`;
+                });
+            } else {
+                html = '<div style="text-align:center; padding:20px; color:#666; width:100%;">لا توجد نتائج 🤷‍♂️</div>';
+            }
+            resultsDiv.innerHTML = html;
+            resultsDiv.style.opacity = '1';
+        } catch (error) {
+            resultsDiv.innerHTML = '<div style="text-align:center; padding:20px; color:red;">فشل الاتصال ❌</div>';
+        }
+    },
+
+    // إرسال الهدية كتعليق
+    sendGiftItem: function(emoji, name, effect) {
+        // نرسل الهدية كتعليق نصي مميز
+        // يمكنك لاحقاً ربط هذا بنظام خصم النقاط
+        handleCommentAction(`${emoji} أرسل ${name}`);
+        this.playEffect(emoji, effect);
+        closeAllSheets();
+    },
+
+    // إرسال GIF (نستخدم نظام رفع الصور الموجود لديك بالفعل)
+    sendGIF: async function(url) {
+        // هنا سنرسل الرابط مباشرة كتعليق نصي، والتطبيق سيحوله لصورة تلقائياً بفضل كود معالجة الروابط
+        // أو إذا أردت حفظه كنوع "صورة" في الداتابيز:
+        
+        playSound('sent');
+        showToast("جاري إرسال GIF...");
+        closeAllSheets();
+
+        try {
+            // إضافة التعليق كنوع "صورة" برابط خارجي
+            const uDoc = await db.collection('users').doc(currentUser.uid).get();
+            const uData = uDoc.data();
+
+            await db.collection('posts').doc(currentPostId).collection('comments').add({
+                uid: currentUser.uid,
+                name: uData.name,
+                pic: uData.profilePic,
+                isVerified: uData.isVerified || false,
+                text: url, 
+                isImage: true, // نعتبره صورة عشان يظهر في المعاينة
+                isGif: true,   // علامة إضافية
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            await db.collection('posts').doc(currentPostId).update({
+                commentsCount: firebase.firestore.FieldValue.increment(1)
+            });
+
+            showToast("تم الإرسال ✅");
+
+        } catch(e) {
+            console.error(e);
+            showToast("فشل الإرسال");
+        }
+    },
+
+    // --- محرك المؤثرات البصرية البسيط ---
+    playEffect: function(emoji, type) {
+        const overlay = document.getElementById('fxOverlay');
+        const count = 20; 
+
+        if (type === 'rain') {
+            for(let i=0; i<count; i++) {
+                const el = document.createElement('div');
+                el.innerText = emoji;
+                el.className = 'fx-element';
+                el.style.left = Math.random() * 100 + '%';
+                el.style.top = -50 + 'px';
+                el.style.fontSize = (Math.random() * 20 + 20) + 'px';
+                el.style.transition = `top ${Math.random() * 2 + 1}s ease-in, opacity 1s`;
+                
+                overlay.appendChild(el);
+                
+                setTimeout(() => {
+                    el.style.top = window.innerHeight + 'px';
+                    el.style.opacity = 0;
+                }, 50);
+
+                setTimeout(() => el.remove(), 3000);
+            }
+        }
+        else if (type === 'slide') {
+            const el = document.createElement('div');
+            el.innerText = emoji;
+            el.className = 'fx-element';
+            el.style.top = '50%';
+            el.style.left = '-100px';
+            el.style.fontSize = '80px';
+            el.style.transition = 'left 1.5s ease-in-out';
+            overlay.appendChild(el);
+            
+            setTimeout(() => el.style.left = window.innerWidth + 'px', 50);
+            setTimeout(() => el.remove(), 1500);
+        }
+        else {
+            // تأثير عام (فرقعة)
+            for(let i=0; i<15; i++) {
+                const el = document.createElement('div');
+                el.innerText = emoji;
+                el.className = 'fx-element';
+                el.style.left = '50%';
+                el.style.top = '50%';
+                el.style.fontSize = '30px';
+                
+                const angle = Math.random() * 360;
+                const distance = Math.random() * 150 + 50;
+                const x = Math.cos(angle * Math.PI / 180) * distance;
+                const y = Math.sin(angle * Math.PI / 180) * distance;
+                
+                el.style.transition = 'all 0.8s ease-out';
+                overlay.appendChild(el);
+                
+                setTimeout(() => {
+                    el.style.transform = `translate(${x}px, ${y}px) scale(0)`;
+                    el.style.opacity = 0;
+                }, 50);
+                
+                setTimeout(() => el.remove(), 900);
+            }
+        }
+    }
+};
+
+async function uploadReplyMedia(input) {
+    const file = input.files[0];
+    if (!file || !currentParentComment) return;
+
+    input.value = ''; 
+
+    let fileType = '';
+    let isImg = false;
+    let isVid = false;
+
+    // تحديد النوع بدقة
+    if (file.type.startsWith('image/')) {
+        fileType = 'image';
+        isImg = true;
+        if (file.size > 10 * 1024 * 1024) { showToast("⚠️ حجم الصورة كبير"); return; }
+    } else if (file.type.startsWith('video/')) {
+        fileType = 'video';
+        isVid = true;
+        if (file.size > 50 * 1024 * 1024) { showToast("⚠️ حجم الفيديو كبير"); return; }
+    } else {
+        showToast("⚠️ غير مدعوم"); return;
+    }
+
+    playSound('click');
+    showToast(`جاري رفع ${isImg ? 'الصورة' : 'الفيديو'}... ⏳`);
+
+    const safeName = Date.now() + '_' + Math.floor(Math.random() * 10000);
+    const extension = file.name.split('.').pop();
+    const storagePath = `comments_media_v2/${currentPostId}/replies_media/${safeName}.${extension}`;
+    const storageRef = storage.ref().child(storagePath);
+    
+    try {
+        const snapshot = await storageRef.put(file);
+        const url = await snapshot.ref.getDownloadURL();
+
+        const uDoc = await db.collection('users').doc(currentUser.uid).get();
+        const uData = uDoc.data();
+
+        // الحفظ في الداتابيز مع العلامات الصحيحة
+        await db.collection('posts').doc(currentPostId)
+            .collection('comments').doc(currentParentComment.id)
+            .collection('replies').add({
+                uid: currentUser.uid,
+                name: uData.name || "مستخدم",
+                pic: uData.profilePic || "",
+                isVerified: uData.isVerified || false,
+                text: url,
+                isImage: isImg, // علامة الصورة
+                isVideo: isVid, // علامة الفيديو
+                isAudio: false,
+                isSticker: false,
+                isGhost: isGhost,
+                replyToUid: currentSubReplyTarget ? currentSubReplyTarget.uid : null,
+                replyToName: currentSubReplyTarget ? currentSubReplyTarget.name : null,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+        // تحديث العدادات
+        const batch = db.batch();
+        const postRef = db.collection('posts').doc(currentPostId);
+        const commentRef = db.collection('posts').doc(currentPostId).collection('comments').doc(currentParentComment.id);
+        batch.update(postRef, { commentsCount: firebase.firestore.FieldValue.increment(1) });
+        batch.update(commentRef, { repliesCount: firebase.firestore.FieldValue.increment(1) });
+        await batch.commit();
+
+        showToast("تم الإرسال ✅");
+        playSound('sent');
+
+    } catch (e) {
+        console.error(e);
+        showToast("فشل الرفع");
+    }
+}
 
 
     </script>
@@ -11204,6 +11844,77 @@ const textResizeObserver = new IntersectionObserver((entries, observer) => {
 
 })();
 </script>
+<div class="bottom-sheet" id="giftSheet" style="height: 70vh;">
+    <div class="sheet-handle"></div>
+    
+    <h3 style="color:var(--text-color); text-align:center; margin-bottom:10px; font-size: 16px;">
+        <i class="fa-solid fa-gift" style="color:var(--primary-color)"></i> متجر الهدايا
+    </h3>
+
+    <div class="gift-tabs-container">
+        <div class="gift-tab active" onclick="GiftSystem.switch('gifts', this)">
+            <i class="fa-solid fa-gem"></i> هدايا
+        </div>
+        <div class="gift-tab" onclick="GiftSystem.switch('stickers', this)">
+            <i class="fa-solid fa-face-laugh-beam"></i> ملصقات
+        </div>
+        <div class="gift-tab" onclick="GiftSystem.switch('gifs', this)">
+            <i class="fa-solid fa-film"></i> GIF
+        </div>
+    </div>
+
+    <div id="giftSystemContent" class="gift-content-area">
+        </div>
+</div>
+
+<div id="fxOverlay"></div>
+
+<div class="bottom-sheet" id="repliesSheet" style="height: 85vh; display: flex; flex-direction: column; z-index: 6000;">
+    
+    <div class="sheet-handle"></div>
+
+    <div class="cm-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fa-solid fa-arrow-right" onclick="closeRepliesSheet()" style="cursor:pointer; padding:5px; font-size:18px;"></i>
+            <span>الردود</span>
+        </div>
+    </div>
+
+    <div class="cm-body" id="repliesList">
+    </div>
+
+    <div class="cm-footer">
+    </div>
+</div>
+<div class="bottom-sheet" id="repliesSheet" style="height: 85vh; display: flex; flex-direction: column; z-index: 20000 !important;">
+    
+    <div class="sheet-handle"></div>
+
+    <div class="cm-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+            <i class="fa-solid fa-arrow-right" onclick="closeRepliesSheet()" style="cursor:pointer; padding:5px; font-size:18px;"></i>
+            <span>الردود</span>
+        </div>
+    </div>
+
+    <div class="cm-body" id="repliesList" style="flex: 1; overflow-y: auto; padding-bottom: 80px;">
+    </div>
+
+    <div class="cm-footer" style="position: absolute; bottom: 0; left: 0; right: 0; background: var(--sheet-bg); border-top: 1px solid var(--border-color); z-index: 20005;">
+        <div class="cm-input-wrapper">
+            
+            <i class="fa-solid fa-face-laugh-beam sticker-trigger-btn" onclick="toggleStickerSheet('reply')"></i>
+            
+            <input type="text" class="cm-input" id="replyInput" placeholder="اكتب رداً..." autocomplete="off">
+            
+            <i class="fa-solid fa-paper-plane cm-send-btn" id="replySendBtn" onclick="sendReplyToComment()"></i>
+            
+            <i class="fa-solid fa-microphone mic-btn" id="replyMicBtn" onclick="toggleReplyRecording()" style="padding:0 8px; cursor:pointer;"></i>
+        
+        </div>
+    </div>
+</div>
+
 
     
 </body>

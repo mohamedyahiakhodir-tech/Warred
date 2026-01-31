@@ -2585,6 +2585,64 @@
     80% { transform: translateX(10px); }
 }
 
+/* تنسيق عنصر الصديق في قائمة الاختيار */
+.select-friend-item {
+    display: flex; align-items: center; gap: 15px;
+    padding: 12px; border-radius: 12px; margin-bottom: 5px;
+    cursor: pointer; transition: 0.2s;
+    background: transparent; border: 1px solid transparent;
+}
+
+.select-friend-item.selected {
+    background: rgba(139, 92, 246, 0.15);
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.select-friend-item:active { transform: scale(0.98); }
+
+.sf-avatar {
+    width: 45px; height: 45px; border-radius: 50%;
+    background-size: cover; background-position: center;
+    border: 1px solid #444;
+}
+
+.sf-info { flex: 1; }
+.sf-name { color: #fff; font-weight: bold; font-size: 14px; }
+.sf-status { color: #888; font-size: 11px; }
+
+/* الدائرة بتاعت الاختيار */
+.sf-check {
+    width: 22px; height: 22px; border-radius: 50%;
+    border: 2px solid #555; display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+
+/* لما نختار */
+.select-friend-item.selected .sf-check {
+    background: #8b5cf6; border-color: #8b5cf6;
+}
+.select-friend-item.selected .sf-check::after {
+    content: '✔'; color: #fff; font-size: 12px;
+}
+
+/* رفع طبقة المودال لتكون فوق القائمة الجانبية والهيدر */
+.custom-modal {
+    z-index: 200000 !important; /* رقم عالي جداً لإجبار الظهور */
+}
+
+/* إصلاح التداخل في القائمة الجانبية */
+.sidebar {
+    z-index: 10001; /* أقل من المودال */
+}
+.sidebar-overlay {
+    z-index: 10000;
+}
+
+/* تأكد من رفع الـ z-index لصفحة المقيدين */
+#restrictedPage {
+    z-index: 200000 !important; /* لضمان ظهورها فوق السايد بار */
+}
+
     </style>
 </head>
 
@@ -2704,6 +2762,16 @@
             <span id="activityText">حالة النشاط: ظاهر</span>
             <div id="activityDot" style="width:12px; height:12px; border-radius:50%; background:#4ade80; margin-right:auto;"></div>
         </div>
+        
+          <div class="sidebar-item" onclick="vibrate(); showSection('inbox')">
+            <i class="fa-solid fa-comments"></i> الدردشات
+        </div>
+        
+<div class="sidebar-item" onclick="window.location.href='create_group.html'">
+    <i class="fa-solid fa-users-rectangle"></i> مجموعة جديدة
+</div>
+
+
 <div class="sidebar-item" onclick="toggleAppSounds()">
     <i id="soundIcon" class="fa-solid fa-volume-high"></i> 
     <span id="soundText">أصوات التطبيق</span>
@@ -2715,9 +2783,7 @@
     <i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i> أرشيف القصص
 </div>
 
-        <div class="sidebar-item" onclick="vibrate(); showSection('inbox')">
-            <i class="fa-solid fa-comments"></i> الدردشات
-        </div>
+      
         
         <div class="sidebar-item" onclick="vibrate(); showSection('archive')">
             <i class="fa-solid fa-box-archive"></i> الأرشيف
@@ -2730,7 +2796,11 @@
         <div class="sidebar-item" onclick="vibrate(); showSection('friends')">
             <i class="fa-solid fa-user-group"></i> الأصدقاء
         </div>
-        
+        <div class="sidebar-item" onclick="openRestrictedPage()">
+    <i class="fa-solid fa-user-shield" style="color: #f59e0b;"></i> 
+    <span>الحسابات المقيدة</span>
+</div>
+
         <div class="sidebar-item" onclick="vibrate(); location.href='blocked.html'" style="color: #ff7777;">
             <i class="fa-solid fa-ban" style="color: #ff7777;"></i> المحظورين
         </div>
@@ -2789,6 +2859,7 @@
             <div class="sheet-action danger" onclick="vibrate(); deleteChatAction()">
                 <i class="fa-solid fa-trash"></i> <span>حذف المحادثة</span>
             </div>
+            <div id="dynamicBlockBtnContainer"></div>
         </div>
     </div>
 
@@ -3141,6 +3212,10 @@ function drawStoriesUI(groups) {
         const otherUids = Object.keys(storiesMap).filter(uid => uid !== currentUser.uid);
         
         for (const uid of otherUids) {
+                        // لو الشات ده محظور، عدي الدور ومترسمش قصته
+            const chatCheck = allChats.find(c => c.otherUid === uid);
+            if (chatCheck && chatCheck.isBlocked) continue;
+
             let u = usersCache[uid];
             if(!u) u = await fetchAndCacheUser(uid);
             
@@ -3919,68 +3994,72 @@ function closeStoryViewers() {
         }
 
         // استبدل دالة loadChats القديمة بهذه الدالة المحسنة
+// استبدل دالة loadChats بالكامل بالكود ده
 function loadChats(userId) {
     db.collection("chats")
       .where("users", "array-contains", userId)
       .onSnapshot(async snap => {
         let tempChats = [];
-        
-        // 1. خريطة لمنع التكرار (Map لتخزين أحدث شات لكل مستخدم)
         let uniqueChatsMap = new Map();
 
         for (const doc of snap.docs) {
             const d = doc.data();
-            // لو الرسالة هي الشفرة والمرسل مش أنا، تجاهل الشات
-if (d.lastMessage === '__HIDDEN_START__' && d.lastSender !== userId) { continue; }
+            
+            
+            // تجاهل الشفرة لو مش بتاعتي
+            if (d.lastMessage === '__HIDDEN_START__' && d.lastSender !== userId) { continue; }
 
-          const isSoftDeleted = d.deletedBy && d.deletedBy.includes(userId);
-
-
+            const isSoftDeleted = d.deletedBy && d.deletedBy.includes(userId);
             const lastSenderId = d.lastSender ? d.lastSender.toString() : "";
             const currentUserIdStr = userId.toString();
             const amISender = lastSenderId === currentUserIdStr;
 
-            let chatName = "مستخدم", chatAvatar = defaultAvatar, isVerified = false, otherUid = null, isGroup = (d.type === 'GROUP'); 
+            // 🔥 تصحيح 1: التعرف على الجروب بشكل أقوى (حتى لو مكتوبة group سمول)
+            let isGroup = (d.type === 'GROUP' || d.type === 'group'); 
+            
+            let chatName = "مستخدم", chatAvatar = defaultAvatar, isVerified = false, otherUid = null;
             
             if (isGroup) { 
                 chatName = d.name || "مجموعة"; 
-                // المجموعات لا تحتاج فلترة تكرار بنفس طريقة الأفراد
+                // الجروب ملوش صورة مستخدم محددة، فنسيب الصورة الافتراضية أو صورة الجروب لو فيه
+                if(d.groupImage) chatAvatar = d.groupImage;
             } else {
                 otherUid = d.users.find(u => u !== userId);
-                
                 if(otherUid) {
                     const u = usersCache[otherUid] || await fetchAndCacheUser(otherUid);
                     chatName = u.name; chatAvatar = u.avatar; isVerified = u.isVerified;
+                    
+                    if (d.blockedBy && d.blockedBy.length > 0) {
+                        chatAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+                        isVerified = false;
+                    }
                 }
             }
 
-       let previewMsg = d.lastMessage || 'بدء المحادثة';
+            // تجهيز نص الرسالة
+            let previewMsg = d.lastMessage || 'بدء المحادثة';
             let isMedia = false;
+            let isTyping = (d.typing && d.typing.includes(otherUid));
 
-            // 2. لو الرسالة هي الشفرة، نغير النص
             if (previewMsg === '__HIDDEN_START__') {
                 previewMsg = '<span style="color:var(--accent-color); font-style:italic;">محادثة جديدة ✨</span>';
-            } 
-            // 3. لو الشات مقفول بباسورد
-            else if (d.lockPass && d.lockPass.length === 6) { 
+            } else if (d.lockPass && d.lockPass.length === 6) { 
                 previewMsg = '<span style="color:#ff3b30; font-style:italic;"><i class="fa-solid fa-lock"></i> رسالة محمية</span>';
             }
-
-// -----------------------
-            if(d.lastMessage && (d.lastMessage.includes('http') || d.lastMessage === 'صورة' || d.lastMessage === 'video' || d.type === 'image')) {
-                previewMsg = '<i class="fa-solid fa-camera"></i> صورة / وسائط'; isMedia = true;
-            } else if (d.lastMessage && d.lastMessage.includes('voice_notes')) {
-                previewMsg = '<i class="fa-solid fa-microphone"></i> رسالة صوتية';
-            }
             
-            // التعامل مع الرسائل المحذوفة في المعاينة الخارجية
-            if (d.lastMessage === '🚫 تم حذف رسالة' || d.lastMessage === '🚫 أنت حذفت هذه الرسالة') {
-                 previewMsg = '<i class="fa-solid fa-ban"></i> تم حذف رسالة';
+            if(d.lastMessage && (d.lastMessage.includes('http') || d.type === 'image')) {
+                previewMsg = '<i class="fa-solid fa-camera"></i> صورة / وسائط'; isMedia = true;
             }
 
-                     let isTyping = (d.typing && d.typing.includes(otherUid));
+            const isBlockedByMe = d.blockedBy && d.blockedBy.includes(userId);
+            const isBlockedByHim = d.blockedBy && d.blockedBy.includes(otherUid);
+            const isChatBlocked = isBlockedByMe || isBlockedByHim;
+            const isRestricted = d.restrictedBy && d.restrictedBy.includes(userId);
 
-            // إنشاء كائن الشات
+            // 🔥 تصحيح 2: إجبار الجروب إنه ميكونش Request أبداً
+            // لو هو جروب، يبقى isRequest = false فوراً
+            const isRequest = isGroup ? false : (!isGroup && d.lastSender !== userId && !friendUids.has(otherUid));
+
             const chatObj = {
                 id: doc.id, 
                 name: chatName, 
@@ -3997,41 +4076,40 @@ if (d.lastMessage === '__HIDDEN_START__' && d.lastSender !== userId) { continue;
                 unreadCount: d.unreadCount || 0, 
                 isSeen: d.seen === true,        
                 isArchived: d.archivedBy && d.archivedBy.includes(userId),
-                isBlocked: d.blockedBy && d.blockedBy.includes(userId), 
+                isBlocked: isChatBlocked,
                 isVerified,
                 isPinned: d.pinnedBy && d.pinnedBy.includes(userId),
                 isMuted: d.mutedBy && d.mutedBy.includes(userId),
-                isRequest: !isGroup && d.lastSender !== userId && !friendUids.has(otherUid),
-
-isSecret: d.secretBy && d.secretBy.includes(userId),
-isSoftDeleted: isSoftDeleted,
-                // 🔒 خاصية القفل: تتحقق إذا كان هناك باسورد مخزن ومكون من 6 أرقام
+                
+                isRequest: isRequest, // 🔥 استخدام القيمة المصححة
+                
+                isSecret: d.secretBy && d.secretBy.includes(userId),
+                isRestricted: isRestricted,
+                isSoftDeleted: isSoftDeleted,
                 isLocked: d.lockPass && d.lockPass.length === 6
             };
 
-
-            // 🔥🔥 المنطق الذكي لمنع التكرار 🔥🔥
+            // 🔥 تصحيح 3: منطق منع التكرار (المهم جداً للجروبات)
             if (isGroup) {
-                tempChats.push(chatObj); // المجموعات تضاف كما هي
+                // الجروبات تضاف فوراً وبدون نقاش (لا تدخل في الـ uniqueChatsMap)
+                tempChats.push(chatObj); 
             } else {
-                // للأشخاص: نتأكد هل هذا الشخص موجود في القائمة مسبقاً؟
+                // الشاتات الفردية بس هي اللي بنعملها فلترة عشان التكرار
                 if (uniqueChatsMap.has(otherUid)) {
                     const existing = uniqueChatsMap.get(otherUid);
-                    // لو الشات الحالي أحدث من الموجود، نستبدله
                     if (chatObj.timestamp > existing.timestamp) {
                         uniqueChatsMap.set(otherUid, chatObj);
                     }
                 } else {
-                    // أول مرة نشوف الشخص ده، نضيف الشات
                     uniqueChatsMap.set(otherUid, chatObj);
                 }
             }
         }
         
-        // تحويل الـ Map إلى مصفوفة
+        // دمج الشاتات الفردية المفلترة مع الجروبات
         uniqueChatsMap.forEach(value => tempChats.push(value));
         
-        // الترتيب: المثبت الأول، ثم الأحدث وقتاً
+        // الترتيب
         tempChats.sort((a, b) => {
             if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
             return b.timestamp - a.timestamp;
@@ -4106,9 +4184,8 @@ function renderList() {
 if (currentView === 'inbox') {
     titleText.innerText = "الدردشات";
     // الفلتر ده هيضمن إن الشات المحذوف ميظهرش في القائمة الرئيسية
-    filteredChats = allChats.filter(c => !c.isArchived && !c.isBlocked && !c.isRequest && !c.isSecret && !c.isSoftDeleted);
+filteredChats = allChats.filter(c => !c.isArchived && !c.isRequest && !c.isSecret && !c.isSoftDeleted);
 
-        
         document.getElementById('storiesContainer').style.display = 'block';
     } else {
 
@@ -4223,8 +4300,6 @@ let bottomContent = c.isTyping
 
             vibrate();
             
-            // 3. التحقق من الحظر
-            if (c.isBlocked) { showToast("المستخدم محظور"); return; }
 
             // ==========================================
             // 🔒 4. التحقق من قفل المحادثة (الكود المهم)
@@ -4256,24 +4331,32 @@ let bottomContent = c.isTyping
             }
             // ==========================================
             
-            // 5. التعامل مع الإشعارات وتصفير العداد
+            
             if (!c.isRequest && !c.amISender && c.unreadCount > 0) {
-                const badge = el.querySelector('.unread-badge');
-                if(badge) badge.style.display = 'none';
-                
-                try {
-                    await resetUnreadCount(c.id);
-                } catch(err) {
-                    console.log("Error resetting count:", err);
-                }
+                // لو الحساب "مش مقيد"، ابعت السين عادي
+                if (!c.isRestricted) {
+                    const badge = el.querySelector('.unread-badge');
+                    if(badge) badge.style.display = 'none';
+                    try {
+                        await resetUnreadCount(c.id);
+                    } catch(err) { console.log(err); }
+                } 
             }
 
-            // 6. حفظ مكان السكرول والانتقال للشات
+            // 5. حفظ مكان السكرول
             sessionStorage.setItem('scrollPos', window.scrollY);
-            openChat(c.id, encodeURIComponent(c.name), c.isGroup ? 'GROUP' : c.otherUid, c.isRequest);
+
+            // 6. التوجيه النهائي (هنا الحل)
+            if (c.isGroup) {
+                // ✅ لو جروب -> يروح ملف الجروبات
+                window.location.href = `group_chat.html?groupId=${c.id}&name=${encodeURIComponent(c.name)}`;
+            } else {
+                // ✅ لو شات فردي -> يروح ملف الشات
+                window.location.href = `chat.html?chatId=${c.id}&name=${encodeURIComponent(c.name)}&uid=${c.otherUid}`;
+            }
         };
 
-        // زر الفأرة الأيمن للخيارات (Context Menu)
+        // زر الفأرة الأيمن للخيارات (Context Menu) - كما هو
         el.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             vibrate();
@@ -4309,64 +4392,210 @@ let bottomContent = c.isTyping
 function resetUnreadCount(chatId) { 
     return db.collection('chats').doc(chatId).update({ unreadCount: 0, seen: true }); 
 }
+
+
     function openChat(cid, name, uid, req) { location.href = (req ? 'request_view.html' : 'chat.html') + `?chatId=${cid}&name=${name}&uid=${uid}`; }
         function toggleSidebar() { document.getElementById('sidebar').classList.toggle('active'); document.getElementById('sidebarOverlay').classList.toggle('active'); }
+        
+        
         function showSection(section) { currentView = section; toggleSidebar(); renderList(); }
         
-        function openOptions(chat) {
+        
+        
+        // متغير عشان نخزن فيه احنا بنحظر مين
+let userToBlockId = null;
+
+function openOptions(chat) {
     selectedChatId = chat.id; 
     selectedChatData = chat;
     
+    // 1. البيانات الأساسية
     document.getElementById('sheetName').innerText = chat.name;
     document.getElementById('sheetAvatar').style.backgroundImage = `url('${chat.avatar}')`;
     
-    // تحديث نصوص الأزرار الموجودة
+    // 2. تحديث الأزرار
     document.getElementById('pinText').innerText = chat.isPinned ? "إلغاء التثبيت" : "تثبيت";
     document.getElementById('archiveText').innerText = chat.isArchived ? "إلغاء الأرشفة" : "أرشفة";
     document.getElementById('muteText').innerText = chat.isMuted ? "تفعيل التنبيهات" : "كتم";
     document.getElementById('markReadText').innerText = chat.isSeen ? "تحديد كغير مقروء" : "قراءة";
 
-    // ==========================================
-    // 🔥 الإضافة الجديدة: التحكم في زر القفل 🔥
-    // ==========================================
+    // 3. زر القفل
     const lockBtn = document.getElementById('lockOptionBtn');
     const lockText = document.getElementById('lockOptionText');
     const lockIcon = document.getElementById('lockOptionIcon');
 
     if (chat.isLocked) {
-        // لو الشات مقفول -> حول الزر لـ "إلغاء القفل"
         lockText.innerText = "إلغاء القفل (فتح)";
-        lockIcon.className = "fa-solid fa-lock-open"; // أيقونة قفل مفتوح
+        lockIcon.className = "fa-solid fa-lock-open"; 
         lockBtn.onclick = function() { vibrate(); openUnlockModal(); }; 
     } else {
-        // لو الشات مفتوح
         lockText.innerText = "قفل المحادثة";
         lockIcon.className = "fa-solid fa-lock";
         lockBtn.onclick = function() { vibrate(); openSetChatPassModal(); };
     }
+
     // ==========================================
+    // 🔥 زر الحظر مع الرسالة الاحترافية 🔥
+    // ==========================================
+    const blockContainer = document.getElementById('dynamicBlockBtnContainer');
+    
+    if (blockContainer) {
+        blockContainer.innerHTML = ''; 
+
+        const blockBtn = document.createElement('div');
+        blockBtn.className = 'sheet-action danger';
+        
+        if (chat.isBlocked) {
+            blockBtn.innerHTML = `<i class="fa-solid fa-user-gear"></i> <span>إدارة الحظر (محظور)</span>`;
+            blockBtn.onclick = function() { vibrate(); window.location.href = 'blocked.html'; };
+        } else {
+            blockBtn.innerHTML = `<i class="fa-solid fa-ban"></i> <span>حظر المستخدم</span>`;
+            
+            // لما يدوس هنا، يفتح النافذة الاحترافية
+            blockBtn.onclick = function() { 
+                vibrate();
+                closeOptions(); // اقفل القائمة
+                userToBlockId = chat.id; // احفظ احنا بنحظر مين
+                document.getElementById('blockConfirmationModal').style.display = 'flex'; // افتح النافذة
+            };
+        }
+        
+        blockContainer.appendChild(blockBtn);
+    }
 
     document.getElementById('optionsModal').classList.add('active');
+        // ==========================================
+    // 🔥 إصلاح تكرار الزرار (الحل هنا) 🔥
+    // ==========================================
+    
+    // 1. دور على الزرار القديم وامسحه لو موجود
+    const oldRestrictBtn = document.getElementById('restrictOptionBtn');
+    if (oldRestrictBtn) oldRestrictBtn.remove();
+
+    // 2. إنشاء الزر الجديد
+        // ... (الجزء اللي فوق زي ما هو) ...
+
+    // إنشاء الزر الجديد
+    const restrictBtn = document.createElement('div');
+    restrictBtn.id = 'restrictOptionBtn';
+    restrictBtn.className = 'sheet-action';
+
+    // === تعديل المنطق هنا ===
+    if (chat.isRestricted) {
+        // حالة: المستخدم مقيد -> زرار أزرق لفك التقييد
+        restrictBtn.innerHTML = `<i class="fa-solid fa-user-check" style="color:var(--verify-color)"></i> <span style="color:var(--verify-color)">إلغاء التقييد</span>`;
+        
+        restrictBtn.onclick = function() {
+            vibrate();
+            closeOptions(); // اقفل القائمة
+            // افتح نافذة "إلغاء التقييد" الجديدة
+            window.targetRestrictId = chat.id;
+            document.getElementById('unrestrictConfirmationModal').style.display = 'flex';
+        };
+        
+    } else {
+        // حالة: المستخدم عادي -> زرار برتقالي للتقييد
+        restrictBtn.innerHTML = `<i class="fa-solid fa-user-lock" style="color:#f59e0b"></i> <span style="color:#f59e0b">تقييد المستخدم</span>`;
+        
+        restrictBtn.onclick = function() {
+            vibrate();
+            closeOptions(); // اقفل القائمة
+            // افتح نافذة "التقييد" القديمة
+            window.targetRestrictId = chat.id;
+            document.getElementById('restrictConfirmationModal').style.display = 'flex';
+        };
+    }
+
+    // ... (باقي كود إضافة الزرار زي ما هو) ...
+
+    
+    // إضافة الزر للقائمة
+    const modalBody = document.querySelector('#optionsModal .bottom-sheet');
+    // بنحطه قبل آخر عنصرين (قبل زر الحظر)
+    if(modalBody.children.length > 2) {
+        modalBody.insertBefore(restrictBtn, modalBody.children[modalBody.children.length - 2]); 
+    } else {
+        modalBody.appendChild(restrictBtn);
+    }
+
 }
+
+// دالة تنفيذ الحظر (بتشتغل لما تدوس "نعم" في النافذة الجديدة)
+// دالة تنفيذ الحظر (مع قيد 48 ساعة)
+async function executeBlockAction() {
+    if (!userToBlockId) return;
+
+    // إخفاء النافذة ومبدئياً إظهار رسالة انتظار
+    document.getElementById('blockConfirmationModal').style.display = 'none';
+    showToast("جاري التحقق من الصلاحية... ⏳");
+
+    try {
+        const chatRef = db.collection('chats').doc(userToBlockId);
+        
+        // 1. جلب بيانات الشات الحالية عشان نشوف آخر مرة حظر فيها إمتى
+        const doc = await chatRef.get();
+        if (!doc.exists) return;
+        
+        const data = doc.data();
+        const myId = currentUser.uid;
+        
+        // 2. التحقق من المهلة الزمنية (48 ساعة)
+        if (data.blockCooldown && data.blockCooldown[myId]) {
+            const lastActionTime = data.blockCooldown[myId].toMillis();
+            const currentTime = Date.now();
+            const diffInHours = (currentTime - lastActionTime) / (1000 * 60 * 60); // تحويل الفرق لساعات
+
+            if (diffInHours < 48) {
+                const remaining = Math.ceil(48 - diffInHours);
+                showToast(`🚫 عذراً! يجب الانتظار ${remaining} ساعة قبل تعديل الحظر.`);
+                
+                // تشغيل هزاز للرفض
+                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                return; // ⛔ وقف هنا وماتكملش
+            }
+        }
+
+        // 3. تنفيذ الحظر وتخزين الوقت الحالي
+        // بنستخدم تحديث ذكي عشان نخزن وقت الحظر الخاص بيك انت بس
+        const updateData = {
+            blockedBy: firebase.firestore.FieldValue.arrayUnion(myId)
+        };
+        
+        // تسجيل الوقت الحالي كبداية للعد التنازلي الـ 48 ساعة
+        updateData[`blockCooldown.${myId}`] = firebase.firestore.FieldValue.serverTimestamp();
+
+        await chatRef.update(updateData);
+        
+        showToast("تم حظر المستخدم (مقيد لمدة 48 ساعة) 🔒🚫");
+        
+        // 4. تحديث الواجهة
+        renderList(); 
+        
+    } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ أثناء الاتصال");
+    }
+}
+
 
         function closeOptions() { document.getElementById('optionsModal').classList.remove('active'); }
 
-        async function createGroupAction() {
-            closeOptions();
-            const groupName = prompt("اكتب اسم المجموعة الجديدة:");
-            if (!groupName || groupName.trim() === "") return;
-            const participants = [currentUser.uid];
-            if (selectedChatData && selectedChatData.otherUid) participants.push(selectedChatData.otherUid);
-            
-            try {
-                const groupRef = await db.collection('chats').add({
-                    name: groupName, users: participants, type: 'GROUP', createdBy: currentUser.uid,
-                    lastMessage: "تم إنشاء المجموعة", lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(), admins: [currentUser.uid]
-                });
-                showToast("تم إنشاء المجموعة! 🎉");
-                openChat(groupRef.id, encodeURIComponent(groupName), 'GROUP');
-            } catch (error) { console.error(error); showToast("حدث خطأ أثناء الإنشاء"); }
-        }
+        function createGroupAction() {
+    closeOptions(); // نقفل القائمة السفلية الأول
+    
+    const modal = document.getElementById('createGroupModal');
+    const input = document.getElementById('newGroupNameInput');
+    
+    // تصفير الحقل
+    input.value = '';
+    
+    // إظهار النافذة
+    modal.style.display = 'flex';
+    
+    // تركيز المؤشر عشان تكتب علطول
+    setTimeout(() => input.focus(), 100);
+}
+
 
         function togglePinAction() {
             const ref = db.collection('chats').doc(selectedChatId);
@@ -4514,36 +4743,24 @@ async function confirmDeleteChat() {
       .where('users', 'array-contains', uid)
       .onSnapshot(snapshot => {
         snapshot.docChanges().forEach(change => {
-            // نراقب التعديل (رسالة جديدة في شات موجود) أو الإضافة (شات جديد)
             if (change.type === 'modified' || change.type === 'added') {
                 const data = change.doc.data();
 
-                // ============================================================
-                // 🔥 الإصلاح هنا: منطق "منع" الإشعار عن المرسل 🔥
-                // ============================================================
-                
-                // 1. إذا كان "آخر مرسل" هو أنا (صاحب الحساب الحالي)، اخرج فوراً (لا تشغل صوت)
                 if (data.lastSender === uid) return;
-
-                // 2. إذا كان عدد الرسائل غير المقروءة صفر، اخرج (لا يوجد جديد)
                 if (!data.unreadCount || data.unreadCount <= 0) return;
-
-                // 3. إذا كان الشات مكتوماً من قبلي، اخرج
                 if (data.mutedBy && data.mutedBy.includes(uid)) return;
 
-                // ============================================================
-                // إذا وصلنا هنا، فهذا يعني أن الرسالة من "شخص آخر" وليست مكتومة
-                // ============================================================
-                
+                // ==========================================
+                // 🔥 التعديل: منع الإشعارات للمقيدين 🔥
+                // ==========================================
+                if (data.restrictedBy && data.restrictedBy.includes(uid)) return; 
+
+                // تشغيل الصوت (باقي الكود زي ما هو)
                 if (notificationAudio) {
-                    notificationAudio.currentTime = 0; // إعادة الصوت من البداية لضمان تكراره مع الرسائل السريعة
-                    notificationAudio.play().catch(err => {
-                        // متصفحات حديثة قد تمنع الصوت إذا لم يتفاعل المستخدم مع الصفحة
-                        console.log("Audio autoplay blocked:", err);
-                    });
+                    notificationAudio.currentTime = 0; 
+                    notificationAudio.play().catch(err => {});
                 }
-                
-                vibrate(); // هزاز للموبايل
+                vibrate();
             }
         });
     });
@@ -5543,6 +5760,10 @@ function renderQuickActiveUsers() {
     list.innerHTML = '';
 
     peopleArray.forEach(user => {
+                // لو الشخص ده محظور، اخرج وما ترسموش في شريط النشاط
+        const chatCheck = allChats.find(c => c.otherUid === user.uid);
+        if (chatCheck && chatCheck.isBlocked) return; 
+
         if(user.uid === currentUser.uid) return;
 
         const item = document.createElement('div');
@@ -6742,6 +6963,511 @@ function triggerErrorEffect(element) {
     }, 500); // نص ثانية (نفس مدة الأنيميشن تقريباً)
 }
 
+// ============================================================
+// 📡 مراقب المكالمات (الرادار) - المعدل (يدعم التقييد والحظر)
+// ============================================================
+(function initGlobalListener() {
+    if (typeof firebase === 'undefined') return;
+
+    firebase.auth().onAuthStateChanged(user => {
+        if (!user) return; 
+
+        const db = firebase.firestore();
+        const currentUserId = user.uid;
+        console.log("📡 الرادار الاحترافي يعمل (حماية مفعلة)...");
+
+        db.collectionGroup('calls')
+            .where('status', '==', 'ringing')
+            .onSnapshot(snapshot => {
+                snapshot.docChanges().forEach(async change => { // لاحظ كلمة async هنا
+                    const callData = change.doc.data();
+                    const callDocRef = change.doc.ref;
+                    
+                    // 1. مكالمة جديدة واردة
+                    if (change.type === 'added') {
+                        if (callData.callerId !== currentUserId) {
+                            
+                            // ==========================================
+                            // 🛑 فحص الحماية (حظر أو تقييد) قبل الرنين 🛑
+                            // ==========================================
+                            try {
+                                // 1. نجيب بيانات الشات عشان نشوف هل الشخص ده محظور أو مقيد
+                                const chatDocRef = callDocRef.parent.parent; // المرجع للشات الأب
+                                const chatSnap = await chatDocRef.get();
+                                
+                                if (chatSnap.exists) {
+                                    const chatData = chatSnap.data();
+
+                                    // أ) هل أنا حاظره؟ (Blocked)
+                                    if (chatData.blockedBy && chatData.blockedBy.includes(currentUserId)) {
+                                        console.log("🚫 اتصال محظور تم رفضه تلقائياً.");
+                                        callDocRef.update({ status: 'rejected_blocked' }); // رفض فوري
+                                        return; // اخرج ومترنش
+                                    }
+
+                                    // ب) هل أنا مقيده؟ (Restricted)
+                                    if (chatData.restrictedBy && chatData.restrictedBy.includes(currentUserId)) {
+                                        console.log("🔕 اتصال مقيد (تم التجاهل).");
+                                        // في التقييد بنمسح المكالمة وكأنها لم تكن، أو نرفضها بصمت
+                                        callDocRef.delete(); 
+                                        return; // اخرج ومترنش ولا تظهر أي حاجة
+                                    }
+                                }
+                            } catch (error) {
+                                console.error("Error checking restrictions:", error);
+                            }
+                            // ==========================================
+
+                            // لو عدى من الفحص (مش محظور ومش مقيد)، كمل عادي
+                            targetChatId = callDocRef.parent.parent.id;
+                            globalCallDocPath = callDocRef.path;
+                            isDismissed = false; 
+
+                            // جلب البيانات الحقيقية للعرض
+                            db.collection('users').doc(callData.callerId).get()
+                            .then(userDoc => {
+                                let realName = "مستخدم نبض";
+                                let realAvatar = "";
+                                if (userDoc.exists) {
+                                    const u = userDoc.data();
+                                    realName = u.name || "مستخدم نبض";
+                                    realAvatar = u.profilePic || "";
+                                }
+                                callData.callerName = realName;
+                                callData.callerAvatar = realAvatar;
+                                showHeadsUpNotification(callData);
+                            })
+                            .catch(() => showHeadsUpNotification(callData));
+                        }
+                    }
+
+                    // 2. تحديث الحالة (تم الرد أو الإلغاء)
+                    if (change.type === 'modified') {
+                        if (globalCallDocPath === change.doc.ref.path) {
+                            if (!callData || callData.status !== 'ringing') {
+                                const isMissed = (callData.status !== 'rejected' && callData.status !== 'picked' && callData.status !== 'answered');
+                                stopEverything(isMissed, callData.callerName); 
+                            }
+                        }
+                    }
+
+                    // 3. حذف المكالمة
+                    if (change.type === 'removed') {
+                        if (globalCallDocPath === change.doc.ref.path) {
+                            stopEverything(true, callData.callerName || "مستخدم");
+                        }
+                    }
+                });
+            });
+    });
+})();
+
+
+// 1. دالة إغلاق نافذة إلغاء التقييد
+function closeUnrestrictModal() {
+    document.getElementById('unrestrictConfirmationModal').style.display = 'none';
+    window.targetRestrictId = null;
+}
+
+// 2. دالة تنفيذ إلغاء التقييد (لما يدوس نعم)
+function executeUnrestrictAction() {
+    if (!window.targetRestrictId) return;
+    
+    // إخفاء النافذة
+    document.getElementById('unrestrictConfirmationModal').style.display = 'none';
+    
+    // تنفيذ الأمر (false = إلغاء التقييد)
+    toggleRestrictStatus(window.targetRestrictId, false);
+}
+
+// 1. إغلاق النافذة
+function closeGroupModal() {
+    document.getElementById('createGroupModal').style.display = 'none';
+}
+
+// 2. تنفيذ الإنشاء الفعلي
+async function executeCreateGroup() {
+    const input = document.getElementById('newGroupNameInput');
+    const groupName = input.value.trim();
+    
+    // التحقق من الاسم
+    if (!groupName) {
+        showToast("الرجاء كتابة اسم المجموعة ⚠️");
+        triggerErrorEffect(input); // الهزة واللون الأحمر
+        return;
+    }
+
+    closeGroupModal(); // إخفاء النافذة
+    showToast("جاري إنشاء المجموعة... 🔨");
+
+    // تجهيز الأعضاء (أنا + الشخص اللي كنت فاتح القائمة بتاعته)
+    const participants = [currentUser.uid];
+    if (selectedChatData && selectedChatData.otherUid) {
+        participants.push(selectedChatData.otherUid);
+    }
+    
+    try {
+        const groupRef = await db.collection('chats').add({
+            name: groupName, 
+            users: participants, 
+            type: 'GROUP', 
+            createdBy: currentUser.uid,
+            lastMessage: "تم إنشاء المجموعة ✨", 
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(), 
+            admins: [currentUser.uid],
+            
+            // تهيئة المصفوفات لتجنب الأخطاء
+            archivedBy: [],
+            deletedBy: [],
+            pinnedBy: [],
+            mutedBy: [],
+            secretBy: [],
+            restrictedBy: [],
+            seen: true,
+            unreadCount: 0
+        });
+        
+        showToast("تم إنشاء المجموعة بنجاح! 🎉");
+        
+        // فتح الشات الجديد فوراً
+        openChat(groupRef.id, encodeURIComponent(groupName), 'GROUP', false);
+        
+    } catch (error) { 
+        console.error(error); 
+        showToast("حدث خطأ أثناء الإنشاء"); 
+    }
+}
+
+// 3. (إضافة) تشغيل زر Enter في لوحة المفاتيح
+document.getElementById('newGroupNameInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+        executeCreateGroup();
+    }
+});
+
+// ==========================================
+// 👥 نظام المجموعات (المصحح)
+// ==========================================
+
+// 1. دالة مساعدة لإغلاق القائمة الجانبية بأمان
+function forceCloseSidebar() {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('sidebarOverlay');
+    if (sb) sb.classList.remove('active');
+    if (ov) ov.classList.remove('active');
+}
+
+// 2. دالة فتح نافذة إنشاء المجموعة
+let selectedGroupMembers = new Set(); 
+
+function openGroupCreatorPro() {
+    vibrate();
+    
+    // 🔥 إصلاح التهنيج: استخدام الدالة الآمنة للإغلاق
+    forceCloseSidebar(); 
+    
+    const modal = document.getElementById('createGroupProModal');
+    const list = document.getElementById('friendsSelectionList');
+    const countSpan = document.getElementById('selectedCount');
+    const nameInput = document.getElementById('groupNamePro');
+
+    if (!modal) {
+        console.error("المودال غير موجود في HTML");
+        return;
+    }
+
+    // إظهار النافذة
+    modal.style.display = 'flex';
+
+    // تصفير البيانات
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:#777;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل الأصدقاء...</div>';
+    selectedGroupMembers.clear();
+    if(countSpan) countSpan.innerText = '0';
+    if(nameInput) nameInput.value = '';
+
+    // التحقق من وجود أصدقاء
+    if (friendUids.size === 0) {
+        list.innerHTML = `<div style="text-align:center; padding:40px; color:#555;">
+            <i class="fa-solid fa-user-group" style="font-size:30px; margin-bottom:10px;"></i><br>
+            لا يوجد أصدقاء لإضافتهم
+        </div>`;
+        return;
+    }
+
+    // رسم القائمة
+    setTimeout(() => { // تأخير بسيط لضمان عدم تهنيج الواجهة
+        list.innerHTML = '';
+        friendUids.forEach(uid => {
+            let u = usersCache[uid];
+            // لو مش في الكاش، حاول تجيب بيانات افتراضية
+            if (!u) u = { uid: uid, name: "مستخدم", avatar: defaultAvatar };
+
+            const item = document.createElement('div');
+            item.className = 'select-friend-item';
+            item.id = `sf-${uid}`;
+            item.onclick = () => toggleMemberSelection(uid);
+
+            item.innerHTML = `
+                <div class="sf-avatar" style="background-image: url('${u.avatar || defaultAvatar}')"></div>
+                <div class="sf-info">
+                    <div class="sf-name">${u.name}</div>
+                    <div class="sf-status" style="color:${u.isOnline ? '#4ade80' : '#888'}">${u.isOnline ? 'نشط الآن' : 'غير متصل'}</div>
+                </div>
+                <div class="sf-check"></div>
+            `;
+            list.appendChild(item);
+        });
+    }, 50);
+}
+
+// 3. اختيار الأعضاء
+function toggleMemberSelection(uid) {
+    vibrate();
+    const el = document.getElementById(`sf-${uid}`);
+    if (!el) return;
+
+    if (selectedGroupMembers.has(uid)) {
+        selectedGroupMembers.delete(uid);
+        el.classList.remove('selected');
+    } else {
+        selectedGroupMembers.add(uid);
+        el.classList.add('selected');
+    }
+    document.getElementById('selectedCount').innerText = selectedGroupMembers.size;
+}
+
+// 4. إغلاق النافذة
+function closeGroupProModal() {
+    const modal = document.getElementById('createGroupProModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// 5. التنفيذ النهائي (الإنشاء)
+async function finalizeCreateGroup() {
+    const nameInput = document.getElementById('groupNamePro');
+    const groupName = nameInput.value.trim();
+
+    if (groupName.length < 2) {
+        showToast("اكتب اسم المجموعة أولاً ⚠️");
+        nameInput.focus();
+        // تأثير الهزة (اختياري)
+        nameInput.style.borderColor = "red";
+        setTimeout(() => nameInput.style.borderColor = "#8b5cf6", 500);
+        return;
+    }
+
+    if (selectedGroupMembers.size === 0) {
+        showToast("اختر عضواً واحداً على الأقل 👥");
+        return;
+    }
+
+    // إغلاق وبدء التحميل
+    closeGroupProModal();
+    showToast("جاري إنشاء المجموعة... 🚀");
+
+    try {
+        const members = [currentUser.uid, ...Array.from(selectedGroupMembers)];
+
+        const groupRef = await db.collection('chats').add({
+            name: groupName,
+            type: 'GROUP',
+            users: members,
+            admins: [currentUser.uid],
+            createdBy: currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            lastMessage: `تم إنشاء المجموعة "${groupName}" ✨`,
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            lastSender: currentUser.uid,
+            seen: true,
+            unreadCount: 0,
+            // مصفوفات فارغة لمنع الأخطاء
+            archivedBy: [], deletedBy: [], pinnedBy: [], mutedBy: [], 
+            secretBy: [], restrictedBy: [], blockedBy: []
+        });
+
+        // رسالة النظام
+        await groupRef.collection('messages').add({
+            text: `تم إنشاء المجموعة بواسطة ${currentUser.displayName || "المنشئ"}.`,
+            type: 'system',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            seen: false
+        });
+
+        showToast("تم الإنشاء بنجاح! 🎉");
+        
+        // فتح المجموعة فوراً
+        openChat(groupRef.id, encodeURIComponent(groupName), 'GROUP', false);
+
+    } catch (error) {
+        console.error(error);
+        showToast("فشل الإنشاء، حاول مرة أخرى");
+    }
+}
+// فتح نافذة المقيدين
+function openRestrictedList() {
+    vibrate();
+    forceCloseSidebar(); // إغلاق السايد بار
+    const modal = document.getElementById('restrictedModal');
+    const list = document.getElementById('restrictedListContent');
+    
+    modal.style.display = 'flex';
+    list.innerHTML = '<div style="text-align: center; color: #555; padding: 20px;">جاري البحث...</div>';
+
+    // البحث في كاش المستخدمين عن أي حد محطوط في قائمة الـ restricted
+    // ملاحظة: افترضنا أن بيانات القيود مخزنة في مستند المستخدم الحالي
+    db.collection("users").doc(currentUserId).get().then((doc) => {
+        const userData = doc.data();
+        const restrictedIds = userData.restrictedByMe || [];
+
+        if (restrictedIds.length === 0) {
+            list.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">لا يوجد مستخدمون مقيدون</div>';
+            return;
+        }
+
+        list.innerHTML = '';
+        restrictedIds.forEach(uid => {
+            const u = usersCache[uid] || { name: "مستخدم", avatar: defaultAvatar };
+            list.innerHTML += `
+                <div class="profile-item" style="border-bottom: 1px solid #222; margin-bottom: 5px;">
+                    <div class="p-item-icon" style="background-image:url('${u.avatar || defaultAvatar}');"></div>
+                    <div class="p-item-text">
+                        <span style="color:#fff;">${u.name}</span>
+                        <button onclick="unrestrictUser('${uid}')" style="background:none; border:1px solid #ef4444; color:#ef4444; font-size:10px; padding:2px 8px; border-radius:5px; cursor:pointer; margin-top:5px;">
+                            إلغاء القيد
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+    });
+}
+
+function closeRestrictedModal() {
+    document.getElementById('restrictedModal').style.display = 'none';
+}
+
+// دالة فك القيد
+async function unrestrictUser(targetUid) {
+    if(!confirm("هل تريد إلغاء القيد عن هذا المستخدم؟")) return;
+    
+    try {
+        await db.collection("users").doc(currentUserId).update({
+            restrictedByMe: firebase.firestore.FieldValue.arrayRemove(targetUid)
+        });
+        showToast("تم إلغاء القيد بنجاح");
+        openRestrictedList(); // تحديث القائمة
+    } catch (error) {
+        console.error(error);
+        showToast("حدث خطأ أثناء فك القيد");
+    }
+}
+
+// 1. دالة فتح الصفحة الكاملة مصلحة (بدون تهنيج)
+async function openRestrictedPage() {
+    vibrate();
+    forceCloseSidebar(); // إغلاق القائمة الجانبية فوراً
+    
+    const page = document.getElementById('restrictedPage');
+    const listContainer = document.getElementById('restrictedListFull');
+    
+    if (!page || !listContainer) return;
+
+    // إظهار الصفحة
+    page.style.display = 'flex';
+    
+    // إظهار مؤشر تحميل
+    listContainer.innerHTML = `
+        <div style="text-align:center; padding:50px; color:var(--accent-color);">
+            <i class="fa-solid fa-circle-notch fa-spin" style="font-size:30px;"></i>
+            <p style="margin-top:10px; font-size:14px;">جاري جلب القائمة...</p>
+        </div>`;
+
+    try {
+        // جلب مستند المستخدم الحالي
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        
+        // تأكد من اسم الحقل في الفايربيس (هل هو restrictedByMe أم restrictedBy؟)
+        // بناءً على كودك السابق سنعتمد restrictedByMe
+        const restrictedIds = userDoc.data()?.restrictedByMe || [];
+
+        if (restrictedIds.length === 0) {
+            listContainer.innerHTML = `
+                <div style="text-align:center; padding:80px 20px; color:#64748b;">
+                    <i class="fa-solid fa-user-shield" style="font-size:50px; opacity:0.2; margin-bottom:15px;"></i>
+                    <p>لا يوجد أي حسابات مقيدة حالياً</p>
+                </div>`;
+            return;
+        }
+
+        // تحضير الـ HTML مرة واحدة بدلاً من التحديث داخل الحلقة (أسرع للأداء)
+        let finalHtml = '';
+
+        // جلب البيانات
+        for (const uid of restrictedIds) {
+            let u = usersCache[uid];
+            if (!u) {
+                try {
+                    const uDoc = await db.collection('users').doc(uid).get();
+                    if (uDoc.exists) {
+                        const d = uDoc.data();
+                        u = {
+                            name: d.name || "مستخدم",
+                            avatar: d.profilePic || d.avatarUrl || defaultAvatar
+                        };
+                    }
+                } catch(e) { console.log("User fetch error", e); }
+            }
+
+            if (u) {
+                finalHtml += `
+                    <div class="profile-item" style="justify-content: space-between; margin-bottom:10px; border: 1px solid rgba(255,255,255,0.05); display:flex; align-items:center; padding:15px; border-radius:16px;">
+                        <div style="display:flex; align-items:center; gap:15px;">
+                            <div style="background-image:url('${u.avatar || defaultAvatar}'); background-size:cover; border-radius:12px; width:45px; height:45px; background-position:center;"></div>
+                            <div class="p-item-text">
+                                <span style="color:#fff; font-size:15px; font-weight:bold; display:block;">${u.name}</span>
+                                <small style="color:#64748b;">حساب مقيد</small>
+                            </div>
+                        </div>
+                        <button onclick="unrestrictFromPage('${uid}')" style="background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30; color: #ff3b30; padding: 6px 12px; border-radius: 10px; cursor: pointer; font-size: 11px; font-weight: bold; font-family:'Cairo';">
+                            إلغاء القيد
+                        </button>
+                    </div>`;
+            }
+        }
+        
+        listContainer.innerHTML = finalHtml;
+
+    } catch (error) {
+        console.error("Restricted Page Error:", error);
+        listContainer.innerHTML = `<p style="text-align:center; color:red; padding:20px;">حدث خطأ أثناء تحميل البيانات</p>`;
+    }
+}
+
+// 2. دالة إغلاق الصفحة
+function closeRestrictedPage() {
+    const page = document.getElementById('restrictedPage');
+    if(page) page.style.display = 'none';
+}
+
+// 3. دالة فك القيد (المحدثة)
+async function unrestrictFromPage(targetUid) {
+    vibrate();
+    if(!confirm("هل تريد إلغاء التقييد عن هذا المستخدم؟")) return;
+
+    try {
+        await db.collection("users").doc(currentUser.uid).update({
+            restrictedByMe: firebase.firestore.FieldValue.arrayRemove(targetUid)
+        });
+        
+        showToast("تم إلغاء التقييد ✅");
+        // إعادة تحديث القائمة فوراً
+        openRestrictedPage(); 
+    } catch (error) {
+        console.error(error);
+        showToast("حدث خطأ");
+    }
+}
+
     </script>
     
 
@@ -6970,6 +7696,83 @@ function hideActiveUser() {
     }
 }
 
+// 1. دالة إغلاق النافذة
+function closeRestrictModal() {
+    document.getElementById('restrictConfirmationModal').style.display = 'none';
+    window.targetRestrictId = null;
+}
+
+// 2. دالة تنفيذ التقييد (لما يدوس تأكيد في النافذة)
+function executeRestrictAction() {
+    if (!window.targetRestrictId) return;
+    
+    // إخفاء النافذة
+    document.getElementById('restrictConfirmationModal').style.display = 'none';
+    
+    // تنفيذ التقييد
+    toggleRestrictStatus(window.targetRestrictId, true);
+}
+
+// 3. الدالة المسؤولة عن التعامل مع الداتابيز (تقييد أو فك)
+// 3. الدالة المسؤولة عن التعامل مع الداتابيز (تقييد أو فك) - (نسخة مصححة)
+// استبدل الدالة دي بالكامل في كودك
+async function toggleRestrictStatus(chatId, shouldRestrict) {
+    showToast(shouldRestrict ? "جاري التقييد..." : "جاري إلغاء التقييد...");
+    
+    try {
+        const chatRef = db.collection('chats').doc(chatId);
+        
+        // 1. لازم الأول نعرف مين الشخص اللي احنا بنقيده ده؟
+        const chatDoc = await chatRef.get();
+        if (!chatDoc.exists) return;
+
+        const chatData = chatDoc.data();
+        
+        // بنطلع الآيدي بتاع الطرف التاني من الشات
+        // (لو الشات فردي، بنشوف مين في المصفوفة غيري أنا)
+        let targetUid = null;
+        if (chatData.users && !chatData.isGroup) {
+            targetUid = chatData.users.find(u => u !== currentUser.uid);
+        }
+
+        // 2. (الخطوة دي عشان يختفي من الرئيسية ويتقفل التنبيهات)
+        // بنعدل الشات ونقول إنه مقيد
+        const opChat = shouldRestrict 
+            ? firebase.firestore.FieldValue.arrayUnion(currentUser.uid) 
+            : firebase.firestore.FieldValue.arrayRemove(currentUser.uid);
+        
+        // تنفيذ التحديث في الشات
+        await chatRef.update({ restrictedBy: opChat });
+
+        // 3. (الخطوة دي عشان يظهر في قائمة المقيدين) 🔥 دي اللي كانت ناقصة
+        // بنروح لملفك الشخصي ونضيف الآيدي بتاعه في قائمة اسمها restrictedByMe
+        if (targetUid) {
+            const userRef = db.collection('users').doc(currentUser.uid);
+            const opUser = shouldRestrict
+                ? firebase.firestore.FieldValue.arrayUnion(targetUid)
+                : firebase.firestore.FieldValue.arrayRemove(targetUid);
+            
+            // بنستخدم merge عشان لو الحقل مش موجود يكريته
+            await userRef.set({ restrictedByMe: opUser }, { merge: true });
+        }
+        
+        showToast(shouldRestrict ? "تم نقل المحادثة للمقيدين 🔒" : "تم إلغاء التقييد ✅");
+        
+        // 4. تحديث القوائم فوراً عشان تشوف النتيجة بعينك
+        if(typeof renderList === 'function') renderList(); // تحديث الرئيسية (هيختفي)
+        
+        // لو فاتح صفحة المقيدين، حدثها هي كمان (هيظهر)
+        const restrictedPage = document.getElementById('restrictedPage');
+        if (restrictedPage && restrictedPage.style.display === 'flex') {
+            openRestrictedPage();
+        }
+        
+    } catch (error) {
+        console.error("Restrict Error:", error);
+        showToast("حدث خطأ، حاول مرة أخرى");
+    }
+}
+
 </script>
 <div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
     <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; background: #000; border: 1px solid #333;">
@@ -7159,6 +7962,143 @@ function hideActiveUser() {
     </div>
 </div>
 
+<div id="blockConfirmationModal" class="custom-modal" style="z-index: 80000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #ef4444;">
+        
+        <div style="width:70px; height:70px; background:rgba(239, 68, 68, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-user-slash" style="font-size:30px; color:#ef4444;"></i>
+        </div>
+
+        <h3 style="color:#fff; margin-bottom:10px;">حظر المستخدم؟</h3>
+        <p style="color:#aaa; font-size:14px; margin-bottom:25px; line-height: 1.6;">
+            هل أنت متأكد من حظر هذا الشخص؟ <br>
+            لن تتمكنا من تبادل الرسائل أو رؤية حالة النشاط.
+        </p>
+
+        <div class="modal-actions" style="flex-direction: row; gap: 10px;">
+            <button onclick="document.getElementById('blockConfirmationModal').style.display='none'" class="btn-dark" style="flex:1;">تراجع</button>
+            <button onclick="executeBlockAction()" class="btn-yes" style="flex:1; background:#ef4444; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);">نعم، احظر</button>
+        </div>
+    </div>
+</div>
+
+<div id="restrictConfirmationModal" class="custom-modal" style="z-index: 80000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #f59e0b;">
+        
+        <div style="width:70px; height:70px; background:rgba(245, 158, 11, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-user-lock" style="font-size:30px; color:#f59e0b;"></i>
+        </div>
+
+        <h3 style="color:#fff; margin-bottom:10px;">تقييد المستخدم؟</h3>
+        
+        <div style="color:#aaa; font-size:13px; margin-bottom:25px; line-height: 1.8; text-align: right; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
+            <strong style="color:#f59e0b; display:block; margin-bottom:5px;">نظام التقييد يشمل:</strong>
+            • لن يرى المستخدم أنك قرأت رسائله (Seen).<br>
+            • لن تصلك إشعارات أو مكالمات منه.<br>
+            • ستصل الرسائل بصمت في الخلفية.
+        </div>
+
+        <div class="modal-actions" style="flex-direction: row; gap: 10px;">
+            <button onclick="closeRestrictModal()" class="btn-dark" style="flex:1;">تراجع</button>
+            <button onclick="executeRestrictAction()" class="btn-yes" style="flex:1; background:#f59e0b; color:#000; font-weight:800; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">تأكيد التقييد</button>
+        </div>
+    </div>
+</div>
+
+<div id="unrestrictConfirmationModal" class="custom-modal" style="z-index: 80000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #38bdf8;">
+        
+        <div style="width:70px; height:70px; background:rgba(56, 189, 248, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-user-check" style="font-size:30px; color:#38bdf8;"></i>
+        </div>
+
+        <h3 style="color:#fff; margin-bottom:10px;">إلغاء التقييد؟</h3>
+        
+        <div style="color:#aaa; font-size:13px; margin-bottom:25px; line-height: 1.8; text-align: right; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
+            <strong style="color:#38bdf8; display:block; margin-bottom:5px;">عند إلغاء التقييد:</strong>
+            • سيتمكن المستخدم من معرفة أنك قرأت رسائله.<br>
+            • ستصلك إشعارات ومكالمات منه بشكل طبيعي.<br>
+            • ستعود المحادثة للعمل كالمعتاد.
+        </div>
+
+        <div class="modal-actions" style="flex-direction: row; gap: 10px;">
+            <button onclick="closeUnrestrictModal()" class="btn-dark" style="flex:1;">تراجع</button>
+            <button onclick="executeUnrestrictAction()" class="btn-yes" style="flex:1; background:#38bdf8; color:#000; font-weight:800; box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);">نعم، إلغاء التقييد</button>
+        </div>
+    </div>
+</div>
+
+<div id="createGroupModal" class="custom-modal" style="z-index: 80000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #8b5cf6;">
+        
+        <div style="width:70px; height:70px; background:rgba(139, 92, 246, 0.1); border-radius:50%; margin:0 auto 20px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-users" style="font-size:30px; color:#8b5cf6;"></i>
+        </div>
+
+        <h3 style="color:#fff; margin-bottom:10px;">مجموعة جديدة</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">قم بتسمية مجموعتك لبدء المحادثة.</p>
+        
+        <div class="input-group" style="margin-bottom: 25px;">
+            <i class="fa-solid fa-pen-nib input-icon" style="color:#8b5cf6;"></i>
+            <input type="text" id="newGroupNameInput" class="pro-input" placeholder="اسم المجموعة..." style="border-color: #8b5cf6;">
+        </div>
+
+        <div class="modal-actions" style="flex-direction: row; gap: 10px;">
+            <button onclick="closeGroupModal()" class="btn-dark" style="flex:1;">إلغاء</button>
+            <button onclick="executeCreateGroup()" class="btn-yes" style="flex:1; background:linear-gradient(135deg, #8b5cf6, #7c3aed); box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);">إنشاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="createGroupProModal" class="custom-modal" style="z-index: 90000; padding-top: 50px;">
+    <div class="modal-box" style="width: 95%; max-width: 400px; height: 85vh; display: flex; flex-direction: column; background: #121212; border: 1px solid #8b5cf6;">
+        
+        <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: #fff; margin: 0; font-size: 18px;">مجموعة جديدة</h3>
+            <div onclick="closeGroupProModal()" style="color: #aaa; cursor: pointer; padding: 5px;"><i class="fa-solid fa-xmark" style="font-size: 20px;"></i></div>
+        </div>
+
+        <div style="padding: 20px; text-align: center; background: rgba(139, 92, 246, 0.05);">
+            <div style="width: 70px; height: 70px; background: #2a2a2a; border-radius: 50%; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; border: 2px dashed #8b5cf6; cursor: pointer;">
+                <i class="fa-solid fa-camera" style="color: #8b5cf6; font-size: 24px;"></i>
+            </div>
+            <input type="text" id="groupNamePro" class="pro-input" placeholder="اسم المجموعة (مطلوب)" style="text-align: center; border-color: #8b5cf6;">
+        </div>
+
+        <div style="padding: 10px 20px; font-size: 12px; color: #888; font-weight: bold;">اختر الأعضاء: <span id="selectedCount" style="color: #8b5cf6;">0</span></div>
+
+        <div id="friendsSelectionList" style="flex: 1; overflow-y: auto; padding: 0 10px;">
+            </div>
+
+        <div style="padding: 15px; border-top: 1px solid #333;">
+            <button onclick="finalizeCreateGroup()" class="btn-purple" style="width: 100%; box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);">
+                <i class="fa-solid fa-check"></i> إنشاء المجموعة
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="restrictedPage" class="profile-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index: 150000; background-color: #0b1121; flex-direction:column;">
+    
+    <div class="pp-header" style="background: rgba(15, 25, 38, 0.95); border-bottom: 1px solid rgba(255,255,255,0.1); height: 65px; display: flex; align-items: center; padding: 0 15px;">
+        <div class="icon-btn" onclick="closeRestrictedPage()" style="background:transparent; border:none; cursor:pointer;">
+            <i class="fa-solid fa-arrow-right" style="font-size: 20px; color: #fff;"></i>
+        </div>
+        <h3 style="margin:0; font-size:18px; color: #fff; flex:1; text-align:center; font-weight:bold;">
+            الحسابات المقيدة
+        </h3>
+        <div style="width: 40px;"></div> </div>
+    
+    <div class="pp-content" style="padding: 20px; overflow-y:auto; flex:1;">
+        <div style="color: #94a3b8; font-size: 13px; margin-bottom: 20px; text-align: center; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <i class="fa-solid fa-circle-info" style="color: #f59e0b; margin-left: 5px;"></i>
+            الحسابات الموجودة هنا لن يظهر لها أنك قرأت رسائلهم، ولن تصلك تنبيهات منهم.
+        </div>
+
+        <div id="restrictedListFull" class="profile-menu-list">
+            </div>
+    </div>
+</div>
 
 </body>
 </html>

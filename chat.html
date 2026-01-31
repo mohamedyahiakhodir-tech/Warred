@@ -5322,69 +5322,38 @@ z-index: 2147483647 !important;
 
     </div>
 </div>
-
 <div class="chat-footer">
     
-    <div class="reply-preview-bar" id="replyBar" style="display:none;">
-        <div class="reply-content">
-            <div class="reply-title" id="replyTitle">الرد على...</div>
-            <div class="reply-text" id="replyText">نص الرسالة</div>
-        </div>
-        <i class="fa-solid fa-times close-reply" onclick="cancelReply()"></i>
-    </div>
-
-    <div class="recording-ui" id="recordingUI">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div class="rec-wave">
-                <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
-            </div>
-            <span id="recordTimer" style="color:#ff3b30; font-weight:bold; font-family:monospace;">00:00</span>
-        </div>
-        <div style="display:flex; gap:15px; align-items:center;">
-            <span style="color:#94a3b8; cursor:pointer; font-size:12px;" onclick="cancelRecording()">إلغاء</span>
-            <div onclick="stopAndSendRecording()" class="action-btn" style="background:#ff3b30; color:#fff; border:none; box-shadow: 0 0 10px rgba(255,59,48,0.4);">
-                <i class="fa-solid fa-paper-plane"></i>
-            </div>
-        </div>
-    </div>
-
     <div class="footer-actions-left" id="leftActions">
-    <div class="action-btn file-btn" onclick="playUiSound('click'); toggleAttachmentMenu()">
-    <i class="fa-solid fa-paperclip"></i>
-</div>
-
-    <div class="action-btn media-btn" onclick="playUiSound('click'); document.getElementById('mediaInput').click()">
-        <i class="fa-regular fa-image"></i>
-    </div>
-    
-    <div class="action-btn gift-center-btn" onclick="openGiftCenter()">
-        <i class="fa-solid fa-gift"></i>
-        <div class="gift-badge">NEW</div>
+        <div class="action-btn file-btn" onclick="playUiSound('click'); toggleAttachmentMenu()">
+            <i class="fa-solid fa-paperclip"></i>
+        </div>
+        
+        <div class="action-btn gift-center-btn" onclick="openGiftCenter()">
+            <i class="fa-solid fa-gift"></i>
+            <div class="gift-badge">NEW</div>
+        </div>
     </div>
 
-    <div class="action-btn destruct-btn" id="destructBtn" onclick="playUiSound('destruct'); toggleDestructMode()">
+    <div class="action-btn destruct-btn" id="destructBtn" onclick="playUiSound('destruct'); toggleDestructMode()" style="margin-left: 5px;">
         <i class="fa-solid fa-bomb"></i>
         <span class="destruct-badge" id="destructBadge" style="display:none;">OFF</span>
     </div>
-</div>
 
-<div class="input-container">
-    <i class="fa-regular fa-face-smile internal-emoji-btn" onclick="toggleInternalEmojiPicker()"></i>
-    
-    <textarea id="messageInput" class="chat-input" rows="1" placeholder="اكتب رسالة..." 
-       oninput="autoResize(this); toggleSendButton(); detectMood(this.value)"></textarea>
-</div>
+    <div class="input-container">
+        <i class="fa-regular fa-face-smile internal-emoji-btn" onclick="toggleInternalEmojiPicker()"></i>
+        <textarea id="messageInput" class="chat-input" rows="1" placeholder="اكتب رسالة..." 
+           oninput="autoResize(this); toggleSendButton(); detectMood(this.value)"></textarea>
+    </div>
 
-<div id="emojiPickerPanel" class="emoji-picker-panel">
-    <div class="emoji-grid" id="emojiGridContent"></div>
-</div>
-
+    <div id="emojiPickerPanel" class="emoji-picker-panel">
+        <div class="emoji-grid" id="emojiGridContent"></div>
+    </div>
 
     <div class="footer-actions-right">
         <div class="action-btn mic-btn" id="micBtn" onclick="playUiSound('record'); startRecording()">
             <i class="fa-solid fa-microphone"></i>
         </div>
-        
         <div class="action-btn send-btn" id="sendBtn" onclick="playUiSound('sent'); sendMessage()" style="display: none;">
             <i class="fa-solid fa-paper-plane"></i>
         </div>
@@ -5393,6 +5362,7 @@ z-index: 2147483647 !important;
     <input type="file" id="mediaInput" hidden accept="image/*,video/*" onchange="uploadMedia(this, 'media')">
     <input type="file" id="fileInput" hidden accept="*/*" onchange="uploadMedia(this, 'file')">
 </div>
+
 
 <div id="callOverlay" class="call-overlay">
     
@@ -5740,26 +5710,38 @@ let currentImageIndex = 0;  // لمعرفة احنا واقفين على انه�
 // متغير لتخزين حالة الحظر
 let isUserBlocked = false; // هل أنا حظرته؟
 let amIBlocked = false;    // هل هو حظرني؟
-let blockCooldown = 0;     // وقت الانتظار المتبقي
+let blockCooldown = 0;     // وقت الانتظار
+
+let remoteCandidatesQueue = []; // 🔥 هذا هو المتغير الناقص
+
 
 // الاستماع لحالة الحظر بشكل فوري (Real-time)
+// تعريف المتغيرات عالمياً
+
 function listenForBlockStatus() {
     if (!chatId || !currentUserId || !cachedOtherUserId) return;
 
-    // 1. التحقق مما إذا كنت أنا قد حظرت الطرف الآخر
+    // لما أنا أحظره
     db.collection('users').doc(currentUserId).collection('blocked').doc(cachedOtherUserId)
         .onSnapshot(doc => {
             isUserBlocked = doc.exists;
-            updateBlockUI(); // تحديث الواجهة
+            updateBlockUI(isUserBlocked || amIBlocked);
+            
+            // 🔥🔥 هذا السطر هو اللي بيطبق التغيير فوراً 🔥🔥
+            updateHeader(cachedOtherUserId); 
         });
 
-    // 2. التحقق مما إذا كان الطرف الآخر قد حظرني
+    // لما هو يحظرني
     db.collection('users').doc(cachedOtherUserId).collection('blocked').doc(currentUserId)
         .onSnapshot(doc => {
             amIBlocked = doc.exists;
-            updateBlockUI(); // تحديث الواجهة
+            updateBlockUI(isUserBlocked || amIBlocked);
+            
+            // 🔥🔥 هذا السطر هو اللي بيطبق التغيير فوراً 🔥🔥
+            updateHeader(cachedOtherUserId);
         });
 }
+
 
           
 function toggleDestructMode() {
@@ -6315,6 +6297,54 @@ async function updateHeader(uid) {
     if (headerUnsubscribe) headerUnsubscribe();
 
     headerUnsubscribe = db.collection('users').doc(uid).onSnapshot(async doc => {
+                // 🔥🔥 منطقة الحظر الشامل 🔥🔥
+        if (isUserBlocked || amIBlocked) {
+            
+            // 1. مسح الاسم الحقيقي ووضع الاسم المستعار
+            const headerNameEl = document.getElementById("headerName");
+            if(headerNameEl) headerNameEl.innerText = "مستخدم Wareed";
+
+            // 2. ⚠️ إخفاء علامة التوثيق (الصح الأزرق) نهائياً
+            const verifyEl = document.getElementById("headerVerify");
+            if(verifyEl) {
+                verifyEl.style.display = "none"; 
+                verifyEl.innerHTML = ""; // زيادة تأكيد
+            }
+
+            // 3. إخفاء حالة الاتصال (نشط الآن)
+            const statusElement = document.getElementById("headerStatus");
+            const onlineIndicator = document.querySelector(".online-status");
+            if(statusElement) { statusElement.innerText = ""; statusElement.style.display = "none"; }
+            if(onlineIndicator) { onlineIndicator.style.backgroundColor = "transparent"; onlineIndicator.style.boxShadow = "none"; border: "none"; }
+
+            // 4. ⚠️ تدمير الصورة الشخصية
+            const hImg = document.getElementById("headerImage");
+            if(hImg) {
+                hImg.style.backgroundImage = 'none'; // شيل الصورة
+                hImg.style.backgroundColor = '#1e293b'; // لون الخلفية الغامق
+                // حط أيقونة "شخص محظور" أو "مجهول"
+                hImg.innerHTML = '<i class="fa-solid fa-user-slash" style="color:#64748b; font-size:20px;"></i>';
+                hImg.style.display = 'grid';
+                hImg.style.placeItems = 'center';
+            }
+
+            // 5. إزالة حلقة القصة (الدايرة الملونة)
+            const avatarContainer = document.querySelector('.user-avatar-container');
+            if(avatarContainer) {
+                avatarContainer.classList.remove('has-story');
+                avatarContainer.style.background = "transparent"; // شيل ألوان الستوري
+                avatarContainer.style.padding = "0";
+                // إلغاء الضغط عشان ميفتحش حاجة
+                avatarContainer.onclick = (e) => { e.stopPropagation(); };
+            }
+
+            // 6. إخفاء أزرار الاتصال والفيديو
+            const actions = document.querySelector('.header-actions');
+            if(actions) actions.style.display = 'none';
+
+            // 🛑 وقف الدالة فوراً عشان متحملش أي بيانات حقيقية تحت
+            return; 
+        }
         if (!doc.exists) return;
         const u = doc.data();
 
@@ -6476,6 +6506,12 @@ let storyStartTime = 0;
 
 // ================= إصلاح دالة عرض القصص (لإظهار الصورة والتوثيق) =================
 async function openUserStoryViewer(targetUid) {
+    if (isUserBlocked || amIBlocked) {
+        showToast("🚫 القصص غير متاحة");
+        return;
+    }
+
+
     // 1. تحديد العنصر وإجباره على الظهور الصحيح
     const viewer = document.getElementById('simpleStoryViewer');
     
@@ -6647,6 +6683,11 @@ function prevStoryItem() {
 
        // دالة فتح البروفايل (محدثة لنقل البيانات)
 async function openProfile() {
+    if (isUserBlocked || amIBlocked) {
+        showToast("🚫 لا يمكن عرض الملف الشخصي");
+        return; // طرد المستخدم فوراً
+    }
+
     // 1. تحديد المستخدم المستهدف (الشخص الذي نحدثه)
     let targetUid = cachedOtherUserId;
     
@@ -6834,16 +6875,47 @@ if (d.uid !== currentUserId) {
      let html = "";
           
           // لو عدد الرسائل أقل من 20، معناها إحنا في بداية المحادثة تماماً
-          if (snap.docs.length < 20 && !isArchiveMode) {
-              const otherUser = userCache[cachedOtherUserId] || { name: 'مستخدم', profilePic: null };
-              html = `
-                <div class="chat-end-card" style="margin-bottom: 30px; margin-top: 10px;">
-                    <div class="cec-avatar" style="background-image: url('${otherUser.profilePic || 'https://i.ibb.co/tZ5tPqB/default-avatar.png'}');"></div>
-                    <div class="cec-name">${otherUser.name}</div>
-                    <div class="cec-sub">مرحباً بك في بداية المحادثة</div>
-                    <button class="cec-btn" onclick="navigateToUserProfile()">عرض الملف الشخصي</button>
-                </div>`;
-          }
+     // ... داخل دالة loadMessages ...
+
+// الكود المعدل لكارت البداية
+if (snap.docs.length < 20 && !isArchiveMode) {
+    // تجهيز بيانات المستخدم
+    let otherUser = userCache[cachedOtherUserId] || { name: 'مستخدم' };
+    
+    // 🔥🔥 فلتر الحظر لكارت البداية 🔥🔥
+    let cardAvatar = otherUser.profilePic ? `url('${otherUser.profilePic}')` : 'none';
+    let cardName = otherUser.name;
+    let cardSub = `هذه هي بداية المحادثة مع ${otherUser.name}`;
+    let verifyBadge = otherUser.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#00e5ff; font-size:14px;"></i>' : '';
+    let profileBtnStyle = "display: block;"; // الزرار ظاهر
+
+    // لو فيه حظر، شفر البيانات دي
+    if (isUserBlocked || amIBlocked) {
+        cardAvatar = 'none'; // شيل الصورة
+        cardName = "مستخدم Wareed";
+        cardSub = "المحادثة محظورة 🚫";
+        verifyBadge = ""; // شيل التوثيق
+        profileBtnStyle = "display: none !important;"; // اخفي زرار البروفايل
+    }
+
+    // رسم الكارت بالبيانات (الحقيقية أو المشفرة)
+    html = `
+      <div class="chat-end-card" style="margin-bottom: 30px; margin-top: 10px;">
+          <div class="cec-avatar" style="background-image: ${cardAvatar}; background-color: #333; display: grid; place-items: center;">
+              ${(isUserBlocked || amIBlocked) ? '<i class="fa-solid fa-user-slash" style="color:#64748b; font-size:40px;"></i>' : ''}
+          </div>
+          <div class="cec-name">
+              ${cardName}
+              ${verifyBadge}
+          </div>
+          <div class="cec-sub">${cardSub}</div>
+          
+          <button class="cec-btn" onclick="navigateToUserProfile()" style="${profileBtnStyle}">
+              عرض الملف الشخصي
+          </button>
+      </div>`;
+}
+
 
         let prevMsg = null; // لمقارنة الرسالة الحالية بالسابقة (للتجميع)
         let lastDate = null; // لمقارنة التواريخ (للفواصل)
@@ -7680,6 +7752,10 @@ container.querySelectorAll('.msg-row').forEach((row) => {
         function attachLongPress(element, msgData, msgId) { let timer; const start = () => { timer = setTimeout(() => openContextMenu(msgData, msgId), 600); }; const end = () => clearTimeout(timer); element.addEventListener('touchstart', start); element.addEventListener('touchend', end); element.addEventListener('mousedown', start); element.addEventListener('mouseup', end); }
         
         function openContextMenu(data, id) { 
+            if (isUserBlocked || amIBlocked) {
+        showToast("🚫 هذا الإجراء غير متاح (حظر)");
+        return;
+    }
             if(navigator.vibrate) navigator.vibrate(50); 
             selectedMsgId = id; selectedMsgData = data; 
             const isMyMsg = data.uid === currentUserId; 
@@ -7696,6 +7772,8 @@ container.querySelectorAll('.msg-row').forEach((row) => {
         function playMessageAudio() { if (!selectedMsgData || selectedMsgData.type !== 'audio') return; document.querySelectorAll('audio').forEach(a => { a.pause(); }); const audio = new Audio(selectedMsgData.text); audio.play(); closeContextMenu(); }
 
         async function toggleReaction(emoji) { 
+            if (isUserBlocked || amIBlocked) return; 
+
             if(!selectedMsgId) return; 
             const ref = db.collection("chats").doc(chatId).collection("messages").doc(selectedMsgId); 
             try { const doc = await ref.get(); if(doc.exists) { if(doc.data().reaction === emoji) await ref.update({reaction: firebase.firestore.FieldValue.delete()}); else await ref.update({reaction: emoji}); showToast("تم التفاعل"); } } catch(e) {}
@@ -7704,8 +7782,19 @@ container.querySelectorAll('.msg-row').forEach((row) => {
 
         // استبدل دالة الإرسال القديمة بدي فوراً
 async function sendMessage() { 
-    
+    // 1. تشغيل صوت (للتفاعل)
     playUiSound('sent');
+
+    // 🔥🔥 البواب: التحقق من الحظر قبل أي حاجة 🔥🔥
+    if (amIBlocked) {
+        showToast("🚫 لا يمكنك مراسلة هذا المستخدم (تم حظرك)");
+        return; // وقف الدالة فوراً
+    }
+    if (isUserBlocked) {
+        showToast("🚫 أنت قمت بحظر هذا المستخدم، الغِ الحظر أولاً");
+        return; // وقف الدالة فوراً
+    }
+
     const inp = document.getElementById("messageInput"); 
     const val = inp.value.trim(); 
     
@@ -7927,6 +8016,7 @@ let incomingOffer = null; // لتخزين العرض القادم لحد ما ت
 
 // 1. بدء الاتصال (Sender)
 async function initiateCall() {
+    
     // تشغيل نغمة الاتصال (توت.. توت..)
 var ringOut = document.getElementById('ringtoneOut');
 if (ringOut) {
@@ -8049,11 +8139,15 @@ playSmartRingtone('outgoing');
 
 
         // إرسال المرشحات (Candidates)
-        peerConnection.onicecandidate = (event) => {
-            if (event.candidate) {
-                db.collection('chats').doc(chatId).collection('callCandidates').add(event.candidate.toJSON());
-            }
-        };
+        // ✅ التعديل الأول (للمتصل)
+peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+        const candidateData = event.candidate.toJSON();
+        candidateData.senderUid = currentUserId; // 🔥 دي الإضافة السحرية
+        db.collection('chats').doc(chatId).collection('callCandidates').add(candidateData);
+    }
+};
+
 
         // إنشاء العرض (Offer)
         const offer = await peerConnection.createOffer();
@@ -8307,11 +8401,18 @@ if (vibrationInterval) {
 };
 
 
-        peerConnection.onicecandidate = (e) => {
-            if (e.candidate) db.collection('chats').doc(chatId).collection('callCandidates').add(e.candidate.toJSON());
-        };
+        // ✅ التعديل الثاني (للمستقبل)
+peerConnection.onicecandidate = (event) => {
+    if (event.candidate) {
+        const candidateData = event.candidate.toJSON();
+        candidateData.senderUid = currentUserId; // 🔥 لازم تكون هنا كمان
+        db.collection('chats').doc(chatId).collection('callCandidates').add(candidateData);
+    }
+};
+
 
         await peerConnection.setRemoteDescription(new RTCSessionDescription(incomingOffer));
+        processCandidateQueue();
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
 
@@ -8642,7 +8743,7 @@ function listenForAnswer() {
                 const answer = data.answer;
                 const remoteDesc = new RTCSessionDescription(answer);
                 peerConnection.setRemoteDescription(remoteDesc);
-                
+                processCandidateQueue();
                 // بدء عداد الوقت
                 startCallTimer();
                 unsubscribe(); // خلاص رد، مش محتاجين نراقب الرد تاني
@@ -9267,20 +9368,44 @@ function listenForRemoteCandidates() {
           snapshot.docChanges().forEach(async change => {
               if (change.type === 'added') {
                   const data = change.doc.data();
-                  // التأكد من أن المرشح صالح وأن الاتصال مفتوح
-                  if (peerConnection && peerConnection.remoteDescription && data) {
+                  
+                  // 1. 🔥 فلتر الحماية: لو البيانات دي بتاعتي أنا.. تجاهلها
+                  if (data.senderUid === currentUserId) return;
+
+                  // 2. معالجة المرشح
+                  const candidate = new RTCIceCandidate(data);
+                  
+                  // 3. 🔥 نظام الطابور (Queue Logic)
+                  // لو الاتصال جاهز.. ضيفه علطول
+                  if (peerConnection && peerConnection.remoteDescription) {
                       try {
-                          const candidate = new RTCIceCandidate(data);
                           await peerConnection.addIceCandidate(candidate);
-                          console.log("New remote candidate added");
-                      } catch (e) {
-                          console.error("Error adding candidate:", e);
-                      }
+                          console.log("✅ Candidate added immediately");
+                      } catch (e) { console.error("Error adding candidate", e); }
+                  } 
+                  // لو الاتصال لسه مش جاهز.. خزنها في الطابور لبعدين
+                  else {
+                      console.log("⏳ Queuing candidate...");
+                      remoteCandidatesQueue.push(candidate);
                   }
               }
           });
       });
 }
+
+async function processCandidateQueue() {
+    if (remoteCandidatesQueue.length > 0) {
+        console.log(`🚀 Processing ${remoteCandidatesQueue.length} queued candidates`);
+        for (const candidate of remoteCandidatesQueue) {
+            try {
+                await peerConnection.addIceCandidate(candidate);
+            } catch (e) { console.error(e); }
+        }
+        remoteCandidatesQueue = []; // فضي الطابور
+    }
+}
+
+
 async function clearCandidates() {
     const ref = db.collection('chats').doc(chatId).collection('callCandidates');
     const snapshot = await ref.get();
@@ -10084,64 +10209,89 @@ window.addEventListener('DOMContentLoaded', () => {
 // استبدل دالة loadChatDetails القديمة بهذه النسخة المحسنة
 async function loadChatDetails() {
     // 1. محاولة التقاط الـ UID من رابط الصفحة فوراً كخطة بديلة
-    // (لأنك لما بتحذف الشات، البيانات بتتمسح، فلازم نجيبها من الرابط)
     const urlUid = params.get("uid");
     
-    if (urlUid && urlUid !== 'undefined' && urlUid !== 'null') {
+    // إذا كان الرابط يقول أن هذا جروب، نوقف دالة جلب بيانات المستخدم فوراً
+    if (urlUid === 'GROUP') {
+        // لا نفعل شيء هنا بخصوص الهيدر، سننتظر بيانات الشات من الفايربيس
+        // أو يمكننا وضع اسم مؤقت من الرابط
+        const urlName = params.get("name");
+        if(urlName) document.getElementById("headerName").innerText = decodeURIComponent(urlName);
+        document.getElementById("headerStatus").style.display = 'none'; // إخفاء حالة الأونلاين للجروب
+    } else if (urlUid && urlUid !== 'undefined' && urlUid !== 'null') {
         cachedOtherUserId = urlUid;
-        // تحديث الهيدر فوراً بالبيانات من الرابط حتى لو الشات محذوف
         updateHeader(urlUid);
         listenForBlockStatus();
     }
-if (chatId) {
-    listenForSharedNicknames();
-}
-    if (!chatId || !currentUserId) return;
+
+    if (!chatId) return;
 
     try {
-        const chatDoc = await db.collection("chats").doc(chatId).get();
-        
-        if (chatDoc.exists) {
-            const data = chatDoc.data();
-            let otherUserId = null;
+        // الاستماع للتحديثات الحية لبيانات الشات
+        db.collection("chats").doc(chatId).onSnapshot(doc => {
+            if (doc.exists) {
+                const data = doc.data();
+                
+                // ==========================================
+                // 🔥 الإصلاح هنا: التعامل مع الجروبات 🔥
+                // ==========================================
+                if (data.type === 'GROUP') {
+                    // تحديث اسم الجروب
+                    document.getElementById("headerName").innerText = data.name;
+                    
+                    // تحديث صورة الجروب
+                    const headerImg = document.getElementById("headerImage");
+                    if (data.groupImage) {
+                        headerImg.style.backgroundImage = `url('${data.groupImage}')`;
+                        headerImg.innerText = '';
+                    } else {
+                        // صورة افتراضية
+                        headerImg.style.backgroundImage = 'none';
+                        headerImg.innerHTML = '<i class="fa-solid fa-users"></i>';
+                        headerImg.style.display = 'flex';
+                        headerImg.style.alignItems = 'center';
+                        headerImg.style.justifyContent = 'center';
+                        headerImg.style.fontSize = '20px';
+                    }
 
-            if (data.users && Array.isArray(data.users)) {
-                otherUserId = data.users.find(id => id !== currentUserId);
-            }
-            else if (data.participants) {
-                 otherUserId = data.participants.find(id => id !== currentUserId);
-            }
-            else {
-                if (data.senderId && data.senderId !== currentUserId) otherUserId = data.senderId;
-                else if (data.sentTo && data.sentTo !== currentUserId) otherUserId = data.sentTo;
-            }
+                    // إخفاء حالة "متصل الآن" لأن الجروب لا يملك حالة
+                    document.getElementById("headerStatus").style.display = 'none';
+                    
+                    // تعديل زر الصورة ليفتح معلومات الجروب بدلاً من البروفايل
+                    document.querySelector('.user-avatar-container').onclick = function() {
+                        alert(`معلومات المجموعة:\nالاسم: ${data.name}\nالأعضاء: ${data.users.length}`);
+                    };
 
-            // لو البيانات موجودة في الداتابيز، نحدث المتغير للتأكيد
-            if (otherUserId) {
-                cachedOtherUserId = otherUserId; 
-                updateHeader(otherUserId);
-                listenForBlockStatus();
+                    // ⛔ إيقاف الدالة هنا لمنع البحث عن "طرف آخر"
+                    return; 
+                }
+                // ==========================================
+
+                // التعامل مع الشات الفردي (باقي الكود القديم)
+                let otherUserId = null;
+                if (data.users && Array.isArray(data.users)) {
+                    otherUserId = data.users.find(id => id !== currentUserId);
+                }
+                
+                if (otherUserId) {
+                    cachedOtherUserId = otherUserId; 
+                    // لا نستدعي updateHeader هنا لأننا استدعيناه في الأعلى بالرابط
+                    // إلا لو الرابط كان فاضي
+                    if(!urlUid) updateHeader(otherUserId);
+                }
             }
-        } else {
-            // 🔥 هنا النقطة المهمة: الشات محذوف (Doc doesn't exist)
-            console.log("الشات محذوف أو جديد، نعتمد على ID من الرابط:", cachedOtherUserId);
-            
-            // لو معانا الآيدي من الرابط (من أول خطوة)، الدالة هتكمل عادي
-            // ودالة ensureChatActive هتقدر تستخدمه لإعادة إنشاء الشات
-        }
+        });
     } catch (e) {
-        console.error("خطأ في جلب تفاصيل الشات:", e);
+        console.error("Error loading chat details:", e);
     }
 }
 
-// ================= أكواد تشغيل قائمة البروفايل الجديدة =================
-// 1. زر تشغيل البحث (بيتحط في القائمة)
-// ================================================================
-// 🔥 نظام البحث المتكامل (النافذة السوداء + البحث الفوري بالحرف)
-// ================================================================
-
 // 1. زر التشغيل (ده اللي بتربطه بزرار البحث في القائمة)
 function toggleSearchMode() {
+    if (isUserBlocked || amIBlocked) {
+        showToast("🚫 البحث غير متاح في هذه المحادثة");
+        return;
+    }
     // إغلاق أي قوائم مفتوحة
     if(typeof closeProfile === 'function') closeProfile();
     
@@ -10531,6 +10681,7 @@ async function loadMoreNewerMessages() {
 
                 let html = "";
                 snap.forEach(doc => {
+                    
                     const msg = doc.data();
 const isMe = msg.uid === currentUserId;
 // 2. فحص هل دي الرسالة المختارة؟
@@ -10829,55 +10980,71 @@ function closeBlockModal() {
 // تعديل الدالة الرئيسية (استبدل القديمة بدي)
 // تعديل دالة زرار الحظر
 async function toggleBlockUser() {
-    
-    // 🔥🔥 السطر السحري لحل المشكلة 🔥🔥
-    // ده بينقل النافذة لآخر الصفحة عشان تظهر فوق الكل
-    const modalElement = document.getElementById('customBlockModal');
-    if (modalElement && modalElement.parentNode !== document.body) {
-        document.body.appendChild(modalElement);
-    }
-    // ------------------------------------
-
     if (!cachedOtherUserId) return;
 
     if (isUserBlocked) {
-        // فك الحظر
-        if (confirm("هل تريد فك الحظر؟")) {
+        // فك الحظر مسموح به فوراً في أي وقت
+        if (confirm("هل تريد فك الحظر الآن؟")) {
              performUnblock(cachedOtherUserId);
         }
     } else {
-        // تنفيذ الحظر (فتح النافذة)
-        
-        // التحقق من الـ 48 ساعة
-        const cooldownDoc = await db.collection('users').doc(currentUserId).collection('block_cooldowns').doc(cachedOtherUserId).get();
-        if (cooldownDoc.exists) {
-            const lastUnblock = cooldownDoc.data().unblockedAt.toDate().getTime();
-            const diffHours = (Date.now() - lastUnblock) / (1000 * 60 * 60);
-            if (diffHours < 48) {
-                showToast(`⚠️ متبقي ${Math.ceil(48 - diffHours)} ساعة`);
-                return;
-            }
-        }
+        // التحقق من فترة الانتظار قبل السماح بعمل حظر جديد
+        try {
+            const cooldownDoc = await db.collection('users').doc(currentUserId)
+                .collection('block_cooldowns').doc(cachedOtherUserId).get();
+            
+            if (cooldownDoc.exists) {
+                const unblockedAt = cooldownDoc.data().unblockedAt.toMillis();
+                const now = Date.now();
+                const diffHours = (now - unblockedAt) / (1000 * 60 * 60);
 
-        // إظهار النافذة بعد ما نقلناها
-        document.getElementById('customBlockModal').style.display = 'flex';
+                if (diffHours < 48) {
+                    const hoursLeft = Math.ceil(48 - diffHours);
+                    alert(`⚠️ لا يمكنك حظر هذا المستخدم مرة أخرى الآن.\nيجب الانتظار ${hoursLeft} ساعة (فترة حماية من التلاعب).`);
+                    return;
+                }
+            }
+            // إذا لم يكن هناك سجل أو انتهت الـ 48 ساعة، افتح نافذة الحظر
+            document.getElementById('customBlockModal').style.display = 'flex';
+        } catch (e) { console.error(e); }
     }
 }
 
 
 // دالة تنفيذ الحظر الفعلي (بتتندى لما تدوس "موافق" في النافذة)
 async function confirmBlockAction() {
-    closeBlockModal(); // اقفل النافذة
+    const targetId = cachedOtherUserId;
+    if (!targetId || !chatId) return;
+
+    // 1. إغلاق نافذة التأكيد
+    closeBlockModal(); 
     
     try {
-        await db.collection('users').doc(currentUserId).collection('blocked').doc(cachedOtherUserId).set({
-            blockedAt: firebase.firestore.FieldValue.serverTimestamp()
+        // 2. التعديل بناءً على ملف البلوك: إضافة UID الخاص بي لمصفوفة blockedBy داخل وثيقة الشات
+        await db.collection('chats').doc(chatId).update({
+            blockedBy: firebase.firestore.FieldValue.arrayUnion(currentUserId)
         });
-        showToast("🚫 تم حظر المستخدم");
-        closeProfile(); // اقفل البروفايل
-    } catch (e) { 
-        console.error(e); 
-        showToast("حدث خطأ"); 
+
+        // 3. (اختياري) الاحتفاظ بسجل الحظر في كولكشن المستخدم (نظام الـ 48 ساعة)
+        await db.collection('users').doc(currentUserId).collection('blocked').doc(targetId).set({
+            blockedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            chatId: chatId // ربط الحظر بالشات لتسهيل الوصول
+        });
+
+        showToast("🚫 تم الحظر بنجاح، جاري تحويلك...");
+
+        // 4. إغلاق أي نوافذ بروفايل مفتوحة
+        closeUserPopup();
+        if(typeof closeProfile === 'function') closeProfile();
+
+        // 5. التوجه لصفحة blocked.html (المنطقة الصحيحة)
+        setTimeout(() => {
+            window.location.href = 'blocked.html';
+        }, 1000);
+
+    } catch (e) {
+        console.error("Error during block action:", e);
+        showToast("❌ فشل تنفيذ الحظر");
     }
 }
 
@@ -10885,30 +11052,26 @@ async function confirmBlockAction() {
 // دالة فك الحظر (مع تسجيل الوقت للعداد)
 async function performUnblock(targetId) {
     try {
-        // 1. حذف من المحظورين
+        // 1. فك الحظر الفعلي
         await db.collection('users').doc(currentUserId).collection('blocked').doc(targetId).delete();
         
-        // 2. 🔥 تسجيل وقت فك الحظر (ده اللي بيشغل رسالة الـ 48 ساعة) 🔥
+        // 2. تحديث وثيقة الشات (لإزالة علامة المحظور) بناءً على ملف البلوك
+        await db.collection('chats').doc(chatId).update({
+            blockedBy: firebase.firestore.FieldValue.arrayRemove(currentUserId)
+        });
+
+        // 3. 🔥 تسجيل وقت فك الحظر لبدء عداد منع الحظر المستقبلي 🔥
         await db.collection('users').doc(currentUserId).collection('block_cooldowns').doc(targetId).set({
             unblockedAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        showToast("✅ تم فك الحظر (بدأ عداد الـ 48 ساعة)");
-        
-        // تحديث القائمة لو مفتوحة
-        const blockedPage = document.getElementById('blockedUsersPage'); // أو blockedUsersFile حسب ما سميته
-        if(blockedPage && blockedPage.style.display === 'flex') {
-            // لو عندك دالة تحديث القائمة استدعيها هنا
-             if(typeof loadBlockedData === 'function') loadBlockedData();
-             else if(typeof openBlockedUsersPage === 'function') openBlockedUsersPage();
-        } else {
-            closeProfile();
-        }
-    } catch (e) { 
-        console.error(e); 
-        showToast("خطأ في العملية");
+        showToast("✅ تم فك الحظر. لن تتمكن من حظره ثانية إلا بعد 48 ساعة.");
+    } catch (e) {
+        console.error(e);
+        showToast("❌ فشل فك الحظر");
     }
 }
+
 
 
 // دالة مساعدة لتغيير شكل زر الحظر في القائمة
@@ -11990,6 +12153,25 @@ async function clearStuckCalls() {
     }
 }
 function openUserPopup(uid) {
+    
+    if (isUserBlocked || amIBlocked) {
+        // نملأ البيانات بـ "لا يوجد"
+        document.getElementById('popupName').innerText = "مستخدم";
+        document.getElementById('popupBio').innerText = "";
+        document.getElementById('popupAvatar').style.backgroundImage = 'none';
+        document.getElementById('popupAvatar').innerText = "?";
+        document.getElementById('popupVerify').style.display = 'none';
+        
+        // إخفاء أزرار المراسلة
+        document.querySelector('.popup-actions-grid').style.display = 'none';
+        
+        // إظهار النافذة (فاضية) أو ممكن تعمل return ومتفتحش خالص
+        const overlay = document.getElementById('userPopupOverlay');
+        overlay.style.display = 'flex';
+        return;
+    }
+
+
     // 1. منع فتح البروفايل لنفسك (اختياري)
     /* if (uid === currentUserId) return; */
 
@@ -14283,7 +14465,7 @@ async function checkPageSecurity() {
         if (doc.exists) {
             const data = doc.data();
             
-            // هل يوجد باسورد؟ وهل هو مكون من 6 أرقام؟
+            // هل يوجد باسورد؟ وهل هو مكون من 6 أرقام؟خ
             if (data.lockPass && data.lockPass.length === 6) {
                 // إظهار شاشة القفل فوراً
                 document.getElementById('pageLockModal').style.display = 'flex';
@@ -14357,34 +14539,47 @@ document.addEventListener("visibilitychange", function() {
 });
 
 // أضف هذا الكود في ملف chat.html
-function updateBlockUI(isBlocked) {
-    // جلب العناصر (تأكد أن الـ classes مطابقة للتصميم في chat.html)
-    const footer = document.querySelector('.chat-footer'); // المكان اللي فيه زرار الإرسال
-    const inputArea = document.getElementById('messageInput'); 
+function updateBlockUI(isBlockedActive) {
+    const footer = document.querySelector('.chat-footer'); // المكان اللي فيه الكتابة
+    
+    // بنشوف هل فيه ديف تحذير موجود ولا لأ
+    let alertDiv = document.getElementById('blockAlertDiv');
 
-    if (isBlocked) {
-        // لو محظور: اخفي مكان الكتابة واظهر تحذير
-        if(footer) footer.style.display = 'none';
-        
-        // إنشاء رسالة تحذير لو مش موجودة
-        let alertDiv = document.getElementById('blockAlertDiv');
+    if (isBlockedActive) {
+        // --- حالة الحظر: اخفي الفوتر واظهر التحذير ---
+        if(footer) footer.style.display = 'none'; // إخفاء صندوق الكتابة
+
         if(!alertDiv) {
+            // إنشاء شريط التحذير لو مش موجود
             alertDiv = document.createElement('div');
             alertDiv.id = 'blockAlertDiv';
-            alertDiv.style.cssText = "position:fixed; bottom:0; width:100%; background:#222; color:#ff4444; text-align:center; padding:15px; font-weight:bold; z-index:100;";
-            alertDiv.innerHTML = '<i class="fa-solid fa-ban"></i> لا يمكنك المراسلة في هذه المحادثة';
+            alertDiv.style.cssText = "position:fixed; bottom:0; left:0; right:0; background:#1e293b; color:#ff3b30; text-align:center; padding:20px; font-weight:bold; z-index:100; border-top:1px solid #ff3b30; font-family:'Cairo'; box-shadow: 0 -5px 20px rgba(0,0,0,0.5);";
+            
+            // تحديد الرسالة حسب مين حظر مين
+            let msg = "🚫 المحادثة محظورة";
+            if (amIBlocked) msg = "🚫 لا يمكنك مراسلة هذا المستخدم";
+            else if (isUserBlocked) msg = "🚫 لقد قمت بحظر هذا المستخدم (اضغط هنا لفك الحظر)";
+            
+            alertDiv.innerHTML = msg;
+            
+            // لو أنا اللي حاظره، اخلي الشريط قابل للضغط لفك الحظر
+            if (isUserBlocked) {
+                alertDiv.style.cursor = "pointer";
+                alertDiv.onclick = () => toggleBlockUser();
+            }
+
             document.body.appendChild(alertDiv);
         } else {
             alertDiv.style.display = 'block';
         }
         
     } else {
-        // لو مش محظور: اظهر الفوتر واخفي التحذير
+        // --- حالة عدم وجود حظر: اظهر الفوتر وشيل التحذير ---
         if(footer) footer.style.display = 'flex';
-        const alertDiv = document.getElementById('blockAlertDiv');
-        if(alertDiv) alertDiv.style.display = 'none';
+        if(alertDiv) alertDiv.remove(); // حذف التحذير تماماً
     }
 }
+
 
 
     </script>
@@ -14465,7 +14660,18 @@ function updateBlockUI(isBlocked) {
     <div class="p-item-icon" style="background: rgba(236, 72, 153, 0.15); color: #ec4899;">
         <i class="fa-solid fa-a"></i>
     </div>
+   
     <div class="p-item-text"><span>الألقاب</span></div>
+    <div class="p-item-arrow"><i class="fa-solid fa-chevron-left"></i></div>
+</div>
+ <div class="profile-item" onclick="window.location.href='create-group.html'">
+    <div class="p-item-icon" style="background: rgba(0, 229, 255, 0.15); color: #00e5ff;">
+        <i class="fa-solid fa-users-rectangle"></i>
+    </div>
+    <div class="p-item-text">
+        <span>إنشاء مجموعة جديدة</span>
+        <small>دردشة جماعية وتحديات</small>
+    </div>
     <div class="p-item-arrow"><i class="fa-solid fa-chevron-left"></i></div>
 </div>
 
@@ -15024,6 +15230,8 @@ function updateBlockUI(isBlocked) {
         </button>
     </div>
 </div>
+<div id="coinExplosionContainer" style="position:fixed; inset:0; pointer-events:none; z-index:2147483647;"></div>
+
 
 
 </body>
