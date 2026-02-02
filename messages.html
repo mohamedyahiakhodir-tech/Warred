@@ -12,2636 +12,561 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
 
     <style>
-        /* ================= المتغيرات والتصميم العام ================= */
-        :root {
-            --bg-deep: #050505;
-            --text-color: #ffffff;
-            --text-secondary: #a0a0a0;
-            --card-bg: rgba(30, 30, 35, 0.6);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent-color: #8b5cf6;
-            --accent-glow: rgba(139, 92, 246, 0.4);
-            --verify-color: #38bdf8;
-            --danger-color: #ef4444;
-            --seen-blue: #38bdf8;
-            --archive-green: #22c55e;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background-color: var(--bg-deep);
-            background-image: 
-                radial-gradient(circle at 10% 20%, rgba(90, 40, 250, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(40, 150, 250, 0.1) 0%, transparent 40%);
-            background-attachment: fixed;
-            color: var(--text-color);
-            padding-bottom: 100px;
-            min-height: 100vh;
-            overflow-x: hidden;
-            user-select: none;
-        }
-
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
-
-        /* ================= القائمة الجانبية ================= */
-        
-        .sidebar.active { right: 0; }
-        
-        .sidebar-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 10000; opacity: 0; pointer-events: none; transition: 0.3s;
-            backdrop-filter: blur(5px);
-        }
-        .sidebar-overlay.active { opacity: 1; pointer-events: auto; }
-
-        
-        .sidebar-avatar-container {
-            width: 90px; height: 90px; border-radius: 50%;
-            border: 3px solid var(--accent-color);
-            box-shadow: 0 0 25px var(--accent-glow);
-            margin-bottom: 15px; background-size: cover; background-position: center;
-            background-color: #222;
-        }
-
-        .sidebar-my-name { 
-    font-size: 22px; /* الحجم الافتراضي */
-    font-weight: 700; 
-    color: #fff; 
-    display: flex; 
-    align-items: center; 
-    justify-content: center; /* توسيط الاسم والأيقونة */
-    gap: 8px; 
-    text-align: center; /* في حال نزل سطرين يكون في المنتصف */
-    flex-wrap: wrap; /* السماح بالنزول لسطر جديد عند الضرورة القصوى */
-    line-height: 1.3;
-    transition: font-size 0.2s ease; /* تنعيم عملية تصغير الخط */
-    width: 100%;
-}
-     /* --- تعديلات القائمة الجانبية لتكون مرنة --- */
-.sidebar {
-    position: fixed; top: 0; right: -320px; width: 280px; height: 100%;
-    background: rgba(15, 15, 20, 0.95); /* لون غامق قليلاً لوضوح الكلام */
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border-left: 1px solid var(--card-border);
-    z-index: 10001; transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    
-    /* 🔥 أهم تعديل: جعل القائمة فليكس لتوزيع المساحة */
-    display: flex; 
-    flex-direction: column; 
-    padding-top: env(safe-area-inset-top);
-    box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+/* ================= 1. المتغيرات والأساسيات (Royal Theme) ================= */
+:root {
+    --bg-deep: #050505;
+    --text-color: #ffffff;
+    --text-secondary: #a0a0a0;
+    --card-bg: rgba(30, 30, 35, 0.6);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --accent-color: #8b5cf6;
+    --accent-glow: rgba(139, 92, 246, 0.4);
+    --verify-color: #38bdf8;
+    --danger-color: #ef4444;
+    --seen-blue: #38bdf8;
+    --gold-primary: #FFD700;
+    --gold-dim: #BF953F;
 }
 
-/* الهيدر ثابت لا يتحرك */
-.sidebar-profile-header {
-    flex-shrink: 0; /* منع انكماش الهيدر */
-    padding: 40px 20px 30px;
-    background: linear-gradient(180deg, rgba(139, 92, 246, 0.15), transparent);
-    border-bottom: 1px solid var(--card-border);
-    text-align: center;
-    display: flex; flex-direction: column; align-items: center;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-/* 🔥 كلاس جديد: منطقة العناصر القابلة للسكرول */
-.sidebar-scroll-area {
-    flex-grow: 1; /* تأخذ باقي المساحة المتاحة */
-    overflow-y: auto; /* السماح بالسكرول العمودي */
-    padding-bottom: 20px; /* مسافة أمان في الأسفل */
-    
-    /* إخفاء شريط السكرول لجمال الشكل */
-    scrollbar-width: none; 
-}
-.sidebar-scroll-area::-webkit-scrollbar { display: none; }
-
-/* تنسيق العناصر */
-.sidebar-item {
-    padding: 16px 25px; display: flex; align-items: center; gap: 15px;
-    font-size: 16px; font-weight: 600; color: #e0e0e0; cursor: pointer;
-    transition: 0.2s; border-radius: 12px; margin: 5px 10px;
-}
-.sidebar-item:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
-.sidebar-item i { width: 30px; text-align: center; color: var(--accent-color); font-size: 20px; }
-
-        /* ================= القصص (Stories - FB Style) ================= */
-      
-        .stories-scroll {
-            display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 0 15px;
-        }
-
-
-        .story-card:active { transform: scale(0.97); }
-
-        /* صورة القصة الخلفية */
-        .story-card-bg {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            transition: 0.3s;
-        }
-        .story-card:hover .story-card-bg { transform: scale(1.05); }
-
-        /* الأفاتار الصغير */
-
-
-        /* اسم المستخدم */
-        .story-card-name {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            padding: 30px 8px 8px 8px;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
-            color: #fff; font-size: 12px; font-weight: bold;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            text-align: right; z-index: 2;
-        }
-
-        /* === كارت "إضافة قصة" الخاص بي === */
-        .my-story-card {
-            background: #1e1e1e;
-            display: flex; flex-direction: column;
-        }
-        .my-story-top-img {
-            width: 100%; height: 65%;
-            background-size: cover; background-position: center;
-            filter: brightness(0.8);
-        }
-        .my-story-bottom {
-            height: 35%; width: 100%;
-            position: relative;
-            background: #1e1e1e;
-            display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 10px;
-        }
-
-
-        /* === انيميشن التحميل (السبينر) === */
-        .uploading-spinner {
-            position: absolute; top: -20px; left: 50%; transform: translateX(-50%);
-            width: 40px; height: 40px;
-            border: 3px solid rgba(139, 92, 246, 0.3);
-            border-top: 3px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            z-index: 4;
-        }
-        @keyframes spin { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
-
-
-        /* --- تصميم عارض القصص (Pro) --- */
-        #storyViewer {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 25000; flex-direction: column;
-        }
-        
-        .story-blur-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; background-position: center;
-            filter: blur(30px) brightness(0.6); opacity: 0.8; z-index: 1;
-            transition: background 0.5s ease;
-        }
-
-        .story-media-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center; z-index: 2;
-        }
-        
-        .story-media-container img, .story-media-container video {
-            max-width: 100%; max-height: 100%; object-fit: contain; width: 100%;
-            animation: fadeInStory 0.4s ease-out;
-        }
-
-        @keyframes fadeInStory {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        .progress-bars-wrapper {
-            position: absolute; top: 10px; left: 10px; right: 10px;
-            display: flex; gap: 4px; z-index: 30; transition: opacity 0.3s;
-        }
-        .progress-segment {
-            height: 3px; flex: 1; background: rgba(255,255,255,0.3);
-            border-radius: 2px; overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%; width: 0%; background: #fff;
-        }
-        
-        .story-footer {
-            position: absolute; bottom: 20px; left: 0; width: 100%; 
-            padding: 0 15px; display: flex; align-items: center; gap: 10px; 
-            z-index: 30; transition: opacity 0.3s;
-        }
-      /* تنسيق خانة الرد عشان تستوعب الزرار */
-.story-reply-input {
-    flex: 1; 
-    position: relative; /* ضروري عشان نثبت الزرار جواه */
-    margin-left: 10px;
-}
-
-.story-reply-input input {
-    width: 100%; 
-    background: rgba(0,0,0,0.5); 
-    border: 1px solid rgba(255,255,255,0.3); 
-    border-radius: 25px; 
-    padding: 12px 15px 12px 45px; /* وسعنا مكان في الشمال عشان الزرار */
-    color: #fff; 
-    outline: none; 
-    backdrop-filter: blur(5px);
-    font-size: 14px;
-}
-
-/* تنسيق زرار الإرسال (الطيارة) */
-.send-btn-inside {
-    position: absolute;
-    left: 15px;      /* مكانه على الشمال */
-    top: 50%;
-    transform: translateY(-50%); /* توسيط عمودي */
-    color: var(--accent-color);
-    font-size: 18px;
-    cursor: pointer;
-    z-index: 10;
-    transition: 0.2s;
-}
-
-.send-btn-inside:active {
-    transform: translateY(-50%) scale(0.9);
-    opacity: 0.7;
-}
-
-        .story-reaction-btn {
-            font-size: 24px; cursor: pointer; transition: 0.2s; padding: 5px;
-        }
-        .story-reaction-btn:active { transform: scale(1.3); }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-300px) scale(1.5); opacity: 0; }
-        }
-
-        .story-header-info {
-            position:absolute; top:20px; left:20px; right:20px; 
-            display:flex; justify-content:space-between; align-items:center; 
-            z-index:30; transition: opacity 0.3s;
-        }
-        
-        .story-user-details {
-            display: flex; flex-direction: column; align-items: flex-start; 
-             margin-right: 10px;
-        }
-        .story-user-avatar-small {
-            width: 32px; height: 32px; border-radius: 50%; 
-            background-size: cover; border: 1px solid #fff;
-        }
-
-        .story-views-count {
-            color: #fff; font-size: 14px; background: rgba(0,0,0,0.6);
-            padding: 6px 14px; border-radius: 20px;
-            display: flex; align-items: center; gap: 6px;
-            backdrop-filter: blur(5px);
-        }
-
-        /* ================= خيارات القصص الاحترافية ================= */
-        .story-more-btn {
-            padding: 10px; color: #fff; font-size: 20px; cursor: pointer; text-shadow: 0 2px 5px rgba(0,0,0,0.5); z-index: 50;
-        }
-        .story-options-sheet {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: #1a1a1a; border-top-left-radius: 20px; border-top-right-radius: 20px;
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-            z-index: 30000; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.1);
-        }
-        .story-options-sheet.active { transform: translateY(0); }
-        .story-opt-item {
-            padding: 15px 20px; display: flex; align-items: center; gap: 15px;
-            color: #fff; font-size: 16px; font-weight: 500; cursor: pointer;
-            transition: background 0.2s;
-        }
-        .story-opt-item:active { background: rgba(255,255,255,0.1); }
-        .story-opt-item i { width: 25px; text-align: center; font-size: 18px; }
-        .story-opt-item.danger { color: #ff4444; }
-        .story-sheet-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); z-index: 29000;
-            opacity: 0; pointer-events: none; transition: opacity 0.3s;
-        }
-        .story-sheet-overlay.active { opacity: 1; pointer-events: auto; }
-
-
-        /* ================= قائمة الدردشات ================= */
-        .chat-wrapper {
-            position: relative; margin: 0 10px 8px 10px; overflow: hidden; border-radius: 16px;
-        }
-        .swipe-bg {
-            position: absolute; top: 0; bottom: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; padding: 0 25px; font-size: 20px; color: #fff; font-weight: bold;
-            border-radius: 16px; z-index: 1; pointer-events: none;
-        }
-        .swipe-bg.right { background: var(--danger-color); justify-content: flex-start; }
-        .swipe-bg.left { background: var(--archive-green); justify-content: flex-end; }
-
-        .avatar-container { position: relative; flex-shrink: 0; width: 58px; height: 58px; }
-        .avatar { 
-            width: 100%; height: 100%; border-radius: 18px;
-            background-size: cover; background-position: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); background-color: #2a2a2a;
-        }
-        .active-dot { 
-            position: absolute; bottom: -2px; right: -2px; width: 14px; height: 14px; 
-            background: #22c55e; border: 3px solid var(--bg-deep); border-radius: 50%; 
-        }
-
-        .info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
-        .top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-        .name { font-weight: 700; font-size: 16px; color: #fff; display: flex; align-items: center; gap: 6px; }
-        .verify-badge { color: var(--verify-color); font-size: 14px; }
-        .time { font-size: 11px; color: var(--text-secondary); font-weight: 600; display: flex; align-items: center; gap: 5px; }
-
-        .bottom-row { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; }
-        .last-message-wrapper { display: flex; align-items: center; overflow: hidden; max-width: 80%; }
-        .last { color: var(--text-secondary); font-size: 14px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
-        
-        .typing-indicator { color: var(--accent-color); font-style: italic; font-size: 13px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        .read-blue-dot { 
-            width: 8px; height: 8px; background-color: var(--seen-blue); 
-            border-radius: 50%; display: inline-block; margin-left: 5px; 
-            box-shadow: 0 0 5px var(--seen-blue); flex-shrink: 0; 
-        }
-
-        .unread-badge {
-            background: linear-gradient(45deg, var(--accent-color), #6d28d9); 
-            box-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
-            color: white; min-width: 22px; height: 22px; padding: 0 6px; 
-            border-radius: 12px; font-size: 11px; font-weight: 800;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        /* ================= الهيدر ================= */
-        .main-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: rgba(20, 20, 25, 0.8); backdrop-filter: blur(15px); position: sticky; top: 0; z-index: 1000; border-bottom: 1px solid var(--card-border); }
-        .header-title { font-size: 22px; font-weight: 800; background: linear-gradient(to right, #fff, #a0a0a0); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header-icons { display: flex; gap: 15px; }
-       /* ================= أزرار الهيدر المضيئة (Neon Gold Buttons) ================= */
-
-/* 1. التنسيق الأساسي للزر (القائمة + البيت) */
-.icon-btn {
-    width: 42px; 
-    height: 42px; 
-    border-radius: 14px; /* كيرف ناعم */
-    display: flex; 
-    align-items: center; 
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    
-    /* الخلفية: زجاجي غامق مع تدرج خفيف */
-    background: linear-gradient(145deg, rgba(30, 30, 35, 0.8), rgba(10, 10, 12, 0.95));
-    backdrop-filter: blur(5px); /* تمويه الخلفية */
-    
-    /* الإطار: ذهبي خافت جداً (لحد ما يتضغط عليه) */
-    border: 1px solid rgba(255, 215, 0, 0.1);
-    
-    /* لون الأيقونة: ذهبي مطفي */
-    color: #c5a059;
-    font-size: 18px;
-    
-    /* الظل واللمعان الهادي (Idle State) */
-    box-shadow: 
-        0 4px 10px rgba(0, 0, 0, 0.5), /* ظل عمق */
-        inset 0 1px 0 rgba(255, 255, 255, 0.1), /* لمعة علوية */
-        0 0 0 transparent; /* مفيش توهج لسه */
-}
-
-/* 2. زر القائمة (Menu) مميز شوية لإنه الأهم */
-#menuBtn {
-    /* بنخليه ينبض بضوء خافت جداً وهو واقف عشان يلفت النظر */
-    animation: idleBreathing 3s infinite alternate;
-}
-
-/* 3. حالة المرور بالماوس أو الضغط (Active/Hover) - هنا الإضاءة بتشتغل */
-.icon-btn:active, .icon-btn:hover {
-    /* الأيقونة بتنور أبيض */
-    color: #fff;
-    
-    /* الإطار بينور ذهبي */
-    border-color: #FFD700;
-    
-    /* الخلفية بتبقى ذهبي غامق شفاف */
-    background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(0, 0, 0, 0.9));
-    
-    /* انفجار الضوء (Glow Effect) */
-    box-shadow: 
-        0 0 15px rgba(255, 215, 0, 0.4), /* توهج خارجي */
-        inset 0 0 10px rgba(255, 215, 0, 0.2); /* توهج داخلي */
-        
-    transform: scale(0.95); /* ضغطة واقعية للداخل */
-}
-
-/* أنيميشن التنفس الهادي للزر وهو واقف */
-@keyframes idleBreathing {
-    0% {
-        border-color: rgba(255, 215, 0, 0.1);
-        box-shadow: 0 0 0 rgba(255, 215, 0, 0);
-    }
-    100% {
-        border-color: rgba(255, 215, 0, 0.3);
-        box-shadow: 0 0 8px rgba(255, 215, 0, 0.15);
-    }
-}
-
-
-        .search-wrapper { padding: 15px 20px 5px 20px; background: transparent; }
-        .search-input-box { position: relative; width: 100%; }
-        .search-input-box input {
-            width: 100%; padding: 12px 45px 12px 15px; border-radius: 15px;
-            background: rgba(30, 30, 35, 0.6); border: 1px solid var(--card-border);
-            color: #fff; font-size: 14px; outline: none; transition: 0.3s;
-        }
-        .search-input-box input:focus { border-color: var(--accent-color); box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
-        .search-icon-inside { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #777; }
-
-        /* ================= Modals ================= */
-        .bottom-sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 20000; opacity: 0; pointer-events: none; transition: 0.3s; display: flex; align-items: flex-end; justify-content: center; }
-        .bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
-        .bottom-sheet { 
-    width: 100%; 
-    max-width: 500px; 
-    background: rgba(20, 20, 25, 0.95); 
-    backdrop-filter: blur(20px); 
-    border-top: 1px solid rgba(255,255,255,0.1); 
-    border-top-left-radius: 25px; 
-    border-top-right-radius: 25px; 
-    transform: translateY(100%); 
-    transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1); 
-    padding: 15px 15px 40px 15px; 
-    box-shadow: 0 -10px 40px rgba(0,0,0,0.6); 
-    
-    /* === الإضافات الجديدة === */
-    max-height: 50vh; /* القائمة لن تتجاوز نصف الشاشة (50%) */
-    overflow-y: auto; /* إذا كانت الخيارات كثيرة سيظهر سكرول داخلي */
-    position: absolute; /* تثبيت في الأسفل */
-    bottom: 0;
-}
-   .bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); }
-        .sheet-handle { width: 50px; height: 5px; background: #555; border-radius: 10px; margin: 0 auto 25px auto; }
-        .sheet-action { display: flex; align-items: center; gap: 15px; padding: 16px 20px; font-size: 16px; color: #fff; border-radius: 16px; margin-bottom: 8px; cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.03); }
-        .sheet-action:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
-        .sheet-action i { width: 30px; text-align: center; font-size: 18px; color: #ddd; }
-        .sheet-action.danger { color: #ff5555; background: rgba(255, 85, 85, 0.05); }
-
-        #toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid #444; color: #fff; padding: 12px 25px; border-radius: 30px; font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 10000; display: flex; align-items: center; gap: 8px; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
-        #toast.show { opacity: 1; bottom: 110px; }
-        .empty-message { text-align: center; padding: 30px; color: #777; width: 100%; }
-        
-        .logout-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 30000; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: 0.3s; }
-        .logout-modal-overlay.active { opacity: 1; pointer-events: auto; }
-        .logout-card { background: #1e1e1e; width: 85%; max-width: 320px; padding: 25px; border-radius: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); transform: scale(0.9); transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .logout-modal-overlay.active .logout-card { transform: scale(1); }
-        .logout-actions { display: flex; gap: 10px; margin-top: 20px; }
-        .logout-btn { flex: 1; padding: 12px; border-radius: 12px; font-size: 14px; font-weight: bold; cursor: pointer; border: none; outline: none; transition: 0.2s; }
-        .btn-yes { background: var(--danger-color); color: white; }
-        .btn-no { background: rgba(255,255,255,0.1); color: white; }
-
-        .skeleton { background: linear-gradient(90deg, #1f1f1f 25%, #2a2a2a 50%, #1f1f1f 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 6px; }
-        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-/* === نافذة البروفايل المصغرة === */
-.profile-preview-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.6); z-index: 25000;
-    display: none; align-items: center; justify-content: center;
-    backdrop-filter: blur(2px);
-}
-
-.profile-preview-card {
-    width: 280px; background: #1e1e1e;
-    border-radius: 20px; overflow: hidden;
-    position: relative;
-    animation: zoomIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-}
-
-@keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
-.pp-image-container {
-    width: 100%; height: 280px; position: relative; cursor: pointer;
-    background: #000;
-}
-
-.pp-image-container img {
-    width: 100%; height: 100%; object-fit: cover;
-    pointer-events: none; /* منع السحب والضغط يمين */
-    user-select: none;    /* منع التحديد */
-    -webkit-user-select: none;
-}
-
-/* طبقة الحماية الشفافة */
-.protection-layer {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 10; background: transparent;
-}
-
-.pp-name-overlay {
-    position: absolute; top: 10px; left: 0; width: 100%;
-    padding: 5px 15px;
-    color: #fff; font-size: 18px; font-weight: bold;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-    background: linear-gradient(to bottom, rgba(0,0,0,0.4), transparent);
-    z-index: 11; pointer-events: none;
-}
-
-.pp-actions {
-    display: flex; justify-content: space-around; padding: 10px 0;
-    border-top: 1px solid rgba(255,255,255,0.1);
-}
-
-.pp-actions div {
-    color: var(--accent-color); font-size: 22px; padding: 10px;
-    cursor: pointer; width: 100%; text-align: center;
-    transition: 0.2s;
-}
-.pp-actions div:active { background: rgba(255,255,255,0.05); }
-
-/* === عرض الصورة الكاملة والحماية === */
-.full-image-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #000; z-index: 30000;
-    display: none; align-items: center; justify-content: center;
-}
-
-.protected-img {
-    max-width: 100%; max-height: 100%;
-    pointer-events: none; /* يمنع الضغط المطول للحفظ */
+body {
+    background-color: var(--bg-deep);
+    background-image: 
+        radial-gradient(circle at 10% 20%, rgba(90, 40, 250, 0.15) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(40, 150, 250, 0.1) 0%, transparent 40%);
+    background-attachment: fixed;
+    color: var(--text-color);
+    padding-bottom: 100px;
+    min-height: 100vh;
+    overflow-x: hidden;
     user-select: none;
-    -webkit-touch-callout: none; /* يمنع قائمة iOS عند الضغط */
 }
 
-/* محاولة تشويش الشاشة عند فقدان التركيز (قد تعمل كحماية بسيطة) */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-thumb { background: #444; border-radius: 10px; }
 .blur-content { filter: blur(20px); }
-        /* ================= تعديلات القائمة لتصبح أصغر واحترافية ================= */
-        
-        /* تقليل المسافات حول الكارت */
-        .chat-wrapper {
-            margin: 0 10px 6px 10px; /* تقليل الهامش السفلي */
-            border-radius: 12px; /* تدوير الحواف أقل حدة */
-        }
 
-
-        /* تصغير حجم الصورة */
-        .avatar-container { 
-            position: relative; flex-shrink: 0; 
-            width: 48px; height: 48px; /* تم التصغير من 58 إلى 48 */
-        }
-        
-        .avatar { 
-            width: 100%; height: 100%; 
-            border-radius: 14px; /* تدوير متناسق مع الحجم الجديد */
-            background-size: cover; background-position: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3); 
-            background-color: #2a2a2a;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        /* تصغير نقطة الأونلاين */
-        .active-dot { 
-            width: 11px; height: 11px; 
-            bottom: -1px; right: -1px;
-            border-width: 2px;
-        }
-
-        /* تعديل النصوص لتناسب الحجم الجديد */
-        .info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
-        
-        .top-row { margin-bottom: 2px; } /* تقليل المسافة بين الاسم والرسالة */
-        
-        .name { 
-            font-weight: 700; 
-            font-size: 15px; /* تصغير الخط درجة واحدة */
-            color: #ececec; 
-            display: flex; align-items: center; gap: 5px; 
-        }
-        
-        .time { 
-            font-size: 10px; /* تصغير خط الوقت */
-            color: #888; 
-            font-weight: 600; 
-        }
-
-        .bottom-row { margin-top: 2px; }
-        
-        .last { 
-            color: #aaa; /* لون رمادي فاتح قليلاً للقراءة */
-            font-size: 13px; /* تصغير خط الرسالة */
-            opacity: 0.9; 
-        }
-        
-        /* بادج الرسائل غير المقروءة */
-        .unread-badge {
-            min-width: 18px; height: 18px; /* تصغير البادج */
-            font-size: 10px;
-            box-shadow: none; /* إزالة الظل لتقليل الزحمة */
-        }
-        /* ================= تعديلات القصص لتكون أصغر وأشيك ================= */
-        .stories-section {
-            padding: 8px 0 12px 0; /* تقليل المسافات العلوية والسفلية */
-            border-bottom: 1px solid var(--card-border);
-            margin-bottom: 5px;
-        }
-        
-        .stories-title { 
-            padding: 0 15px 8px; 
-            font-weight: 700; 
-            font-size: 13px; /* تصغير عنوان القسم */
-            color: var(--text-secondary); 
-        }
-        
-        .stories-scroll {
-            display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 0 12px;
-        }
-
-        /* --- الكارت المصغر --- */
-        .story-card {
-            position: relative;
-            width: 85px;   /* تم التصغير من 105px */
-            height: 135px; /* تم التصغير من 170px */
-            border-radius: 10px;
-            overflow: hidden;
-            flex-shrink: 0;
-            cursor: pointer;
-            background-color: #2a2a2a;
-            transition: transform 0.2s;
-            border: 1px solid var(--card-border);
-        }
-        .story-card:active { transform: scale(0.97); }
-
-        .story-card-bg {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            transition: 0.3s;
-        }
-
-        /* --- الأفاتار الصغير داخل القصة --- */
-        .story-card-avatar {
-            position: absolute; top: 6px; left: 6px;
-            width: 26px; height: 26px; /* تصغير الأفاتار */
-            border-radius: 50%;
-            border: 2px solid var(--accent-color); /* تنحيف الإطار */
-            background-size: cover; background-position: center;
-            z-index: 2;
-        }
-
-
-
-        /* === تعديلات كارت "إضافة قصة" ليناسب الحجم الجديد === */
-        .my-story-card {
-            background: #1e1e1e;
-            display: flex; flex-direction: column;
-        }
-        .my-story-top-img {
-            width: 100%; height: 70%; /* زيادة نسبة الصورة قليلاً */
-            background-size: cover; background-position: center;
-            filter: brightness(0.8);
-        }
-        .my-story-bottom {
-            height: 30%; width: 100%;
-            position: relative;
-            background: #1e1e1e;
-            display: flex; align-items: flex-end; justify-content: center;
-            padding-bottom: 6px;
-        }
-        
-        /* زر الزائد */
-        .add-story-btn-circle {
-            position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
-            width: 28px; height: 28px; /* تصغير الزر */
-            background: var(--accent-color);
-            border: 2px solid #1e1e1e;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 14px;
-            z-index: 5;
-        }
-
-        /* سبينر التحميل */
-        .uploading-spinner {
-            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
-            width: 30px; height: 30px;
-            border: 2px solid rgba(139, 92, 246, 0.3);
-            border-top: 2px solid var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            z-index: 4;
-        }
-
-            /* ================= تصميم واجهة النشر (Insta Style) ================= */
-        .insta-source-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: #000; z-index: 35000;
-            display: flex; flex-direction: column;
-            transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
-        }
-        .insta-source-overlay.active { transform: translateY(0); }
-
-        .insta-top-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; color: #fff;
-        }
-        .insta-icon { font-size: 24px; padding: 10px; cursor: pointer; }
-        .insta-title { font-weight: bold; font-size: 16px; }
-
-        .insta-camera-area {
-            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            cursor: pointer;
-        }
-        .camera-shutter-outer {
-            width: 80px; height: 80px; border-radius: 50%;
-            border: 4px solid #fff; padding: 4px;
-            display: flex; align-items: center; justify-content: center;
-            transition: 0.2s;
-        }
-        .camera-shutter-inner {
-            width: 100%; height: 100%; background: #fff; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; color: #000; font-size: 24px;
-        }
-        .insta-camera-area:active .camera-shutter-outer { transform: scale(0.9); opacity: 0.8; }
-
-        .insta-bottom-sheet {
-            background: #1a1a1a; border-top-left-radius: 20px; border-top-right-radius: 20px;
-            padding-bottom: 30px; border-top: 1px solid #333;
-            animation: slideUp 0.4s ease;
-        }
-
-        .insta-sheet-handle {
-            width: 40px; height: 4px; background: #444; border-radius: 10px;
-            margin: 10px auto 20px auto;
-        }
-
-        .insta-options-grid {
-            display: flex; justify-content: space-around; padding: 0 10px;
-            margin-bottom: 20px;
-        }
-        .insta-option-card {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
-        }
-        .insta-opt-icon {
-            width: 50px; height: 50px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-            transition: 0.2s;
-        }
-        .insta-option-card:active .insta-opt-icon { transform: scale(0.9); }
-
-        .gradient-gallery { background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
-        .gradient-music { background: linear-gradient(45deg, #4facfe, #00f2fe); }
-        .gradient-text { background: linear-gradient(45deg, #43e97b, #38f9d7); color: #000; }
-
-        .fake-gallery-row {
-            display: flex; gap: 5px; padding: 0 10px; overflow-x: hidden;
-        }
-        .fake-img {
-            width: 24%; height: 80px; background: #333; border-radius: 8px;
-            display: flex; align-items: center; justify-content: center; color: #555;
-            cursor: pointer;
-        }
-/* --- تنسيق نافذة تبديل الحسابات --- */
-.custom-modal {
-    position: fixed; inset: 0; z-index: 20000;
-    display: none; align-items: flex-start; justify-content: center;
-    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px);
-    padding-top: 80px; /* مسافة من الأعلى */
-}
-
-.modal-box {
-    background: #161616; width: 90%; max-width: 380px;
-    border-radius: 24px; padding: 20px;
-    border: 1px solid #2a2a2a; text-align: center;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    display: flex; flex-direction: column; gap: 15px;
-}
-
-.account-list {
-    text-align: right; max-height: 250px; overflow-y: auto;
-    background: #0d0d0f; border-radius: 16px; padding: 5px; margin-bottom: 10px;
-}
-
-.acc-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px; margin: 5px; border-radius: 12px;
-    cursor: pointer; transition: 0.2s;
-    background: transparent; border-bottom: 1px solid #222;
-}
-.acc-item:last-child { border-bottom: none; }
-.acc-item:hover { background: #1f1f1f; }
-
-/* حقول الإدخال والأزرار */
-.input-group { position: relative; margin-bottom: 15px; width: 100%; }
-.input-icon { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: #555; }
-.pro-input {
-    width: 100%; background: #0d0d0f; border: 1px solid #333;
-    border-radius: 12px; padding: 14px 50px 14px 15px;
-    color: #fff; outline: none; transition: 0.3s;
-}
-.pro-input:focus { border-color: #8b5cf6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
-
-.modal-actions { display: flex; flex-direction: column; gap: 10px; width: 100%; }
-.btn-purple {
-    background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white;
-    border: none; padding: 14px; border-radius: 16px; font-weight: bold;
-    cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
-}
-.btn-dark {
-    background: #1f1f1f; color: #aaa; border: 1px solid #333;
-    padding: 12px; border-radius: 16px; font-weight: bold; cursor: pointer; width: 100%;
-}
-    /* تنسيق عنصر الصديق داخل القائمة المنبثقة */
-.new-chat-item {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 12px;
-    border-radius: 12px;
-    transition: 0.2s;
-    cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.new-chat-item:active {
-    background: rgba(255,255,255,0.08);
-}
-
-.new-chat-item:last-child {
-    border-bottom: none;
-}
-
-.nc-avatar {
-    width: 45px; height: 45px;
-    border-radius: 14px;
-    background-size: cover;
-    background-position: center;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.nc-name {
-    font-size: 15px;
-    font-weight: bold;
-    color: #fff;
-}
-/* تنسيق قائمة المشاهدين */
-.viewer-item {
+/* ================= 2. الهيدر العائم (Compact Royal Header) ================= */
+.main-header {
+    position: sticky;
+    top: 8px;
+    z-index: 1000;
+    width: 94%;
+    height: 55px;
+    margin: 0 auto 15px auto;
+    padding: 0 15px;
+    border-radius: 20px;
+    background: rgba(20, 20, 25, 0.85);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
     display: flex; align-items: center; justify-content: space-between;
-    padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.viewer-info { display: flex; align-items: center; gap: 12px; }
-.viewer-avatar { width: 40px; height: 40px; border-radius: 50%; background-size: cover; background-position: center; }
-.viewer-name { color: #fff; font-weight: bold; font-size: 14px; }
-.viewer-reaction { font-size: 20px; }
-
-/* إصلاح ترتيب الطبقات لتظهر القائمة فوق القصة */
-#storyViewersModal {
-    z-index: 30000 !important; /* رقم أعلى من storyViewer */
 }
 
-/* تنسيق إضافي لضمان ظهور القائمة بشكل جميل */
-#storyViewersModal .bottom-sheet {
-    background: rgba(30, 30, 30, 0.95);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.1);
-}
-/* لما يكون فيه حركة */
-/* الحاوية الأساسية */
-.story-media-container {
-    background: #000;
+/* اللوجو الذهبي الحي */
+.luxury-logo-container {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    font-size: 26px; font-weight: 900;
 }
 
-.story-enter-next {
-    animation: slideZoomNext 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+.gold-text {
+    background: linear-gradient(120deg, #3a2c0f 0%, #997f3d 20%, #ffecb3 40%, #ffffff 50%, #ffecb3 60%, #997f3d 80%, #3a2c0f 100%);
+    background-size: 200% auto;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1.5px #4c1d95;
+    filter: drop-shadow(0 2px 0 rgba(76, 29, 149, 0.5));
+    text-transform: uppercase; letter-spacing: 1px;
+    animation: shineMove 5s linear infinite;
+}
+@keyframes shineMove { 0% { background-position: 0% center; } 100% { background-position: -200% center; } }
+
+.miracle-heart {
+    font-size: 32px; color: #d60000;
+    -webkit-text-stroke: 1.5px #FFD700;
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 10px rgba(200, 0, 0, 0.5));
+    animation: veinPulse 1.5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+@keyframes veinPulse {
+    0%, 100% { transform: scale(1); color: #d60000; filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)); }
+    15% { transform: scale(1.25); color: #ff0000; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1)) drop-shadow(0 0 25px rgba(255, 0, 0, 0.8)); }
+    30% { transform: scale(1.1); color: #e60000; }
+    45% { transform: scale(1.3); color: #ff1a1a; filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) drop-shadow(0 0 30px rgba(255, 0, 0, 1)); }
 }
 
-.story-enter-prev {
-    animation: slideZoomPrev 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+/* أزرار الهيدر */
+.icon-btn {
+    width: 42px; height: 42px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.3s;
+    background: linear-gradient(145deg, rgba(30, 30, 35, 0.8), rgba(10, 10, 12, 0.95));
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 215, 0, 0.1);
+    color: #c5a059; font-size: 18px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
+.icon-btn:active, .icon-btn:hover {
+    color: #fff; border-color: #FFD700;
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.15), rgba(0, 0, 0, 0.9));
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); transform: scale(0.95);
+}
+#menuBtn { animation: idleBreathing 3s infinite alternate; }
+@keyframes idleBreathing { 0% { border-color: rgba(255, 215, 0, 0.1); } 100% { border-color: rgba(255, 215, 0, 0.3); box-shadow: 0 0 8px rgba(255, 215, 0, 0.15); } }
 
-@keyframes slideZoomNext {
-    from { transform: translateX(50%) scale(0.8); opacity: 0; }
-    to { transform: translateX(0) scale(1); opacity: 1; }
+/* ================= 3. شريط البحث الذهبي ================= */
+.search-wrapper { padding: 0 20px 5px 20px; background: transparent; }
+.search-input-box { position: relative; width: 88%; margin: 0 auto; }
+.search-input-box input {
+    width: 100%; padding: 12px 45px 12px 15px; border-radius: 20px;
+    background: rgba(30, 30, 35, 0.6); border: 1px solid #6d28d9;
+    color: #fceecb; outline: none; transition: all 0.3s ease;
 }
+.search-input-box input:focus {
+    border-color: #BF953F;
+    box-shadow: 0 0 20px rgba(191, 149, 63, 0.15), inset 0 2px 5px rgba(0,0,0,0.5);
+    background: linear-gradient(145deg, rgba(25, 25, 30, 0.95), rgba(50, 45, 30, 0.9));
+}
+.search-input-box input::placeholder { color: #8a7d5b; transition: 0.3s; }
+.search-icon-inside {
+    position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+    color: #D4AF37; font-size: 18px; pointer-events: none; transition: 0.3s;
+    text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
+}
+.search-input-box:focus-within .search-icon-inside { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.6); transform: translateY(-50%) scale(1.1); }
 
-@keyframes slideZoomPrev {
-    from { transform: translateX(-50%) scale(0.8); opacity: 0; }
-    to { transform: translateX(0) scale(1); opacity: 1; }
+/* ================= 4. القصص (Compact Gold Style) ================= */
+.stories-section {
+    padding: 8px 0 5px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 0; position: relative; z-index: 1;
 }
+.stories-title { padding: 0 15px 5px; font-weight: 700; font-size: 12px; color: var(--text-secondary); margin-bottom: 0; }
+.stories-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 0 12px; }
 
-.story-dest-btn {
-    background: #222; color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 13px;
-}
-
-.send-story-btn {
-    background: #fff; color: #000; border: none; padding: 10px 25px;
-    border-radius: 25px; font-weight: bold; display: flex; align-items: center; gap: 8px;
-}
-
-/* حلقة متدرجة متحركة */
-@keyframes spin-gradient {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-/* أولاً: لازم نلغي الـ overflow hidden من الكارت عشان الإطار يظهر لبره */
+/* الكارت المصغر والذهبي */
 .story-card {
-    overflow: visible !important; /* مهم جداً عشان التوهج يظهر */
-    z-index: 1; /* عشان نضمن ترتيب الطبقات */
+    position: relative; width: 75px; height: 115px;
+    border-radius: 10px; overflow: visible !important; flex-shrink: 0; cursor: pointer;
+    background-color: #2a2a2a; margin-bottom: 5px; z-index: 1;
 }
-
-/* ثانياً: نطبق الإطار الذهبي على الكارت نفسه */
+/* الإطار الذهبي المشع */
 .story-card::before {
-    content: '';
-    position: absolute;
-    /* بنكبر الإطار لبره 3 بكسل */
-    inset: -3px; 
-    
-    /* هنا التعديل المهم: بنخلي الحواف نفس تدويرة الكارت (مش 50% اللي بتعمل دايرة) */
-    border-radius: 14px; 
-    
-    /* التدرج الذهبي بتاعك زي ما هو */
+    content: ''; position: absolute; inset: -3px; border-radius: 14px;
     background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
-    
-    z-index: -1; /* عشان يظهر في الخلفية ورا الكارت */
-    box-shadow: 0 0 10px rgba(191, 149, 63, 0.5); /* توهج خفيف */
+    z-index: -1; box-shadow: 0 0 10px rgba(191, 149, 63, 0.5);
 }
-
-/* عشان الصور اللي جوه الكارت تفضل واخدة الكيرف */
+.story-card:active { transform: scale(0.97); }
 .story-card-bg, .story-card video {
-    border-radius: 10px; /* لازم ندي الصورة كيرف لأننا لغينا القص من الأب */
+    width: 100%; height: 100%; object-fit: cover; border-radius: 10px; transition: 0.3s;
+}
+.story-card:hover .story-card-bg { transform: scale(1.05); }
+
+/* عناصر القصة الداخلية */
+.story-card-avatar {
+    position: absolute; top: 4px; left: 4px; width: 24px; height: 24px;
+    border-radius: 50%; border: 2px solid var(--accent-color);
+    background-size: cover; background-position: center; z-index: 2;
+}
+.story-card-name {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    padding: 15px 4px 4px 4px; border-radius: 0 0 10px 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    color: #fff; font-size: 9px; font-weight: bold;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; z-index: 2;
 }
 
-
-.story-media-container {
-    perspective: 1000px; /* تفعيل المنظور ثلاثي الأبعاد */
-    transform-style: preserve-3d;
+/* كارت إضافتي */
+.my-story-card { background: #1e1e1e; display: flex; flex-direction: column; overflow: hidden !important; }
+.my-story-card::before { display: none; } /* إلغاء الإطار الذهبي لقصتي الفارغة */
+.my-story-top-img { width: 100%; height: 70%; background-size: cover; background-position: center; filter: brightness(0.8); }
+.my-story-bottom { height: 30%; width: 100%; position: relative; background: #1e1e1e; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.add-story-btn-circle {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 24px; background: var(--accent-color);
+    border: 2px solid #1e1e1e; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; z-index: 5;
 }
 
-/* حركة الدخول من اليمين (مكعب) */
-.cube-next-enter {
-    animation: cubeNextEnter 0.5s ease forwards;
+/* ================= 5. شريط النشاط السريع ================= */
+.quick-users-section { padding: 5px 0; margin-bottom: 2px; border-bottom: 1px solid var(--card-border); background: transparent; }
+.quick-users-title { padding: 0 15px 5px; font-weight: 700; font-size: 12px; color: var(--text-secondary); margin-bottom: 0; }
+.quick-users-scroll { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding: 0 12px; align-items: flex-start; }
+.quick-user-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 50px; min-width: 50px; flex-shrink: 0; }
+.quick-user-item:active { transform: scale(0.95); transition: 0.2s; }
+.quick-avatar-wrapper { position: relative; width: 44px; height: 44px; margin-bottom: 2px; }
+.quick-avatar-img {
+    width: 100%; height: 100%; border-radius: 50%; background-size: cover; background-position: center;
+    border: 2px solid rgba(255, 215, 0, 0.3); background-color: #2a2a2a;
 }
-.cube-next-leave {
-    animation: cubeNextLeave 0.5s ease forwards;
+.quick-online-dot {
+    position: absolute; bottom: 1px; right: 1px; width: 11px; height: 11px;
+    background-color: #4ade80; border: 1.5px solid #000; border-radius: 50%;
+    z-index: 5; box-shadow: 0 0 5px rgba(74, 222, 128, 0.8);
 }
+.quick-user-name { font-size: 9px; color: #e0e0e0; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%; font-weight: 600; margin-top: 0; }
 
-@keyframes cubeNextEnter {
-    from { transform: translateX(100%) rotateY(90deg); opacity: 1; }
-    to { transform: translateX(0) rotateY(0); opacity: 1; }
-}
-@keyframes cubeNextLeave {
-    from { transform: translateX(0) rotateY(0); opacity: 1; }
-    to { transform: translateX(-100%) rotateY(-90deg); opacity: 1; }
-}
-/* توسيع حاوية القلوب لتشمل الشاشة بالكامل */
-#floatingHearts {
-    position: fixed; /* تغيير من absolute إلى fixed لتخرج برة حدود الشاشة */
-    bottom: 0;
-    right: 20px;
-    width: 100px; /* وسعنا العرض شوية */
-    height: 100vh; /* تأخذ طول الشاشة بالكامل */
-    pointer-events: none;
-    z-index: 99999; /* رقم عالي جداً لتظهر فوق كل شيء */
-    overflow: visible; /* السماح بالخروج عن الحدود */
-}
-
-/* تعديل حركة الصعود لتكون أطول وأسلس */
-@keyframes floatUp {
-    0% { 
-        transform: translateY(0) scale(0.5); 
-        opacity: 0; 
-    }
-    10% {
-        opacity: 1;
-        transform: translateY(-50px) scale(1.2); /* تكبير سريع في البداية */
-    }
-    100% { 
-        transform: translateY(-80vh) scale(1); /* تصعد لـ 80% من الشاشة */
-        opacity: 0; 
-    }
-}
-
-/* ================= تصميم الكارت الفخم (Royal Dark Gold) ================= */
-.chat { 
-    position: relative; 
-    z-index: 2;
-    display: flex; 
-    gap: 12px; 
-    padding: 12px 14px; /* كبرنا البادينج سِنة للراحة */
-    cursor: pointer; 
-    align-items: center; 
-    
-    /* 1. الخلفية: تدرج من الأسود الغامق لأسود فيه لمسة ذهبي خفيفة جداً */
-    background: linear-gradient(135deg, #09090b 0%, #1c1917 100%);
-    
-    /* 2. الإطار: ذهبي خافت جداً وشفاف (كأنه إضاءة) */
-    border: 1px solid rgba(191, 149, 63, 0.15);
-    border-right: 3px solid rgba(191, 149, 63, 0.4); /* خط ذهبي جانبي للشياكة */
-    
-    /* 3. الظل واللمعان */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
-    
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-    user-select: none; 
-    width: 100%;
-    border-radius: 16px; /* كيرف أنعم */
-    overflow: hidden; /* عشان اللمعة ما تخرجش بره */
-}
-
-/* إضافة لمعة خفيفة تمر فوق الكارت (Sheen Effect) */
+/* ================= 6. كروت المحادثة (Royal Dark Gold) ================= */
+.chat-wrapper { margin: 0 10px 6px 10px; border-radius: 12px; position: relative; overflow: hidden; }
 .chat {
-    /* نحاسي محمر فخم */
-    border: 1px solid rgba(245, 158, 11, 0.3); 
-    border-right: 3px solid #d97706;
-    
-    /* ضي دافي */
+    position: relative; z-index: 2; display: flex; gap: 12px; padding: 12px 14px;
+    cursor: pointer; align-items: center; width: 100%; border-radius: 16px; overflow: hidden;
+    background: linear-gradient(135deg, #09090b 0%, #1c1917 100%);
+    border: 1px solid rgba(245, 158, 11, 0.3); border-right: 3px solid #d97706;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); user-select: none;
 }
+.chat:active { border-color: #fbbf24; box-shadow: 0 0 15px rgba(245, 158, 11, 0.2); }
 
-.chat:active {
-    border-color: #fbbf24;
-    box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
-}
-
-/* ================= الشات المثبت (Pinned) ================= */
-/* ده بقى هيكون ذهبي صريح بس فخم (Premium) */
-.chat.pinned-chat { 
-    /* تدرج ذهبي غامق عشان الكلام الأبيض يبان */
+/* الشات المثبت */
+.chat.pinned-chat {
     background: linear-gradient(135deg, rgba(191, 149, 63, 0.15), rgba(10, 10, 12, 0.95));
-    border: 1px solid rgba(191, 149, 63, 0.6);
-    border-right: 4px solid #FFD700; /* خط ذهبي لامع */
+    border: 1px solid rgba(191, 149, 63, 0.6); border-right: 4px solid #FFD700;
     box-shadow: 0 0 25px rgba(191, 149, 63, 0.1);
 }
 
-/* تعديل بسيط للنصوص عشان تليق مع الخلفية الجديدة */
-.chat .name {
-    color: #fceecb; /* لون "سكري" فاتح بدل الأبيض الصريح عشان يليق مع الذهبي */
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+/* محتوى الشات */
+.avatar-container { position: relative; flex-shrink: 0; width: 48px; height: 48px; }
+.avatar {
+    width: 100%; height: 100%; border-radius: 14px; background-size: cover; background-position: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3); background-color: #2a2a2a; border: 1px solid rgba(255,255,255,0.1);
 }
+.active-dot { position: absolute; bottom: -1px; right: -1px; width: 11px; height: 11px; background: #22c55e; border: 2px solid var(--bg-deep); border-radius: 50%; }
 
-.chat .last {
-    color: #a8a29e; /* رمادي دافئ */
+.info { flex-grow: 1; overflow: hidden; display: flex; flex-direction: column; justify-content: center; }
+.top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
+.name { font-weight: 700; font-size: 15px; color: #fceecb; display: flex; align-items: center; gap: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+.verify-badge { color: var(--verify-color); font-size: 14px; }
+.time { font-size: 10px; color: #888; font-weight: 600; }
+.bottom-row { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.last { color: #a8a29e; font-size: 13px; opacity: 0.9; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 5px; }
+.unread-badge {
+    background: linear-gradient(45deg, var(--accent-color), #6d28d9);
+    color: white; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 12px;
+    font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center;
 }
-/* ================= شريط البحث الذهبي الملكي ================= */
-/* ================= شريط البحث بإطار موف غامق ================= */
-/* ================= تصغير وتوسط شريط البحث ================= */
+.read-blue-dot { width: 8px; height: 8px; background-color: var(--seen-blue); border-radius: 50%; display: inline-block; margin-left: 5px; box-shadow: 0 0 5px var(--seen-blue); flex-shrink: 0; }
+.typing-indicator { color: var(--accent-color); font-style: italic; font-size: 13px; animation: pulse 1.5s infinite; }
+.seen-avatar-icon { width: 15px; height: 15px; border-radius: 50%; background-size: cover; background-position: center; border: 1px solid #000; display: inline-block; margin-left: 5px; }
 
-.search-input-box {
-    position: relative;
-    width: 88%; /* صغرنا العرض عشان يبقى ملموم وشيك */
-    margin: 0 auto; /* توسيط الشريط في نص الشاشة بالظبط */
-}
-
-/* تعديل بسيط للإنبوت عشان يملأ المساحة الجديدة */
-.search-input-box input {
-    width: 100%;
-    /* باقي التنسيقات اللي عملناها قبل كده زي ما هي */
-    padding: 12px 45px 12px 15px; 
-    border-radius: 20px; /* كيرف متناسق مع الحجم الجديد */
-    background: rgba(30, 30, 35, 0.6); 
-    border: 1px solid #6d28d9; 
-    color: #fceecb; 
-    outline: none;
-    transition: all 0.3s ease;
-}
-
-/* حالة التركيز (لما يدوس يكتب) */
-.search-input-box input:focus {
-    /* الإطار ينور موف أفتح شوية */
-    border-color: #8b5cf6;
-    
-    /* توهج موف حوالين الشريط */
-    box-shadow: 0 0 15px rgba(109, 40, 217, 0.4), inset 0 2px 5px rgba(0,0,0,0.5);
-}
-
-
-/* 2. تنسيق النص التوضيحي (Placeholder) */
-.search-input-box input::placeholder {
-    color: #8a7d5b; /* ذهبي رمادي مطفي عشان ما يزغللش العين */
-    font-weight: normal;
-    transition: 0.3s;
-}
-
-/* 3. حالة التركيز (لما يدوس عشان يكتب) */
-.search-input-box input:focus {
-    /* الإطار بينور ذهبي */
-    border-color: #BF953F;
-    
-    /* توهج خارجي خفيف */
-    box-shadow: 0 0 20px rgba(191, 149, 63, 0.15), inset 0 2px 5px rgba(0,0,0,0.5);
-    
-    /* الخلفية بتفتح سِنة بسيطة */
-    background: linear-gradient(145deg, rgba(25, 25, 30, 0.95), rgba(50, 45, 30, 0.9));
-}
-
-/* عند التركيز، نخفي الـ placeholder عشان الشكل يبقى أنظف */
-.search-input-box input:focus::placeholder {
-    opacity: 0.5;
-    transform: translateX(-5px);
-}
-
-/* 4. أيقونة العدسة */
-.search-icon-inside {
-    position: absolute;
-    right: 20px; /* مكانها يمين */
-    top: 50%;
-    transform: translateY(-50%);
-    
-    /* لون ذهبي معدني */
-    color: #D4AF37;
-    font-size: 18px;
-    pointer-events: none; /* عشان الضغطة تعدي للحقل */
-    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
-    /* لمعة خفيفة للأيقونة */
-    text-shadow: 0 0 5px rgba(212, 175, 55, 0.3);
-}
-
-
-.search-input-box:focus-within .search-icon-inside {
-    color: #FFD700; /* ذهبي فاتح لامع */
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
-    transform: translateY(-50%) scale(1.1); /* تكبير بسيط */
-}/* ================= اللوجو الذهبي الحي (Miracle Gold) ================= */
-
-/* 1. الحاوية الأساسية */
-.luxury-logo-container {
-    background: none !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px; /* مسافة مريحة */
-    font-family: 'Cairo', sans-serif;
-    font-size: 26px;
-    font-weight: 900;
-}
-
-/* 2. تنسيق الكلمتين (Wareed & chat) - ذهبي معدني وقور */
-/* تنسيق الكلمتين (Wareed & chat) - ذهبي مع إطار موف غامق */
-/* ================= النص الذهبي بلمعة متحركة (Shining Gold) ================= */
-
-.gold-text {
-    /* إعداد التدرج الذهبي ليكون فيه "خط نور" في المنتصف */
-    background: linear-gradient(
-        120deg,      /* زاوية ميل اللمعة */
-        #3a2c0f 0%,  /* بني غامق (بداية) */
-        #997f3d 20%, /* ذهبي متوسط */
-        #ffecb3 40%, /* ذهبي فاتح */
-        #ffffff 50%, /* أبيض ساطع (دي اللمعة نفسها) */
-        #ffecb3 60%, /* رجوع للذهبي الفاتح */
-        #997f3d 80%, /* ذهبي متوسط */
-        #3a2c0f 100% /* بني غامق (نهاية) */
-    );
-    
-    /* تكبير حجم الخلفية لضعف حجم النص عشان نقدر نحركها */
-    background-size: 200% auto;
-    
-    /* قص الخلفية على شكل الحروف */
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: #fff; /* احتياطي */
-
-    /* الإطار الموف الغامق بتاعك زي ما هو */
-    -webkit-text-stroke: 1.5px #4c1d95;
-    filter: drop-shadow(0 2px 0 rgba(76, 29, 149, 0.5));
-    
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    
-    /* تشغيل أنيميشن اللمعة */
-    /* المدة 5 ثواني - تتكرر باستمرار - حركة خطية ناعمة */
-    animation: shineMove 5s linear infinite;
-}
-
-/* تعريف حركة اللمعة */
-@keyframes shineMove {
-    0% {
-        background-position: 0% center; /* بداية اللمعة من اليسار */
-    }
-    100% {
-        background-position: -200% center; /* تحريك الخلفية بالكامل لليمين */
-    }
-}
-
-/* ================= القلب الذهبي الفاخر المشع (Pro Gold Heart) ================= */
-
-/* ================= قلب الوريد الذهبي (Gold-Rimmed Blood Heart) ================= */
-
-.miracle-heart {
-    /* 1. الحجم */
-    font-size: 32px; 
-    display: inline-block;
-    
-    /* 2. اللون الداخلي (لون الوريد/الدم) */
-    color: #d60000; /* أحمر دموي صريح */
-    
-    /* 3. الإطار الخارجي (الذهبي) */
-    /* ده اللي بيعمل البرواز الدهبي حوالين اللون الأحمر */
-    -webkit-text-stroke: 1.5px #FFD700; 
-    
-    /* 4. الظل والإشعاع */
-    /* بنعمل ميكس بين ضي ذهبي وضي أحمر */
-    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8)) drop-shadow(0 0 10px rgba(200, 0, 0, 0.5));
-    
-    /* 5. الأنيميشن */
-    animation: veinPulse 1.5s infinite cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    transform-origin: center;
-}
-
-/* حركة نبض الوريد */
-@keyframes veinPulse {
-    0% {
-        transform: scale(1);
-        color: #d60000; /* أحمر غامق */
-        filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.8));
-    }
-    15% {
-        transform: scale(1.25); /* الدقة القوية */
-        color: #ff0000; /* يحمر جداً مع الدقة (فريش) */
-        /* التوهج يزيد ذهبي وأحمر */
-        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 1)) drop-shadow(0 0 25px rgba(255, 0, 0, 0.8));
-    }
-    30% {
-        transform: scale(1.1);
-        color: #e60000;
-    }
-    45% {
-        transform: scale(1.3); /* الدقة التانية */
-        color: #ff1a1a;
-        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 1)) drop-shadow(0 0 30px rgba(255, 0, 0, 1));
-    }
-    100% {
-        transform: scale(1);
-        color: #d60000;
-    }
-}
-
-/* تعريف حركة النبض الواقعية (دقتين سريعتين ثم راحة) */
-@keyframes proHeartBeat {
-    0% { 
-        transform: scale(1); 
-        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6)) drop-shadow(0 0 15px rgba(255, 140, 0, 0.4));
-    }
-    15% { 
-        transform: scale(1.15); /* الدقة الأولى */
-        /* زيادة الإشعاع مع النبضة */
-        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.9)) drop-shadow(0 0 25px rgba(255, 69, 0, 0.7)) brightness(1.1);
-    }
-    30% { 
-        transform: scale(1.05); /* رجوع جزئي */
-        filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7)) drop-shadow(0 0 18px rgba(255, 140, 0, 0.5));
-    }
-    45% { 
-        transform: scale(1.2); /* الدقة الثانية الأقوى */
-        /* إشعاع أقوى */
-        filter: drop-shadow(0 0 18px rgba(255, 215, 0, 1)) drop-shadow(0 0 30px rgba(255, 69, 0, 0.8)) brightness(1.2);
-    }
-    65% { 
-        transform: scale(1); /* الرجوع للحجم الطبيعي */
-        filter: drop-shadow(0 0 8px rgba(255, 215, 0, 0.6)) drop-shadow(0 0 15px rgba(255, 140, 0, 0.4));
-    }
-    100% { 
-        transform: scale(1); /* فترة راحة */
-    }
-}
-/* ================= القائمة الجانبية: ستايل "رويال جولد" (Royal Gold Tech) =/* ================= القائمة الجانبية: ستايل "التداخل الملكي" (Royal Blend) ================= */
-
+/* ================= 7. القائمة الجانبية (Royal Blend) ================= */
 .sidebar {
     position: fixed; top: 0; right: -320px; width: 280px; height: 100%;
     z-index: 10001; transition: 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-    display: flex; flex-direction: column; 
-    padding-top: 0; /* شيلنا البادينج عشان الخلفية تاخد المساحة كلها */
-    box-shadow: -10px 0 50px rgba(0,0,0,0.8);
-    border-left: 1px solid rgba(255, 215, 0, 0.2);
-
-    /* 1. الخلفية الأساسية: لون كحلي غامق مائل للموف */
-    background-color: #0f0c15; 
-    overflow: hidden; /* مهم عشان الأشكال ما تطلعش بره */
+    display: flex; flex-direction: column; padding-top: 0;
+    box-shadow: -10px 0 50px rgba(0,0,0,0.8); border-left: 1px solid rgba(255, 215, 0, 0.2);
+    background-color: #0f0c15; overflow: hidden;
 }
+.sidebar.active { right: 0; }
+.sidebar-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(5px); }
+.sidebar-overlay.active { opacity: 1; pointer-events: auto; }
 
-/* ================= منطقة البروفايل (التداخل الاحترافي) ================= */
 .sidebar-profile-header {
-    position: relative;
-    flex-shrink: 0;
-    padding: 60px 20px 40px; /* كبرنا المساحة عشان التصميم يبان */
-    text-align: center;
+    position: relative; flex-shrink: 0; padding: 60px 20px 40px; text-align: center;
     display: flex; flex-direction: column; align-items: center;
-    
-    /* 2. خلفية منطقة البروفايل: تدرج موف غامق */
     background: linear-gradient(180deg, #2e1065 0%, #0f0c15 100%);
-    
-    /* خط فاصل ناعم تحتها */
     border-bottom: 1px solid rgba(255, 215, 0, 0.1);
 }
-
-/* 3. الشبكة الذهبية (Mesh) - دي الطبقة اللي بتعمل الشكل الهندسي */
 .sidebar-profile-header::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    
-    /* رسم الشبكة الذهبية بالكود */
-    background-image: 
-        repeating-linear-gradient(45deg, rgba(255, 215, 0, 0.05) 0px, rgba(255, 215, 0, 0.05) 1px, transparent 1px, transparent 10px),
-        repeating-linear-gradient(-45deg, rgba(255, 215, 0, 0.05) 0px, rgba(255, 215, 0, 0.05) 1px, transparent 1px, transparent 10px);
-    
-    /* التريك هنا: بنخلي الشبكة تختفي بالتدريج من تحت (Fade Out) */
-    mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-    -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
-    
-    z-index: 0; /* عشان تكون ورا الكلام */
+    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-image: repeating-linear-gradient(45deg, rgba(255, 215, 0, 0.05) 0px, rgba(255, 215, 0, 0.05) 1px, transparent 1px, transparent 10px);
+    mask-image: linear-gradient(to bottom, black 40%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 40%, transparent 100%); z-index: 0;
 }
 .sidebar-avatar-container {
-    width: 90px; 
-    height: 90px; 
-    border-radius: 50%;
-    
-    /* التعديل هنا: خليت الإطار ذهبي صريح */
-    border: 3px solid #FFD700; 
-    
-    /* التعديل هنا: خليت النور (الوهج) اللي حواليها ذهبي برضه */
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
-    
-    margin-bottom: 15px; 
-    background-size: cover; 
-    background-position: center;
-    background-color: #222;
-    position: relative; 
-    z-index: 1;
+    width: 90px; height: 90px; border-radius: 50%; border: 3px solid #FFD700;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4); margin-bottom: 15px;
+    background-size: cover; background-position: center; background-color: #222; position: relative; z-index: 1;
 }
+.sidebar-my-name { font-size: 22px; font-weight: 700; color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center; width: 100%; position: relative; z-index: 1; }
 
-
-/* ================= باقي القائمة (تحت) ================= */
-.sidebar-scroll-area {
-    /* تدرج خفيف تحت بيكمل الشكل */
-    background: linear-gradient(180deg, rgba(15, 12, 21, 0) 0%, rgba(139, 92, 246, 0.05) 100%);
-}
-
-/* ================= تعديل بسيط في العناصر عشان تليق ================= */
+.sidebar-scroll-area { flex-grow: 1; overflow-y: auto; padding-bottom: 20px; background: linear-gradient(180deg, rgba(15, 12, 21, 0) 0%, rgba(139, 92, 246, 0.05) 100%); scrollbar-width: none; }
 .sidebar-item {
-    margin: 5px 15px;
-    border-radius: 10px;
+    position: relative; padding: 16px 20px; display: flex; align-items: center; gap: 15px;
+    font-size: 15px; font-weight: 700; color: #e0e0e0; cursor: pointer;
+    transition: all 0.3s ease; margin: 5px 15px; border-radius: 10px; overflow: hidden;
 }
-/* الخط الفاصل تحت العناصر */
+.sidebar-item i { width: 30px; text-align: center; font-size: 20px; color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); transition: 0.3s; }
 .sidebar-item::after {
-    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.3), transparent);
+    content: ''; position: absolute; bottom: 0; left: 15%; width: 70%; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), rgba(255, 215, 0, 0.5), rgba(139, 92, 246, 0.5), transparent); opacity: 0.4;
 }
-
-/* ================= عناصر القائمة ================= */
-.sidebar-item {
-    position: relative;
-    padding: 16px 20px; 
-    display: flex; 
-    align-items: center; 
-    gap: 15px;
-    font-size: 15px; 
-    font-weight: 700; 
-    color: #e0e0e0; 
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 5px 15px; /* مسافة جانبية عشان يبان الكيرف */
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-/* الأيقونات */
-.sidebar-item i { 
-    width: 30px; 
-    text-align: center; 
-    font-size: 20px; 
-    color: #FFD700; /* ذهبي */
-    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); /* توهج للأيقونة */
-    transition: 0.3s;
-}
-
-/* ================= الخط الفاصل (النور) ================= */
-/* ده الخط اللي بيظهر تحت كل عنصر */
-.sidebar-item::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 15%;
-    width: 70%;
-    height: 1px;
-    /* تدرج ذهبي وموف */
-    background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.5), rgba(255, 215, 0, 0.5), rgba(139, 92, 246, 0.5), transparent);
-    opacity: 0.4;
-}
-/* إخفاء الخط من آخر عنصر */
 .sidebar-item:last-child::after { display: none; }
-
-/* ================= تأثيرات الحركة (Hover) ================= */
-.sidebar-item:hover {
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.05), transparent); /* لمعة ذهبية خفيفة */
-    transform: translateX(-5px);
-    color: #fff;
-}
-
-.sidebar-item:hover i {
-    transform: scale(1.1);
-    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
-}
-
-.sidebar-item:active {
-    transform: scale(0.98);
-}
-/* ================= الهيدر العائم المدمج (Compact Floating Header) ================= */
-
-.main-header {
-    /* 1. المكان */
-    position: sticky;
-    top: 8px; /* قربناه من سقف الشاشة شوية */
-    z-index: 1000;
-    
-    /* 2. الأبعاد (صغرناها) */
-    width: 94%; /* عرض مناسب */
-    height: 55px; /* حكمنا الارتفاع عشان مايفرشش */
-    margin: 0 auto 15px auto; /* مسافة 15 بكسل من تحت عشان يبعد عن السيرش */
-    padding: 0 15px; /* لغينا البادينج فوق وتحت عشان الارتفاع يظبط */
-    
-    /* 3. الشكل */
-    border-radius: 20px; /* كيرف أنعم وأصغر */
-    
-    /* 4. الخلفية */
-    background: rgba(20, 20, 25, 0.85); /* زودنا التعتيم سِنة للوضوح */
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    
-    /* 5. الحدود والإضاءة */
-    border: 1px solid rgba(255, 215, 0, 0.1);
-    border-bottom: 2px solid rgba(139, 92, 246, 0.3);
-    
-    /* 6. الظل */
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
-    
-    /* تنسيق المحتوى */
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-}
-/* ================= زر إنشاء محادثة العائم (Royal Floating Button) ================= */
-
-.floating-fab {
-    /* 1. المكان: عائم أسفل اليسار */
-    position: fixed;
-    bottom: 30px;
-    left: 25px;
-    z-index: 9000; /* طبقة عالية عشان يظهر فوق الشات */
-    
-    /* 2. الحجم والشكل */
-    width: 60px;
-    height: 60px;
-    border-radius: 50%; /* دائري تماماً */
-    
-    /* 3. اللون: تدرج ذهبي ملكي */
-    background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%);
-    
-    /* 4. الظل والإضاءة (عشان يبان عايم 3D) */
-    box-shadow: 
-        0 10px 20px rgba(0,0,0,0.4), /* ظل عميق تحت */
-        0 0 15px rgba(255, 215, 0, 0.3), /* توهج ذهبي */
-        inset 0 2px 0 rgba(255,255,255,0.3); /* لمعة إضاءة من فوق */
-    
-    /* 5. حدود رفيعة */
-    border: 1px solid rgba(255, 215, 0, 0.5);
-    
-    /* تنسيق الأيقونة جوه */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    
-    /* أنيميشن بسيط يلفت النظر */
-    animation: floatBreathing 3s ease-in-out infinite;
-}
-
-/* تنسيق القلم (الأيقونة) */
-.floating-fab i {
-    font-size: 24px;
-    color: #1a1a1a; /* لون غامق عشان يبان عالذهبي */
-    transform: rotate(0deg);
-    transition: 0.3s;
-}
-
-/* 6. تأثير الضغط (Active) */
-.floating-fab:active {
-    transform: scale(0.9); /* يصغر سنة */
-    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-}
-
-.floating-fab:active i {
-    transform: rotate(-15deg); /* القلم يميل لما تضغط */
-}
-
-/* أنيميشن التنفس الهادي */
-@keyframes floatBreathing {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-6px); } /* يطلع وينزل ببطء */
-}
-
-/* تصميم شاشة الاتصال الوارد (Pop-up) */
-#incomingCallModal {
-    display: none; /* مخفي افتراضياً */
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 99999;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(10px);
-}
-
-.caller-avatar-large {
-    width: 120px; height: 120px;
-    border-radius: 50%;
-    border: 3px solid #8b5cf6;
-    background-size: cover; background-position: center;
-    margin-bottom: 20px;
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.5);
-    animation: pulseAvatar 2s infinite;
-}
-
-.caller-name-display {
-    font-size: 24px; font-weight: bold; color: white; margin-bottom: 50px;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.5);
-}
-
-.call-actions {
-    display: flex; gap: 40px;
-}
-
-.call-btn {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 24px; color: white; cursor: pointer;
-    transition: transform 0.2s;
-}
-.call-btn:active { transform: scale(0.9); }
-.btn-accept { background: #22c55e; box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); }
-.btn-decline { background: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
-
-@keyframes pulseAvatar {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
-    70% { transform: scale(1.05); box-shadow: 0 0 0 20px rgba(139, 92, 246, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
-}
-/* تصميم نافذة الاتصال العالمية */
-.global-call-overlay {
-    position: fixed;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    backdrop-filter: blur(10px);
-    z-index: 999999; /* رقم عالي جداً لتظهر فوق كل شيء */
-    display: none; /* مخفي افتراضياً */
-    align-items: center;
-    justify-content: center;
-    animation: fadeIn 0.3s ease;
-}
-
-.global-call-card {
-    background: #1e293b;
-    padding: 40px;
-    border-radius: 30px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 20px 50px rgba(0, 229, 255, 0.2);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 90%;
-    max-width: 350px;
-}
-
-.g-avatar {
-    width: 100px; height: 100px;
-    border-radius: 50%;
-    background-size: cover; background-position: center;
-    border: 3px solid #00e5ff;
-    box-shadow: 0 0 20px rgba(0, 229, 255, 0.4);
-    margin-bottom: 20px;
-    animation: pulseRing 1.5s infinite;
-}
-
-.g-info h3 { color: #fff; margin: 0 0 5px 0; font-size: 22px; }
-.g-info span { color: #94a3b8; font-size: 14px; }
-
-.g-actions {
-    display: flex; gap: 40px; margin-top: 40px;
-}
-
-.g-btn {
-    width: 60px; height: 60px;
-    border-radius: 50%; border: none;
-    font-size: 24px; color: #fff;
-    cursor: pointer; display: grid; place-items: center;
-    transition: 0.2s;
-}
-.g-btn.reject { background: #ff3b30; box-shadow: 0 5px 15px rgba(255, 59, 48, 0.4); }
-.g-btn.accept { background: #10b981; box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4); animation: shake 1.2s infinite; }
-
-@keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(0, 229, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0); } }
-/* ================= تصميم قائمة البحث المنبثقة (مصحح وشغال 100%) ================= */
-.search-results-popup {
-    /* Fixed: عشان تثبت على الشاشة مهما عملت سكرول */
-    position: fixed;
-    
-    /* ظبط المسافة دي براحتك (ده اللي بينزلها تحت شريط البحث) */
-    /* لو لقيتها مغطية الشريط زود الرقم، لو بعيدة قلله */
-    top: 130px; 
-    left: 50%;
-    transform: translateX(-50%);
-    
-    width: 94%; /* عرض مناسب للموبايل */
-    max-width: 500px;
-    max-height: 50vh; /* تاخد نص الشاشة بس عشان تعرف تشوف */
-    
-    /* لون غامق عشان الكلام يبان والقصص ما تظهرش من تحتها */
-    background: #111111; 
-    
-    /* حدود ذهبية عشان الشياكة */
-    border: 1px solid #FFD700;
-    border-radius: 15px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.9); /* ظل تقيل */
-    
-    /* 🔥 الرقم ده هو اللي بيخليها تظهر فوق القصص 🔥 */
-    z-index: 9999999 !important;
-    
-    overflow-y: auto; /* عشان لو النتايج كتير تعمل سكرول */
-    display: none; /* مخفية في البداية */
-}
-
-/* لما تفتح */
-.search-results-popup.active {
-    display: block !important;
-    animation: slideDown 0.3s ease-out;
-}
-
-/* حركة ناعمة للظهور */
-@keyframes slideDown {
-    from { opacity: 0; transform: translate(-50%, -20px); }
-    to { opacity: 1; transform: translate(-50%, 0); }
-}
-
-
-/* تنسيق إضافي عشان شكل القصص ما يأثرش */
-.stories-section {
-    /* ده بيخلي القصص طبقة أقل من البحث */
-    position: relative;
-    z-index: 1; 
-}
-
-
-/* تنسيق العناصر جوه القائمة */
-.search-result-item {
-    display: flex; align-items: center; gap: 12px;
-    padding: 12px 15px; margin: 5px 10px;
-    border-radius: 12px; cursor: pointer;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.search-result-item:active { background: rgba(255, 215, 0, 0.15); }
-
-/* تلوين الكلمة */
-.highlight-text {
-    background-color: #FFD700;
-    color: #000;
-    border-radius: 3px;
-    padding: 0 3px;
-    font-weight: bold;
-}
-
-/* زرار الإغلاق في شريط البحث */
-#closeSearchBtn {
-    z-index: 10;
-    padding: 10px;
-}
-
-/* تلوين الكلمة اللي بتبحث عنها */
-.highlight-text {
-    background: #FFD700;
-    color: #000;
-    padding: 0 3px;
-    border-radius: 3px;
-    font-weight: bold;
-}
-
-/* تمييز الكلمة المبحوث عنها */
-.highlight-text { 
-    color: #1a1a1a; 
-    background: #FFD700; 
-    font-weight: bold; 
-    padding: 0 4px; 
-    border-radius: 4px; 
-}
-
-/* الأفاتار في البحث */
-.search-res-avatar {
-    width: 45px; height: 45px;
-    border-radius: 14px;
-    background-size: cover; background-position: center;
-    border: 1px solid rgba(255, 215, 0, 0.3);
-    flex-shrink: 0;
-}
-
-/* تفاصيل النص */
-.search-res-info {
-    flex: 1;
-    display: flex; flex-direction: column; justify-content: center;
-    overflow: hidden;
-}
-
-.search-res-name {
-    color: #fff; font-size: 14px; font-weight: bold;
-    margin-bottom: 4px;
-}
-
-.search-res-snippet {
-    color: #a0a0a0; font-size: 12px;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-/* تلوين الكلمة المبحوث عنها */
-.highlight-text {
-    color: #FFD700; /* ذهبي */
-    font-weight: bold;
-    background: rgba(255, 215, 0, 0.15);
-    padding: 0 2px;
-    border-radius: 4px;
-}
-
-/* هيدر القائمة (عدد النتائج) */
-.search-header-count {
-    padding: 5px 20px 10px;
-    color: var(--accent-color);
-    font-size: 12px;
-    font-weight: bold;
-    border-bottom: 1px solid rgba(255,255,255,0.1);
-    margin-bottom: 5px;
-    display: flex; justify-content: space-between;
-}
-
-/* تنسيق أيقونة "تمت المشاهدة" بصورة الشخص */
-.seen-avatar-icon {
-    width: 15px; 
-    height: 15px;
-    border-radius: 50%;
-    background-size: cover; 
-    background-position: center;
-    border: 1px solid #000; /* حدود سودة عشان تفصلها عن الخلفية */
-    box-shadow: 0 0 2px rgba(255,255,255,0.3);
-    margin-left: 5px; /* مسافة بينها وبين الكلام */
-    display: inline-block;
-    flex-shrink: 0;
-    transition: transform 0.2s;
-}
-/* تنسيق الـ Checkbox المخصص */
-.delete-checkbox-container {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    user-select: none;
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-}
-
-.delete-checkbox-container input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.checkmark {
-    height: 20px;
-    width: 20px;
-    background-color: #333;
-    border: 2px solid #555;
-    border-radius: 4px;
-    position: relative;
-    transition: 0.2s;
-}
-
-.delete-checkbox-container input:checked ~ .checkmark {
-    background-color: var(--accent-color);
-    border-color: var(--accent-color);
-}
-
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-    left: 6px;
-    top: 2px;
-    width: 5px;
-    height: 10px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.delete-checkbox-container input:checked ~ .checkmark:after {
-    display: block;
-}
-
-/* ================= شريط المتصلين السريع (معدل) ================= */
-.quick-users-section {
-    padding: 10px 0 5px 0;
-    margin-bottom: 5px;
-    border-bottom: 1px solid var(--card-border);
-    display: flex;
-    flex-direction: column;
-    background: transparent; /* خلفية شفافة */
-}
-
-.quick-users-title {
-    padding: 0 20px 8px;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--text-secondary);
-}
-
-.quick-users-scroll {
-    display: flex;
-    gap: 12px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 15px;
-    align-items: flex-start; /* إصلاح مشكلة التمدد */
-}
-.quick-users-scroll::-webkit-scrollbar { display: none; }
-
-/* العنصر بالكامل */
-.quick-user-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    width: 55px; /* عرض ثابت صغير */
-    min-width: 55px; /* منع الانكماش */
-    flex-shrink: 0;
-}
-
-.quick-user-item:active { transform: scale(0.95); transition: 0.2s; }
-
-/* حاوية الصورة */
-.quick-avatar-wrapper {
-    position: relative;
-    width: 50px;  /* حجم الدائرة */
-    height: 50px; /* حجم الدائرة */
-    margin-bottom: 5px;
-}
-
-/* الصورة نفسها */
-.quick-avatar-img {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    border: 2px solid rgba(255, 215, 0, 0.3); /* إطار ذهبي */
-    background-color: #2a2a2a;
-}
-
-/* اللمبة الخضراء */
-.quick-online-dot {
-    position: absolute;
-    bottom: 1px;
-    right: 1px;
-    width: 14px;
-    height: 14px;
-    background-color: #4ade80;
-    border: 2px solid #000; /* حدود سوداء لتبرز اللمبة */
-    border-radius: 50%;
-    z-index: 5;
-    box-shadow: 0 0 5px rgba(74, 222, 128, 0.8);
-}
-
-/* الاسم */
-.quick-user-name {
-    font-size: 10px;
-    color: #e0e0e0;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    font-weight: 600;
-}
-/* ================== تحسينات الحجم (Compact Design) ================== */
-
-/* 1. قسم القصص: تقليل الهوامش */
-.stories-section {
-    padding: 8px 0 5px 0; /* تقليل المسافات العلوية والسفلية */
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    margin-bottom: 0;
-}
-
-.stories-title {
-    padding: 0 15px 5px; /* تقريب العنوان من القصص */
-    font-size: 12px;
-    margin-bottom: 0;
-}
-
-/* 2. تصغير كارت القصة نفسه (هذا هو المؤثر الأكبر) */
-.story-card {
-    width: 75px;   /* تصغير العرض (كان 85) */
-    height: 115px; /* تصغير الطول (كان 135) - سيوفر مساحة كبيرة */
-    border-radius: 9px;
-    margin-bottom: 5px; /* مسافة صغيرة تحت الكارت */
-}
-
-/* تعديل حجم زر الإضافة والاسم داخل القصة الصغيرة */
-.add-story-btn-circle {
-    width: 24px; height: 24px; top: -12px; font-size: 12px;
-}
-.story-card-name {
-    padding: 15px 4px 4px 4px; font-size: 9px;
-}
-.story-card-avatar {
-    width: 24px; height: 24px; top: 4px; left: 4px;
-}
-
-/* 3. قسم نشط الآن: تقليل الهوامش */
-.quick-users-section {
-    padding: 5px 0; /* تقليل المسافة الكلية */
-    margin-bottom: 2px;
-    border-bottom: 1px solid var(--card-border);
-}
-
-.quick-users-title {
-    padding: 0 15px 5px;
-    font-size: 12px;
-    margin-bottom: 0;
-}
-
-/* 4. تصغير دوائر المتصلين */
-.quick-users-scroll {
-    gap: 10px; /* تقريب الأشخاص من بعضهم */
-    padding: 0 12px;
-}
-
-.quick-user-item {
-    width: 50px; /* تصغير المساحة المحجوزة لكل شخص */
-    min-width: 50px;
-}
-
-.quick-avatar-wrapper {
-    width: 44px;  /* تصغير الدائرة (كانت 50) */
-    height: 44px;
-    margin-bottom: 2px;
-}
-
-.quick-online-dot {
-    width: 11px; height: 11px; /* تصغير اللمبة لتتناسب مع الدائرة */
-    border-width: 1.5px;
-}
-
-.quick-user-name {
-    font-size: 9px; /* تصغير الخط */
-    margin-top: 0;
-}
-
-/* إصلاح الطبقات */
-.side-menu {
-    z-index: 20000 !important; /* القائمة فوق كل شيء */
-}
-
-/* رفع زر الحذف وكرة التنقل */
-.uranium-orb, #deleteZone {
-    z-index: 20002 !important;
-}
-
-/* التأكد من أن الخلفية السوداء أقل منهم */
-.overlay-bg, .popup-backdrop {
-    z-index: 10000 !important;
-}
-
-/* رفع القوائم السفلية */
+.sidebar-item:hover { background: linear-gradient(90deg, rgba(255, 215, 0, 0.05), transparent); transform: translateX(-5px); color: #fff; }
+.sidebar-item:hover i { transform: scale(1.1); text-shadow: 0 0 15px rgba(255, 215, 0, 0.8); }
+
+/* ================= 8. القوائم السفلية (Bottom Sheets) ================= */
+.bottom-sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px); z-index: 20000; opacity: 0; pointer-events: none; transition: 0.3s; display: flex; align-items: flex-end; justify-content: center; }
+.bottom-sheet-overlay.active { opacity: 1; pointer-events: auto; }
 .bottom-sheet {
-    z-index: 10001 !important;
+    width: 100%; max-width: 500px; background: rgba(20, 20, 25, 0.95); backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.1); border-radius: 25px 25px 0 0;
+    transform: translateY(100%); transition: 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    padding: 15px 15px 40px 15px; box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+    max-height: 80vh; overflow-y: auto; z-index: 10001;
 }
-
-
-#storyArchiveModal .modal-box {
-    /* أسود رمادي فخم جداً */
-    background: rgba(12, 12, 12, 0.95) !important;
-    backdrop-filter: blur(30px);
-    -webkit-backdrop-filter: blur(30px);
-    
-    /* حدود ذهبية خافتة جداً */
-    border: 1px solid rgba(255, 215, 0, 0.15);
-    border-top: 1px solid rgba(255, 215, 0, 0.4); /* لمعة ذهبية من فوق */
-    
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9);
-    
-    /* ... باقي الخصائص زي ما هي (border-radius, width, etc) */
-    border-radius: 25px;
-    width: 95%;
-    max-width: 450px;
-    height: 80vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    animation: slideUpFade 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+.bottom-sheet-overlay.active .bottom-sheet { transform: translateY(0); }
+.sheet-handle { width: 50px; height: 5px; background: #555; border-radius: 10px; margin: 0 auto 25px auto; }
+.sheet-action {
+    display: flex; align-items: center; gap: 15px; padding: 16px 20px;
+    font-size: 16px; color: #fff; border-radius: 16px; margin-bottom: 8px;
+    cursor: pointer; transition: 0.2s; background: rgba(255,255,255,0.03);
 }
+.sheet-action:active { background: rgba(255,255,255,0.08); transform: scale(0.98); }
+.sheet-action i { width: 30px; text-align: center; font-size: 18px; color: #ddd; }
+.sheet-action.danger { color: #ff5555; background: rgba(255, 85, 85, 0.05); }
 
-/* 2. الهيدر (العنوان) */
-#storyArchiveModal .archive-header {
-    padding: 18px 24px;
-    background: linear-gradient(180deg, rgba(0,0,0,0.2), transparent);
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    display: flex; justify-content: space-between; align-items: center;
-}
-
-#storyArchiveModal h3 {
-    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%); /* نص متدرج فضي في موف */
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 900;
-    font-size: 22px;
-    letter-spacing: 0.5px;
-    margin: 0;
-}
-
-/* 3. الشبكة (Grid) */
-#archiveGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px; /* مسافة متناسقة */
-    padding: 15px;
-    overflow-y: auto;
-    /* إخفاء السكرول بار */
-    scrollbar-width: none; 
-}
-#archiveGrid::-webkit-scrollbar { display: none; }
-
-/* 4. كارت القصة (الوحدة الواحدة) */
-.archive-item {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 16;
-    border-radius: 14px;
-    overflow: hidden;
-    cursor: pointer;
-    background: #1a1a1a;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-    border: 1px solid transparent;
-}
-
-/* تأثير عند الضغط */
-.archive-item:active {
-    transform: scale(0.92);
-    border-color: var(--accent-color);
-}
-
-/* الصورة أو الفيديو المصغر */
-.archive-media {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s ease;
-}
-
-/* تأثير زووم خفيف للصورة */
-.archive-item:hover .archive-media {
-    transform: scale(1.1);
-}
-
-/* طبقة تظليل عشان الكلام يبان */
-.archive-item::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%);
-    pointer-events: none;
-}
-
-/* 5. زر الحذف (مطور) */
-.archive-delete-btn {
-    position: absolute;
-    top: 8px;
-    left: 8px;
-    width: 32px;
-    height: 32px;
-    background: rgba(30, 30, 30, 0.6);
-    backdrop-filter: blur(5px);
-    border-radius: 10px; /* مربع بحواف دائرية أشيك */
+/* ================= 9. الزر العائم (Royal FAB) ================= */
+.floating-fab {
+    position: fixed; bottom: 30px; left: 25px; z-index: 9000;
+    width: 60px; height: 60px; border-radius: 50%;
+    background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4), 0 0 15px rgba(255, 215, 0, 0.3), inset 0 2px 0 rgba(255,255,255,0.3);
+    border: 1px solid rgba(255, 215, 0, 0.5);
     display: flex; align-items: center; justify-content: center;
-    color: #ff5555;
-    font-size: 14px;
-    z-index: 10;
-    border: 1px solid rgba(255, 85, 85, 0.2);
-    transition: all 0.2s ease;
-    opacity: 0.8;
+    cursor: pointer; transition: all 0.3s; animation: floatBreathing 3s ease-in-out infinite;
 }
+.floating-fab i { font-size: 24px; color: #1a1a1a; transition: 0.3s; }
+.floating-fab:active { transform: scale(0.9); }
+.floating-fab:active i { transform: rotate(-15deg); }
+@keyframes floatBreathing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-.archive-item:hover .archive-delete-btn {
-    opacity: 1;
-    background: rgba(0, 0, 0, 0.8);
-}
-
-.archive-delete-btn:active {
-    background: #ff4444;
-    color: #fff;
-    transform: scale(0.9);
-}
-
-/* 6. التاريخ (Badge) */
-.archive-date-badge {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 10px;
-    font-weight: 700;
-    z-index: 5;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-    background: rgba(255,255,255,0.1);
-    padding: 2px 6px;
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-/* ================= 🎥 تصميم عارض الميديا السينمائي 🎥 ================= */
-
-.archive-viewer-overlay {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    /* خلفية مموهة بدل الأسود الكاتم */
-    background: rgba(5, 5, 5, 0.92);
-    backdrop-filter: blur(15px); 
-    -webkit-backdrop-filter: blur(15px);
-    z-index: 60000;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    animation: fadeInViewer 0.3s ease forwards;
-}
-
-@keyframes fadeInViewer {
-    from { opacity: 0; backdrop-filter: blur(0px); }
-    to { opacity: 1; backdrop-filter: blur(15px); }
-}
-
-/* حاوية المحتوى (الصورة/الفيديو) */
-.archive-viewer-content {
-    max-width: 95%;
-    max-height: 85%;
-    width: auto;
-    height: auto;
-    object-fit: contain;
-    border-radius: 16px;
-    /* ظل ملون خفيف ورا الفيديو */
-    box-shadow: 0 0 50px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
-    
-    transform: scale(0.9);
-    animation: zoomInMedia 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
-
-@keyframes zoomInMedia {
-    to { transform: scale(1); }
-}
-
-/* زر الإغلاق العائم */
-.archive-close-btn {
-    position: absolute;
-    top: 40px;
-    left: 30px;
-    color: #fff;
-    font-size: 22px;
-    background: rgba(255, 255, 255, 0.1);
-    width: 50px; height: 50px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    z-index: 60001;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.15);
-    transition: all 0.2s ease;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.archive-close-btn:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: rotate(90deg);
-}
-
-.archive-close-btn:active {
-    background: var(--accent-color);
-    transform: scale(0.9);
-}
-
-/* رسالة فارغ */
-.empty-archive {
-    grid-column: span 3;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: #666; padding: 60px 0; gap: 15px;
-}
-.empty-archive i {
-    font-size: 50px;
-    background: linear-gradient(45deg, #333, #555);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    opacity: 0.5;
-}
-/* ================= 💜 ثيم الموف الملكي (Royal Mauve) 💜 ================= */
-
-/* 1. النافذة الرئيسية */
+/* ================= 10. أرشيف القصص (Royal Mauve Theme) ================= */
 #storyArchiveModal .modal-box {
-    /* خلفية سوداء عميقة مع لمسة موف خفيفة جداً في التدرج */
     background: linear-gradient(160deg, #181020, #000000) !important;
-    backdrop-filter: blur(35px);
-    -webkit-backdrop-filter: blur(35px);
-    
-    /* حدود موف غامق شيك */
-    border: 1px solid rgba(126, 34, 206, 0.3); /* موف متوسط للبرواز كله */
-    border-top: 2px solid #7e22ce; /* خط موف صريح وقوي من فوق */
-    border-bottom: 1px solid #581c87; /* موف غامق من تحت للظل */
-    
-    /* توهج موف (Glow) هادي جداً */
-    box-shadow: 
-        0 20px 60px rgba(0, 0, 0, 0.95), /* ظل عمق */
-        0 0 30px rgba(126, 34, 206, 0.15), /* هالة موف خارجية */
-        inset 0 0 20px rgba(126, 34, 206, 0.05); /* لمعة داخلية */
-    
-    border-radius: 24px;
-    width: 95%; max-width: 450px; height: 80vh;
-    display: flex; flex-direction: column; overflow: hidden;
-    animation: slideUpFade 0.4s ease;
+    backdrop-filter: blur(35px); border: 1px solid rgba(126, 34, 206, 0.3);
+    border-top: 2px solid #7e22ce; border-bottom: 1px solid #581c87;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(126, 34, 206, 0.15);
+    border-radius: 24px; width: 95%; max-width: 450px; height: 80vh;
+    display: flex; flex-direction: column; overflow: hidden; animation: slideUpFade 0.4s ease;
 }
-
-/* 2. العناصر الداخلية (المربعات) */
 .archive-item {
     position: relative; width: 100%; aspect-ratio: 9/16;
-    
-    /* خلفية شفافة بلمسة موف */
-    background: rgba(126, 34, 206, 0.03); 
-    
-    border-radius: 12px; overflow: hidden; cursor: pointer;
-    /* برواز موف رفيع جداً */
-    border: 1px solid rgba(126, 34, 206, 0.15);
-    
-    transition: transform 0.2s, border-color 0.2s;
+    background: rgba(126, 34, 206, 0.03); border-radius: 12px; overflow: hidden; cursor: pointer;
+    border: 1px solid rgba(126, 34, 206, 0.15); transition: transform 0.2s, border-color 0.2s;
 }
+.archive-item:active { transform: scale(0.96); border-color: #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+.archive-media { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
 
-/* لما تضغط على الصورة تنور موف */
-.archive-item:active {
-    transform: scale(0.96);
-    border-color: #a855f7; /* تنور موف فاتح */
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+/* ================= 11. عارض القصص (Story Viewer) ================= */
+#storyViewer {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 25000; flex-direction: column;
 }
-
-/* 3. العناوين والنصوص */
-#storyArchiveModal h3 {
-    /* تدرج لوني موف في فضي (Metallic Mauve) */
-    background: linear-gradient(to right, #e9d5ff, #c084fc, #a855f7);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-weight: 800;
-    font-size: 22px;
-    filter: drop-shadow(0 0 2px rgba(126, 34, 206, 0.4));
+.story-blur-bg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover; background-position: center; filter: blur(30px) brightness(0.6);
+    opacity: 0.8; z-index: 1; transition: background 0.5s ease;
 }
-
-/* أيقونة الإغلاق */
-#storyArchiveModal .fa-xmark {
-    color: #d8b4fe !important; /* موف فاتح */
-    text-shadow: 0 0 10px rgba(168, 85, 247, 0.6);
-    transition: 0.3s;
+.story-media-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+    perspective: 1000px; transform-style: preserve-3d;
 }
-#storyArchiveModal .fa-xmark:active {
-    transform: scale(0.9) rotate(90deg);
-    color: #fff !important;
+.story-media-container img, .story-media-container video {
+    max-width: 100%; max-height: 100%; object-fit: contain; width: 100%;
 }
-/* ================= شبكة العرض (Grid) ================= */
-#archiveGrid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding: 15px;
-    overflow-y: auto;
-    padding-bottom: 60px; /* مساحة زيادة تحت عشان القائمة لو فتحت في آخر صف */
+.progress-bars-wrapper {
+    position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; z-index: 30;
 }
+.progress-segment { height: 3px; flex: 1; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: #fff; }
 
-/* 1. الكارت الرئيسي (الحاوية) - شيلنا منه القص */
-.archive-item {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 9 / 16;
-    cursor: pointer;
-    z-index: 1; /* طبقة عادية */
-    transition: transform 0.2s;
+.story-footer {
+    position: absolute; bottom: 20px; left: 0; width: 100%; padding: 0 15px;
+    display: flex; align-items: center; gap: 10px; z-index: 30;
 }
-
-/* كلاس هنضيفه بالجافاسكريبت لما القائمة تفتح عشان يرفع الكارت فوق اخواته */
-.archive-item.active-zindex {
-    z-index: 1000 !important; /* رقم عالي جداً عشان يغطي على اللي جنبه */
+.story-reply-input { flex: 1; position: relative; margin-left: 10px; }
+.story-reply-input input {
+    width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 25px; padding: 12px 15px 12px 45px; color: #fff; outline: none; backdrop-filter: blur(5px);
 }
-
-.archive-item:active {
-    transform: scale(0.96);
+.send-btn-inside {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--accent-color); font-size: 18px; cursor: pointer; z-index: 10;
 }
-
-/* 2. غلاف الميديا (الجديد) - ده المسؤول عن الشكل الدائري والقص */
-.archive-media-wrapper {
-    width: 100%;
-    height: 100%;
-    border-radius: 12px;
-    overflow: hidden; /* ده بيقص الصورة بس */
-    border: 1px solid rgba(126, 34, 206, 0.2);
-    position: relative;
-    background: #000;
+.story-reaction-btn { font-size: 24px; cursor: pointer; transition: 0.2s; padding: 5px; }
+.story-header-info {
+    position:absolute; top:20px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:center; z-index:30;
 }
-
-/* الصورة نفسها */
-.archive-media {
-    width: 100%; height: 100%; object-fit: cover; opacity: 0.9;
+.story-user-avatar-small { width: 32px; height: 32px; border-radius: 50%; background-size: cover; border: 1px solid #fff; }
+.story-views-count {
+    color: #fff; font-size: 14px; background: rgba(0,0,0,0.6); padding: 6px 14px;
+    border-radius: 20px; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(5px);
 }
-
-/* 3. زر الثلاث نقط (بره غلاف الميديا عشان يبقى حر) */
-.archive-more-btn {
-    position: absolute;
-    top: 8px; left: 8px;
-    width: 28px; height: 28px;
-    background: rgba(0, 0, 0, 0.7);
-    backdrop-filter: blur(4px);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff; font-size: 14px;
-    z-index: 10;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.story-options-sheet {
+    position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a;
+    border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.3s;
+    z-index: 30000; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.1);
 }
+.story-options-sheet.active { transform: translateY(0); }
+.story-opt-item { padding: 15px 20px; display: flex; align-items: center; gap: 15px; color: #fff; cursor: pointer; }
+.story-sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 29000; opacity: 0; pointer-events: none; transition: 0.3s; }
+.story-sheet-overlay.active { opacity: 1; pointer-events: auto; }
+#floatingHearts { position: fixed; bottom: 0; right: 20px; width: 100px; height: 100vh; pointer-events: none; z-index: 99999; overflow: visible; }
+@keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 10% { opacity: 1; transform: translateY(-50px) scale(1.2); } 100% { transform: translateY(-80vh) scale(1); opacity: 0; } }
 
-/* 4. القائمة المنبثقة (Dropdown) - حرة طليقة */
-.archive-menu {
-    position: absolute;
-    top: 40px; /* تحت الزرار */
-    left: 0;   /* محاذاة لليسار */
-    
-    width: 140px; /* عرض أكبر شوية */
-    background: rgba(30, 25, 40, 0.95); /* موف غامق جداً */
-    border: 1px solid rgba(139, 92, 246, 0.4);
-    border-radius: 12px;
-    
-    display: none;
-    flex-direction: column;
-    
-    /* أهم سطر: ده اللي بيخليها تظهر فوق العناصر التانية */
-    box-shadow: 0 10px 40px rgba(0,0,0,0.8); 
-    z-index: 2000; 
-    
-    animation: menuPop 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes menuPop {
-    from { opacity: 0; transform: translateY(-10px) scale(0.9); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.archive-menu.show { display: flex; }
-
-/* عناصر القائمة */
-.archive-menu-item {
-    padding: 12px 15px;
-    font-size: 13px; color: #fff; font-weight: 600;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-.archive-menu-item:last-child { border-bottom: none; }
-.archive-menu-item:active { background: var(--accent-color); }
-/* ================= 🎬 مشغل الفيديو الاحترافي (Custom Player) ================= */
-
-/* حاوية المشغل */
-.custom-video-wrapper {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #000;
-    border-radius: 15px;
-    overflow: hidden;
-}
-
-/* الفيديو نفسه */
-.custom-video-element {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    cursor: pointer;
-}
-
-/* زر التشغيل العملاق في المنتصف */
-.center-play-btn {
-    position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%);
-    width: 70px; height: 70px;
-    background: rgba(139, 92, 246, 0.4); /* موف شفاف */
-    backdrop-filter: blur(5px);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    font-size: 25px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    pointer-events: none; /* عشان الضغطة تيجي ع الفيديو */
-    transition: 0.3s;
-    opacity: 1;
-}
-
-/* إخفاء الزر لما الفيديو يشتغل */
-.custom-video-wrapper.playing .center-play-btn {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(1.5);
-}
-
-/* شريط التحكم السفلي (Control Bar) */
-.video-controls-bar {
-    position: absolute;
-    bottom: 0; left: 0; width: 100%;
-    padding: 20px 15px 15px;
-    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    opacity: 1;
-    transition: 0.3s;
-}
-
-/* إخفاء الشريط لو مفيش حركة ماوس (اختياري) */
-.custom-video-wrapper.hide-controls .video-controls-bar {
-    opacity: 0;
-}
-
-/* زر التشغيل الصغير */
-.ctrl-btn {
-    color: #fff;
-    font-size: 18px;
-    cursor: pointer;
-    background: none;
-    border: none;
-    padding: 5px;
-    transition: 0.2s;
-}
-.ctrl-btn:hover { color: var(--accent-color); }
-
-/* شريط التقدم (Progress Bar) */
-.video-progress-container {
-    flex: 1;
-    position: relative;
-    height: 5px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 5px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-/* الخط الملون اللي بيتحرك */
-.video-progress-fill {
-    height: 100%;
-    background: var(--accent-color); /* اللون الموف */
-    width: 0%;
-    border-radius: 5px;
-    position: relative;
-    transition: width 0.1s linear;
-}
-
-/* الكورة اللي في آخر الشريط */
-.video-progress-fill::after {
-    content: '';
-    position: absolute;
-    right: -6px; top: 50%; transform: translateY(-50%);
-    width: 12px; height: 12px;
-    background: #fff;
-    border-radius: 50%;
-    box-shadow: 0 0 10px rgba(0,0,0,0.5);
-}
-
-/* التوقيت */
-.video-time {
-    color: #ddd;
-    font-size: 12px;
-    font-family: monospace;
-    font-weight: bold;
-}
-
-/* ================= تصميم حالة النشاط (زي الماسنجر) ================= */
-
-/* الكبسولة اللي فيها الوقت (للمستخدمين الأوفلاين مؤخراً) */
-.status-badge {
-    position: absolute;
-    bottom: -2px;
-    right: -4px; /* مكانها على اليمين تحت */
-    background: #1a1a1a; /* خلفية سوداء */
-    color: #4ade80; /* لون أخضر فاقع */
-    font-size: 10px;
-    font-weight: 800;
-    padding: 1px 6px;
-    border-radius: 10px; /* حواف دائرية */
-    border: 2px solid var(--bg-deep); /* حدود بنفس لون خلفية التطبيق عشان تفصلها */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-    z-index: 5;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* خط رقمي واضح */
-    min-width: 18px;
-    text-align: center;
-}
-
-/* نقطة الأونلاين العادية (للمستخدمين المتصلين حالياً) */
-.active-dot-online {
-    position: absolute; 
-    bottom: -2px; 
-    right: -2px; 
-    width: 13px; 
-    height: 13px; 
-    background: #4ade80; 
-    border: 2px solid var(--bg-deep); 
-    border-radius: 50%; 
-    z-index: 5;
-}
-/* كلاس الخطأ: بيخلي الحدود والكلام أحمر + بيشغل الأنيميشن */
-.input-error {
-    border-color: #ff3b30 !important; /* لون أحمر فاقع */
-    color: #ff3b30 !important;
-    box-shadow: 0 0 10px rgba(255, 59, 48, 0.4) !important; /* توهج أحمر */
-    animation: shakeInput 0.4s ease-in-out; /* تشغيل الهزة */
-}
-
-/* تعريف حركة الهزة (يمين وشمال بسرعة) */
-@keyframes shakeInput {
-    0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-10px); }
-    40% { transform: translateX(10px); }
-    60% { transform: translateX(-10px); }
-    80% { transform: translateX(10px); }
-}
-
-/* تنسيق عنصر الصديق في قائمة الاختيار */
-.select-friend-item {
-    display: flex; align-items: center; gap: 15px;
-    padding: 12px; border-radius: 12px; margin-bottom: 5px;
-    cursor: pointer; transition: 0.2s;
-    background: transparent; border: 1px solid transparent;
-}
-
-.select-friend-item.selected {
-    background: rgba(139, 92, 246, 0.15);
-    border-color: rgba(139, 92, 246, 0.3);
-}
-
-.select-friend-item:active { transform: scale(0.98); }
-
-.sf-avatar {
-    width: 45px; height: 45px; border-radius: 50%;
-    background-size: cover; background-position: center;
-    border: 1px solid #444;
-}
-
-.sf-info { flex: 1; }
-.sf-name { color: #fff; font-weight: bold; font-size: 14px; }
-.sf-status { color: #888; font-size: 11px; }
-
-/* الدائرة بتاعت الاختيار */
-.sf-check {
-    width: 22px; height: 22px; border-radius: 50%;
-    border: 2px solid #555; display: flex; align-items: center; justify-content: center;
-    transition: 0.2s;
-}
-
-/* لما نختار */
-.select-friend-item.selected .sf-check {
-    background: #8b5cf6; border-color: #8b5cf6;
-}
-.select-friend-item.selected .sf-check::after {
-    content: '✔'; color: #fff; font-size: 12px;
-}
-
-/* رفع طبقة المودال لتكون فوق القائمة الجانبية والهيدر */
+/* ================= 12. نوافذ منبثقة إضافية (Popups) ================= */
 .custom-modal {
-    z-index: 200000 !important; /* رقم عالي جداً لإجبار الظهور */
+    position: fixed; inset: 0; z-index: 200000; display: none; align-items: flex-start; justify-content: center;
+    background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); padding-top: 80px;
+}
+.modal-box {
+    background: #161616; width: 90%; max-width: 380px; border-radius: 24px; padding: 20px;
+    border: 1px solid #2a2a2a; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.search-results-popup {
+    position: fixed; top: 130px; left: 50%; transform: translateX(-50%); width: 94%; max-width: 500px; max-height: 50vh;
+    background: #111; border: 1px solid #FFD700; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.9);
+    z-index: 9999999; overflow-y: auto; display: none;
+}
+.search-results-popup.active { display: block !important; animation: slideDown 0.3s ease-out; }
+@keyframes slideDown { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.search-result-item { display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+.highlight-text { color: #FFD700; font-weight: bold; background: rgba(255, 215, 0, 0.15); padding: 0 2px; border-radius: 4px; }
+
+#toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: #222; border: 1px solid #444; color: #fff; padding: 12px 25px; border-radius: 30px;
+    font-size: 14px; opacity: 0; pointer-events: none; transition: 0.3s; z-index: 10000;
+}
+#toast.show { opacity: 1; bottom: 110px; }
+
+.input-error { border-color: #ff3b30 !important; color: #ff3b30 !important; box-shadow: 0 0 10px rgba(255, 59, 48, 0.4) !important; animation: shakeInput 0.4s ease-in-out; }
+@keyframes shakeInput { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-10px); } 40% { transform: translateX(10px); } 60% { transform: translateX(-10px); } 80% { transform: translateX(10px); } }
+
+/* نافذة البروفايل المصغرة */
+.profile-preview-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 25000;
+    display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px);
+}
+.profile-preview-card {
+    width: 280px; background: #1e1e1e; border-radius: 20px; overflow: hidden;
+    position: relative; animation: zoomIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+@keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pp-image-container { width: 100%; height: 280px; position: relative; background: #000; }
+.pp-image-container img { width: 100%; height: 100%; object-fit: cover; }
+.pp-name-overlay {
+    position: absolute; top: 10px; left: 0; width: 100%; padding: 5px 15px;
+    color: #fff; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    background: linear-gradient(to bottom, rgba(0,0,0,0.4), transparent); pointer-events: none;
+}
+.pp-actions { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.1); }
+.pp-actions div { color: var(--accent-color); font-size: 22px; padding: 10px; cursor: pointer; width: 100%; text-align: center; }
+
+/* صفحة المقيدين */
+#restrictedPage { z-index: 200000 !important; }
+
+/* أزرار ومداخل المودال */
+.pro-input { width: 100%; background: #0d0d0f; border: 1px solid #333; border-radius: 12px; padding: 14px; color: #fff; outline: none; transition: 0.3s; }
+.pro-input:focus { border-color: #8b5cf6; box-shadow: 0 0 15px rgba(139, 92, 246, 0.15); }
+.btn-purple { background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: white; border: none; padding: 14px; border-radius: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+.btn-dark { background: #1f1f1f; color: #aaa; border: 1px solid #333; padding: 12px; border-radius: 16px; font-weight: bold; cursor: pointer; width: 100%; }
+.input-group { position: relative; margin-bottom: 15px; width: 100%; }
+.new-chat-item { display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.nc-avatar { width: 45px; height: 45px; border-radius: 14px; background-size: cover; background-position: center; border: 1px solid rgba(255,255,255,0.1); }
+.nc-name { font-size: 15px; font-weight: bold; color: #fff; }
+/* --- ستايل تبديل الحسابات الاحترافي الجديد --- */
+#accountSwitcherModal .modal-box {
+    background: #161616;
+    width: 90%;
+    max-width: 380px;
+    border-radius: 24px;
+    padding: 25px;
+    border: 1px solid #2a2a2a;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
 }
 
-/* إصلاح التداخل في القائمة الجانبية */
-.sidebar {
-    z-index: 10001; /* أقل من المودال */
-}
-.sidebar-overlay {
-    z-index: 10000;
+.account-list {
+    text-align: right;
+    max-height: 250px;
+    overflow-y: auto;
+    background: #0d0d0f;
+    border-radius: 16px;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #1f1f1f;
 }
 
-/* تأكد من رفع الـ z-index لصفحة المقيدين */
-#restrictedPage {
-    z-index: 200000 !important; /* لضمان ظهورها فوق السايد بار */
+.acc-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid transparent;
 }
+.acc-item:hover { background: #1f1f1f; border-color: #333; }
+
+/* خانات الإدخال الجديدة */
+.input-group {
+    position: relative;
+    margin-bottom: 15px;
+    width: 100%;
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    right: 15px; /* مكانها يمين عشان العربي */
+    transform: translateY(-50%);
+    color: #555;
+    font-size: 16px;
+    z-index: 2;
+}
+
+.pro-input {
+    width: 100%;
+    background: #0d0d0f;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 14px 45px 14px 15px; /* مسافة يمين عشان الأيقونة */
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+}
+
+.pro-input:focus {
+    border-color: #8b5cf6;
+    background: #111;
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+}
+
+/* الأزرار البنفسجية والداكنة */
+.modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.btn-purple {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 16px;
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.btn-dark {
+    background: #1f1f1f;
+    color: #aaa;
+    border: 1px solid #333;
+    padding: 12px;
+    border-radius: 16px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
 
     </style>
 </head>
@@ -4037,18 +1962,19 @@ function loadChats(userId) {
             }
 
             // تجهيز نص الرسالة
-            let previewMsg = d.lastMessage || 'بدء المحادثة';
+                        // تحويل الرسالة لنص إجبارياً لضمان عمل دالة includes دون أخطاء
+            let rawMsg = d.lastMessage ? String(d.lastMessage) : '';
+            let previewMsg = rawMsg || 'بدء المحادثة';
             let isMedia = false;
-            let isTyping = (d.typing && d.typing.includes(otherUid));
+            let isTyping = (d.typing && Array.isArray(d.typing) && d.typing.includes(otherUid));
 
-            if (previewMsg === '__HIDDEN_START__') {
+            if (rawMsg === '__HIDDEN_START__') {
                 previewMsg = '<span style="color:var(--accent-color); font-style:italic;">محادثة جديدة ✨</span>';
             } else if (d.lockPass && d.lockPass.length === 6) { 
                 previewMsg = '<span style="color:#ff3b30; font-style:italic;"><i class="fa-solid fa-lock"></i> رسالة محمية</span>';
-            }
-            
-            if(d.lastMessage && (d.lastMessage.includes('http') || d.type === 'image')) {
-                previewMsg = '<i class="fa-solid fa-camera"></i> صورة / وسائط'; isMedia = true;
+            } else if (rawMsg && (rawMsg.includes('http') || d.type === 'image')) {
+                previewMsg = '<i class="fa-solid fa-camera"></i> صورة / وسائط'; 
+                isMedia = true;
             }
 
             const isBlockedByMe = d.blockedBy && d.blockedBy.includes(userId);
@@ -5394,8 +3320,6 @@ function renderPollSticker(question, option1, option2) {
     container.appendChild(pollDiv);
 }
 
-// تشغيل الرادار فوراً عند استدعاء الملف
-initGlobalCallListener();
 // ================= نظام البحث المطور (Fixed Logic) =================
 // متغير لتخزين وقت الكتابة عشان منعملش بحث مع كل حرف ونرهق السيرفر (Debounce)
 // متغير لتخزين وقت الكتابة (عشان الأداء)
@@ -6425,25 +4349,6 @@ async function pinMessage() {
     showToast("تم تثبيت الرسالة 📌");
     closeContextMenu(); // إغلاق القائمة
 }
-
-// 2. مراقب عشان يظهر الشريط لما يكون فيه رسالة مثبتة
-db.collection('chats').doc(chatId).onSnapshot(doc => {
-    const data = doc.data();
-    const pinBar = document.getElementById('pinnedMsgBar');
-    const pinText = document.getElementById('pinnedMsgText');
-
-    if(data && data.pinnedMessage) {
-        // إظهار الشريط
-        pinBar.style.display = 'block';
-        pinText.innerText = data.pinnedMessage.text;
-        
-        // حفظ الآيدي في متغير عشان نعرف نروحله
-        window.pinnedMsgId = data.pinnedMessage.id;
-    } else {
-        // إخفاء الشريط لو مفيش رسالة مثبتة
-        pinBar.style.display = 'none';
-    }
-});
 
 // 3. دالة القفز للرسالة عند الضغط على الشريط
 function jumpToPinned() {
@@ -7548,26 +5453,7 @@ async function unrestrictFromPage(targetUid) {
         </div>
     </div>
 </div>
-<div class="floating-fab" onclick="vibrate(); startNewChat()">
-    <i class="fa-solid fa-pen"></i>
-</div>
-<div id="incomingCallModal">
-    <div id="callerImage" class="caller-avatar-large"></div>
-    <div id="callerName" class="caller-name-display">جاري الاتصال...</div>
-    
-    <div class="call-actions">
-        <div class="call-btn btn-decline" onclick="rejectCall()">
-            <i class="fa-solid fa-phone-slash"></i>
-        </div>
-        <div class="call-btn btn-accept" onclick="acceptCall()">
-            <i class="fa-solid fa-phone"></i>
-        </div>
-    </div>
-</div>
 
-<audio id="ringtoneIn" loop preload="none">
-    <source src="./sounds/ring_in.wav" type="audio/wav">
-</audio>
 
 
 <div id="searchResultsModal" class="search-results-popup">
@@ -7773,6 +5659,8 @@ async function toggleRestrictStatus(chatId, shouldRestrict) {
     }
 }
 
+
+
 </script>
 <div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
     <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; background: #000; border: 1px solid #333;">
@@ -7787,14 +5675,14 @@ async function toggleRestrictStatus(chatId, shouldRestrict) {
 
     </div>
 </div>
-
-<div id="archiveFullViewer" class="archive-viewer-overlay" onclick="closeArchiveViewer()">
+<div id="archiveFullViewer" class="archive-viewer-overlay" onclick="closeArchiveViewer()" style="display: none;">
     <div class="archive-close-btn">
         <i class="fa-solid fa-xmark"></i>
     </div>
     <div id="archiveViewerContainer" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; pointer-events: none;">
-        </div>
+    </div>
 </div>
+
 
 </div> 
     <div id="pinnedMsgBar" style="display:none; position:absolute; top:75px; left:10px; right:10px; background:rgba(30, 41, 59, 0.95); padding:8px; border-radius:10px; border-left:3px solid #f59e0b; z-index:90; cursor:pointer;" onclick="jumpToPinned()">
@@ -8099,6 +5987,41 @@ async function toggleRestrictStatus(chatId, shouldRestrict) {
             </div>
     </div>
 </div>
+<script>
+    // ==========================================
+    // 🚨 كود المصيدة: لكشف العنصر الذي يسبب الانهيار
+    // ==========================================
+    (function detectCrash() {
+        const suspects = [
+            'storyReplyInput', 
+            'storyContent', 
+            'unlockPassInput', 
+            'newGroupNameInput'
+        ];
+
+        console.log("--- جاري فحص العناصر المتهمة ---");
+
+        suspects.forEach(id => {
+            try {
+                // محاولة الوصول للعنصر
+                const el = document.getElementById(id);
+                
+                // هنا المحك: نحاول نقرأ خاصية منه. لو هو null الكود هينفجر هنا
+                // وهنصطاده في الـ catch
+                if (!el) throw new Error("Element is NULL");
+                
+                // لو وصلنا هنا يبقى العنصر سليم في التوقيت ده
+                el.addEventListener ? el.addEventListener('test', ()=>{}) : null;
+                
+            } catch (e) {
+                // 🛑 أمسكنا الخطأ!
+                console.error(`🔥🔥 قفشنا الحرامي! العنصر هو: ${id}`);
+                alert(`⚠️ تم كشف المشكلة!\n\nالعنصر المسبب للخطأ هو: "${id}"\n\nالسبب: الكود بيشتغل قبل ما العنصر ده يترسم في الشاشة.`);
+            }
+        });
+    })();
+</script>
+
 
 </body>
 </html>

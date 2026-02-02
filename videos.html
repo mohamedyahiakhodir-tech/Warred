@@ -44,7 +44,7 @@ body.no-scroll .app-container {
 }
 
 /* =========================================
-   2. حاوية الفيديوهات (Feed & Video Slide)
+   2. حاوية الفيديوهات (Feed & Player)
    ========================================= */
 .app-container {
     height: 100%; width: 100%; overflow-y: scroll;
@@ -62,67 +62,6 @@ body.no-scroll .app-container {
 video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .interaction-layer { position: absolute; inset: 0; z-index: 2; }
 
-/* بيانات الفيديو السفلية */
-.video-info {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    padding: 20px 20px 30px 20px; background: var(--overlay-dark);
-    z-index: 10; pointer-events: none;
-}
-.info-inner { pointer-events: auto; max-width: 80%; }
-.author-name { font-weight: 800; font-size: 1.1rem; margin-bottom: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-.video-desc { font-size: 0.9rem; color: #eee; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.5); }
-
-/* الشريط الجانبي (الأزرار) */
-.side-bar {
-    position: absolute; left: 10px; bottom: 100px;
-    z-index: 20; display: flex; flex-direction: column;
-    gap: 25px; align-items: center;
-}
-.action-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; transition: transform 0.2s; }
-.action-btn:active { transform: scale(0.9); }
-
-.icon-circle {
-    width: 45px; height: 45px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);
-    border-radius: 50%; display: grid; place-items: center; font-size: 22px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-}
-.action-text { font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
-
-/* صورة المستخدم وزر المتابعة */
-.avatar-wrapper { position: relative; margin-bottom: 10px; }
-.user-avatar { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-.follow-plus { 
-    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-    background: var(--primary); width: 22px; height: 22px; border-radius: 50%;
-    display: grid; place-items: center; font-size: 12px; color: #fff;
-}
-
-/* شريط التقدم للفيديو */
-.progress-container {
-    position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
-    background: rgba(255,255,255,0.2); z-index: 50; cursor: pointer;
-}
-.progress-bar { height: 100%; background: var(--primary); width: 0%; transition: width 0.1s linear; }
-
-/* أنيميشن القلب الكبير */
-.big-heart {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-    font-size: 120px; color: rgba(255, 40, 80, 0.9); z-index: 15; pointer-events: none;
-    filter: drop-shadow(0 0 10px rgba(255,0,0,0.5));
-}
-.big-heart.animate { animation: heartPop 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards; }
-
-/* زر كتم الصوت الشفاف */
-.mute-indicator {
-    position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.25); backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 10px 20px; border-radius: 50px;
-    color: rgba(255, 255, 255, 0.9); font-size: 18px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    opacity: 0; transition: all 0.3s ease; z-index: 15; pointer-events: none;
-}
-.video-slide.muted-state .mute-indicator { opacity: 1; animation: floatIndicator 3s ease-in-out infinite; }
-
 /* اللودر الشبح (Brand Loader) */
 .brand-loader {
     position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -136,8 +75,190 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     animation: ghostPulse 2s infinite ease-in-out;
 }
 
+/* زر كتم الصوت الشفاف */
+/* زر كتم الصوت الشفاف - تم تعديله ليرتفع للأعلى */
+.mute-indicator {
+    position: absolute; 
+    bottom: 40%; /* 🔥 تم التغيير من 25% إلى 40% لرفعه فوق المنتصف قليلاً */
+    left: 50%; 
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.25); 
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 10px 20px; 
+    border-radius: 50px;
+    color: rgba(255, 255, 255, 0.9); 
+    font-size: 18px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 8px;
+    opacity: 0; 
+    transition: all 0.3s ease; 
+    z-index: 15; 
+    pointer-events: none;
+}
+
+.video-slide.muted-state .mute-indicator { opacity: 1; animation: floatIndicator 3s ease-in-out infinite; }
+
+/* أنيميشن القلب الكبير */
+.big-heart {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+    font-size: 120px; color: rgba(255, 40, 80, 0.9); z-index: 15; pointer-events: none;
+    filter: drop-shadow(0 0 10px rgba(255,0,0,0.5));
+}
+.big-heart.animate { animation: heartPop 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards; }
+
+/* زر التشغيل المركزي الجديد */
+.center-play-button {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 80px; height: 80px; background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 35px; z-index: 5; opacity: 0; visibility: hidden;
+    transition: all 0.2s ease-in-out; pointer-events: none;
+}
+.video-slide.is-paused .center-play-button { opacity: 1; visibility: visible; transform: translate(-50%, -50%) scale(1); }
+.video-slide:active .center-play-button { transform: translate(-50%, -50%) scale(0.95); }
+
 /* =========================================
-   3. القوائم السفلية (Bottom Sheets)
+   3. الشريط العلوي والبحث (Top Nav & Search)
+   ========================================= */
+.top-nav-bar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px 20px; background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+}
+.nav-tabs { display: flex; gap: 20px; font-size: 16px; font-weight: 700; color: rgba(255, 255, 255, 0.6); }
+.nav-tab { cursor: pointer; position: relative; transition: 0.3s; }
+.nav-tab.active { color: #fff; font-size: 17px; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+.nav-tab.active::after {
+    content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 3px; background: #fff; border-radius: 2px;
+}
+.nav-icon-btn {
+    font-size: 22px; color: #fff; cursor: pointer; width: 40px; height: 40px;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: 0.2s;
+}
+.nav-icon-btn:active { background: rgba(255,255,255,0.1); transform: scale(0.9); }
+
+/* شاشة البحث */
+.search-overlay {
+    position: fixed; inset: 0; background: #000; z-index: 5000;
+    display: none; flex-direction: column; animation: fadeIn 0.3s ease;
+}
+.search-overlay.active { display: flex; }
+.search-header { padding: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #222; }
+.search-input-box {
+    flex: 1; background: #1f1f1f; border-radius: 10px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 10px;
+}
+.search-input-box input { background: transparent; border: none; color: #fff; width: 100%; outline: none; font-size: 14px; }
+.search-tabs { display: flex; border-bottom: 1px solid #222; }
+.s-tab { flex: 1; text-align: center; padding: 15px; color: #777; font-weight: bold; cursor: pointer; border-bottom: 2px solid transparent; }
+.s-tab.active { color: #fff; border-bottom-color: var(--primary); }
+.search-results { flex: 1; overflow-y: auto; padding: 10px; }
+.user-result-card { display: flex; align-items: center; gap: 10px; padding: 10px; border-bottom: 1px solid #222; }
+.user-result-img { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; }
+
+/* =========================================
+   4. التفاعل والمعلومات (Side Bar & Info)
+   ========================================= */
+/* الشريط الجانبي (الأزرار) */
+.side-bar {
+    position: absolute; 
+    left: 10px; 
+    bottom: 100px; /* 🔥 تم التعديل: كانت 220px وخليناها 100px عشان تنزل تحت خالص */
+    z-index: 20; 
+    display: flex; 
+    flex-direction: column;
+    gap: 20px; 
+    align-items: center;
+}
+
+.action-btn { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; transition: transform 0.2s; }
+.action-btn:active { transform: scale(0.9); }
+.icon-circle {
+    width: 40px; height: 40px; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);
+    border-radius: 50%; display: grid; place-items: center; font-size: 20px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+.action-text { font-size: 12px; font-weight: 600; text-shadow: 0 1px 2px #000; }
+
+/* منطقة معلومات الفيديو واليوزر */
+.video-info {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 20px 20px 80px 20px; /* مساحة من تحت عشان شريط التقدم */
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%);
+    z-index: 10; pointer-events: none; display: flex; flex-direction: column; justify-content: flex-end;
+}
+.info-inner { pointer-events: auto; width: 100%; max-width: 80%; }
+
+.user-header-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 6px;
+    width: 100%; overflow: hidden;
+}
+.header-avatar {
+    width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.9);
+    object-fit: cover; flex-shrink: 0;
+}
+.header-name-block {
+    display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; justify-content: flex-start;
+}
+.header-username {
+    display: block; font-weight: 700; font-size: 15px; color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5); white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; max-width: 100%;
+}
+.verified-badge { color: #20D5EC; font-size: 14px; flex-shrink: 0; margin-top: 2px; }
+.follow-btn-inline {
+    background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff; font-size: 11px; font-weight: bold; padding: 6px 12px;
+    border-radius: 6px; cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-left: 0;
+}
+.video-desc { font-size: 13px; color: #eee; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-right: 5px; }
+
+/* شارة التوثيق (نبض) */
+.nabd-badge {
+    display: inline-block; vertical-align: middle; margin-right: 4px; font-size: 13px;
+    background: linear-gradient(120deg, #1da1f2 30%, #ffffff 50%, #1da1f2 70%);
+    background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 5px rgba(29, 161, 242, 0.6));
+    animation: shineMove 3s linear infinite, heartbeat 1.5s infinite ease-in-out;
+}
+
+/* =========================================
+   5. شريط الفيديو العائم (Floating Seeker)
+   ========================================= */
+.floating-seeker-container {
+    position: absolute; bottom: 25px; left: 50%; transform: translateX(-50%);
+    width: 80%; height: 20px; z-index: 60;
+    display: flex; align-items: center; justify-content: center;
+    direction: ltr !important; /* إجبار الاتجاه */
+}
+.seeker-track {
+    width: 100%; height: 5px; background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px; position: relative; overflow: visible; backdrop-filter: blur(2px);
+}
+.seeker-fill {
+    height: 100%; background: #F72585; width: 0%; border-radius: 10px;
+    position: relative; box-shadow: 0 0 10px rgba(247, 37, 133, 0.8);
+}
+.seeker-thumb {
+    position: absolute; right: -6px; top: 50%; transform: translateY(-50%) scale(0);
+    width: 14px; height: 14px; background: #fff; border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5); transition: transform 0.2s;
+}
+.floating-seeker-container:active .seeker-thumb, .video-slide.is-paused .seeker-thumb { transform: translateY(-50%) scale(1.2); }
+.seeker-time-bubble {
+    position: absolute; top: -35px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,0,0,0.8); color: #fff; padding: 4px 8px; border-radius: 6px;
+    font-size: 11px; font-weight: 800; font-family: monospace; opacity: 0;
+    transition: opacity 0.2s; pointer-events: none; white-space: nowrap;
+}
+.floating-seeker-container:active .seeker-time-bubble, .video-slide.is-paused .seeker-time-bubble { opacity: 1; }
+
+/* =========================================
+   6. القوائم السفلية (Bottom Sheets)
    ========================================= */
 .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; backdrop-filter: blur(4px); }
 
@@ -157,85 +278,13 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     font-weight: 800; font-size: 16px; background: var(--sheet-bg); 
     z-index: 10; border-radius: 24px 24px 0 0; 
 }
-.cm-header i { position: relative; z-index: 100; padding: 10px !important; cursor: pointer; }
 .cm-body { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 90px; background: var(--sheet-bg); }
 
 /* =========================================
-   4. منطقة الإدخال والفوتر المطور (Input Area)
-   ========================================= */
-.cm-footer {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: #0d0d0f; border-top: 1px solid #222;
-    display: flex; flex-direction: column; z-index: 202;
-    transition: all 0.3s ease;
-}
-
-/* شريط الإيموجي المقترح */
-.suggested-emojis {
-    display: none; gap: 15px; padding: 10px 15px;
-    background: #0d0d0f; border-bottom: 1px solid #1a1a1a;
-    overflow-x: auto; scrollbar-width: none;
-}
-.cm-footer.expanded .suggested-emojis { display: flex; animation: slideUp 0.3s; }
-.suggested-emojis span { font-size: 24px; cursor: pointer; transition: 0.2s; }
-.suggested-emojis span:active { transform: scale(1.2); }
-
-/* حاوية الإدخال */
-.input-area-container {
-    display: flex; align-items: flex-end; padding: 10px 15px; gap: 10px;
-    background: #0d0d0f; position: relative;
-}
-
-/* الأزرار الخارجية (صور وهدايا) */
-.external-actions {
-    display: flex; gap: 5px; align-items: center; margin-bottom: 2px;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    max-width: 100px; opacity: 1; overflow: hidden;
-}
-.input-area-container.focused .external-actions { max-width: 0px; opacity: 0; margin: 0; padding: 0; }
-
-.ext-btn {
-    width: 38px; height: 38px; border-radius: 50%;
-    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px; cursor: pointer; flex-shrink: 0; color: #fff; transition: 0.2s;
-}
-.ext-btn:active { transform: scale(0.95); }
-
-/* حقل الكتابة الذكي */
-.smart-input-wrapper {
-    flex: 1; background: #1f1f1f; border-radius: 20px;
-    border: 1px solid #333; min-height: 45px;
-    display: flex; align-items: center; transition: 0.3s;
-}
-.smart-textarea {
-    width: 100%; background: transparent; border: none; outline: none; color: #fff;
-    font-size: 15px; resize: none; max-height: 100px; padding: 12px 5px 12px 15px; 
-    line-height: 1.5; height: 45px;
-}
-
-/* زر الإرسال / المايك */
-.action-submit-btn {
-    width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.1); color: #fff; flex-shrink: 0; transition: 0.2s; cursor: pointer;
-}
-.action-submit-btn.send-mode { background: var(--primary); transform: scale(1.1); }
-
-/* واجهة التسجيل */
-.recording-overlay {
-    display: flex; align-items: center; justify-content: space-between;
-    background: #1f1f1f; padding: 0 10px; border-radius: 20px; border: 1px solid rgba(255, 59, 48, 0.3);
-    position: absolute; top: 10px; left: 15px; right: 15px; height: 50px; z-index: 100;
-}
-.rec-info { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-weight: bold; }
-.rec-dot { width: 10px; height: 10px; background-color: #ff3b30; border-radius: 50%; animation: blink-rec 1s infinite; }
-
-/* =========================================
-   5. التعليقات والردود (Comments System)
+   7. نظام التعليقات والردود
    ========================================= */
 .comment-item { display: flex; gap: 10px; margin-bottom: 18px; position: relative; }
 
-/* الأفاتار وحالة الأونلاين */
 .cm-avatar { 
     width: 38px; height: 38px; border-radius: 50%; background: #333; 
     flex-shrink: 0; background-size: cover; border: 1px solid var(--border-color); 
@@ -266,7 +315,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .cm-text { font-size: 15px; line-height: 1.6; color: #e0e0e0; white-space: pre-wrap; word-break: break-word; }
 .cm-text.collapsed { max-height: 60px; overflow: hidden; mask-image: linear-gradient(to bottom, black 50%, transparent 100%); -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
 .read-more-btn { color: var(--primary); font-size: 11px; font-weight: bold; cursor: pointer; margin-top: 2px; display: inline-block; }
-
 .cm-meta-row { display: flex; gap: 15px; margin-top: 5px; margin-right: 12px; font-size: 11px; color: var(--secondary-text); font-weight: 600; }
 .cm-action { cursor: pointer; transition: 0.2s; }
 
@@ -277,7 +325,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     box-shadow: inset 0 0 10px -5px var(--user-color), 0 5px 15px -8px var(--user-color);
 }
 .cm-bubble.colored-reply .cm-username { color: var(--user-color) !important; filter: brightness(1.3); }
-
 .tree-connector { position: absolute; right: -24px; top: -20px; bottom: 0; width: 2px; background: #333; z-index: 0; }
 .reply-curve { position: absolute; right: -24px; top: 20px; width: 15px; height: 2px; background: #333; }
 .reply-mention-link { color: #2979ff; font-weight: 800; cursor: pointer; text-decoration: none; margin-left: 4px; }
@@ -289,12 +336,9 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .color-6 { --user-color: #ff9f0a; } .color-7 { --user-color: #ff375f; }
 .color-8 { --user-color: #ac8e68; } .color-9 { --user-color: #808080; }
 
-/* =========================================
-   6. الميديا في التعليقات (صور - فيديو - صوت)
-   ========================================= */
-/* الصور */
+/* الميديا في التعليقات (صور - فيديو - صوت) */
 .cm-media-wrapper {
-    position: relative; width: 100%; max-width: 260px; margin-top: 8px;
+    position: relative; width: 100%; max-width: 260px; margin-top: 8px; margin-bottom: 12px;
     border-radius: 12px; overflow: hidden; background-color: #000;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -326,7 +370,7 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .custom-audio-player {
     display: flex; align-items: center; gap: 10px; background: #2a2a2a;
     padding: 8px 12px; border-radius: 25px; width: 100%; max-width: 260px;
-    margin-top: 5px; border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s;
+    margin-top: 8px; margin-bottom: 12px; border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.3s;
 }
 .custom-audio-player.playing { border-color: var(--primary); background: #333; }
 .play-btn {
@@ -345,9 +389,70 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .audio-time { font-size: 11px; color: #aaa; font-weight: 600; min-width: 35px; text-align: right; font-family: monospace; }
 
 /* =========================================
-   7. نظام الهدايا الاحترافي (Pro Gift Style)
+   8. منطقة الإدخال والفوتر (Input Area)
    ========================================= */
-/* في قائمة الهدايا */
+.cm-footer {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: #0d0d0f; border-top: 1px solid #222;
+    display: flex; flex-direction: column; z-index: 202; transition: all 0.3s ease;
+}
+.suggested-emojis {
+    display: none; gap: 15px; padding: 10px 15px;
+    background: #0d0d0f; border-bottom: 1px solid #1a1a1a;
+    overflow-x: auto; scrollbar-width: none;
+}
+.cm-footer.expanded .suggested-emojis { display: flex; animation: slideUp 0.3s; }
+.suggested-emojis span { font-size: 24px; cursor: pointer; transition: 0.2s; }
+.input-area-container {
+    display: flex; align-items: flex-end; padding: 10px 15px; gap: 10px;
+    background: #0d0d0f; position: relative;
+}
+.external-actions {
+    display: flex; gap: 5px; align-items: center; margin-bottom: 2px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    max-width: 100px; opacity: 1; overflow: hidden;
+}
+.input-area-container.focused .external-actions { max-width: 0px; opacity: 0; margin: 0; padding: 0; }
+.ext-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; cursor: pointer; flex-shrink: 0; color: #fff; transition: 0.2s;
+}
+.smart-input-wrapper {
+    flex: 1; background: #1f1f1f; border-radius: 20px;
+    border: 1px solid #333; min-height: 45px;
+    display: flex; align-items: center; transition: 0.3s;
+}
+.smart-textarea {
+    width: 100%; background: transparent; border: none; outline: none; color: #fff;
+    font-size: 15px; resize: none; max-height: 100px; padding: 12px 5px 12px 15px; 
+    line-height: 1.5; height: 45px;
+}
+.action-submit-btn {
+    width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.1); color: #fff; flex-shrink: 0; transition: 0.2s; cursor: pointer;
+}
+.action-submit-btn.send-mode { background: var(--primary); transform: scale(1.1); }
+.recording-overlay {
+    display: flex; align-items: center; justify-content: space-between;
+    background: #1f1f1f; padding: 0 10px; border-radius: 20px; border: 1px solid rgba(255, 59, 48, 0.3);
+    position: absolute; top: 10px; left: 15px; right: 15px; height: 50px; z-index: 100;
+}
+.rec-info { flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px; color: #fff; font-weight: bold; }
+.rec-dot { width: 10px; height: 10px; background-color: #ff3b30; border-radius: 50%; animation: blink-rec 1s infinite; }
+.mention-dropdown { 
+    position: absolute; bottom: 60px; left: 15px; right: 15px; 
+    background: var(--sheet-bg); border: 1px solid var(--border-color); border-radius: 12px; 
+    max-height: 200px; overflow-y: auto; display: none; z-index: 205; 
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5); 
+}
+.mention-dropdown.active { display: block; }
+.mention-suggest-item { padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid #333; }
+
+/* =========================================
+   9. نظام الهدايا الاحترافي (Pro Gift Style)
+   ========================================= */
 .gift-tabs-container {
     display: flex; justify-content: space-between; background: rgba(255, 255, 255, 0.05);
     padding: 5px; border-radius: 15px; margin: 10px 15px; border: 1px solid rgba(255, 255, 255, 0.1);
@@ -357,7 +462,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     cursor: pointer; font-size: 13px; font-weight: bold; transition: 0.3s;
 }
 .gift-tab.active { background: var(--primary); color: #fff; box-shadow: 0 0 15px rgba(247, 37, 133, 0.3); }
-
 .premium-gift-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 10px; }
 .premium-gift-card {
     background: linear-gradient(145deg, rgba(30,30,35,0.8), rgba(20,20,25,0.9));
@@ -369,13 +473,9 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pg-name { font-size: 11px; color: #fff; font-weight: bold; }
 .pg-price { font-size: 10px; color: #FFD700; background: rgba(0,0,0,0.5); padding: 2px 8px; border-radius: 10px; margin-top: 3px; }
 
-/* شكل الهدية داخل التعليقات (New Gift Style) */
-.gift-wrapper-pro {
-    display: flex; align-items: flex-end; gap: 12px; width: 100%; margin-bottom: 15px; position: relative;
-}
-.gift-body {
-    display: flex; flex-direction: column; align-items: center; position: relative; padding-bottom: 10px;
-}
+/* شكل الهدية داخل التعليقات */
+.gift-wrapper-pro { display: flex; align-items: flex-end; gap: 12px; width: 100%; margin-bottom: 15px; position: relative; }
+.gift-body { display: flex; flex-direction: column; align-items: center; position: relative; padding-bottom: 10px; }
 .gift-hero-icon {
     font-size: 85px; line-height: 1; filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
     animation: giftFloat 3s ease-in-out infinite; z-index: 2;
@@ -388,31 +488,24 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     animation: badgeShine 3s linear infinite; white-space: nowrap;
 }
 .gift-meta { font-size: 10px; color: #777; margin-top: 5px; font-weight: bold; }
-/* هدية مصغرة للردود */
 .reply-gift-container { transform: scale(0.85); transform-origin: right top; margin-right: -10px; margin-bottom: -10px; }
-
 .header-gift-preview {
     display: flex; align-items: center; gap: 10px;
     background: linear-gradient(90deg, #1a1a1a, #2a2a2a);
     padding: 5px 10px; border-radius: 12px; border: 1px solid #FFD700;
 }
-
-/* طبقة شفافة لغلق الهدايا */
 .gift-backdrop-layer {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     z-index: 299; display: none; background: rgba(0,0,0,0);
 }
 .gift-backdrop-layer.active { display: block; }
-
-/* الاستيكرات */
 .stickers-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; padding: 20px; max-height: 350px; overflow-y: auto; }
 .sticker-option { font-size: 40px; text-align: center; cursor: pointer; transition: transform 0.1s; }
 .sticker-option:active { transform: scale(0.8); }
 
 /* =========================================
-   8. القوائم المنبثقة والخيارات (Modals & Menus)
+   10. القوائم المنبثقة والخيارات (Modals & Menus)
    ========================================= */
-/* القائمة العائمة (Glass Menu) */
 .floating-options-sheet {
     position: fixed; bottom: 20px; left: 15px; right: 15px;
     background: rgba(20, 20, 20, 0.9); backdrop-filter: blur(20px);
@@ -423,7 +516,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     padding: 8px; display: flex; flex-direction: column; gap: 5px;
 }
 .floating-options-sheet.active { transform: translateY(0); opacity: 1; }
-
 .compact-option {
     display: flex; align-items: center; gap: 12px; padding: 12px 15px;
     border-radius: 16px; color: #fff; font-weight: 700; cursor: pointer;
@@ -434,7 +526,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .compact-option i { width: 25px; text-align: center; color: var(--primary); }
 .compact-option.danger-opt { color: #ff3b30; }
 .compact-option.danger-opt i { color: #ff3b30; }
-
 .cancel-btn-compact {
     text-align: center; padding: 12px; background: rgba(255, 255, 255, 0.05);
     border-radius: 16px; font-weight: 800; color: #aaa; margin-top: 5px;
@@ -444,11 +535,35 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     background: rgba(0,0,0,0.4); z-index: 10004; display: none;
 }
 
+/* قائمة خيارات الفيديو (Video Menu) */
+.interest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.interest-btn {
+    background: #222; padding: 12px; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; gap: 8px; cursor: pointer; transition: 0.2s;
+}
+.interest-btn:active { transform: scale(0.96); background: #333; }
+.interest-btn i { font-size: 20px; margin-bottom: 5px; }
+.interest-btn .main-text { font-weight: bold; font-size: 14px; color: #fff; }
+.interest-btn .sub-text { font-size: 10px; color: #aaa; }
+.menu-divider { height: 1px; background: #333; margin: 10px 0; width: 100%; }
+.menu-list { display: flex; flex-direction: column; gap: 5px; }
+.menu-item {
+    display: flex; align-items: center; gap: 15px; padding: 12px 10px;
+    border-radius: 10px; cursor: pointer; transition: 0.2s; color: #eee;
+}
+.menu-item:active { background: rgba(255,255,255,0.1); }
+.menu-item i { width: 25px; text-align: center; font-size: 18px; color: #fff; }
+.menu-item .menu-text { flex: 1; font-size: 15px; font-weight: 600; }
+.menu-item .menu-value { font-size: 12px; color: #aaa; background: #333; padding: 2px 8px; border-radius: 4px; }
+.menu-item.danger { color: #ff3b30; }
+.menu-item.danger i { color: #ff3b30; }
+.menu-toggle i { font-size: 22px; color: #555; }
+.menu-toggle i.active, .menu-toggle i.fa-toggle-on { color: var(--primary); }
+
 /* نافذة التأكيد */
 .custom-modal { position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); }
 .modal-box { background: var(--card-color); width: 85%; max-width: 380px; border-radius: 24px; padding: 30px; border: 1px solid var(--border-color); text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-
-/* التنبيهات (Toast) */
 #toast { 
     position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); 
     background: #222; color: #fff; padding: 12px 24px; border-radius: 50px; 
@@ -457,20 +572,9 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
 #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-/* قائمة المنشن */
-.mention-dropdown { 
-    position: absolute; bottom: 60px; left: 15px; right: 15px; 
-    background: var(--sheet-bg); border: 1px solid var(--border-color); border-radius: 12px; 
-    max-height: 200px; overflow-y: auto; display: none; z-index: 205; 
-    box-shadow: 0 -5px 20px rgba(0,0,0,0.5); 
-}
-.mention-dropdown.active { display: block; }
-.mention-suggest-item { padding: 10px; display: flex; align-items: center; gap: 10px; cursor: pointer; border-bottom: 1px solid #333; }
-
 /* =========================================
-   9. وضع السينما وعارض الصور (Lightbox)
+   11. وضع السينما وعارض الصور (Media Viewers)
    ========================================= */
-/* عارض الصور */
 .lightbox {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0, 0, 0, 0.95); z-index: 10000;
@@ -492,7 +596,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     gap: 8px; cursor: pointer; box-shadow: 0 0 20px rgba(247, 37, 133, 0.4); z-index: 10001;
 }
 
-/* وضع السينما (Fullscreen Video) */
 .fs-overlay {
     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
     background: #000; z-index: 20000; display: none; flex-direction: column; 
@@ -500,7 +603,6 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
 .fs-overlay.active { display: flex; opacity: 1; }
 .fs-video-element { width: 100%; height: 100%; object-fit: contain; }
-
 .fs-center-btn {
     position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
     width: 70px; height: 70px; background: rgba(0,0,0,0.5); border-radius: 50%;
@@ -515,7 +617,7 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 }
 
 /* =========================================
-   10. الأنيميشن (Keyframes)
+   12. الأنيميشن (Keyframes)
    ========================================= */
 @keyframes heartPop { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(1); opacity: 0; } }
 @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -525,286 +627,646 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
 @keyframes floatIndicator { 0%, 100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-5px); } }
 @keyframes giftFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-8px) rotate(2deg); } }
 @keyframes badgeShine { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
+@keyframes shineMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes heartbeat { 0% { transform: scale(1); } 15% { transform: scale(1.2); } 30% { transform: scale(1); } 45% { transform: scale(1.2); } 60% { transform: scale(1); } 100% { transform: scale(1); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* --- 1. إصلاح مسافة مشغل الصوت (الريكورد) --- */
-.custom-audio-player {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    background: #2a2a2a;
-    padding: 8px 12px;
-    border-radius: 25px;
+/* القرص الدوار */
+.music-disc-container {
+    position: absolute;
+    bottom: 30px; /* مكان القرص */
+    left: 15px;   /* عكس مكان الأزرار الجانبية */
+    width: 50px;
+    height: 50px;
+    z-index: 15;
+}
+
+.music-disc-bg {
     width: 100%;
-    max-width: 260px;
-    
-    /* التعديل هنا: ضفنا مسافة من فوق ومن تحت */
-    margin-top: 8px;      
-    margin-bottom: 12px;  /* دي اللي كانت ناقصة عشان تفصل عن اللي تحته */
-    
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 100%;
+    background: #000; /* خلفية سوداء مثل الاسطوانة */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid #222;
+    animation: discSpin 5s linear infinite; /* دوران مستمر */
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.music-disc-bg img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* حركة النوتات الموسيقية الطائرة */
+.music-notes i {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    animation: noteFloat 3s linear infinite;
+}
+.music-notes i:nth-child(2) { animation-delay: 1.5s; font-size: 10px; left: 20px; }
+
+/* الانيميشن */
+@keyframes discSpin { 100% { transform: rotate(360deg); } }
+@keyframes noteFloat {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { transform: translateY(-50px) rotate(20deg); opacity: 0; }
+}
+
+/* إيقاف الدوران عند إيقاف الفيديو */
+.video-slide.is-paused .music-disc-bg { animation-play-state: paused; }
+
+.saved-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 فيديوهات في الصف */
+    gap: 2px;
+    padding: 2px;
+    overflow-y: auto;
+    height: 100%;
+}
+
+.saved-item {
+    position: relative;
+    aspect-ratio: 9/16; /* نسبة أبعاد الفيديو الطولي */
+    background: #222;
+    cursor: pointer;
+}
+
+.saved-item img, .saved-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.saved-overlay {
+    position: absolute;
+    bottom: 5px;
+    left: 5px;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    text-shadow: 0 1px 3px #000;
+}
+
+/* إعدادات الصفحة الكاملة */
+.full-screen-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #121212; /* لون خلفية داكن احترافي */
+    z-index: 2000; /* فوق كل شيء */
+    display: none; /* مخفي افتراضياً */
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.full-screen-page.active {
+    display: flex;
+    animation: slideInRight 0.3s ease; /* حركة دخول ناعمة */
+}
+
+/* الهيدر */
+.fs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    background: #121212;
+    border-bottom: 1px solid #333;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.fs-title {
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.fs-back-btn {
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+/* الأقسام (التابات) */
+.fs-tabs {
+    display: flex;
+    background: #121212;
+    border-bottom: 1px solid #222;
+}
+
+.fs-tab {
+    flex: 1;
+    text-align: center;
+    padding: 15px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #777;
+    cursor: pointer;
+    position: relative;
     transition: 0.3s;
 }
 
-/* --- 2. إصلاح مسافة الصور والفيديو --- */
-.cm-media-wrapper {
+.fs-tab.active {
+    color: #fff;
+}
+
+/* الخط المتحرك تحت التاب النشط */
+.fs-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: #fff; /* أو لونك الأساسي var(--primary) */
+}
+
+/* شبكة الفيديوهات (مثل تيك توك) */
+.fs-content-area {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 أعمدة */
+    gap: 1px; /* مسافة 1 بكسل فقط */
+    padding-bottom: 50px;
+}
+
+.grid-item {
     position: relative;
+    aspect-ratio: 3/4; /* نسبة أبعاد مستطيلة */
+    background: #222;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.grid-item img, .grid-item video {
     width: 100%;
-    max-width: 260px;
-    border-radius: 12px;
-    overflow: hidden;
-    background-color: #000;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-
-    /* التعديل هنا: ضفنا مسافة من تحت */
-    margin-top: 8px;
-    margin-bottom: 12px; /* دي بتعمل فاصل بين الصورة/الفيديو واللي تحته */
-}
-
-/* =========================================
-   تحديث: واجهة المستخدم السفلية (Style Update)
-   ========================================= */
-
-/* تعديل منطقة المعلومات السفلية */
-.video-info {
-    position: absolute; 
-    bottom: 0; 
-    left: 0; 
-    right: 0;
-    padding: 20px 15px 40px 15px; /* مساحة من تحت عشان شريط التقدم */
-    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.95) 100%);
-    z-index: 10; 
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-}
-
-.info-inner { 
-    pointer-events: auto; 
-    width: 100%; 
-    max-width: 80%; /* عشان ميكسيش على زراير الجنب */
-}
-/* حاوية السطر اللي فيه الصورة والاسم */
-.user-header-row {
-    display: flex;
-    align-items: center;
-    gap: 10px; /* مسافة بين العناصر */
-    margin-bottom: 6px;
-    width: 100%; /* واخد العرض كله */
-    overflow: hidden; /* عشان مفيش حاجة تخرج بره */
-}
-
-/* الصورة */
-.header-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.9);
+    height: 100%;
     object-fit: cover;
-    flex-shrink: 0; /* عشان الصورة متفعصش لو الاسم طويل */
 }
 
-/* المنطقة اللي شايلة الاسم والتوثيق */
-.header-name-block {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex: 1; /* ياخد المساحة المتبقية */
-    min-width: 0; /* ضروري جداً عشان الـ Truncate يشتغل */
-}
-
-/* تنسيق الاسم نفسه */
-.header-username {
-    font-weight: 700; 
-    font-size: 15px; 
-    color: #fff; 
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    
-    /* الخلطة السحرية للاسم الطويل */
-    white-space: nowrap;       /* يمنع النزول لسطر جديد */
-    overflow: hidden;          /* يخفي الزيادة */
-    text-overflow: ellipsis;   /* يحط ثلاث نقط ... في الآخر */
-    max-width: 100%;
-}
-
-/* علامة التوثيق */
-.verified-badge {
-    color: #20D5EC; /* اللون الأزرق السماوي */
-    font-size: 14px;
-    flex-shrink: 0; /* عشان العلامة متختفيش */
-    margin-top: 2px;
-}
-/* --- تصحيح المنطقة العلوية (Header Fix) --- */
-
-/* 1. تنسيق الاسم لضمان ظهوره */
-.header-name-block {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    flex: 1; /* يأخذ المساحة المتبقية */
-    min-width: 0; /* ضروري جداً لمنع النص من الخروج */
-    justify-content: flex-start; /* التأكد من أن النص يبدأ من اليمين */
-}
-
-/* 2. تنسيق الاسم نفسه */
-.header-username {
-    display: block; /* مهم جداً عشان الـ truncating يشتغل */
-    font-weight: 700; 
-    font-size: 15px; 
-    color: #fff; 
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    
-    /* الخلطة السحرية للنص الطويل */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-
-/* 3. تنسيق زر المتابعة (إزالة المارجن المسبب للمشكلة) */
-.follow-btn-inline {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.grid-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 5px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
     color: #fff;
-    font-size: 11px; /* تكبير الخط قليلاً */
-    font-weight: bold;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0; /* منع الزر من الانكماش */
-    
-    /* 🔥 تم حذف margin-right: auto لأن الاسم واخد flex: 1 وهيزق الزرار لوحده */
-    margin-left: 0; 
-}
-
-
-.follow-btn-inline:active {
-    transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.3);
-}
-
-.video-desc { 
-    font-size: 13px; 
-    color: #eee; 
-    line-height: 1.4; 
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    margin-right: 5px; /* عشان يبقى تحت الاسم بالظبط */
-}
-
-/* تعديل الشريط الجانبي (شيلنا منه الصورة) */
-.side-bar {
-    position: absolute; 
-    left: 10px; /* خليناها شمال أو يمين حسب لغتك، هنا هي شمال عشان التيك توك العربي */
-    bottom: 120px; /* رفعناه شوية */
-    z-index: 20; 
-    display: flex; 
-    flex-direction: column;
-    gap: 20px; 
+    font-size: 10px;
+    display: flex;
     align-items: center;
+    gap: 4px;
+    font-weight: bold;
 }
 
-/* تصغير أيقونات الجنب شوية عشان تبقى شيك */
-.icon-circle {
-    width: 40px; 
-    height: 40px; 
+/* حركة الدخول */
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.loading-state {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    padding: 50px;
     font-size: 20px;
+    color: #fff;
 }
 
-/* --- ستايل التوثيق المطور (نبض + لمعان) --- */
-.nabd-badge {
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 4px;
+/* --- تنسيق شريط الموسيقى والأسطوانة المدمج --- */
+.music-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* يفصل النص عن الأسطوانة */
+    margin-top: 8px;
+    width: 100%;
+}
+
+.music-marquee-container {
+    flex: 1; /* يأخذ المساحة المتبقية */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
     font-size: 13px;
-    
-    /* 1. صناعة اللمعان باستخدام التدرج اللوني */
-    /* اللون الأزرق العادي، وفي النص لون أبيض (اللمعة) */
-    background: linear-gradient(
-        120deg, 
-        #1da1f2 30%, 
-        #ffffff 50%, 
-        #1da1f2 70%
-    );
-    
-    /* 2. تكبير الخلفية عشان نحركها */
-    background-size: 200% auto;
-    
-    /* 3. قص الخلفية على شكل الأيقونة فقط */
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    
-    /* 4. إضافة توهج خارجي (Glow) */
-    filter: drop-shadow(0 0 5px rgba(29, 161, 242, 0.6));
-    
-    /* 5. دمج الحركتين: اللمعان والنبض */
-    animation: 
-        shineMove 3s linear infinite,      /* حركة اللمعان */
-        heartbeat 1.5s infinite ease-in-out; /* حركة النبض */
+    opacity: 0.9;
 }
 
-/* أنيميشن حركة اللمعان (مرور الضوء) */
-@keyframes shineMove {
-    0% {
-        background-position: 0% 50%;
-    }
-    100% {
-        background-position: 200% 50%;
-    }
+/* الأسطوانة الدوارة الاحترافية */
+.vinyl-wrapper {
+    width: 45px;
+    height: 45px;
+    position: relative;
+    flex-shrink: 0; /* يمنع الانكماش */
+    margin-right: 10px; /* مسافة بينه وبين النص */
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-/* أنيميشن النبض (الدقات) */
-@keyframes heartbeat {
-    0% { transform: scale(1); }
-    15% { transform: scale(1.2); }
-    30% { transform: scale(1); }
-    45% { transform: scale(1.2); }
-    60% { transform: scale(1); }
-    100% { transform: scale(1); }
+.vinyl-disc {
+    width: 100%;
+    height: 100%;
+    background: #111; /* لون الأسطوانة الأسود */
+    border-radius: 50%;
+    border: 2px solid #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: spinDisc 5s linear infinite;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
 }
 
-/* --- تصحيح المنطقة العلوية (Header Fix) --- */
+/* صورة البروفايل داخل الأسطوانة */
+.vinyl-img {
+    width: 28px; /* حجم الصورة أصغر من الأسطوانة */
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
-/* 1. تنسيق الاسم لضمان ظهوره */
-.header-name-block {
+/* النوتات الموسيقية الطائرة */
+.floating-notes {
+    position: absolute;
+    bottom: 0;
+    left: -10px; /* تخرج من يسار الأسطوانة */
+    width: 20px;
+    height: 100%;
+    pointer-events: none;
+}
+
+.floating-notes i {
+    position: absolute;
+    bottom: 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    animation: floatNote 3s linear infinite;
+}
+
+.floating-notes i:nth-child(1) { animation-delay: 0s; left: 5px; }
+.floating-notes i:nth-child(2) { animation-delay: 1.5s; left: 15px; font-size: 10px; }
+
+/* الأنيميشن */
+@keyframes spinDisc { 100% { transform: rotate(360deg); } }
+@keyframes floatNote {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-40px) rotate(-20deg); opacity: 0; }
+}
+
+/* وقف الدوران عند إيقاف الفيديو */
+.video-slide.is-paused .vinyl-disc { animation-play-state: paused; }
+
+/* --- تنسيقات قائمة المكتبة الجديدة --- */
+.menu-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.menu-item:active {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.menu-item i {
+    font-size: 20px;
+    width: 30px;
+    text-align: center;
+}
+
+.menu-text {
+    flex: 1;
+    font-size: 14px;
+    font-weight: bold;
+    color: #fff;
+}
+
+/* تنسيق خيارات الخصوصية */
+.privacy-option {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    cursor: pointer; position: relative;
+}
+.p-info { display: flex; flex-direction: column; gap: 5px; }
+.p-title { font-weight: bold; font-size: 14px; color: #fff; display: flex; align-items: center; gap: 8px; }
+.p-desc { font-size: 11px; color: #aaa; }
+
+/* إخفاء زر الراديو الأصلي وعمل واحد مخصص */
+.privacy-option input { display: none; }
+.radio-mark {
+    width: 20px; height: 20px; border: 2px solid #555; border-radius: 50%;
+    display: grid; place-items: center; transition: 0.2s;
+}
+.radio-mark::after {
+    content: ''; width: 10px; height: 10px; background: var(--primary);
+    border-radius: 50%; transform: scale(0); transition: 0.2s;
+}
+/* لما نختار واحد */
+.privacy-option input:checked + .radio-mark { border-color: var(--primary); }
+.privacy-option input:checked + .radio-mark::after { transform: scale(1); }
+
+/* 1. تحديد أقصى ارتفاع للقائمة نفسها عشان متخرجش بره الشاشة */
+#videoOptionsSheet {
+    max-height: 75vh; /* أقصى ارتفاع 75% من الشاشة */
+    display: flex;
+    flex-direction: column; /* عشان نرتب العناصر فوق بعض */
+    overflow: hidden; /* عشان الحواف المدورة تفضل موجودة */
+}
+
+/* 2. تفعيل السكرول للجزء اللي فيه الزراير (menu-list) */
+#videoOptionsSheet .menu-list {
+    overflow-y: auto; /* اسمح بالتمرير الرأسي */
+    flex: 1; /* خد المساحة المتبقية كلها */
+    padding-bottom: 20px; /* مسافة أمان تحت عشان آخر زرار يبان */
+    
+    /* إخفاء شريط التمرير (Scrollbar) عشان الشكل يبقى احترافي */
+    scrollbar-width: none; /* لمتصفحات فايرفوكس */
+    -ms-overflow-style: none; /* لمتصفحات إيدج القديمة */
+}
+
+/* إخفاء شريط التمرير لمتصفحات كروم وسفاري */
+#videoOptionsSheet .menu-list::-webkit-scrollbar {
+    display: none;
+}
+
+.speed-overlay {
+    position: absolute;
+    top: 20%; /* يظهر في الجزء العلوي */
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    display: none; /* مخفي افتراضياً */
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    font-size: 14px;
+}
+/* أنيميشن بسيط للظهور */
+.speed-overlay.active {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeIn 0.2s ease;
+}
+
+.meta-badge {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    color: #ccc;
+    font-family: monospace; /* خط رقمي */
+    letter-spacing: 0.5px;
     display: flex;
     align-items: center;
     gap: 5px;
-    flex: 1; /* يأخذ المساحة المتبقية */
-    min-width: 0; /* ضروري جداً لمنع النص من الخروج */
-    justify-content: flex-start; /* التأكد من أن النص يبدأ من اليمين */
+    direction: ltr; /* عشان الأرقام والوحدات تظهر صح */
 }
 
-/* 2. تنسيق الاسم نفسه */
-.header-username {
-    display: block; /* مهم جداً عشان الـ truncating يشتغل */
-    font-weight: 700; 
-    font-size: 15px; 
-    color: #fff; 
-    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
-    
-    /* الخلطة السحرية للنص الطويل */
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
-}
-
-/* 3. تنسيق زر المتابعة (إزالة المارجن المسبب للمشكلة) */
-.follow-btn-inline {
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+.seeker-timer {
+    position: absolute;
+    right: 5px;   /* أقصى اليمين */
+    bottom: 12px; /* فوق الشريط بشوية */
     color: #fff;
-    font-size: 11px; /* تكبير الخط قليلاً */
+    font-size: 11px;
     font-weight: bold;
+    font-family: monospace; /* خط رقمي عشان الأرقام متهزش */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8); /* ظل عشان يبان لو الخلفية فاتحة */
+    pointer-events: none; /* عشان ميعطلش اللمس وانت بتسحب الشريط */
+    opacity: 0.9;
+}
+
+.nav-tabs {
+    /* 1. التوسيط في نص الشاشة بالظبط */
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    
+    /* 2. النزول للأسفل (خليناها 65px بدل 45px) */
+    margin-top: 65px; 
+    
+    /* تنسيقات الشكل */
+    display: flex;
+    gap: 20px;
+    font-size: 16px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.6);
+    z-index: 10; 
+}
+/* حاوية الأزرار (الكبسولة الكبيرة) */
+.speed-control-group {
+    display: flex;
+    background: rgba(255, 255, 255, 0.1); /* لون الخلفية الغامق */
+    border-radius: 8px;
+    padding: 4px;
+    gap: 2px;
+    direction: ltr; /* عشان الأرقام تترتب صح من الشمال لليمين */
+}
+
+/* زرار السرعة الواحد */
+.sp-btn {
     padding: 6px 12px;
     border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #888; /* لون النص غير النشط */
     cursor: pointer;
-    white-space: nowrap;
-    flex-shrink: 0; /* منع الزر من الانكماش */
-    
-    /* 🔥 تم حذف margin-right: auto لأن الاسم واخد flex: 1 وهيزق الزرار لوحده */
-    margin-left: 0; 
+    transition: all 0.2s ease;
+    font-family: sans-serif; /* عشان الأرقام تكون واضحة */
+}
+
+/* الزرار النشط (المختار) */
+.sp-btn.active {
+    background: rgba(255, 255, 255, 0.25); /* خلفية فاتحة للنشط */
+    color: #fff; /* نص أبيض */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* تأثير عند الضغط */
+.sp-btn:active {
+    transform: scale(0.95);
+}
+
+/* تصميم صفحة الصوت */
+.sound-header-banner {
+    padding: 80px 20px 20px 20px;
+    background: linear-gradient(to bottom, #2a2a2a, #121212);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.sound-disc-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #000;
+    border: 1px solid rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    color: #fff;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+}
+
+.sound-info-block h2 {
+    font-size: 18px;
+    margin-bottom: 5px;
+    color: #fff;
+}
+
+.sound-author {
+    font-size: 14px;
+    color: #aaa;
+    font-weight: bold;
+}
+
+.sound-stats {
+    font-size: 12px;
+    color: #777;
+    margin-top: 5px;
+}
+
+.sound-actions-bar {
+    padding: 0 20px 20px 20px;
+    background: #121212;
+    border-bottom: 1px solid #222;
+}
+
+.add-fav-btn {
+    width: 100%;
+    padding: 10px;
+    background: #222;
+    border: 1px solid #333;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: 0.2s;
+}
+
+.add-fav-btn.active {
+    background: rgba(255, 215, 0, 0.15);
+    color: #FFD700;
+    border-color: #FFD700;
+}
+
+/* الزر العائم في الأسفل */
+.use-sound-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    background: #121212;
+    border-top: 1px solid #222;
+    display: flex;
+    justify-content: center;
+    z-index: 2501;
+}
+
+.use-sound-btn {
+    background: #F72585; /* اللون الأحمر/البينك بتاع التطبيق */
+    color: #fff;
+    border: none;
+    padding: 12px 40px;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(247, 37, 133, 0.4);
+    cursor: pointer;
+}
+
+/* زر النشر المميز */
+.nav-create-btn {
+    width: 45px;
+    height: 32px; /* شكل مستطيل قليلاً ليكون مميزاً عن الأيقونات الدائرية */
+    background: linear-gradient(90deg, #F72585 0%, #7209b7 100%); /* تدرج لوني */
+    border-radius: 8px; /* حواف ناعمة */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    margin-left: 5px; /* مسافة صغيرة بينه وبين العناصر الأخرى */
+    box-shadow: 0 0 15px rgba(247, 37, 133, 0.4); /* توهج خفيف */
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: transform 0.2s;
+}
+
+.nav-create-btn:active {
+    transform: scale(0.95);
+}
+
+.nav-create-btn i {
+    color: #fff;
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* تأثير اللمعة المتحركة (Shine Effect) */
+.nav-create-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    transform: skewX(-20deg);
+    animation: btnShine 4s infinite; /* تتكرر كل 4 ثواني */
+}
+
+@keyframes btnShine {
+    0% { left: -150%; }
+    20% { left: 150%; } /* تتحرك اللمعة بسرعة */
+    100% { left: 150%; } /* وتختفي باقي الوقت */
 }
 
 
@@ -1041,40 +1503,96 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
         let recordInterval;
         let isRecording = false;
 let isGlobalMuted = true; 
+let currentFeedTab = 'world'; // world | friends | popular
+let currentSearchType = 'users'; // users | videos
+// قائمة لتخزين أرقام الأشخاص المحظورين عشان التطبيق يتجاهلهم
+let blockedUsersSet = new Set(); 
+
+// دي الصورة اللي جبناها من الكود بتاعك
+const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+// دالة لتنظيف النصوص من أي كود خبيث
+function escapeHTML(str) {
+    if (!str) return "";
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
 
         const stickerCollection = ["🤣", "😂", "😅", "🥹", "😍", "🥰", "😘", "🤪", "😎", "😭", "😢", "😤", "😡", "🤬", "🤯", "😳", "😱", "😴", "🤮", "🤡", "💀", "👻", "👽", "💩", "👍", "👎", "👌", "✌️", "❤️", "💔", "🔥", "✨"];
         const ghostColors = ["#ff0000", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#ff9900", "#9900ff", "#ffffff", "#00ff99"];
 
         // --- 3. تشغيل التطبيق ---
-        auth.onAuthStateChanged(async user => {
-            if(user) {
-                currentUser = user;
-                const uDoc = await db.collection('users').doc(user.uid).get();
-                if(uDoc.exists) {
-                    currentUserData = uDoc.data();
-                    if(currentUserData.isGhost) isGhost = true;
-                }
-                loadVideos(true);
-            } else {
-                console.log("User not logged in");
-            }
-        });
+        // استبدل الكود القديم الخاص بـ auth بهذا الترتيب
+auth.onAuthStateChanged(async user => {
+    if(user) {
+        currentUser = user;
+        
+        // 1. نجيب بيانات المستخدم
+        const uDoc = await db.collection('users').doc(user.uid).get();
+        if(uDoc.exists) {
+            currentUserData = uDoc.data();
+            if(currentUserData.isGhost) isGhost = true;
+        }
+        
+        // 2. 🔥 نجيب قائمة المحظورين الأول (مهم جداً)
+        await fetchBlockedUsersList();
+listenToUnreadNotifications();
+
+        // 3. بعدها نحمل الفيديوهات
+        loadVideos(true);
+        startPresenceSystem();
+    } else {
+        console.log("User not logged in");
+        // لو مش مسجل، حمل فيديوهات عادي (مفيش حظر لسه)
+        
+        loadVideos(true);
+    }
+});
+
 
         // --- 4. منطق الفيديو (Feed Logic) ---
-        async function loadVideos(isInitial = false) {
+      async function loadVideos(isInitial = false) {
     if (isLoading) return;
     isLoading = true;
 
     const feed = document.getElementById('feed');
-    let query = db.collection('posts').orderBy('createdAt', 'desc').limit(5);
+    
+    // إظهار لودر صغير لو بنحمل
+    if(isInitial) feed.innerHTML = '<div style="color:#fff; text-align:center; padding:50px; font-size:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
 
+    let query = db.collection('posts');
+
+    // --- المنطق حسب القسم ---
+    if (currentFeedTab === 'popular') {
+        query = query.orderBy('commentsCount', 'desc');
+    } 
+    else if (currentFeedTab === 'friends') {
+        if (!currentUser) {
+            feed.innerHTML = '<div style="text-align:center; margin-top:50%; color:#aaa;">يجب تسجيل الدخول لرؤية منشورات الأصدقاء</div>';
+            isLoading = false; return;
+        }
+        query = query.orderBy('createdAt', 'desc'); 
+    } 
+    else {
+        query = query.orderBy('createdAt', 'desc');
+    }
+
+    // Paging
+    query = query.limit(5);
     if (!isInitial && lastDoc) {
         query = query.startAfter(lastDoc);
     }
 
     try {
         const snapshot = await query.get();
+        if(isInitial) feed.innerHTML = '';
+
         if (snapshot.empty) {
+            if(isInitial) feed.innerHTML = '<div style="text-align:center; margin-top:50%; color:#aaa;">لا توجد فيديوهات في هذا القسم</div>';
             isLoading = false;
             return;
         }
@@ -1084,43 +1602,52 @@ let isGlobalMuted = true;
         for (const doc of snapshot.docs) {
             const data = doc.data();
             const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+            
+            if (blockedUsersSet.has(data.uid)) {
+        console.log("تم إخفاء فيديو لمستخدم محظور:", data.uid);
+        continue; // انتقل للفيديو التالي فوراً ولا ترسم هذا الفيديو
+    }
+
+             // ضعه في نهاية دالة loadVideos قبل قفل القوس }
+if (currentUser) {
+    // فحص المفضلة
+    db.collection('users').doc(currentUser.uid).collection('favorites').get().then(snap => {
+        snap.forEach(doc => {
+            const icon = document.getElementById(`fav-star-${doc.id}`);
+            const text = document.getElementById(`fav-text-${doc.id}`);
+            if (icon) {
+                icon.style.color = "#FFD700";
+                if(text) text.innerText = "تمت الإضافة";
+            }
+        });
+    });
+}
 
             if (videoMedia) {
-                // 1. تجهيز المتغيرات (الاسم، الصورة، والتوثيق)
-                let uName = "Unknown";
-                let uPic = "";
-                let isVerified = false; // المتغير الجديد
+                 // --- تصحيح الكود هنا ---
+                 let uName = "مستخدم";
+                 let uPic = defaultAvatar; // استخدام الصورة الافتراضية كبداية
+                 let isVerified = false;
 
-                try {
-                    const uSnap = await db.collection('users').doc(data.uid).get();
-                    if (uSnap.exists) {
-                        const uData = uSnap.data();
-                        
-                        uName = uData.name || "مستخدم";
-                        uPic = uData.profilePic || "";
-                        
-                        // 2. جلب حالة التوثيق من الداتابيز
-                        isVerified = uData.isVerified || false; 
-                    }
-                } catch (e) {
-                    console.error("Error fetching user data:", e);
-                }
-
-                // 3. إرسال التوثيق (isVerified) مدمجاً مع بيانات الفيديو
-                const cardHTML = createVideoCard(
-                    doc.id, 
-                    { ...data, isVerified: isVerified }, // التعديل هنا مهم جداً
-                    videoMedia.url, 
-                    uName, 
-                    uPic, 
-                    data.uid
-                );
-                
-                feed.insertAdjacentHTML('beforeend', cardHTML);
-
-                const newCard = document.getElementById(`slide-${doc.id}`);
-                if (newCard) observer.observe(newCard);
-            }
+                 try {
+                     const uSnap = await db.collection('users').doc(data.uid).get();
+                     if(uSnap.exists) { 
+                         const uData = uSnap.data(); 
+                         uName = uData.name || "مستخدم";
+                         // التصحيح: إسناد القيمة للمتغير uPic
+                         uPic = uData.profilePic || uData.avatarUrl || defaultAvatar;
+                         isVerified = uData.isVerified || false; 
+                     }
+                 } catch(e) {
+                     console.error("Error fetching user data:", e);
+                 }
+                 
+                 const cardHTML = createVideoCard(doc.id, {...data, isVerified}, videoMedia.url, uName, uPic, data.uid);
+                 feed.insertAdjacentHTML('beforeend', cardHTML);
+                 
+                 const newCard = document.getElementById(`slide-${doc.id}`);
+                 if (newCard) observer.observe(newCard);
+             }
         }
     } catch (e) {
         console.error("Error loading videos:", e);
@@ -1130,84 +1657,125 @@ let isGlobalMuted = true;
 
         function createVideoCard(id, data, url, uName, uPic, ownerUid) {
     const isLiked = data.likes && data.likes[currentUser.uid];
-    const mutedClass = isGlobalMuted ? 'muted-state' : '';
     
-    // 1. التوثيق (نتأكد إنه بيقرا من البيانات اللي جاية)
+    // 1. استخراج بيانات الصوت بشكل آمن جداً
+    let hasSound = false;
+    let soundUrl = '';
+    
+    // نتأكد أن البيانات موجودة والرابط ليس فارغاً
+    if (data.hasSound === true && data.soundInfo && data.soundInfo.url && data.soundInfo.url.length > 5) {
+        hasSound = true;
+        soundUrl = data.soundInfo.url;
+    }
+
+    const muteOriginal = (hasSound && data.soundSettings) ? data.soundSettings.muteOriginal : false;
+    const mutedClass = isGlobalMuted ? 'muted-state' : '';
+
     const isVerified = data.isVerified || false;
     const verifiedBadgeHTML = getBadge(isVerified, false); 
-
-    // 2. 🔥 معالجة الاسم (عشان يظهر الاسم الأول أو الاسمين بس)
     const displayName = formatSmartName(uName);
+    const userImage = uPic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
 
+    // 2. إصلاح صورة الأسطوانة
+    let displayMusicName = `الصوت الأصلي - ${displayName}`;
+    let vinylImage = userImage; // الافتراضي صورة المستخدم
+
+    if (hasSound) {
+        if (data.soundInfo.name) displayMusicName = data.soundInfo.name;
+        // هنا التعديل: نتأكد أن رابط الصورة موجود فعلاً
+        if (data.soundInfo.img && data.soundInfo.img.startsWith('http')) {
+            vinylImage = data.soundInfo.img;
+        }
+    }
+
+    const safeMusicName = displayMusicName.replace(/'/g, "\\'");
+    const safeAuthorName = displayName.replace(/'/g, "\\'");
+    const safeVinylImage = vinylImage.replace(/'/g, "\\'");
+    // لو فيه صوت مرفق، رابط الصفحة يروح للصوت، لو مفيش يروح للفيديو
+    const finalSoundUrl = hasSound ? soundUrl : url; 
+
+    // لن نضع عنصر <audio> هنا لتجنب الأخطاء، سننشئه في الجافاسكريبت
     return `
-    <div class="video-slide ${mutedClass}" id="slide-${id}" data-id="${id}">
+    <div class="video-slide ${mutedClass}" id="slide-${id}" data-id="${id}" 
+         data-has-sound="${hasSound}" 
+         data-sound-url="${soundUrl}"
+         data-mute-original="${muteOriginal}">
     
-        <div class="brand-loader" id="loader-${id}">
-            <i class="fa-solid fa-heart-pulse brand-pulse-icon"></i>
-        </div>
+        <div class="speed-overlay" id="speedOverlay-${id}"><i class="fa-solid fa-forward"></i> 2x سرعة</div>
+        <div class="brand-loader" id="loader-${id}"><i class="fa-solid fa-heart-pulse brand-pulse-icon"></i></div>
         
-        <div class="mute-indicator">
-            <i class="fa-solid fa-volume-xmark"></i> 
-        </div>
+        <div class="mute-indicator" id="mute-indicator-${id}" style="opacity: ${isGlobalMuted ? 1 : 0}"><i class="fa-solid fa-volume-xmark"></i></div>
 
-        <video id="vid-${id}" loop playsinline muted preload="none" poster="${data.thumbnail || ''}">
-            <source src="${url}" type="video/mp4">
+        <video id="vid-${id}" loop playsinline muted preload="auto" poster="${data.thumbnail || ''}" 
+               onpause="updatePlayButtonState(this, '${id}')" 
+               onplay="updatePlayButtonState(this, '${id}')"
+               ontimeupdate="updateFloatingSeeker(this, '${id}')"> 
+               <source src="${url}" type="video/mp4">
         </video>
-        
+
+        <div class="center-play-button" id="center-btn-${id}"><i class="fa-solid fa-play"></i></div>
         <i class="fa-solid fa-heart big-heart" id="heart-anim-${id}"></i>
         
         <div class="interaction-layer" 
              onclick="handleSingleClick('${id}')" 
-             ondblclick="handleDoubleClick('${id}')"></div>
+             ontouchstart="startTurboMode('${id}')" 
+             ontouchend="stopTurboMode('${id}')" 
+             ontouchcancel="stopTurboMode('${id}')">
+        </div>
 
         <div class="side-bar">
             <div class="action-btn" onclick="toggleLike('${id}')">
-                <div class="icon-circle">
-                    <i class="fa-solid fa-heart" id="like-icon-${id}" style="color: ${isLiked ? '#F72585' : '#fff'}"></i>
-                </div>
+                <div class="icon-circle"><i class="fa-solid fa-heart" id="like-icon-${id}" style="color: ${isLiked ? '#F72585' : '#fff'}"></i></div>
                 <span class="action-text" id="like-count-${id}">${data.likes ? Object.keys(data.likes).length : 0}</span>
             </div>
-
             <div class="action-btn" onclick="openComments('${id}', '${ownerUid}')">
                 <div class="icon-circle"><i class="fa-solid fa-comment-dots"></i></div>
                 <span class="action-text" id="comment-count-${id}">${data.commentsCount || 0}</span>
             </div>
-
+            <div class="action-btn" onclick="toggleSave('${id}')">
+                <div class="icon-circle"><i class="fa-solid fa-bookmark" id="save-icon-${id}"></i></div>
+                <span class="action-text" id="save-text-${id}">حفظ</span>
+            </div>
             <div class="action-btn" onclick="shareVideo('${id}', '${data.text}')">
                 <div class="icon-circle"><i class="fa-solid fa-share"></i></div>
                 <span class="action-text">مشاركة</span>
             </div>
-            
-             <div class="action-btn">
-                <div class="icon-circle" style="background:none; border:none; box-shadow:none;"><i class="fa-solid fa-ellipsis" style="font-size:25px;"></i></div>
+            <div class="action-btn" onclick="openVideoOptions('${id}', '${ownerUid}')">
+                 <div class="icon-circle" style="background:none; border:none; box-shadow:none;">
+                    <i class="fa-solid fa-ellipsis" style="font-size:25px;"></i>
+                 </div>
             </div>
         </div>
 
         <div class="video-info">
             <div class="info-inner">
-                
                 <div class="user-header-row">
-                    <img src="${uPic || 'https://via.placeholder.com/50'}" class="header-avatar" onclick="location.href='profile.html?uid=${ownerUid}'">
-                    
+                    <img src="${userImage}" class="header-avatar" onclick="location.href='profile.html?uid=${ownerUid}'">
                     <div class="header-name-block" onclick="location.href='profile.html?uid=${ownerUid}'">
                         <span class="header-username" dir="auto">${displayName}</span> ${verifiedBadgeHTML}
                     </div>
-
                     <div class="follow-btn-inline" onclick="toggleFollow('${ownerUid}', this)">متابعة</div>
                 </div>
-
+                
                 <div class="video-desc">${data.text || ''}</div>
                 
-                <div style="font-size:12px; color:#fff; display:flex; align-items:center; gap:5px; margin-top:5px; opacity:0.8;">
-                    <i class="fa-solid fa-music"></i> 
-                    <marquee scrollamount="4" style="width:150px;">الصوت الأصلي - ${displayName}</marquee>
+                <div class="music-row" onclick="event.stopPropagation(); openSoundPage('${safeMusicName}', '${safeAuthorName}', '${safeVinylImage}', '${finalSoundUrl}')">
+                    <div class="music-marquee-container">
+                        <i class="fa-solid fa-music"></i> 
+                        <marquee scrollamount="4" style="width:150px;">${displayMusicName}</marquee>
+                    </div>
+                    <div class="vinyl-wrapper">
+                        <div class="floating-notes"><i class="fa-solid fa-music"></i><i class="fa-solid fa-music"></i></div>
+                        <div class="vinyl-disc">
+                            <img src="${vinylImage}" class="vinyl-img">
+                        </div>
+                    </div>
                 </div>
-
             </div>
         </div>
-
-        <div class="progress-container" onclick="seekVideo(event, '${id}')">
-            <div class="progress-bar" id="prog-${id}"></div>
+        
+        <div class="floating-seeker-container" ontouchstart="startSeeking(event, '${id}')" ontouchmove="moveSeeking(event, '${id}')" ontouchend="endSeeking(event, '${id}')">
+            <div class="seeker-track" id="track-${id}"><div class="seeker-fill" id="fill-${id}"></div></div>
         </div>
     </div>`;
 }
@@ -1229,54 +1797,187 @@ let isGlobalMuted = true;
         }, observerOptions);
 
         // --- 1. دالة التشغيل المحدثة (الذكية) ---
+// --- 1. دالة التشغيل المحدثة (المصححة) ---
+// متغير لتخزين الصوت النشط حالياً (عشان نوقفه لما نقلب الفيديو)
+let activeAudioObject = null;
+
 function playVideo(vid, id) {
     const loader = document.getElementById(`loader-${id}`);
     const slide = document.getElementById(`slide-${id}`); 
+    const audio = document.getElementById(`audio-${id}`); // محاولة جلب الصوت المرفق
+    
+    // قراءة الإعدادات
+    const muteOriginal = slide.getAttribute('data-mute-original') === 'true';
+    const hasSound = slide.getAttribute('data-has-sound') === 'true';
 
-    // تحديث شريط التقدم
-    vid.ontimeupdate = () => {
-        const pct = (vid.currentTime / vid.duration) * 100;
-        const prog = document.getElementById(`prog-${id}`);
-        if(prog) prog.style.width = `${pct}%`;
-    };
+    applyAutoScrollLogic(vid, id);
 
-    // إدارة اللودر
     vid.onwaiting = () => { if(loader) loader.style.display = 'block'; };
     vid.onplaying = () => { if(loader) loader.style.display = 'none'; };
 
-    // 1. إعداد الحالة المبدئية بناءً على وضع التطبيق
+    // === إدارة الأصوات ===
     if (isGlobalMuted) {
+        // الوضع الصامت للكل
         vid.muted = true;
-        if(slide) slide.classList.add('muted-state');
+        if(audio) audio.muted = true;
+        slide.classList.add('muted-state');
+        document.getElementById(`mute-indicator-${id}`).style.opacity = '1';
     } else {
-        vid.muted = false;
-        if(slide) slide.classList.remove('muted-state');
+        // الوضع المفتوح
+        slide.classList.remove('muted-state');
+        document.getElementById(`mute-indicator-${id}`).style.opacity = '0';
+        
+        // الفيديو الأصلي
+        if (hasSound && muteOriginal) {
+            vid.muted = true; // كتم الفيديو الأصلي
+        } else {
+            vid.muted = false; // تشغيل الفيديو الأصلي
+        }
+
+        // الصوت الجديد
+        if(hasSound && audio) {
+            audio.muted = false;
+            audio.volume = 1.0;
+        }
     }
 
-    // 2. محاولة التشغيل (الذكية)
+    // التشغيل
     var playPromise = vid.play();
 
     if (playPromise !== undefined) {
-        playPromise
-        .then(_ => {
-            // نجح التشغيل! (سواء بصوت أو بدون)
-            // لا تفعل شيئاً، الفيديو يعمل الآن
+        playPromise.then(_ => {
             if(loader) loader.style.display = 'none';
+            addToWatchHistory(id);
+            
+            // تشغيل الصوت الجديد (إذا وجد)
+            if (hasSound && audio && !isGlobalMuted) {
+                // مزامنة الوقت
+                if(Math.abs(audio.currentTime - vid.currentTime) > 0.3) {
+                    audio.currentTime = vid.currentTime;
+                }
+                
+                // محاولة التشغيل
+                const audioPromise = audio.play();
+                if (audioPromise !== undefined) {
+                    audioPromise.catch(e => {
+                        console.log("Audio autoplay blocked by browser");
+                        // لا نظهر خطأ للمستخدم، سننتظر ضغطته في handleSingleClick
+                    });
+                }
+            }
         })
         .catch(error => {
-            // فشل التشغيل (غالباً بسبب منع الصوت)
-            console.log("Autoplay blocked, switching to muted...");
-
-            // 🔥 الحل: الإجبار على الوضع الصامت والتشغيل فوراً
+            // لو الفيديو نفسه اتمنع
+            console.log("Video autoplay blocked");
             vid.muted = true;
-            if(slide) slide.classList.add('muted-state'); // أظهر زر "اضغط للصوت"
-            
-            // محاولة ثانية مؤكدة
-            vid.play().then(() => {
-                 if(loader) loader.style.display = 'none';
-                 
-            });
+            slide.classList.add('muted-state');
+            isGlobalMuted = true;
+            vid.play();
+            // حاول تشغيل الصوت صامتاً لضمان تحميله
+            if(audio) { audio.muted = true; audio.play(); }
         });
+    }
+}
+
+function pauseVideo(vid) { 
+    vid.pause(); 
+    // إيقاف الصوت الخارجي إذا موجود
+    if(activeAudioObject) {
+        activeAudioObject.pause();
+    }
+    const id = vid.id.split('-')[1];
+    const loader = document.getElementById(`loader-${id}`);
+    if(loader) loader.style.display = 'none';
+}
+
+
+// --- دوال شريط الفيديو العائم (Seeker Logic) ---
+
+// 1. تحديث الشريط تلقائياً أثناء التشغيل
+// --- دوال شريط الفيديو العائم (Seeker Logic) ---
+
+let isDraggingSeeker = false;
+
+// 1. تحديث الشريط تلقائياً أثناء التشغيل (Fix Movement)
+// --- دالة تحديث الشريط تلقائياً أثناء تشغيل الفيديو ---
+function updateFloatingSeeker(vid, id) {
+    if (isDraggingSeeker) return; 
+
+    if (vid.duration && !isNaN(vid.duration)) {
+        // 1. تحريك الشريط (زي ما هو)
+        const percent = (vid.currentTime / vid.duration) * 100;
+        const fill = document.getElementById(`fill-${id}`);
+        if (fill) fill.style.width = `${percent}%`;
+
+        // 2. تحديث العداد التنازلي (الجديد) 🔥
+        const timerEl = document.getElementById(`timer-${id}`);
+        if (timerEl) {
+            // حساب الوقت المتبقي
+            const remaining = vid.duration - vid.currentTime;
+            
+            const m = Math.floor(remaining / 60).toString().padStart(2, '0');
+            const s = Math.floor(remaining % 60).toString().padStart(2, '0');
+            
+            // نعرضه بالسالب عشان يبقى عداد تنازلي
+            timerEl.innerText = `-${m}:${s}`;
+        }
+    }
+}
+
+
+// 2. بداية السحب
+function startSeeking(e, id) {
+    isDraggingSeeker = true;
+    const vid = document.getElementById(`vid-${id}`);
+    if(vid) vid.pause(); // نوقف الفيديو لحظياً عشان السحب يكون ناعم
+    moveSeeking(e, id); // نحرك فوراً لمكان اللمسة
+}
+
+// 3. أثناء السحب
+function moveSeeking(e, id) {
+    const track = document.getElementById(`track-${id}`);
+    const fill = document.getElementById(`fill-${id}`);
+    const bubble = document.getElementById(`time-bubble-${id}`);
+    const vid = document.getElementById(`vid-${id}`);
+
+    if (!track || !fill || !vid) return;
+
+    const rect = track.getBoundingClientRect();
+    const touchX = e.touches[0].clientX;
+    
+    // الحساب ده دلوقتى هيشتغل صح لأننا عملنا direction: ltr في الـ CSS
+    let percent = ((touchX - rect.left) / rect.width) * 100;
+    
+    // حدود الأمان
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+
+    // تطبيق الحركة
+    fill.style.width = `${percent}%`;
+
+    // تحديث الوقت
+    if (vid.duration) {
+        const newTime = (percent / 100) * vid.duration;
+        // تحديث الفيديو لحظياً
+        vid.currentTime = newTime;
+        
+        // تحديث الفقاعة
+        if(bubble) {
+            const m = Math.floor(newTime / 60).toString().padStart(2, '0');
+            const s = Math.floor(newTime % 60).toString().padStart(2, '0');
+            bubble.innerText = `${m}:${s}`;
+        }
+    }
+}
+
+// 4. نهاية السحب
+function endSeeking(e, id) {
+    isDraggingSeeker = false;
+    const vid = document.getElementById(`vid-${id}`);
+    
+    // تشغيل الفيديو تاني
+    if(vid) {
+        playVideo(vid, id);
     }
 }
 
@@ -1306,42 +2007,57 @@ function pauseVideo(vid) {
 let lastClickTime = 0;
 
 function handleSingleClick(id) {
-    const slide = document.getElementById(`slide-${id}`); // الكارت نفسه
-    const vid = document.getElementById(`vid-${id}`);     // الفيديو
-    const now = new Date().getTime();
+    const slide = document.getElementById(`slide-${id}`); 
+    const vid = document.getElementById(`vid-${id}`);     
+    const audio = document.getElementById(`audio-${id}`);
+    
+    const muteOriginal = slide.getAttribute('data-mute-original') === 'true';
+    const hasSound = slide.getAttribute('data-has-sound') === 'true';
 
-    if (now - lastClickTime < 250) { 
-        handleDoubleClick(id); 
-        lastClickTime = now;
-        return;
-    }
+    const now = new Date().getTime();
+    if (now - lastClickTime < 250) { handleDoubleClick(id); lastClickTime = now; return; }
     lastClickTime = now;
 
     setTimeout(() => {
         if (new Date().getTime() - lastClickTime < 250) return;
 
-        // الحالة 1: الصوت مكتوم (أول مرة تضغط)
+        // === السيناريو 1: إلغاء الكتم (Unmute) ===
         if (isGlobalMuted) {
             isGlobalMuted = false;
-            vid.muted = false;
             
-            // 👇 إخفاء الزر الشفاف من الفيديو ده ومن كل الفيديوهات
-            slide.classList.remove('muted-state');
             document.querySelectorAll('.video-slide').forEach(s => s.classList.remove('muted-state'));
-            document.querySelectorAll('video').forEach(v => v.muted = false);
-            
+            document.querySelectorAll('.mute-indicator').forEach(e => e.style.opacity = '0');
+
+            // منطق الفيديو الأصلي
+            if (hasSound && muteOriginal) {
+                vid.muted = true;
+            } else {
+                vid.muted = false;
+            }
+
+            // تشغيل الصوت المرفق (الحل للمشكلة)
+            if (hasSound && audio) {
+                audio.muted = false;
+                audio.currentTime = vid.currentTime;
+                
+                // تشغيل إجباري
+                audio.play().catch(e => console.log("Force play failed:", e));
+            }
             return;
         }
 
-        // الحالة 2: الصوت شغال (توقف أو تشغل)
+        // === السيناريو 2: إيقاف / تشغيل ===
         if (vid.paused) {
             vid.play();
+            if (hasSound && audio && !isGlobalMuted) audio.play();
         } else {
             vid.pause();
+            if (audio) audio.pause();
         }
 
     }, 250);
 }
+
 
 
         function handleDoubleClick(id) {
@@ -1363,6 +2079,8 @@ function handleSingleClick(id) {
             } else {
                 icon.style.color = '#F72585'; countSpan.innerText = count + 1;
                 db.collection('posts').doc(id).update({ [`likes.${currentUser.uid}`]: true });
+                sendNotification(ownerUid, 'like', 'أعجب بفيديو قمت بنشره ❤️', id);
+
             }
         }
 
@@ -1389,7 +2107,8 @@ function handleSingleClick(id) {
         // متغير عشان نتأكد إننا شغلنا المنشن مرة واحدة بس
 let isMentionSetup = false; 
 
-function openComments(pid, ownerUid) {
+// تم إضافة async هنا عشان نقدر نستخدم await للداتابيز
+async function openComments(pid, ownerUid) {
     currentOpenVideoId = pid;
     currentPostOwnerUid = ownerUid;
     
@@ -1431,7 +2150,11 @@ function openComments(pid, ownerUid) {
 
         if(snap.empty) {
             list.innerHTML = '<div class="empty-msg" style="text-align:center; color:#777; margin-top:20px">كن أول من يعلق!</div>';
-            return;
+            // *تعديل بسيط*: لو القائمة فارغة بس فيه رسالة حظر، متظهرش "كن أول من يعلق"
+            if(document.getElementById('blockedMsgDiv')) {
+                 list.innerHTML = ''; 
+                 list.appendChild(document.getElementById('blockedMsgDiv'));
+            }
         } else {
             // لو فيه تعليقات، تأكد إن رسالة "فارغ" مش موجودة
             const emptyMsg = list.querySelector('.empty-msg');
@@ -1463,8 +2186,91 @@ function openComments(pid, ownerUid) {
                 if(el) el.remove();
             }
         });
+        
+        // إعادة وضع رسالة الحظر في الأسفل لو موجودة (عشان التحديثات متمسحهاش)
+        const blockedMsg = document.getElementById('blockedMsgDiv');
+        if(blockedMsg) list.appendChild(blockedMsg);
     });
+
+    // ============================================================
+    // 🔥🔥🔥 بداية الإضافة الجديدة (فحص الخصوصية) 🔥🔥🔥
+    // ============================================================
+    
+    const footer = document.getElementById('commentFooter');
+    
+    // 1. تنظيف أي رسالة حظر قديمة
+    const existingMsg = document.getElementById('blockedMsgDiv');
+    if(existingMsg) existingMsg.remove();
+    
+    // 2. إخفاء الفوتر مؤقتاً لحد ما نفحص
+    footer.style.display = 'none';
+
+    try {
+        // جلب إعدادات البوست
+        const postDoc = await db.collection('posts').doc(pid).get();
+        const postData = postDoc.data();
+        const privacy = postData.commentPrivacy || 'public'; // الافتراضي عام
+
+        // هل أنا المالك؟
+        const isOwner = (currentUser && currentUser.uid === ownerUid);
+        
+        let isAllowed = false;
+        let blockText = "";
+
+        if (isOwner) {
+            isAllowed = true; 
+        } else if (privacy === 'public') {
+            isAllowed = true;
+        } else if (privacy === 'disabled') {
+            isAllowed = false;
+            blockText = "تم إيقاف التعليقات لهذا المنشور 🔒";
+        } else {
+            // محتاجين بيانات صاحب البوست عشان نفحص المتابعة
+            const ownerUserDoc = await db.collection('users').doc(ownerUid).get();
+            const ownerData = ownerUserDoc.data();
+
+            if (privacy === 'followers') {
+                // لازم أكون بتابع المالك (يعني الـ uid بتاعي في قائمة followers عند المالك)
+                const followers = ownerData.followers || [];
+                if (followers.includes(currentUser.uid)) {
+                    isAllowed = true;
+                } else {
+                    blockText = "المتابعون فقط يمكنهم التعليق 👥";
+                }
+            } 
+            else if (privacy === 'following') {
+                // لازم المالك يكون متابعني (يعني الـ uid بتاعي في قائمة following عند المالك)
+                const following = ownerData.following || [];
+                if (following.includes(currentUser.uid)) {
+                    isAllowed = true;
+                } else {
+                    blockText = "يمكن للأشخاص الذين يتابعهم المؤلف التعليق فقط @";
+                }
+            }
+        }
+
+        // 3. تطبيق النتيجة
+        if (isAllowed) {
+            footer.style.display = 'flex';
+        } else {
+            footer.style.display = 'none';
+            // إنشاء رسالة الحظر
+            const msgDiv = document.createElement('div');
+            msgDiv.id = 'blockedMsgDiv';
+            msgDiv.style.cssText = "padding: 20px; text-align: center; color: #aaa; background: rgba(255,255,255,0.05); margin: 20px 10px; border-radius: 10px; font-size: 13px; border: 1px dashed #333;";
+            msgDiv.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${blockText}`;
+            list.appendChild(msgDiv);
+        }
+
+    } catch (err) {
+        console.error("Privacy check error:", err);
+        footer.style.display = 'flex'; // لو حصل خطأ في الفحص، اسمح بالتعليق احتياطياً
+    }
+    // ============================================================
+    // 🔥🔥🔥 نهاية الإضافة 🔥🔥🔥
+    // ============================================================
 }
+
         // دالة إنشاء عنصر التعليق (مفصولة لتستخدم في الإضافة والتعديل)
         function createCommentElement(c) {
     // ---------------------------------------------------------
@@ -1961,6 +2767,8 @@ const GiftSystem = {
                 html += `<div class="sticker-option" onclick="GiftSystem.sendSticker('${s}')">${s}</div>`;
             });
             container.innerHTML = html + '</div>';
+            sendNotification(currentPostOwnerUid, 'gift', `أرسل لك هدية (${name}) 🎁`, currentOpenVideoId);
+
         }
     },
 
@@ -2019,6 +2827,9 @@ const GiftSystem = {
         // نخفي الخلفية الشفافة كمان
         const backdrop = document.getElementById('giftBackdrop');
         if(backdrop) backdrop.classList.remove('active');
+        // بعد نجاح إضافة التعليق في الداتابيز:
+sendNotification(currentPostOwnerUid, 'comment', 'علق على منشورك: ' + txt.substring(0, 20) + '...', currentOpenVideoId);
+
     }
 };
 
@@ -2223,6 +3034,10 @@ function triggerReplyComment() {
         let participants = [currentParentComment.uid];
 
         snap.forEach((doc, index) => {
+            if (blockedUsersSet.has(data.uid)) {
+        return; 
+    }
+
             const r = {id: doc.id, ...doc.data()};
             
             // 1. تجهيز بيانات المستخدم
@@ -2469,9 +3284,17 @@ function triggerReplyComment() {
         }
         
         function reportComment() {
-            document.querySelectorAll('.bottom-sheet').forEach(s => s.classList.remove('active'));
-            showToast("تم الإبلاغ للإدارة");
-        }
+    if(!selectedComment) return;
+    
+    // فتح القائمة وإرسال بيانات التعليق
+    openReportMenu(
+        'comment', 
+        selectedComment.id, 
+        selectedComment.uid, 
+        selectedComment.text // ده النص اللي هيظهرلك في لوحة التحكم
+    );
+}
+
         
         // --- 1. دالة توسيع المربع عند الكتابة ---
 function expandInputArea() {
@@ -3337,6 +4160,1779 @@ function formatSmartName(name) {
     return cleanName;
 }
 
+function createSafeCommentElement(c) {
+    const container = document.createElement('div');
+    container.className = 'comment-item';
+    container.id = `comment-${c.id}`;
+
+    // 1. إنشاء العناصر بأمان
+    const avatar = document.createElement('div');
+    avatar.className = 'cm-avatar';
+    // ... إعداد الصورة ...
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'cm-content';
+
+    const username = document.createElement('div');
+    username.className = 'cm-username';
+    username.textContent = c.name; // آمن تماماً ضد XSS
+
+    if(c.isVerified) {
+        const badge = document.createElement('i');
+        badge.className = 'fa-solid fa-heart-circle-check nabd-badge';
+        username.appendChild(badge);
+    }
+
+    const textDiv = document.createElement('div');
+    textDiv.className = 'cm-text';
+    textDiv.textContent = c.text; // آمن تماماً
+
+    // تجميع العناصر
+    contentDiv.appendChild(username);
+    contentDiv.appendChild(textDiv);
+    container.appendChild(avatar);
+    container.appendChild(contentDiv);
+
+    return container;
+}
+
+function switchFeedTab(tabName) {
+    if (isLoading || currentFeedTab === tabName) return;
+
+    // 1. تحديث الشكل (UI)
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+
+    // 2. تحديث المتغيرات
+    currentFeedTab = tabName;
+    lastDoc = null; // تصفير عشان نبدأ من الأول
+    document.getElementById('feed').innerHTML = ''; // مسح الفيديوهات القديمة
+
+    // 3. تحميل الفيديوهات الجديدة
+    loadVideos(true);
+}
+// متغير لتذكر الفيديو الذي تم إيقافه
+let videoPausedBySearch = null;
+
+function openSearchScreen() {
+    // 1. إظهار شاشة البحث
+    document.getElementById('searchScreen').classList.add('active');
+    document.getElementById('searchInput').focus();
+
+    // 2. إيقاف الفيديو اللي شغال حالياً في الخلفية
+    const videos = document.querySelectorAll('video');
+    videos.forEach(vid => {
+        // لو الفيديو شغال ومش واقف ومش مخلص
+        if (!vid.paused && !vid.ended) {
+            vid.pause();
+            videoPausedBySearch = vid; // نحفظه عشان نشغله تاني
+        }
+    });
+}
+
+function closeSearchScreen() {
+    // 1. إخفاء شاشة البحث
+    document.getElementById('searchScreen').classList.remove('active');
+
+    // 2. إعادة تشغيل الفيديو اللي وقفناه (لو كان فيه فيديو شغال)
+    if (videoPausedBySearch) {
+        // نتأكد إنه لسه ظاهر في الشاشة قبل التشغيل
+        videoPausedBySearch.play().catch(e => console.log("Auto-resume prevented"));
+        videoPausedBySearch = null; // ننسى الفيديو خلاص
+    }
+}
+
+
+function switchSearchFilter(type, el) {
+    document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    currentSearchType = type;
+    // إعادة البحث بالفلتر الجديد
+    const val = document.getElementById('searchInput').value;
+    if(val) doSearch(val);
+}
+
+function handleSearch(input) {
+    const val = input.value.trim();
+    const clearBtn = document.getElementById('clearSearch');
+    
+    if (val.length > 0) clearBtn.style.display = 'block';
+    else clearBtn.style.display = 'none';
+
+    // Debounce (عشان ميعملش بحث مع كل حرف، يستنى شوية)
+    clearTimeout(window.searchTimer);
+    window.searchTimer = setTimeout(() => {
+        if (val.length > 1) doSearch(val);
+    }, 500); 
+}
+
+function clearSearchInput() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('searchResultsArea').innerHTML = '';
+    document.getElementById('clearSearch').style.display = 'none';
+}
+
+// --- دالة البحث المصححة (صور + توثيق) ---
+async function doSearch(queryText) {
+    const container = document.getElementById('searchResultsArea');
+    container.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+
+    try {
+        let html = '';
+        
+        if (currentSearchType === 'users') {
+            // بحث عن المستخدمين
+            const snapshot = await db.collection('users')
+                .where('name', '>=', queryText)
+                .where('name', '<=', queryText + '\uf8ff')
+                .limit(10)
+                .get();
+
+            if (snapshot.empty) {
+                container.innerHTML = '<div style="text-align:center; color:#777;">لا يوجد مستخدمين بهذا الاسم</div>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                  if (blockedUsersSet.has(doc.id)) {
+        return; 
+    }
+
+                const d = doc.data();
+                
+                
+                // 1. معالجة التوثيق (نتأكد إنه boolean)
+                const isVerified = d.isVerified === true; 
+                const badge = getBadge(isVerified, false); // استدعاء دالة التوثيق
+
+                // 2. معالجة الصورة (الصورة الافتراضية لو مفيش صورة)
+                const userImg = d.profilePic || d.avatarUrl || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+                html += `
+                <div class="user-result-card" onclick="location.href='profile.html?uid=${doc.id}'">
+                    <img src="${userImg}" class="user-result-img">
+                    <div>
+                        <div style="font-weight:bold; color:#fff; display:flex; align-items:center; gap:5px;">
+                            ${d.name} ${badge}
+                        </div>
+                        <div style="font-size:12px; color:#aaa;">@${doc.id.substring(0,8)}...</div>
+                    </div>
+                </div>`;
+            });
+
+        } else {
+            // بحث الفيديوهات (زي ما هو)
+            const snapshot = await db.collection('posts')
+                .orderBy('createdAt', 'desc')
+                .limit(20)
+                .get();
+            
+            const filtered = snapshot.docs.filter(doc => {
+                const txt = doc.data().text || '';
+                return txt.includes(queryText);
+            });
+
+            if (filtered.length === 0) {
+                html = '<div style="text-align:center; color:#777;">لا توجد نتائج</div>';
+            } else {
+                html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">';
+                filtered.forEach(doc => {
+                    const d = doc.data();
+                    const vid = d.media.find(m => m.type === 'video');
+                    if(vid) {
+                        html += `
+                        <div onclick="openSingleVideo('${doc.id}')" style="position:relative; aspect-ratio: 9/16; background:#333; border-radius:10px; overflow:hidden;">
+                            <video src="${vid.url}" style="width:100%; height:100%; object-fit:cover;"></video>
+                            <div style="position:absolute; bottom:5px; right:5px; font-size:10px; font-weight:bold;">
+                                <i class="fa-solid fa-play"></i> ${d.views || 0}
+                            </div>
+                        </div>`;
+                    }
+                });
+                html += '</div>';
+            }
+        }
+        addToSearchHistory(queryText);
+
+        container.innerHTML = html;
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div style="text-align:center; color:red;">حدث خطأ في البحث</div>';
+    }
+}
+
+// --- دالة رسم شارة التوثيق (تأكد إنها موجودة في الكود) ---
+function getBadge(isVerified, isGhost) {
+    if (isGhost) return '';
+    // الأيقونة دي هتظهر بس لو isVerified = true
+    return isVerified ? `<i class="fa-solid fa-heart-circle-check nabd-badge" style="color:#20D5EC; margin-right:3px; font-size:14px;"></i>` : '';
+}
+async function openSingleVideo(pid) {
+    // 1. الوصول للـ Feed وتفريغه
+    const feed = document.getElementById('feed');
+    // بنخلي الصفحة تطلع لفوق أول ما الفيديو يفتح
+    feed.scrollTop = 0;
+    
+    try {
+        // 2. جلب بيانات البوست
+        const doc = await db.collection('posts').doc(pid).get();
+        
+        if (!doc.exists) {
+            showToast("⚠️ الفيديو غير موجود أو تم حذفه");
+            loadVideos(true); // نرجع نحمل الفيديوهات العادية
+            return;
+        }
+
+        const data = doc.data();
+        const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+
+        if (videoMedia) {
+            // 3. جلب بيانات صاحب الفيديو (الاسم والصورة والتوثيق)
+            let uName = "مستخدم";
+            let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png"; // صورة افتراضية
+            let isVerified = false;
+
+            try {
+                const uSnap = await db.collection('users').doc(data.uid).get();
+                if(uSnap.exists) {
+                    const uData = uSnap.data();
+                    uName = uData.name || "مستخدم";
+                    uPic = uData.profilePic || uData.avatarUrl || uPic;
+                    isVerified = uData.isVerified || false;
+                }
+            } catch(e) { console.error("Error fetching user:", e); }
+
+            // 4. مسح الـ Feed وإنشاء الكارت الجديد
+            feed.innerHTML = ''; // فضي المكان
+            
+            // استخدام دالة createVideoCard الموجودة عندك أصلاً
+            const cardHTML = createVideoCard(doc.id, { ...data, isVerified }, videoMedia.url, uName, uPic, data.uid);
+            
+            feed.innerHTML = cardHTML; 
+
+            // 5. تشغيل الفيديو
+            const newCard = document.getElementById(`slide-${doc.id}`);
+            if (newCard) {
+                // تفعيل المراقبة عشان الفيديو يشتغل
+                observer.observe(newCard);
+                
+                const vid = newCard.querySelector('video');
+                
+                // إلغاء الكتم (اختياري، لو عايزه يشتغل بصوت علطول)
+                isGlobalMuted = false; 
+                vid.muted = false;
+                
+                playVideo(vid, doc.id);
+            }
+        }
+    } catch (e) {
+        console.error("Error opening single video:", e);
+        showToast("حدث خطأ أثناء فتح الفيديو");
+        loadVideos(true); // لو حصل خطأ رجعه للصفحة الرئيسية
+    }
+}
+
+
+// --- دالة للتحكم في ظهور زر التشغيل المركزي ---
+function updatePlayButtonState(vid, id) {
+    const slide = document.getElementById(`slide-${id}`);
+    if (!slide) return;
+
+    // لو الفيديو واقف، ضيف كلاس 'is-paused' عشان الزرار يظهر
+    if (vid.paused) {
+        slide.classList.add('is-paused');
+    } else {
+        // لو شغال، شيل الكلاس عشان يختفي
+        slide.classList.remove('is-paused');
+    }
+}
+
+async function toggleSave(id) {
+    if (!currentUser) {
+        showToast("يرجى تسجيل الدخول للحفظ 🔒");
+        return;
+    }
+
+    const icon = document.getElementById(`save-icon-${id}`);
+    const text = document.getElementById(`save-text-${id}`);
+    const isSaved = icon.classList.contains('active-save');
+    
+    // المرجع في الداتابيز: users -> uid -> saved_posts -> videoId
+    const savedRef = db.collection('users').doc(currentUser.uid).collection('saved_posts').doc(id);
+
+    // تأثير بصري فوري (Optimistic UI)
+    if (isSaved) {
+        icon.classList.remove('active-save');
+        icon.style.color = "#fff";
+        text.innerText = "حفظ";
+        showToast("تمت الإزالة من المحفوظات 🗑️");
+        
+        // الحذف من الداتابيز
+        savedRef.delete().catch(err => console.error(err));
+    } else {
+        icon.classList.add('active-save');
+        icon.style.color = "#FFD700";
+        text.innerText = "محفوظ";
+        showToast("تم الحفظ في المجموعة ✅");
+        
+        // الإضافة للداتابيز (نخزن تاريخ الحفظ عشان نرتبهم)
+        savedRef.set({
+            savedAt: firebase.firestore.FieldValue.serverTimestamp(),
+            postId: id // نخزن الـ ID احتياطي
+        }).catch(err => console.error(err));
+    }
+    
+    if(navigator.vibrate) navigator.vibrate(50);
+}
+
+// فتح القائمة
+// فتح صفحة المحفوظات الكاملة
+function openSavedVideos() {
+    if (!currentUser) {
+        showToast("يرجى تسجيل الدخول أولاً 🔒");
+        return;
+    }
+
+    // إظهار الصفحة
+    const page = document.getElementById('savedPage');
+    page.classList.add('active');
+    
+    // تحميل البيانات (المنشورات كبداية)
+    switchSavedTab('posts');
+}
+
+// إغلاق الصفحة
+function closeSavedPage() {
+    const page = document.getElementById('savedPage');
+    page.classList.remove('active');
+}
+
+// التبديل بين الأقسام
+function switchSavedTab(type) {
+    // تحديث شكل التابات
+    document.querySelectorAll('.fs-tab').forEach(t => t.classList.remove('active'));
+    // (هنا بنحدد التاب النشط بناءً على النص، ممكن تحسينها بـ ID)
+    event.target.classList.add('active');
+
+    const container = document.getElementById('savedPostsGrid');
+    
+    if (type === 'posts') {
+        loadSavedPostsGrid();
+    } else {
+        container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px; color:#555;">لا يوجد ${type === 'sounds' ? 'أصوات' : 'تأثيرات'} محفوظة</div>`;
+    }
+}
+async function loadSavedPostsGrid() {
+    const container = document.getElementById('savedPostsGrid');
+    container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+
+    try {
+        const savedSnaps = await db.collection('users').doc(currentUser.uid)
+            .collection('saved_posts')
+            .orderBy('savedAt', 'desc')
+            .get();
+
+        if (savedSnaps.empty) {
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#777;">لم تقم بحفظ أي فيديو بعد</div>';
+            return;
+        }
+
+        container.innerHTML = ''; 
+
+        for (const doc of savedSnaps.docs) {
+            // بنجيب بيانات البوست الأصلي
+            const postDoc = await db.collection('posts').doc(doc.id).get();
+            
+            if (postDoc.exists) {
+                const data = postDoc.data();
+                const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+
+                if (videoMedia) {
+                    const item = document.createElement('div');
+                    item.className = 'grid-item';
+                    
+                    // 🔥🔥🔥 التعديل المهم هنا 🔥🔥🔥
+                    item.onclick = async () => {
+                        // 1. أول حاجة نقفل صفحة المحفوظات
+                        closeSavedPage(); 
+                        
+                        // 2. نظهر لودر في الخلفية عشان المستخدم يعرف إن فيه حاجة بتحصل
+                        document.getElementById('feed').innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#fff;"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>';
+                        
+                        // 3. نفتح الفيديو
+                        await openSingleVideo(postDoc.id);
+                    };
+
+                    item.innerHTML = `
+                        <video src="${videoMedia.url}#t=1.0" preload="metadata" muted style="pointer-events:none;"></video>
+                        <div class="grid-overlay">
+                            <i class="fa-solid fa-play"></i> ${data.views || 0}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                }
+            }
+        }
+
+    } catch (e) {
+        console.error("Error loading saved:", e);
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:red;">حدث خطأ في التحميل</div>';
+    }
+}
+
+/* =========================================
+   نظام المكتبة (Library System)
+   ========================================= */
+
+// 1. فتح وإغلاق قائمة المكتبة
+function openLibraryMenu() {
+    document.getElementById('libraryMenuSheet').classList.add('active');
+    document.getElementById('overlay').style.display = 'block';
+}
+
+function closeLibraryMenu() {
+    document.getElementById('libraryMenuSheet').classList.remove('active');
+    document.getElementById('overlay').style.display = 'none';
+}
+
+// 2. فتح الصفحة الكاملة على قسم معين
+function openLibraryPage(tabName) {
+    closeLibraryMenu(); // إغلاق القائمة الصغيرة
+    const page = document.getElementById('libraryPage');
+    page.classList.add('active');
+    switchLibraryTab(tabName);
+}
+
+function closeLibraryPage() {
+    document.getElementById('libraryPage').classList.remove('active');
+}
+
+// 3. التبديل بين التابات
+let currentLibraryTab = '';
+
+function switchLibraryTab(type) {
+    currentLibraryTab = type;
+    
+    document.querySelectorAll('.fs-tab').forEach(t => t.classList.remove('active'));
+    
+    const activeTab = document.getElementById(`tab-${type}`);
+    if(activeTab) activeTab.classList.add('active');
+
+    const titles = {
+        'saved': 'العناصر المحفوظة',
+        'favorites': 'الفيديوهات المفضلة',
+        'sounds': 'الأصوات المفضلة', // 🎵 تمت الإضافة
+        'history': 'سجل المشاهدة',
+        'search_history': 'سجل البحث'
+    };
+    
+    const titleEl = document.getElementById('libraryTitle');
+    if(titleEl) titleEl.innerText = titles[type] || 'المكتبة';
+
+    loadLibraryGrid(type);
+}
+
+
+// 4. تحميل الشبكة (The Master Loader)
+// --- الدالة المصححة لجلب بيانات المكتبة ---
+async function loadLibraryGrid(type) {
+    const container = document.getElementById('libraryGrid');
+    
+    // 1. حماية: التأكد من تسجيل الدخول
+    if (!currentUser) {
+        container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#777;">يرجى تسجيل الدخول أولاً</div>';
+        return;
+    }
+
+    container.innerHTML = '<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+    
+    let collectionName = '';
+    let orderByField = '';
+    
+    // 2. تحديد الكولكشن (تم إضافة الأصوات هنا)
+    if (type === 'saved') { collectionName = 'saved_posts'; orderByField = 'savedAt'; }
+    else if (type === 'favorites') { collectionName = 'favorites'; orderByField = 'createdAt'; }
+    else if (type === 'history') { collectionName = 'watch_history'; orderByField = 'viewedAt'; }
+    else if (type === 'search_history') { collectionName = 'search_history'; orderByField = 'searchedAt'; }
+    else if (type === 'sounds') { collectionName = 'favorite_sounds'; orderByField = 'savedAt'; } // 🎵 جديد
+
+    try {
+        let query = db.collection('users').doc(currentUser.uid).collection(collectionName).orderBy(orderByField, 'desc');
+
+        // شرط الـ 30 يوم لسجل المشاهدة
+        if (type === 'history') {
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            query = query.where('viewedAt', '>', thirtyDaysAgo); 
+        }
+
+        const snapshot = await query.get();
+
+        if (snapshot.empty) {
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#777;">القائمة فارغة</div>';
+            return;
+        }
+
+        container.innerHTML = ''; 
+
+        // =========================================================
+        // 🔥 القسم المضاف: عرض الأصوات (Sounds)
+        // =========================================================
+        if (type === 'sounds') {
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                const item = document.createElement('div');
+                item.style.cssText = "padding:15px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; align-items:center; justify-content:space-between; cursor:pointer;";
+                
+                // عند الضغط على الصوت نفتح صفحة الصوت
+                // لاحظ: بنبعت null للصورة لو مش محفوظة
+                const clickAction = `openSoundPage('${d.name}', '${d.author}', null); closeLibraryPage();`;
+
+                item.innerHTML = `
+                    <div onclick="${clickAction}" style="display:flex; align-items:center; gap:15px; flex:1;">
+                        <div style="width:40px; height:40px; background:linear-gradient(45deg, #1db954, #191414); border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow:0 2px 10px rgba(29,185,84,0.3);">
+                            <i class="fa-solid fa-music"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight:bold; color:#fff; font-size:14px;">${d.name}</div>
+                            <div style="font-size:11px; color:#aaa;">${d.author || 'مستخدم نبض'}</div>
+                        </div>
+                    </div>
+                    <div onclick="deleteHistoryItem('${collectionName}', '${doc.id}')" style="padding:10px;">
+                        <i class="fa-solid fa-trash" style="color:#ff3b30; font-size:14px;"></i>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            return; // خروج مهم
+        }
+
+        // =========================================================
+        // القسم: سجل البحث (نصوص)
+        // =========================================================
+        if (type === 'search_history') {
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const div = document.createElement('div');
+                div.style.cssText = "padding:15px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center; color:#fff;";
+                div.innerHTML = `
+                    <div onclick="doSearch('${data.term}'); closeLibraryPage(); closeSearchScreen();" style="flex:1; cursor:pointer;">
+                        <i class="fa-solid fa-clock-rotate-left" style="color:#777; margin-left:10px;"></i> ${data.term}
+                    </div>
+                    <i class="fa-solid fa-xmark" style="color:#555; padding:10px; cursor:pointer;" onclick="deleteHistoryItem('${collectionName}', '${doc.id}')"></i>
+                `;
+                container.appendChild(div);
+            });
+            return;
+        }
+
+        // =========================================================
+        // القسم: الفيديوهات (Grid)
+        // =========================================================
+        container.style.display = 'grid'; 
+        container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        container.style.gap = '2px';
+        
+        for (const doc of snapshot.docs) {
+            let postId = doc.id;
+            if (doc.data().postId) postId = doc.data().postId;
+
+            const postDoc = await db.collection('posts').doc(postId).get();
+            
+            if (postDoc.exists) {
+                const data = postDoc.data();
+                const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+
+                if (videoMedia) {
+                    const item = document.createElement('div');
+                    item.className = 'grid-item';
+                    item.style.position = 'relative';
+                    item.style.aspectRatio = '3/4';
+                    item.style.background = '#222';
+                    item.style.cursor = 'pointer';
+
+                    item.onclick = async () => {
+                        closeLibraryPage();
+                        document.getElementById('feed').innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#fff;"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>';
+                        await openSingleVideo(postId);
+                    };
+
+                    item.innerHTML = `
+                        <video src="${videoMedia.url}#t=1.0" preload="metadata" muted style="pointer-events:none; width:100%; height:100%; object-fit:cover;"></video>
+                        <div class="grid-overlay" style="position:absolute; bottom:0; left:0; width:100%; padding:5px; background:linear-gradient(transparent, rgba(0,0,0,0.7)); color:#fff; font-size:10px; font-weight:bold;">
+                            <i class="fa-solid fa-play"></i> ${data.views || 0}
+                        </div>
+                    `;
+                    container.appendChild(item);
+                }
+            }
+        }
+
+    } catch (e) {
+        console.error("Library Error:", e);
+        if (e.message.includes("The query requires an index")) {
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:#ffb533; font-size:12px;">مطلوب تفعيل Index (راجع الكونسول)</div>';
+        } else {
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:20px; color:red;">حدث خطأ في التحميل</div>';
+        }
+    }
+}
+
+// دالة حذف عنصر من السجل
+async function deleteHistoryItem(collection, docId) {
+    if(!confirm('حذف هذا العنصر؟')) return;
+    try {
+        await db.collection('users').doc(currentUser.uid).collection(collection).doc(docId).delete();
+        // إعادة تحميل القائمة
+        loadLibraryGrid(currentLibraryTab);
+    } catch(e) { console.error(e); }
+}
+
+/* ------------------------------------------------
+   5. تفعيل تسجيل المشاهدة (Watch History Logic)
+   ------------------------------------------------ */
+// ضع استدعاء لهذه الدالة داخل playVideo
+async function addToWatchHistory(postId) {
+    if (!currentUser) return;
+    
+    // نستخدم set عشان لو موجود يحدث التاريخ بس وميكررش الفيديو
+    try {
+        await db.collection('users').doc(currentUser.uid).collection('watch_history').doc(postId).set({
+            postId: postId,
+            viewedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch(e) { console.log("History Error", e); }
+}
+
+/* ------------------------------------------------
+   6. تفعيل تسجيل البحث (Search History Logic)
+   ------------------------------------------------ */
+// ضع استدعاء لهذه الدالة داخل doSearch
+async function addToSearchHistory(term) {
+    if (!currentUser || !term) return;
+    
+    try {
+        // نستخدم add عشان ممكن يبحث عن نفس الكلمة كذا مرة، أو set بالكلمة كـ ID لمنع التكرار
+        // هنستخدم الكلمة كـ ID لمنع تكرار نفس الكلمة في السجل
+        await db.collection('users').doc(currentUser.uid).collection('search_history').doc(term).set({
+            term: term,
+            searchedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch(e) { console.log("Search History Error", e); }
+}
+
+/* ------------------------------------------------
+   7. تفعيل المفضلة (Favorites Logic)
+   ------------------------------------------------ */
+// دي دالة جديدة لو عايز زرار "مفضلة" غير اللايك والمحفوظات
+// أو ممكن نعتبر اللايك هو المفضلة. الكود ده لمجموعة منفصلة
+async function toggleFavorite(id) {
+    // نفس منطق toggleSave بس على كولكشن favorites
+    if (!currentUser) return;
+    const ref = db.collection('users').doc(currentUser.uid).collection('favorites').doc(id);
+    // ... (نفس كود التبديل) ...
+}
+
+/* --- دالة إضافة/إزالة من المفضلة --- */
+async function toggleAddFavorite(id) {
+    if (!currentUser) {
+        showToast("يرجى تسجيل الدخول 🔒");
+        return;
+    }
+
+    // هنا التعديل: نستخدم الـ ID الثابت الموجود في القائمة
+    const icon = document.getElementById('menuFavIcon');
+    const text = document.getElementById('menuFavText');
+    
+    // حماية: لو العنصر مش موجود لأي سبب منخرجش خطأ يوقف التطبيق
+    if (!icon || !text) return; 
+
+    const isActive = icon.style.color === 'rgb(255, 215, 0)'; // اللون الذهبي
+
+    const favRef = db.collection('users').doc(currentUser.uid).collection('favorites').doc(id);
+
+    if (isActive) {
+        // إزالة
+        icon.style.color = "#fff";
+        text.innerText = "إضافة للمفضلة";
+        showToast("تم الحذف من المفضلة ❌");
+        favRef.delete().catch(console.error);
+    } else {
+        // إضافة
+        icon.style.color = "#FFD700"; // لون ذهبي
+        text.innerText = "تمت الإضافة";
+        showToast("تمت الإضافة للمفضلة ⭐");
+        favRef.set({
+            postId: id,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(console.error);
+    }
+    
+    if(navigator.vibrate) navigator.vibrate(50);
+}
+
+async function openVideoOptions(pid, ownerUid) {
+    currentOpenVideoId = pid;
+    currentPostOwnerUid = ownerUid;
+    updateVideoMeta(pid);
+
+    const ownerSection = document.getElementById('ownerVideoActions');
+    const viewerSection = document.getElementById('viewerVideoActions');
+
+    // --- كود جديد لفحص حالة المفضلة عند فتح القائمة ---
+    if (currentUser) {
+        const icon = document.getElementById('menuFavIcon');
+        const text = document.getElementById('menuFavText');
+        if(icon && text) {
+            // نتحقق من الداتابيز أو اللوكال
+            const doc = await db.collection('users').doc(currentUser.uid).collection('favorites').doc(pid).get();
+            if(doc.exists) {
+                icon.style.color = "#FFD700";
+                text.innerText = "تمت الإضافة";
+            } else {
+                icon.style.color = "#fff";
+                text.innerText = "إضافة للمفضلة";
+            }
+        }
+    }
+    // ------------------------------------------------
+
+    if (currentUser && currentUser.uid === ownerUid) {
+        ownerSection.style.display = 'flex';
+        viewerSection.style.display = 'none';
+    } else {
+        ownerSection.style.display = 'none';
+        viewerSection.style.display = 'block';
+    }
+
+    document.getElementById('videoOptionsSheet').classList.add('active');
+    document.getElementById('overlay').style.display = 'block';
+}
+
+function deleteVideoAction() {
+    closeAllSheets(); // إغلاق القائمة
+
+    // استخدام المودال الجميل الموجود عندك للتأكيد
+    showChicConfirm(
+        "حذف الفيديو؟", 
+        "هل أنت متأكد؟ لا يمكن التراجع عن هذا الإجراء وسيتم فقدان جميع التعليقات واللايكات.", 
+        '<i class="fa-solid fa-trash-can" style="color:#ff3b30; font-size: 40px;"></i>', 
+        async function() {
+            try {
+                showToast("جاري الحذف... 🗑️");
+
+                // 1. نجيب بيانات البوست عشان نعرف رابط الفيديو (عشان نحذفه من التخزين)
+                const docSnap = await db.collection('posts').doc(currentOpenVideoId).get();
+                if (!docSnap.exists) return;
+
+                const data = docSnap.data();
+                const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+
+                // 2. حذف الملف من Firebase Storage (اختياري بس مهم عشان النظافة)
+                if (videoMedia && videoMedia.url) {
+                    try {
+                        const storageRef = firebase.storage().refFromURL(videoMedia.url);
+                        await storageRef.delete();
+                    } catch (err) {
+                        console.log("File delete error (might use diff bucket):", err);
+                    }
+                }
+
+                // 3. حذف المستند من Firestore
+                await db.collection('posts').doc(currentOpenVideoId).delete();
+
+                // 4. حذف العنصر من الشاشة فوراً (UX)
+                const slideElement = document.getElementById(`slide-${currentOpenVideoId}`);
+                if (slideElement) {
+                    slideElement.remove();
+                }
+
+                showToast("تم حذف الفيديو بنجاح ✅");
+                
+                // لو مفيش فيديوهات تانية، ممكن تعمل reload
+                // loadVideos(true); 
+
+            } catch(e) {
+                console.error(e);
+                showToast("حدث خطأ أثناء الحذف");
+            }
+        }
+    );
+}
+
+// دالة وهمية للتحميل (مؤقتاً)
+function downloadVideoAction() {
+    closeAllSheets();
+    // هنا ممكن تجيب رابط الفيديو وتعمله download
+    const vid = document.getElementById(`vid-${currentOpenVideoId}`);
+    if(vid) {
+        const a = document.createElement('a');
+        a.href = vid.querySelector('source').src;
+        a.download = `NABD_Video_${currentOpenVideoId}.mp4`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast("جاري بدء التحميل... ⬇️");
+    }
+}
+
+// دالة حظر المستخدم من قائمة الفيديو
+async function blockUserAction() {
+    // 1. إغلاق القائمة
+    closeAllSheets();
+
+    // 2. التحقق من البيانات
+    if (!currentUser || !currentPostOwnerUid) {
+        showToast("خطأ: لا يمكن تنفيذ الإجراء");
+        return;
+    }
+
+    // تأكيد من المستخدم قبل الحظر
+    if (!confirm("هل أنت متأكد من حظر هذا المستخدم؟ لن تظهر فيديوهاته لك مجدداً.")) {
+        return;
+    }
+
+    showToast("جاري حظر المستخدم... 🚫");
+
+    try {
+        // 3. تحديد معرف الشات (نستخدم معرف ثابت يعتمد على الاثنين لضمان عدم التكرار)
+        // الترتيب الأبجدي يضمن أن المعرف هو نفسه دائماً بين الشخصين (uid1_uid2)
+        const ids = [currentUser.uid, currentPostOwnerUid].sort();
+        const chatId = ids.join("_");
+
+        const chatRef = db.collection('chats').doc(chatId);
+        
+        // 4. فحص هل الشات موجود أصلاً؟
+        const chatDoc = await chatRef.get();
+
+        if (chatDoc.exists) {
+            // أ) الشات موجود: نحدثه ونضيفك لقائمة blockedBy
+            await chatRef.update({
+                blockedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+            });
+        } else {
+            // ب) الشات غير موجود: ننشئه ونضيف الحظر فوراً
+            // هذا ضروري عشان يظهر في قائمة المحظورين حتى لو مفيش شات سابق بينهم
+            await chatRef.set({
+                users: ids,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                lastMessage: { text: "تم بدء المحادثة", type: "system" },
+                blockedBy: [currentUser.uid] // إضافة الحظر مباشرة
+            });
+        }
+
+        // 5. (إضافة اختيارية) إخفاء الفيديو الحالي من الشاشة فوراً
+        const currentSlide = document.getElementById(`slide-${currentOpenVideoId}`);
+        if(currentSlide) {
+            currentSlide.remove(); // حذف الفيديو من أمامك
+            // تشغيل الفيديو التالي تلقائياً (اختياري)
+            // const nextSlide = document.querySelector('.video-slide');
+            // if(nextSlide) nextSlide.scrollIntoView();
+        }
+
+        showToast("تم حظر المستخدم بنجاح ✅");
+
+    } catch (e) {
+        console.error("Block Error:", e);
+        showToast("حدث خطأ أثناء الحظر");
+    }
+}
+
+
+/* =========================================
+   وظائف وضع السينما (Cinema Mode Logic)
+   ========================================= */
+
+function openCinemaMode() {
+    // 1. إغلاق أي قوائم مفتوحة
+    closeAllSheets();
+
+    // 2. التأكد من وجود فيديو مفتوح حالياً
+    if (!currentOpenVideoId) return;
+
+    const smallVid = document.getElementById(`vid-${currentOpenVideoId}`);
+    const overlay = document.getElementById('cinemaOverlay');
+    const bigVid = document.getElementById('fsVideoPlayer');
+    const bigPlayIcon = document.getElementById('fsPlayIcon');
+    const speedBtn = document.getElementById('fsSpeedBtn');
+    const seeker = document.getElementById('fsSeeker');
+
+    if (!smallVid || !overlay || !bigVid) return;
+
+    // 3. نقل مصدر الفيديو (Source)
+    // بنشوف لو الفيديو بيستخدم تاج source أو src مباشرة
+    const videoSrc = smallVid.querySelector('source') ? smallVid.querySelector('source').src : smallVid.src;
+    bigVid.src = videoSrc;
+
+    // 4. مزامنة الوقت والحالة (عشان يكمل من نفس الثانية)
+    bigVid.currentTime = smallVid.currentTime;
+    bigVid.muted = smallVid.muted;
+    bigVid.playbackRate = smallVid.playbackRate;
+
+    // تحديث أيقونة الصوت والسرعة في السينما
+    updateFsMuteIcon(bigVid.muted);
+    if(speedBtn) speedBtn.innerText = smallVid.playbackRate + 'x';
+
+    // 5. التبديل: إيقاف الصغير وتشغيل الكبير
+    smallVid.pause(); // نوقف اللي ورا
+    overlay.classList.add('active'); // نظهر الشاشة السودة
+    
+    // تشغيل الفيديو الكبير
+    var playPromise = bigVid.play();
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            if(bigPlayIcon) bigPlayIcon.style.opacity = '0';
+        }).catch(error => {
+            if(bigPlayIcon) bigPlayIcon.style.opacity = '1';
+        });
+    }
+
+    // 6. ربط شريط الوقت (Seeker)
+    bigVid.ontimeupdate = () => {
+        if(seeker) {
+            const percent = (bigVid.currentTime / bigVid.duration) * 100;
+            seeker.value = percent || 0;
+            // تلوين الشريط
+            seeker.style.background = `linear-gradient(to right, var(--primary) ${percent}%, rgba(255,255,255,0.2) ${percent}%)`;
+        }
+    };
+    
+    // عند انتهاء الفيديو، نعيده من الأول (Loop)
+    bigVid.onended = () => {
+        bigVid.currentTime = 0;
+        bigVid.play();
+    };
+}
+
+// دالة إغلاق وضع السينما (محدثة)
+function closeCinemaMode() {
+    const overlay = document.getElementById('cinemaOverlay');
+    const bigVid = document.getElementById('fsVideoPlayer');
+    const smallVid = document.getElementById(`vid-${currentOpenVideoId}`);
+
+    // 1. إخفاء الواجهة
+    overlay.classList.remove('active');
+
+    // 2. إرجاع الفيديو الأصلي لنفس الثانية (Sync Back)
+    if (smallVid && bigVid) {
+        smallVid.currentTime = bigVid.currentTime;
+        // تشغيل الفيديو الأصلي
+        playVideo(smallVid, currentOpenVideoId);
+    }
+
+    // 3. إيقاف وتنظيف الفيديو الكبير
+    bigVid.pause();
+    bigVid.src = ""; // تفريغ المصدر لتوفير الذاكرة
+}
+
+// دالة التحكم في التشغيل داخل السينما
+function toggleFsPlay() {
+    const v = document.getElementById('fsVideoPlayer');
+    const icon = document.getElementById('fsPlayIcon');
+    
+    if (v.paused) {
+        v.play();
+        icon.style.opacity = '0';
+    } else {
+        v.pause();
+        icon.style.opacity = '1';
+    }
+}
+
+// دالة كتم الصوت داخل السينما
+function toggleFsMute() {
+    const v = document.getElementById('fsVideoPlayer');
+    v.muted = !v.muted;
+    updateFsMuteIcon(v.muted);
+}
+
+// تحديث شكل أيقونة الصوت
+function updateFsMuteIcon(isMuted) {
+    const icon = document.getElementById('fsMuteIcon');
+    if(icon) {
+        icon.className = isMuted ? "fa-solid fa-volume-xmark" : "fa-solid fa-volume-high";
+    }
+}
+
+// دالة تقديم وتأخير الفيديو
+function seekFsVideo(input) {
+    const v = document.getElementById('fsVideoPlayer');
+    if (v.duration) {
+        const time = (input.value / 100) * v.duration;
+        v.currentTime = time;
+    }
+}
+
+// دالة تغيير السرعة
+function changeFsSpeed(btn) {
+    const v = document.getElementById('fsVideoPlayer');
+    let r = v.playbackRate;
+    // التبديل بين السرعات: 1 -> 1.5 -> 2 -> 1
+    let newRate = (r === 1.0) ? 1.5 : (r === 1.5) ? 2.0 : 1.0;
+    
+    v.playbackRate = newRate;
+    btn.innerText = newRate + 'x';
+}
+
+/* =========================================
+   نظام الإبلاغ المركزي (Report System)
+   ========================================= */
+
+let pendingReportData = null;
+
+// 1. دالة فتح قائمة الإبلاغ (تستقبل البيانات وتخزنها مؤقتاً)
+function openReportMenu(type, targetId, offenderUid, contentText) {
+    // إغلاق أي قوائم أخرى
+    closeAllSheets();
+    
+    // تخزين البيانات مؤقتاً لحين اختيار السبب
+    pendingReportData = {
+        type: type,             // 'post' (video), 'comment', 'reply'
+        targetId: targetId,     // ID of video or comment
+        offenderUid: offenderUid,
+        text: contentText || "ميديا (صورة/فيديو/صوت)",
+        postId: currentOpenVideoId // بنحتاجه عشان الأدمن يعرف يرجع للفيديو
+    };
+
+    // فتح القائمة
+    document.getElementById('reportSheet').classList.add('active');
+    document.getElementById('overlay').style.display = 'block';
+}
+
+// 2. دالة إغلاق القائمة
+function closeReportSheet() {
+    document.getElementById('reportSheet').classList.remove('active');
+    document.getElementById('overlay').style.display = 'none';
+    pendingReportData = null;
+}
+
+// 3. دالة إرسال البلاغ لغرفة العمليات
+// استبدل الدالة القديمة بهذه النسخة المحسنة
+async function submitReport(reason) {
+    // 1. التحقق من وجود المستخدم والبيانات
+    if (!currentUser) {
+        showToast("⚠️ يجب عليك تسجيل الدخول للإبلاغ");
+        return;
+    }
+    if (!pendingReportData) {
+        showToast("حدث خطأ: بيانات البلاغ مفقودة");
+        return;
+    }
+
+    // 2. 🔥 تجهيز البيانات في متغير محلي (قبل ما نمسح الأصل)
+    const reportData = {
+        reporterUid: currentUser.uid,
+        offenderUid: pendingReportData.offenderUid || "unknown",
+        type: pendingReportData.type || "unknown",
+        targetId: pendingReportData.targetId || "unknown",
+        postId: pendingReportData.postId || "unknown",
+        reportedText: pendingReportData.text || "محتوى",
+        reason: reason,
+        status: "pending",
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // 3. الآن نغلق القائمة (لأننا أخذنا نسخة من البيانات خلاص)
+    closeReportSheet(); 
+    showToast("جاري إرسال البلاغ... 🛡️");
+
+    try {
+        // 4. الإرسال باستخدام النسخة المحفوظة (reportData)
+        await db.collection("reports").add(reportData);
+
+        showToast("تم استلام البلاغ، شكراً لمساعدتك ✅");
+
+    } catch (e) {
+        console.error("Report Error:", e);
+        showToast("فشل الإرسال: " + e.message);
+    }
+}
+
+
+function reportVideo() {
+    // نجيب النص بتاع الفيديو الحالي عشان يظهر للأدمن
+    const currentSlide = document.getElementById(`slide-${currentOpenVideoId}`);
+    let videoCaption = "";
+    if(currentSlide) {
+        const descEl = currentSlide.querySelector('.video-desc');
+        if(descEl) videoCaption = descEl.innerText;
+    }
+
+    // فتح القائمة
+    openReportMenu('post', currentOpenVideoId, currentPostOwnerUid, videoCaption);
+}
+
+async function fetchBlockedUsersList() {
+    if (!currentUser) return;
+    
+    blockedUsersSet.clear(); // تنظيف القائمة
+
+    try {
+        // 🔥 التعديل الجذري: بنجيب كل المحادثات اللي أنت طرف فيها
+        const snapshot = await db.collection('chats')
+            .where('users', 'array-contains', currentUser.uid)
+            .get();
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            
+            // الشرط السحري: هل الشات ده فيه أي حظر؟ (سواء منك أو منه)
+            // if (data.blockedBy && data.blockedBy.length > 0)
+            // معناه: لو المصفوفة فيها أي بني آدم، يبقى العلاقة دي مقطوعة
+            if (data.blockedBy && data.blockedBy.length > 0) {
+                
+                // بنجيب رقم الشخص التاني (الطرف الآخر في المصيبة)
+                const otherUid = data.users.find(u => u !== currentUser.uid);
+                
+                if (otherUid) {
+                    // بنضيفه لقائمة "المحجوبين" عندك
+                    // وبكده التطبيق هيعامله كأنه مش موجود، وهو تطيقه هيعاملك كأنك مش موجود
+                    blockedUsersSet.add(otherUid);
+                }
+            }
+        });
+        
+        console.log("تم تفعيل الحظر المتبادل، العدد:", blockedUsersSet.size);
+    } catch (e) {
+        console.error("خطأ في جلب قائمة الحظر:", e);
+    }
+}
+
+
+// 1. فتح قائمة الخصوصية (استبدل دالة toggleCommentsStatus القديمة بهذه)
+async function openPrivacySettings() {
+    closeAllSheets(); // نقفل القوائم التانية
+    
+    // نجيب الإعداد الحالي من الداتابيز عشان نعلم عليه
+    const doc = await db.collection('posts').doc(currentOpenVideoId).get();
+    const currentPrivacy = doc.data().commentPrivacy || 'public'; // لو مفيش إعداد يبقى عام
+
+    // تحديث الراديو المختار
+    document.querySelectorAll('input[name="c_privacy"]').forEach(el => el.checked = false);
+    const selectedRadio = document.getElementById(`p_${currentPrivacy}`);
+    if(selectedRadio) selectedRadio.checked = true;
+
+    // فتح القائمة
+    document.getElementById('commentPrivacySheet').classList.add('active');
+    document.getElementById('overlay').style.display = 'block';
+}
+
+function closePrivacySheet() {
+    document.getElementById('commentPrivacySheet').classList.remove('active');
+    document.getElementById('overlay').style.display = 'none';
+}
+
+// 2. حفظ الاختيار في الداتابيز
+async function setPrivacy(level) {
+    // level ممكن يكون: 'public', 'followers', 'following', 'disabled'
+    
+    closePrivacySheet();
+    showToast("جاري حفظ الإعدادات... ⚙️");
+
+    try {
+        await db.collection('posts').doc(currentOpenVideoId).update({
+            commentPrivacy: level
+        });
+        showToast("تم تحديث خصوصية التعليقات ✅");
+    } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ");
+    }
+}
+
+async function togglePiP() {
+    const video = document.getElementById(`vid-${currentOpenVideoId}`);
+    if (!video) return;
+
+    try {
+        if (document.pictureInPictureElement) {
+            await document.exitPictureInPicture();
+        } else if (document.pictureInPictureEnabled) {
+            await video.requestPictureInPicture();
+        } else {
+            showToast("المتصفح لا يدعم هذه الميزة");
+        }
+    } catch (err) {
+        console.error(err);
+        showToast("فشل تفعيل PiP");
+    }
+}
+
+async function markNotInterested() {
+    closeAllSheets();
+    if (!currentUser) return;
+
+    // 1. إخفاء الفيديو فوراً من الواجهة (UX سريع)
+    const slide = document.getElementById(`slide-${currentOpenVideoId}`);
+    if (slide) {
+        slide.style.transition = "transform 0.3s, opacity 0.3s";
+        slide.style.transform = "translateX(-100%)";
+        slide.style.opacity = "0";
+        setTimeout(() => slide.remove(), 300);
+    }
+
+    showToast("سنحاول عرض محتوى أقل مثل هذا 👍");
+
+    // 2. تسجيل الرغبة في الداتابيز
+    try {
+        await db.collection('users').doc(currentUser.uid).collection('not_interested').doc(currentOpenVideoId).set({
+            postId: currentOpenVideoId,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (e) { console.error(e); }
+}
+
+function openSleepTimerSettings() {
+    // يمكنك عمل قائمة فرعية بسيطة هنا، سأضع مثال مباشر لـ 15 دقيقة
+    const minutes = prompt("أدخل عدد الدقائق لإيقاف التطبيق:", "15");
+    if (minutes && !isNaN(minutes)) {
+        closeAllSheets();
+        const ms = parseInt(minutes) * 60 * 1000;
+        showToast(`سيتم إيقاف الفيديو بعد ${minutes} دقيقة 😴`);
+        
+        setTimeout(() => {
+            const currentVideo = document.querySelector('video:not([paused])');
+            if (currentVideo) currentVideo.pause();
+            alert("انتهى وقت المؤقت! تصبح على خير 🌙");
+        }, ms);
+    }
+}
+
+function copyLinkAtTime() {
+    const video = document.getElementById(`vid-${currentOpenVideoId}`);
+    if (!video) return;
+
+    const time = Math.floor(video.currentTime);
+    const url = `${window.location.origin}${window.location.pathname}?video=${currentOpenVideoId}&t=${time}`;
+    
+    navigator.clipboard.writeText(url);
+    showToast(`تم النسخ عند الدقيقة ${time} ثانية ⏱️`);
+}
+
+function showVideoStats() {
+    const video = document.getElementById(`vid-${currentOpenVideoId}`);
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    const type = video.src.split('.').pop();
+    
+    alert(`📊 بيانات الفيديو:\n- الدقة: ${width}x${height}\n- الامتداد: ${type}\n- المدة: ${Math.floor(video.duration)} ثانية`);
+}
+// متغير عام ماسك حالة التمرير
+let isAutoScrollEnabled = false;
+
+function toggleAutoScroll() {
+    isAutoScrollEnabled = !isAutoScrollEnabled;
+    
+    // تحديث شكل الزرار في القائمة
+    const status = document.getElementById('autoScrollStatus');
+    const icon = document.getElementById('autoScrollIcon');
+    if(status && icon) {
+        if (isAutoScrollEnabled) {
+            status.innerText = "مفعل";
+            status.style.color = "#4cd964";
+            icon.style.color = "#4cd964";
+            showToast("تم تفعيل التمرير التلقائي 🔄");
+        } else {
+            status.innerText = "معطل";
+            status.style.color = "#555";
+            icon.style.color = "#aaa";
+            showToast("تم إيقاف التمرير التلقائي");
+        }
+    }
+
+    // تطبيق التغيير فوراً على الفيديو الحالي اللي شغال
+    // عشان لو فعلته وانت بتتفرج، يقلب لوحده لما يخلص من غير ما تقلب وتيجي تاني
+    if (currentOpenVideoId) {
+        const currentVid = document.getElementById(`vid-${currentOpenVideoId}`);
+        applyAutoScrollLogic(currentVid, currentOpenVideoId);
+    }
+}
+
+function applyAutoScrollLogic(vid, id) {
+    if (!vid) return;
+
+    if (isAutoScrollEnabled) {
+        // لو التمرير مفعل: الغي التكرار عشان الفيديو يخلص
+        vid.loop = false;
+        
+        // لما الفيديو يخلص، نفذ السكرول
+        vid.onended = function() {
+            const currentSlide = document.getElementById(`slide-${id}`);
+            const nextSlide = currentSlide ? currentSlide.nextElementSibling : null;
+            
+            if (nextSlide) {
+                // روح للفيديو اللي بعده بنعومة
+                nextSlide.scrollIntoView({ behavior: "smooth" });
+            } else {
+                // لو مفيش فيديو بعده، حاول تحمل فيديوهات جديدة
+                loadVideos(); 
+            }
+        };
+    } else {
+        // لو التمرير معطل: رجع التكرار (Loop) وشيل حدث النهاية
+        vid.loop = true;
+        vid.onended = null;
+    }
+}
+
+
+// دالة يتم استدعاؤها عند تشغيل أي فيديو
+function checkAutoScroll(id) {
+    if (!isAutoScrollEnabled) return;
+    
+    const vid = document.getElementById(`vid-${id}`);
+    if (vid) {
+        vid.loop = false; // نلغي التكرار عشان لما يخلص ينقل
+        vid.onended = () => {
+            // الانتقال للفيديو التالي
+            const currentSlide = document.getElementById(`slide-${id}`);
+            const nextSlide = currentSlide.nextElementSibling;
+            if (nextSlide) {
+                nextSlide.scrollIntoView({ behavior: "smooth" });
+            } else {
+                // لو وصلنا لآخر فيديو، نحمل المزيد
+                loadVideos(); 
+            }
+        };
+    }
+}
+
+function showQRCode() {
+    // رابط الفيديو الحالي
+    const url = `${window.location.origin}${window.location.pathname}?video=${currentOpenVideoId}`;
+    
+    // استخدام API مجاني لتوليد الـ QR
+    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+    
+    document.getElementById('qrImage').src = qrApi;
+    document.getElementById('qrModal').style.display = 'flex';
+}
+
+function copyCaption() {
+    const slide = document.getElementById(`slide-${currentOpenVideoId}`);
+    if (slide) {
+        const descElement = slide.querySelector('.video-desc');
+        if (descElement) {
+            const text = descElement.innerText;
+            navigator.clipboard.writeText(text);
+            showToast("تم نسخ وصف الفيديو 📋");
+        } else {
+            showToast("لا يوجد وصف للنسخ");
+        }
+    }
+}
+
+// دالة تكرار الفيديو (Loop)
+// دالة تكرار الفيديو (Loop)
+// دالة تكرار الفيديو (Loop)
+function toggleVideoLoop() {
+    if (!currentOpenVideoId) return;
+
+    const vid = document.getElementById(`vid-${currentOpenVideoId}`);
+    const icon = document.getElementById('loopIcon');
+    const status = document.getElementById('loopStatus');
+
+    if (vid) {
+        if (vid.loop) {
+            // إيقاف التكرار
+            vid.loop = false;
+            if(icon) icon.style.color = "#555";
+            if(status) {
+                status.innerText = "معطل";
+                status.style.color = "#555";
+            }
+            showToast("تم إيقاف التكرار 🛑");
+        } else {
+            // تفعيل التكرار
+            vid.loop = true;
+            if(icon) icon.style.color = "#4cd964";
+            if(status) {
+                status.innerText = "مفعل";
+                status.style.color = "#4cd964";
+            }
+            showToast("تم تفعيل التكرار 🔁");
+        }
+    }
+}
+
+let turboTimer;
+
+function startTurboMode(id) {
+    // ننتظر 300ms عشان نتأكد إنها مش ضغطة عادية (Click)
+    turboTimer = setTimeout(() => {
+        const vid = document.getElementById(`vid-${id}`);
+        const overlay = document.getElementById(`speedOverlay-${id}`);
+
+        if (vid && !vid.paused) { // نشتغل بس لو الفيديو شغال
+            vid.playbackRate = 2.0; // السرعة ×2
+            if (overlay) overlay.classList.add('active');
+            if (navigator.vibrate) navigator.vibrate(30); // هزة بسيطة
+        }
+    }, 400); // زمن الانتظار قبل اعتبارها ضغطة مطولة
+}
+
+function stopTurboMode(id) {
+    // لو شال صباعه قبل الوقت المحدد، نلغي الأمر (عشان الضغطة العادية تشتغل)
+    clearTimeout(turboTimer);
+
+    const vid = document.getElementById(`vid-${id}`);
+    const overlay = document.getElementById(`speedOverlay-${id}`);
+
+    if (vid) {
+        vid.playbackRate = 1.0; // رجوع للسرعة الطبيعية
+        if (overlay) overlay.classList.remove('active');
+    }
+}
+
+// دالة حساب حجم ووقت الفيديو
+function updateVideoMeta(id) {
+    const vid = document.getElementById(`vid-${id}`);
+    const sizeSpan = document.getElementById('vSize');
+    const timeSpan = document.getElementById('vTime');
+
+    if (vid && !isNaN(vid.duration)) {
+        // 1. حساب الوقت (الدقائق:الثواني)
+        const m = Math.floor(vid.duration / 60).toString().padStart(2, '0');
+        const s = Math.floor(vid.duration % 60).toString().padStart(2, '0');
+        timeSpan.innerText = `${m}:${s}`;
+
+        // 2. تقدير الحجم (Size Estimation)
+        // بما أننا لا نملك رابط ملف مباشر (Blob) أحياناً، سنقوم بتقدير ذكي
+        // معادلة تقريبية: متوسط فيديو الموبايل الجيد = 0.2 ميجابايت لكل ثانية
+        // أو نقوم بعمل طلب HEAD لو السيرفر بيسمح (لكن التقدير أسرع للواجهة)
+        
+        let estimatedSize = (vid.duration * 0.25).toFixed(1); // 0.25 MB per second avg
+        sizeSpan.innerText = `${estimatedSize} MB`;
+        
+        // لو عايز دقة 100% ممكن نستخدم الطريقة دي (اختياري):
+        // fetchFileSize(vid.src); 
+    } else {
+        timeSpan.innerText = "00:00";
+        sizeSpan.innerText = "0 MB";
+    }
+}
+
+function setSpeed(rate, btnElement) {
+    // 1. تغيير سرعة الفيديو
+    const vid = document.getElementById(`vid-${currentOpenVideoId}`);
+    if (vid) {
+        vid.playbackRate = rate;
+        showToast(`تم تغيير السرعة إلى ${rate}x 🚀`);
+    }
+
+    // 2. تحديث شكل الزراير (UI)
+    // أولاً: نشيل كلاس 'active' من كل الزراير
+    document.querySelectorAll('.sp-btn').forEach(b => b.classList.remove('active'));
+    
+    // ثانياً: نضيف كلاس 'active' للزرار اللي داس عليه
+    if(btnElement) {
+        btnElement.classList.add('active');
+    }
+}
+
+let currentSoundData = null; // لتخزين بيانات الصوت المفتوح حالياً
+
+// 1. فتح صفحة الصوت
+let previewAudio = new Audio();
+let isPreviewPlaying = false;
+// متغير لتحديد حالة التحميل
+let isSoundLoading = false;
+
+async function openSoundPage(soundName, authorName, soundImg, directUrl = null) {
+    const page = document.getElementById('soundPage');
+    const useBtn = document.querySelector('.use-sound-btn');
+    
+    // 1. تحديث الواجهة
+    document.getElementById('soundPageTitle').innerText = soundName || "الصوت الأصلي";
+    document.getElementById('soundPageAuthor').innerText = authorName || "مستخدم نبض";
+    
+    // تغيير نص الزر ليشير إلى التحميل
+    if(useBtn) {
+        useBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري تجهيز الصوت...';
+        useBtn.style.opacity = "0.7";
+        useBtn.style.pointerEvents = "none"; // منع الضغط مؤقتاً
+    }
+
+    const disc = document.getElementById('soundPageDisc');
+    // نسخ العنصر لإزالة الـ Event Listeners القديمة
+    const newDisc = disc.cloneNode(true);
+    disc.parentNode.replaceChild(newDisc, disc);
+    
+    newDisc.style.backgroundImage = soundImg ? `url('${soundImg}')` : 'none';
+
+    // 2. إعداد البيانات المبدئية
+    currentSoundData = {
+        name: soundName,
+        author: authorName,
+        img: soundImg,
+        url: directUrl 
+    };
+
+    // 3. البحث عن الرابط إذا لم يكن متوفراً
+    if (!currentSoundData.url) {
+        try {
+            // نبحث عن فيديو يستخدم هذا الصوت
+            const snap = await db.collection('posts')
+                .where('musicName', '==', soundName)
+                .limit(1)
+                .get();
+
+            if (!snap.empty) {
+                const vid = snap.docs[0].data().media.find(m => m.type === 'video');
+                if (vid) {
+                    currentSoundData.url = vid.url; // رابط الفيديو سيستخدم كصوت
+                }
+            }
+        } catch (e) {
+            console.error("Error fetching sound source:", e);
+        }
+    }
+
+    // 4. تفعيل الزر بعد العثور على الرابط (أو الفشل)
+    if(useBtn) {
+        if(currentSoundData.url) {
+            useBtn.innerHTML = '<i class="fa-solid fa-video"></i> استخدم الصوت';
+            useBtn.style.opacity = "1";
+            useBtn.style.pointerEvents = "auto";
+        } else {
+            useBtn.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> الصوت غير متاح';
+        }
+    }
+
+    // تشغيل الصوت عند الضغط على الأسطوانة
+    newDisc.onclick = () => {
+        if (!currentSoundData.url) {
+            showToast("⚠️ الصوت غير متاح للتشغيل");
+            return;
+        }
+        togglePreviewSound(currentSoundData.url, newDisc);
+    };
+
+    checkSoundFavorite(soundName);
+    page.classList.add('active');
+    loadVideosBySound(soundName);
+}
+
+
+function closeSoundPage() {
+    document.getElementById('soundPage').classList.remove('active');
+}
+
+// 2. تحميل الفيديوهات المرتبطة بالصوت
+async function loadVideosBySound(soundName) {
+    const grid = document.getElementById('soundVideosGrid');
+    grid.innerHTML = '<div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+
+    try {
+        // بنبحث في البوستات عن اللي عندهم نفس اسم الموسيقى
+        // ملاحظة: يفضل تعمل Index في الفايربيس للحقل ده
+        const snapshot = await db.collection('posts')
+            .where('musicName', '==', soundName)
+            .limit(20)
+            .get();
+
+        document.getElementById('soundPageCount').innerText = `${snapshot.size} فيديوهات`;
+        grid.innerHTML = '';
+
+        if (snapshot.empty) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#555;">لا توجد فيديوهات أخرى بهذا الصوت</div>';
+            return;
+        }
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const vid = data.media.find(m => m.type === 'video');
+            if(vid) {
+                // إنشاء مربع الفيديو المصغر
+                const item = document.createElement('div');
+                item.className = 'grid-item';
+                item.onclick = () => { openSingleVideo(doc.id); }; // فتح الفيديو عند الضغط
+                item.innerHTML = `
+                    <video src="${vid.url}#t=1.0" muted preload="metadata" style="pointer-events:none;"></video>
+                    <div class="grid-overlay"><i class="fa-solid fa-play"></i> ${data.views || 0}</div>
+                `;
+                grid.appendChild(item);
+            }
+        });
+
+    } catch (e) {
+        console.error(e);
+        grid.innerHTML = '<div style="text-align:center; padding:20px; color:red">خطأ في التحميل</div>';
+    }
+}
+
+// 3. إضافة/إزالة الصوت من المفضلة
+async function toggleSoundFavorite() {
+    if(!currentUser || !currentSoundData) return;
+
+    const btn = document.getElementById('soundFavBtn');
+    const soundId = currentSoundData.name; // هنستخدم الاسم كـ ID مؤقتاً
+    const ref = db.collection('users').doc(currentUser.uid).collection('favorite_sounds').doc(soundId);
+
+    if (btn.classList.contains('active')) {
+        // إزالة
+        await ref.delete();
+        btn.classList.remove('active');
+        btn.innerHTML = `<i class="fa-regular fa-bookmark"></i> أضف إلى المفضلة`;
+        showToast("تمت الإزالة من الأصوات المفضلة");
+    } else {
+        // إضافة
+        await ref.set({
+            name: currentSoundData.name,
+            author: currentSoundData.author,
+            savedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        btn.classList.add('active');
+        btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> تمت الإضافة`;
+        showToast("تم حفظ الصوت ✅");
+    }
+}
+
+// فحص الحالة عند الفتح
+async function checkSoundFavorite(soundId) {
+    if(!currentUser) return;
+    const btn = document.getElementById('soundFavBtn');
+    const doc = await db.collection('users').doc(currentUser.uid).collection('favorite_sounds').doc(soundId).get();
+    
+    if(doc.exists) {
+        btn.classList.add('active');
+        btn.innerHTML = `<i class="fa-solid fa-bookmark"></i> تمت الإضافة`;
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = `<i class="fa-regular fa-bookmark"></i> أضف إلى المفضلة`;
+    }
+}
+
+// 4. استخدام الصوت (وهمية حالياً)
+function useThisSound() {
+    // التحقق من أن بيانات الصوت موجودة وتم تحميل الرابط
+    if (!currentSoundData || !currentSoundData.url) {
+        showToast("⏳ انتظر لحظة تحميل الصوت...");
+        return;
+    }
+
+    // تشفير البيانات لتمريرها في الرابط بأمان
+    const params = new URLSearchParams({
+        soundName: currentSoundData.name,
+        soundAuthor: currentSoundData.author || 'مستخدم',
+        soundUrl: currentSoundData.url,
+        soundImg: currentSoundData.img || ''
+    }).toString();
+
+    // التوجيه لصفحة النشر (اسم الملف هنا يجب أن يطابق اسم ملف النشر عندك)
+    // افترضنا أن اسم ملف النشر هو create_media.html كما في الكود السابق
+    window.location.href = `create_media.html?${params}`;
+}
+
+
+function togglePreviewSound(url, discElement) {
+    const icon = discElement.querySelector('i');
+
+    if (isPreviewPlaying) {
+        // إيقاف
+        previewAudio.pause();
+        isPreviewPlaying = false;
+        icon.className = "fa-solid fa-play";
+        discElement.style.animation = "none"; // وقف الدوران
+    } else {
+        // تشغيل
+        // لو الرابط اتغير، نحمل الجديد
+        if (previewAudio.src !== url) {
+            previewAudio.src = url;
+        }
+        
+        previewAudio.play().then(() => {
+            isPreviewPlaying = true;
+            icon.className = "fa-solid fa-pause";
+            discElement.style.animation = "spinDisc 4s linear infinite"; // شغل الدوران
+        }).catch(e => {
+            console.error(e);
+            showToast("تعذر تشغيل الصوت ❌");
+        });
+    }
+    
+    // لما الصوت يخلص لوحده
+    previewAudio.onended = () => {
+        isPreviewPlaying = false;
+        icon.className = "fa-solid fa-play";
+        discElement.style.animation = "none";
+    };
+}
+
+function syncAudio(vid, id) {
+    const audio = document.getElementById(`audio-${id}`);
+    if (!audio) return; // لو مفيش صوت، اخرج
+
+    // لو الفيديو شغال والصوت واقف، شغله
+    if (!vid.paused && audio.paused && !isGlobalMuted) {
+        audio.play().catch(e => {});
+    }
+
+    // لو الفيديو وقف، وقف الصوت
+    if (vid.paused && !audio.paused) {
+        audio.pause();
+    }
+
+    // مزامنة الوقت
+    if (Math.abs(vid.currentTime - audio.currentTime) > 0.5) {
+        audio.currentTime = vid.currentTime;
+    }
+
+    // التكرار (Loop)
+    if (vid.ended || vid.currentTime < 0.2) {
+        if (audio.currentTime > 1) {
+             audio.currentTime = 0;
+             if(!vid.paused && !isGlobalMuted) audio.play();
+        }
+    }
+}
+
+// دالة إرسال الإشعارات المركزية
+async function sendNotification(recipientUid, type, text, postId = null) {
+    if (!currentUser || currentUser.uid === recipientUid) return; // لا ترسل إشعاراً لنفسك
+
+    try {
+        await db.collection('notifications').add({
+            recipientId: recipientUid,     // الشخص اللي هيستلم الإشعار
+            senderUid: currentUser.uid,    // أنت (المرسل)
+            senderName: currentUserData.name || "مستخدم نبض",
+            senderPic: currentUserData.profilePic || "",
+            isVerified: currentUserData.isVerified || false,
+            type: type,                    // 'like', 'comment', 'gift', etc.
+            text: text,                    // نص الإشعار (مثلاً: "أعجب بفيديو خاص بك")
+            postId: postId,                // رابط الفيديو للذهاب إليه عند الضغط
+            opened: false,                 // للحالة داخل صفحة الإشعارات
+            read: false,                   // للعلامة الحمراء الخارجية
+            isGhost: isGhost,              // هل أنت في وضع الشبح؟
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    } catch (e) {
+        console.error("خطأ في إرسال الإشعار:", e);
+    }
+}
+
+function listenToUnreadNotifications() {
+    if(!currentUser) return;
+    db.collection('notifications')
+      .where('recipientId', '==', currentUser.uid)
+      .where('read', '==', false)
+      .onSnapshot(snap => {
+          const dot = document.getElementById('notif-dot');
+          if(snap.size > 0) {
+              dot.style.display = 'block'; // أظهر النقطة الحمراء
+          } else {
+              dot.style.display = 'none';
+          }
+      });
+}
+
 
     </script>
     
@@ -3402,6 +5998,414 @@ function formatSmartName(name) {
  <div class="sheet-overlay" id="overlay" onclick="handleSmartOverlayClick()"></div>
 <div class="gift-backdrop-layer" id="giftBackdrop" onclick="GiftSystem.closeGiftOnly()"></div>
 
+<div class="top-nav-bar">
+    <div class="nav-icon-btn" onclick="window.location.href='home.html'">
+        <i class="fa-solid fa-house"></i>
+    </div>
+<div class="nav-icon-btn" onclick="window.location.href='notifications.html'" style="position: relative;">
+    <i class="fa-solid fa-bell"></i>
+    <span id="notif-dot" style="
+        display: none;
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 10px;
+        height: 10px;
+        background-color: #ff3b30;
+        border: 2px solid #000;
+        border-radius: 50%;
+        z-index: 10;
+    "></span>
+</div>
+
+    <div class="nav-tabs">
+        <span class="nav-tab" onclick="switchFeedTab('friends')" id="tab-friends">الأصدقاء</span>
+        <span class="nav-tab" onclick="switchFeedTab('popular')" id="tab-popular">شائع</span>
+        <span class="nav-tab active" onclick="switchFeedTab('world')" id="tab-world">العالم</span>
+    </div>
+
+    <div class="nav-create-btn center-btn" onclick="window.location.href='create_media.html'">
+        <i class="fa-solid fa-plus"></i>
+    </div>
+    
+    <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="nav-icon-btn" onclick="openSearchScreen()">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <div class="nav-icon-btn" onclick="openLibraryMenu()">
+            <i class="fa-solid fa-bars-staggered"></i>
+        </div>
+    </div>
+</div>
+
+
+<div class="search-overlay" id="searchScreen">
+    <div class="search-header">
+        <div class="search-input-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="searchInput" placeholder="بحث عن مستخدمين، فيديوهات..." onkeyup="handleSearch(this)">
+            <i class="fa-solid fa-xmark" id="clearSearch" style="display:none" onclick="clearSearchInput()"></i>
+        </div>
+        <span style="font-weight:bold; font-size:14px; margin-right:10px;" onclick="closeSearchScreen()">إلغاء</span>
+    </div>
+    
+    <div class="search-tabs">
+        <div class="s-tab active" onclick="switchSearchFilter('users', this)">مستخدمين</div>
+        <div class="s-tab" onclick="switchSearchFilter('videos', this)">فيديوهات</div>
+    </div>
+
+    <div class="search-results" id="searchResultsArea">
+        <div style="text-align:center; margin-top:50px; color:#777;">ابحث عن ما تريد...</div>
+    </div>
+</div>
+
+
+<div class="bottom-sheet" id="shareSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <h3 style="text-align:center; padding:15px; color:#fff;">مشاركة إلى</h3>
+    
+    <div class="share-grid">
+        <div class="share-item" onclick="shareTo('whatsapp')">
+            <div class="share-icon" style="background:#25D366"><i class="fa-brands fa-whatsapp"></i></div>
+            <span>واتساب</span>
+        </div>
+        <div class="share-item" onclick="shareTo('facebook')">
+            <div class="share-icon" style="background:#1877F2"><i class="fa-brands fa-facebook-f"></i></div>
+            <span>فيسبوك</span>
+        </div>
+        <div class="share-item" onclick="shareTo('copy')">
+            <div class="share-icon" style="background:#ffb533"><i class="fa-solid fa-link"></i></div>
+            <span>نسخ الرابط</span>
+        </div>
+        <div class="share-item" onclick="saveVideoLocally()">
+            <div class="share-icon" style="background:#333"><i class="fa-solid fa-download"></i></div>
+            <span>حفظ الفيديو</span>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-sheet" id="libraryMenuSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="flex:1; text-align:center;">مكتبتي</span>
+        <i class="fa-solid fa-xmark" onclick="closeLibraryMenu()" style="cursor:pointer; padding:5px"></i>
+    </div>
+    
+    <div class="menu-list">
+        <div class="menu-item" onclick="openLibraryPage('saved')">
+            <i class="fa-solid fa-bookmark" style="color:#FFD700"></i>
+            <span class="menu-text">العناصر المحفوظة</span>
+            <i class="fa-solid fa-chevron-left" style="font-size:12px; color:#555"></i>
+        </div>
+
+<div class="menu-item" onclick="toggleAddFavorite(currentOpenVideoId); closeAllSheets();">
+    <i class="fa-solid fa-star" id="menuFavIcon" style="color:#fff"></i>
+    <span class="menu-text" id="menuFavText">إضافة للمفضلة</span>
+</div>
+
+        <div class="menu-item" onclick="openLibraryPage('history')">
+            <i class="fa-solid fa-clock-rotate-left" style="color:#4CC9F0"></i>
+            <span class="menu-text">سجل المشاهدة (30 يوم)</span>
+            <i class="fa-solid fa-chevron-left" style="font-size:12px; color:#555"></i>
+        </div>
+
+        <div class="menu-item" onclick="openLibraryPage('search_history')">
+            <i class="fa-solid fa-magnifying-glass" style="color:#bf5af2"></i>
+            <span class="menu-text">سجل البحث</span>
+            <i class="fa-solid fa-chevron-left" style="font-size:12px; color:#555"></i>
+        </div>
+        <div class="menu-item" onclick="window.location.href='blocked.html'">
+    <i class="fa-solid fa-user-slash" style="color:#ff3b30"></i>
+    <span class="menu-text">قائمة المحظورين</span>
+    <i class="fa-solid fa-chevron-left" style="font-size:12px; color:#555"></i>
+</div>
+
+    </div>
+</div>
+
+<div class="full-screen-page" id="libraryPage">
+    <div class="fs-header">
+        <div class="fs-back-btn" onclick="closeLibraryPage()">
+            <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        <div class="fs-title" id="libraryTitle">مكتبتي</div>
+        <div style="width: 40px;"></div> 
+    </div>
+
+ <div class="fs-tabs">
+    <div class="fs-tab" id="tab-saved" onclick="switchLibraryTab('saved')"><i class="fa-solid fa-bookmark"></i></div>
+    <div class="fs-tab" id="tab-favorites" onclick="switchLibraryTab('favorites')"><i class="fa-solid fa-heart"></i></div>
+    <div class="fs-tab" id="tab-sounds" onclick="switchLibraryTab('sounds')"><i class="fa-solid fa-music"></i></div>
+    <div class="fs-tab" id="tab-history" onclick="switchLibraryTab('history')"><i class="fa-solid fa-clock"></i></div>
+    <div class="fs-tab" id="tab-search_history" onclick="switchLibraryTab('search_history')"><i class="fa-solid fa-magnifying-glass"></i></div>
+</div>
+
+
+    <div class="fs-content-area" id="libraryGrid">
+        <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+        </div>
+    </div>
+</div>
+
+
+<div class="bottom-sheet" id="videoOptionsSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="menu-list">
+        
+        <div class="menu-item" onclick="markNotInterested();">
+            <i class="fa-solid fa-face-frown" style="color:#aaa"></i>
+            <span class="menu-text">غير مهتم</span>
+            <span class="menu-value" style="background:none; color:#555; font-size:10px;">إخفاء</span>
+        </div>
+
+        <div class="menu-item" onclick="openCinemaMode(); closeAllSheets();">
+            <i class="fa-solid fa-expand" style="color:#4CC9F0"></i>
+            <span class="menu-text">وضع السينما</span>
+        </div>
+
+        <div class="menu-item" onclick="toggleAddFavorite(currentOpenVideoId); closeAllSheets();">
+            <i class="fa-solid fa-star" style="color:#FFD700"></i>
+            <span class="menu-text">إضافة للمفضلة</span>
+        </div>
+        
+        <div class="menu-item" onclick="toggleAutoScroll(); closeAllSheets();">
+            <i class="fa-solid fa-arrows-rotate" id="autoScrollIcon" style="color:#aaa"></i>
+            <span class="menu-text">التمرير التلقائي</span>
+            <span class="menu-value" id="autoScrollStatus">معطل</span>
+        </div>
+        
+        <div class="menu-item" onclick="toggleVideoLoop();">
+            <i class="fa-solid fa-repeat" id="loopIcon" style="color:#4cd964"></i>
+            <span class="menu-text">تكرار الفيديو</span>
+            <span class="menu-value" id="loopStatus" style="color:#4cd964">مفعل</span>
+        </div>
+
+<div class="menu-item" onclick="downloadVideoAction();">
+    <i class="fa-solid fa-download" style="color:#34c759"></i>
+    <span class="menu-text">تحميل الفيديو</span>
+    <div id="videoMetaInfo" class="meta-badge">
+        <span id="vSize">-- MB</span> • <span id="vTime">--:--</span>
+    </div>
+</div>
+<div class="menu-item" style="justify-content: space-between; cursor: default;">
+    
+    <div class="speed-control-group">
+        <div class="sp-btn" onclick="setSpeed(2.0, this)">2.0x</div>
+        <div class="sp-btn" onclick="setSpeed(1.5, this)">1.5x</div>
+        <div class="sp-btn active" onclick="setSpeed(1.0, this)" id="defaultSpeedBtn">1.0x</div>
+        <div class="sp-btn" onclick="setSpeed(0.5, this)">0.5x</div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:10px;">
+        <span class="menu-text">السرعة</span>
+        <i class="fa-solid fa-gauge-high" style="color:#fff"></i>
+    </div>
+
+</div>
+
+        
+        <div class="menu-item" onclick="togglePiP(); closeAllSheets();">
+            <i class="fa-solid fa-clone" style="color:#ffffff"></i>
+            <span class="menu-text">صورة داخل صورة (PiP)</span>
+        </div>
+
+        <div class="menu-item" onclick="openPrivacySettings()">
+            <i class="fa-solid fa-comment-slash" style="color:#aaa"></i>
+            <span class="menu-text">إعدادات التعليقات</span>
+        </div>
+
+        <div class="menu-item" onclick="openSleepTimerSettings();">
+            <i class="fa-solid fa-stopwatch" style="color:#FF9F0A"></i>
+            <span class="menu-text">مؤقت النوم</span>
+        </div>
+
+        <div class="menu-item" onclick="copyLinkAtTime(); closeAllSheets();">
+            <i class="fa-solid fa-link" style="color:#4CC9F0"></i>
+            <span class="menu-text">نسخ الرابط (عند هذا الوقت)</span>
+        </div>
+
+        <div class="menu-item" onclick="closeAllSheets(); setTimeout(showQRCode, 300);">
+            <i class="fa-solid fa-qrcode" style="color:#fff"></i>
+            <span class="menu-text">رمز QR للمشاركة</span>
+        </div>
+
+        <div class="menu-item" onclick="copyCaption(); closeAllSheets();">
+            <i class="fa-regular fa-copy" style="color:#4CC9F0"></i>
+            <span class="menu-text">نسخ الوصف</span>
+        </div>
+
+        <div class="menu-item" onclick="showVideoStats(); closeAllSheets();">
+            <i class="fa-solid fa-chart-simple" style="color:#34c759"></i>
+            <span class="menu-text">بيانات الفيديو</span>
+        </div>
+
+        <div id="viewerVideoActions">
+            <div class="menu-divider"></div>
+            <div class="menu-item danger" onclick="reportVideo();">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span class="menu-text">إبلاغ عن المحتوى</span>
+            </div>
+            <div class="menu-item danger" onclick="blockUserAction();">
+                <i class="fa-solid fa-user-xmark"></i>
+                <span class="menu-text">حظر المستخدم</span>
+            </div>
+        </div>
+
+        <div id="ownerVideoActions" style="display: none; flex-direction: column;">
+            <div class="menu-divider"></div>
+            <div class="menu-item danger" onclick="deleteVideoAction()">
+                <i class="fa-solid fa-trash-can"></i>
+                <span class="menu-text">حذف الفيديو نهائياً</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="bottom-sheet" id="reportSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="flex:1; text-align:center; color:var(--danger-color)">
+            <i class="fa-solid fa-triangle-exclamation"></i> إبلاغ عن محتوى
+        </span>
+        <i class="fa-solid fa-xmark" onclick="closeReportSheet()" style="cursor:pointer; padding:5px"></i>
+    </div>
+    
+    <div class="menu-list">
+        <p style="padding:10px 15px; color:#aaa; font-size:12px;">ساعدنا في فهم المشكلة، ماذا يحدث؟</p>
+        
+        <div class="menu-item" onclick="submitReport('محتوى إباحي أو جنسي')">
+            <span class="menu-text">محتوى إباحي أو جنسي</span>
+        </div>
+        <div class="menu-item" onclick="submitReport('عنف أو إيذاء للنفس')">
+            <span class="menu-text">عنف أو إيذاء للنفس</span>
+        </div>
+        <div class="menu-item" onclick="submitReport('تنمر أو مضايقة')">
+            <span class="menu-text">تنمر أو مضايقة</span>
+        </div>
+        <div class="menu-item" onclick="submitReport('خطاب كراهية')">
+            <span class="menu-text">خطاب كراهية</span>
+        </div>
+        <div class="menu-item" onclick="submitReport('معلومات زائفة أو احتيال')">
+            <span class="menu-text">معلومات زائفة أو احتيال</span>
+        </div>
+        <div class="menu-item" onclick="submitReport('سبام أو محتوى مكرر')">
+            <span class="menu-text">سبام (Spam)</span>
+        </div>
+    </div>
+</div>
+
+<div class="bottom-sheet" id="commentPrivacySheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="flex:1; text-align:center;">من يمكنه التعليق؟</span>
+        <i class="fa-solid fa-xmark" onclick="closePrivacySheet()" style="cursor:pointer; padding:5px"></i>
+    </div>
+    
+    <div class="menu-list" style="padding: 10px;">
+        
+        <label class="privacy-option" onclick="setPrivacy('public')">
+            <div class="p-info">
+                <span class="p-title"><i class="fa-solid fa-earth-americas"></i> العامة</span>
+                <span class="p-desc">يمكن لأي شخص التعليق على هذا المنشور</span>
+            </div>
+            <input type="radio" name="c_privacy" id="p_public" checked>
+            <span class="radio-mark"></span>
+        </label>
+
+        <label class="privacy-option" onclick="setPrivacy('followers')">
+            <div class="p-info">
+                <span class="p-title"><i class="fa-solid fa-users"></i> المتابعون</span>
+                <span class="p-desc">الأشخاص الذين يتابعونك فقط</span>
+            </div>
+            <input type="radio" name="c_privacy" id="p_followers">
+            <span class="radio-mark"></span>
+        </label>
+
+        <label class="privacy-option" onclick="setPrivacy('following')">
+            <div class="p-info">
+                <span class="p-title"><i class="fa-solid fa-user-check"></i> الحسابات التي تتابعها</span>
+                <span class="p-desc">الأشخاص الذين تتابعهم أنت فقط</span>
+            </div>
+            <input type="radio" name="c_privacy" id="p_following">
+            <span class="radio-mark"></span>
+        </label>
+
+        <label class="privacy-option" onclick="setPrivacy('disabled')">
+            <div class="p-info">
+                <span class="p-title"><i class="fa-solid fa-lock"></i> إيقاف التعليقات</span>
+                <span class="p-desc">لن يتمكن أحد من التعليق</span>
+            </div>
+            <input type="radio" name="c_privacy" id="p_disabled">
+            <span class="radio-mark"></span>
+        </label>
+
+    </div>
+</div>
+
+<script src="block-manager.js"></script>
+
+<script>
+    // داخل السكربت الأساسي بتاع صفحتك
+    auth.onAuthStateChanged(user => {
+        if(user) {
+            // ... أكوادك العادية ...
+            
+            // 🔥 شغّل نظام الحظر هنا
+            initBlockSystem(user); 
+        }
+    });
+</script>
+
+
+<div id="qrModal" class="custom-modal" onclick="this.style.display='none'">
+    <div class="modal-box" style="background:#fff; color:#000;">
+        <h3 style="color:#000; margin-bottom:15px;">امسح الرمز للمشاهدة</h3>
+        <img id="qrImage" src="" style="width:200px; height:200px;">
+        <p style="margin-top:10px; font-size:12px; color:#555;">شارك هذا الرمز مع أصدقائك</p>
+    </div>
+</div>
+
+<div class="full-screen-page" id="soundPage" style="z-index: 2500; background: #121212;">
+    
+    <div class="fs-header" style="background: transparent; position: absolute; top: 0; width: 100%; border: none;">
+        <div class="fs-back-btn" onclick="closeSoundPage()" style="background: rgba(0,0,0,0.5); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-arrow-right" style="color: #fff;"></i>
+        </div>
+        <div style="flex: 1;"></div>
+        <div class="fs-back-btn" onclick="shareSound()" style="background: rgba(0,0,0,0.5); border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-share" style="color: #fff;"></i>
+        </div>
+    </div>
+
+    <div class="sound-header-banner">
+        <div class="sound-disc-large" id="soundPageDisc">
+            <i class="fa-solid fa-play" id="soundPagePlayIcon"></i>
+        </div>
+        <div class="sound-info-block">
+            <h2 id="soundPageTitle">الصوت الأصلي</h2>
+            <div class="sound-author" id="soundPageAuthor">اسم المستخدم</div>
+            <div class="sound-stats" id="soundPageCount">0 فيديوهات</div>
+        </div>
+    </div>
+
+    <div class="sound-actions-bar">
+        <button class="add-fav-btn" id="soundFavBtn" onclick="toggleSoundFavorite()">
+            <i class="fa-regular fa-bookmark"></i> أضف إلى المفضلة
+        </button>
+    </div>
+
+    <div class="fs-content-area" id="soundVideosGrid" style="padding-top: 10px; padding-bottom: 80px;">
+        </div>
+
+    <div class="use-sound-footer">
+        <button class="use-sound-btn" onclick="useThisSound()">
+            <i class="fa-solid fa-video"></i> استخدم الصوت
+        </button>
+    </div>
+</div>
+
+
 </body>
 </html>
-
