@@ -4493,6 +4493,7 @@ body {
     color: #fff !important;
 }
 
+
 </style>
     
 </head>
@@ -5133,10 +5134,7 @@ auth.onAuthStateChanged(async user => {
         myAvatarElem.innerText = "";
     }
     
-await fetchBlockedUsersList();
-
-    // 3. بعد ما جبنا القائمة، نحمل البوستات
-    loadPosts();
+fetchBlockedUsersList().catch(console.error); 
 
 
     
@@ -11448,7 +11446,83 @@ async function fetchBlockedUsersList() {
         console.error("خطأ في جلب قائمة الحظر:", e);
     }
 }
+// 1. متغيرات لتحديد مكان اللمس
+let touchStartX = 0;
+let touchStartY = 0;
 
+// 2. بداية اللمس (نسجل المكان)
+document.addEventListener('touchstart', function(e) {
+    // نتجاهل اللمس لو كان على القوائم أو الكرة عشان ميعملش تضارب
+    if (e.target.closest('#uraniumOrb') || e.target.closest('.bottom-sheet') || e.target.closest('.custom-modal')) return;
+    
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+}, {passive: true});
+
+// 3. نهاية اللمس (نحسب السحبة ونضغط الزرار بدلاً منك)
+// 3. نهاية اللمس (المعدل: للكتم فقط)
+// 3. نهاية اللمس (التحكم في الصوت بالاتجاهين)
+document.addEventListener('touchend', function(e) {
+    // حماية إضافية
+    if (e.target.closest('#uraniumOrb') || e.target.closest('.bottom-sheet')) return;
+
+    let touchEndX = e.changedTouches[0].screenX;
+    let touchEndY = e.changedTouches[0].screenY;
+
+    // حساب الفرق الأفقي والراسي
+    let diffX = touchEndX - touchStartX;
+    let diffY = touchEndY - touchStartY;
+
+    // التأكد إنها سحبة أفقية واضحة (مش سكرول)
+    if (Math.abs(diffY) < 60) {
+        
+        const allMuteBtns = document.querySelectorAll('.video-mute-btn');
+        let actionTaken = false;
+
+        allMuteBtns.forEach(btn => {
+            if (actionTaken) return; // ننفذ على فيديو واحد فقط
+
+            const rect = btn.getBoundingClientRect();
+
+            // هل الزرار ظاهر في الشاشة؟
+            if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                
+                let wrapper = btn.closest('.media-item-wrapper') || btn.closest('.custom-video-container');
+                
+                if (wrapper) {
+                    const video = wrapper.querySelector('video');
+                    const icon = btn.querySelector('i');
+
+                    // ⬅️ الحالة الأولى: سحب من اليسار لليمين (diffX > 80) -> كتم الصوت
+                    if (diffX > 80) {
+                        if (video && !video.muted) {
+                            video.muted = true;
+                            if (icon) icon.className = "fa-solid fa-volume-xmark";
+                            isGlobalMuted = true;
+
+                            if (navigator.vibrate) navigator.vibrate(50);
+                            showToast("🔇 تم كتم الصوت");
+                            actionTaken = true;
+                        }
+                    }
+                    
+                    // ➡️ الحالة الثانية: سحب من اليمين لليسار (diffX < -80) -> تشغيل الصوت
+                    else if (diffX < -80) {
+                        if (video && video.muted) {
+                            video.muted = false;
+                            if (icon) icon.className = "fa-solid fa-volume-high";
+                            isGlobalMuted = false;
+
+                            if (navigator.vibrate) navigator.vibrate(50);
+                            showToast("🔊 تم تشغيل الصوت");
+                            actionTaken = true;
+                        }
+                    }
+                }
+            }
+        });
+    }
+}, {passive: true});
 
     </script>
        <div class="custom-modal" id="accountSwitcherModal">
@@ -11916,23 +11990,6 @@ async function fetchBlockedUsersList() {
 
 <div id="fxOverlay"></div>
 
-<div class="bottom-sheet" id="repliesSheet" style="height: 85vh; display: flex; flex-direction: column; z-index: 6000;">
-    
-    <div class="sheet-handle"></div>
-
-    <div class="cm-header">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <i class="fa-solid fa-arrow-right" onclick="closeRepliesSheet()" style="cursor:pointer; padding:5px; font-size:18px;"></i>
-            <span>الردود</span>
-        </div>
-    </div>
-
-    <div class="cm-body" id="repliesList">
-    </div>
-
-    <div class="cm-footer">
-    </div>
-</div>
 <div class="bottom-sheet" id="repliesSheet" style="height: 85vh; display: flex; flex-direction: column; z-index: 20000 !important;">
     
     <div class="sheet-handle"></div>
