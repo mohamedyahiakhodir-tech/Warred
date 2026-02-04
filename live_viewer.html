@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مشاهدة البث - NABD Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.2.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
+        
+        /* مشغل الفيديو */
+        #remote-player { position: absolute; inset: 0; z-index: 1; background: #111; }
+        #remote-player video { object-fit: cover !important; }
+        
+        /* طبقة الواجهة */
+        .overlay-layer { 
+            position: absolute; inset: 0; z-index: 10; pointer-events: none; 
+            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 40%, rgba(0,0,0,0.8) 100%); 
+        }
+        
+        /* كارت معلومات المذيع */
+        .host-info-card {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
+            padding: 5px 15px 5px 5px; border-radius: 30px;
+            display: flex; align-items: center; gap: 10px; pointer-events: auto;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .host-img { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #F72585; object-fit: cover; }
+        .live-tag { background: #F72585; font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; }
+        
+        /* منطقة الشات */
+        .chat-area {
+            position: absolute; bottom: 80px; right: 15px; width: 75%; height: 250px;
+            overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-end;
+            mask-image: linear-gradient(to top, black 80%, transparent 100%);
+            scrollbar-width: none;
+        }
+        .chat-msg { 
+            background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 10px; 
+            margin-bottom: 6px; font-size: 13px; width: fit-content; max-width: 100%; word-wrap: break-word; 
+            animation: slideIn 0.3s ease; text-shadow: 0 1px 1px black;
+        }
+        .chat-user { color: #4CC9F0; font-weight: bold; margin-left: 5px; }
+        .gift-msg { color: #FFD700; font-weight: bold; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); }
+        
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+
+        /* الشريط السفلي */
+        .bottom-bar {
+            position: absolute; bottom: 0; left: 0; right: 0; padding: 15px;
+            display: flex; gap: 10px; pointer-events: auto; align-items: center;
+        }
+        #msg-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 10px; color: #fff; outline: none; backdrop-filter: blur(5px); }
+        .action-btn { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; transition: transform 0.2s; }
+        .action-btn:active { transform: scale(0.9); }
+        .btn-send { background: #F72585; }
+        .btn-gift { background: linear-gradient(45deg, #FFD700, #ffab00); color: #000; }
+        .btn-heart { background: rgba(255,255,255,0.1); color: #F72585; border: 1px solid #F72585; margin-right: auto;}
+
+        /* تأثيرات بصرية (قلوب وهدايا) */
+        .floating-element {
+            position: absolute; bottom: 80px; right: 20px; font-size: 30px;
+            animation: floatUp 2s ease-in forwards; pointer-events: none; z-index: 20;
+        }
+        .big-gift-anim {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 80px; animation: popAndFade 1.5s ease forwards; z-index: 50; pointer-events: none;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-200px) scale(1.5) rotate(20deg); opacity: 0; }
+        }
+        @keyframes popAndFade {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+        
+        /* شاشة الانتظار */
+        #loading-screen {
+            position: absolute; inset: 0; background: #000; z-index: 5;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loading-screen">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 40px; color: #F72585; margin-bottom: 20px;"></i>
+        <p style="color:#aaa;">جاري الاتصال بالبث...</p>
+    </div>
+
+    <div id="remote-player"></div>
+
+    <div class="overlay-layer">
+        <div class="host-info-card">
+            <div style="text-align: left;">
+                <div style="font-weight: bold; font-size: 14px;" id="host-name">..</div>
+                <div style="font-size: 11px; opacity: 0.8;"><span class="live-tag">LIVE</span> <span id="viewers">0</span></div>
+            </div>
+            <img id="host-pic" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" class="host-img">
+        </div>
+
+        <div class="chat-area" id="chat-list"></div>
+
+        <div class="bottom-bar">
+            <input type="text" id="msg-input" placeholder="اكتب تعليقاً..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <button class="action-btn btn-send" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+            <button class="action-btn btn-gift" onclick="sendGift()"><i class="fa-solid fa-gift"></i></button>
+            <button class="action-btn btn-heart" onclick="sendFloatingHeart()"><i class="fa-solid fa-heart"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // 1. إعدادات فايربيس
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // 2. إعدادات أجورا
+        const APP_ID = "f311de5105eb4fa7869dfffd2bb7ac2d";
+        const TOKEN = "007eJxTYGhhPet5ZLbkOikhVcfvlz9rM9ouv5yyO1hfY/fRZY/S8lkUGNKMDQ1TUk0NDUxTk0zSEs0tzCxT0tLSUoySkswTk41SOlubMhsCGRnSrBuZGRkgEMTnYShJLS6JT85IzMtLzWFgAAAh4iJc"; 
+        
+        // استلام القناة من الرابط (أو استخدام التست كافتراضي)
+        const urlParams = new URLSearchParams(window.location.search);
+        const CHANNEL = urlParams.get('channel') || "test_channel"; 
+
+        const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+        let currentUser = null;
+
+        auth.onAuthStateChanged(user => {
+            if(user) currentUser = user;
+            // نبدأ سواء مسجل أو لأ (للمشاهدة)
+            initLive();
+        });
+
+        async function initLive() {
+            console.log("Joining Channel:", CHANNEL);
+
+            // أ. الاستماع لبيانات اللايف في فايربيس
+            db.collection('lives').doc(CHANNEL).onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    
+                    if (data.status === 'offline') {
+                        alert("انتهى البث المباشر 👋");
+                        window.location.href = 'home.html';
+                        return;
+                    }
+
+                    document.getElementById('host-name').innerText = data.hostName || "مستخدم";
+                    if(data.hostPic) document.getElementById('host-pic').src = data.hostPic;
+                    document.getElementById('viewers').innerText = data.viewers || 0;
+
+                    if(data.isVerified) {
+                        document.getElementById('host-name').innerHTML += ' <i class="fa-solid fa-circle-check" style="color:#20D5EC; font-size:12px;"></i>';
+                    }
+                }
+            });
+
+            // ب. زيادة العداد
+            try {
+                await db.collection('lives').doc(CHANNEL).update({
+                    viewers: firebase.firestore.FieldValue.increment(1)
+                });
+            } catch(e) { console.log("Viewer count error", e); }
+
+            // ج. الاتصال بأجورا
+            try {
+                client.setClientRole("audience");
+                
+                // ملاحظة: لو اسم القناة مش نفس اللي في التوكن، الفيديو مش هيشتغل (لأننا في الوضع الآمن)
+                // للتجربة: خلي دايماً القناة test_channel
+                await client.join(APP_ID, CHANNEL, TOKEN, null);
+                
+                client.on("user-published", async (user, mediaType) => {
+                    await client.subscribe(user, mediaType);
+                    document.getElementById('loading-screen').style.display = 'none'; // إخفاء شاشة التحميل
+
+                    if (mediaType === "video") {
+                        user.videoTrack.play("remote-player");
+                    }
+                    if (mediaType === "audio") {
+                        user.audioTrack.play();
+                    }
+                });
+            } catch (err) {
+                console.error("Agora Error:", err);
+                document.getElementById('loading-screen').innerHTML = `<p style="color:red">فشل الاتصال: تأكد من التوكن</p>`;
+            }
+
+            // د. تشغيل الشات
+            loadChat();
+        }
+
+        // --- نظام الشات والهدايا ---
+        function loadChat() {
+            db.collection('lives').doc(CHANNEL).collection('messages')
+                .orderBy('timestamp', 'asc')
+                .onSnapshot(snapshot => {
+                    const list = document.getElementById('chat-list');
+                    snapshot.docChanges().forEach(change => {
+                        if (change.type === 'added') {
+                            const msg = change.doc.data();
+                            const div = document.createElement('div');
+                            div.className = 'chat-msg';
+                            
+                            if (msg.type === 'gift') {
+                                div.classList.add('gift-msg');
+                                div.innerHTML = `<span class="chat-user">${msg.userName}:</span> ${msg.text}`;
+                                showGiftAnimation(msg.giftEmoji || '🎁'); // تشغيل أنيميشن الهدية
+                            } else {
+                                div.innerHTML = `<span class="chat-user">${msg.userName}:</span> ${msg.text}`;
+                            }
+                            
+                            list.appendChild(div);
+                            list.scrollTop = list.scrollHeight; // Auto-scroll
+                        }
+                    });
+                });
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('msg-input');
+            const text = input.value.trim();
+            if (!text) return;
+            if (!currentUser) return alert("يجب تسجيل الدخول للكتابة");
+
+            const uData = await getUserData();
+            
+            await db.collection('lives').doc(CHANNEL).collection('messages').add({
+                userId: currentUser.uid,
+                userName: uData.name,
+                text: text,
+                type: 'text',
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = '';
+        }
+
+        async function sendGift() {
+            if (!currentUser) return alert("يجب تسجيل الدخول");
+            
+            // خصم رصيد (وهمي حالياً)
+            if(confirm("هل تريد إرسال هدية (10 عملات)؟ 🎁")) {
+                const uData = await getUserData();
+                await db.collection('lives').doc(CHANNEL).collection('messages').add({
+                    userId: currentUser.uid,
+                    userName: uData.name,
+                    text: "أرسل هدية مميزة! 💖",
+                    type: 'gift',
+                    giftEmoji: '💖',
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            }
+        }
+
+        // إرسال قلب (تفاعل بصري فقط للمستخدم الحالي + حفظ في الداتابيز اختياري)
+        function sendFloatingHeart() {
+            // 1. عرض القلب عندي أنا
+            createFloatingElement('<i class="fa-solid fa-heart" style="color:#F72585"></i>');
+            
+            // 2. ممكن تبعت رسالة خفية للداتابيز لو عايز الناس تشوف القلوب بتاعتك
+            // بس عشان التوفير، نخليها محلية أو نحدث عداد لايكات
+        }
+
+        // دوال مساعدة للأنيميشن
+        function showGiftAnimation(emoji) {
+            const el = document.createElement('div');
+            el.className = 'big-gift-anim';
+            el.innerText = emoji;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        function createFloatingElement(htmlContent) {
+            const el = document.createElement('div');
+            el.className = 'floating-element';
+            el.innerHTML = htmlContent;
+            // تغيير المكان عشوائياً شوية
+            el.style.right = (20 + Math.random() * 50) + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 2000);
+        }
+
+        async function getUserData() {
+            const doc = await db.collection('users').doc(currentUser.uid).get();
+            const d = doc.data();
+            return { name: d.name || "مشاهد", pic: d.profilePic || "" };
+        }
+
+        window.onbeforeunload = () => {
+            if(CHANNEL) {
+                db.collection('lives').doc(CHANNEL).update({
+                    viewers: firebase.firestore.FieldValue.increment(-1)
+                });
+            }
+        };
+    </script>
+</body>
+</html>
