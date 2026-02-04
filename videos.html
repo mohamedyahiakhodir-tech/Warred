@@ -2264,6 +2264,18 @@ video.is-landscape {
 .coin-amount { font-size: 20px; font-weight: bold; color: #FFD700; }
 .coin-price { font-size: 14px; color: #fff; margin-top: 5px; }
 
+/* إصلاح قائمة الإنشاء لتظهر فوق التغببيش */
+#createMenuSheet {
+    z-index: 3000 !important; /* رقم عالي جداً عشان تطلع فوق */
+    background: #1e1e1e;      /* لون خلفية واضح */
+    border-top: 1px solid #333;
+}
+
+/* التأكد من أن التغببيش (Overlay) تحت القائمة */
+#overlay {
+    z-index: 2999 !important;
+}
+
 
     </style>
 </head>
@@ -8640,19 +8652,23 @@ function toggleScreenLock(id) {
 // 8. تحديث شريط الوقت (Seeker)
 function updateProSeeker(id) {
     const vid = document.getElementById(`vid-${id}`);
+    
+    // 🔥 الحماية: لو الفيديو مش موجود، اخرج فوراً ومتعملش خطأ
+    if (!vid) return; 
+
     const seeker = document.getElementById(`pro-seeker-${id}`);
     const curr = document.getElementById(`pro-curr-time-${id}`);
     const total = document.getElementById(`pro-total-time-${id}`);
     
     if (!isNaN(vid.duration)) {
         const pct = (vid.currentTime / vid.duration) * 100;
-        seeker.value = pct;
+        if(seeker) seeker.value = pct;
         
-        // تنسيق الوقت
-        curr.innerText = formatTime(vid.currentTime);
-        total.innerText = formatTime(vid.duration);
+        if(curr) curr.innerText = formatTime(vid.currentTime);
+        if(total) total.innerText = formatTime(vid.duration);
     }
 }
+
 
 function seekProVideo(input, id) {
     const vid = document.getElementById(`vid-${id}`);
@@ -9123,6 +9139,17 @@ async function generateShareCard() {
     document.body.removeChild(card);
 }
 
+// فتح قائمة الإنشاء
+function openCreateMenu() {
+    document.getElementById('createMenuSheet').classList.add('active');
+    document.getElementById('overlay').style.display = 'block';
+}
+
+// إغلاق قائمة الإنشاء
+function closeCreateMenu() {
+    document.getElementById('createMenuSheet').classList.remove('active');
+    document.getElementById('overlay').style.display = 'none';
+}
 
     </script>
     
@@ -9208,20 +9235,27 @@ async function generateShareCard() {
     "></span>
 </div>
 
-<div class="top-nav-bar">
-    <div class="nav-icon-btn" onclick="window.location.href='live.html'" style="color: #ff3b30;">
-        <i class="fa-solid fa-video"></i>
+<div class="top-nav-bar" style="display: flex; justify-content: space-between; align-items: center;">
+    
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <div class="nav-icon-btn" onclick="window.location.href='home.html'">
+            <i class="fa-solid fa-house"></i>
+        </div>
+
+        <div class="nav-icon-btn" onclick="window.location.href='notifications.html'" style="position: relative;">
+            <i class="fa-solid fa-bell"></i>
+            <span id="notif-dot" style="display: none; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%;"></span>
+        </div>
     </div>
 
-    <div class="nav-tabs">
+    <div class="nav-tabs" style="font-size: 13px; gap: 10px;">
         <span class="nav-tab" onclick="switchFeedTab('friends')" id="tab-friends">الأصدقاء</span>
         <span class="nav-tab" onclick="switchFeedTab('popular')" id="tab-popular">شائع</span>
         <span class="nav-tab active" onclick="switchFeedTab('world')" id="tab-world">العالم</span>
-    </div>
-<span class="nav-tab" onclick="switchFeedTab('live')" id="tab-live" style="color:#ff3b30">LIVE</span>
+        <span class="nav-tab" onclick="switchFeedTab('live')" id="tab-live" style="color:#ff3b30">LIVE</span>
     </div>
 
-    <div class="nav-create-btn center-btn" onclick="window.location.href='create_media.html'">
+    <div class="nav-create-btn center-btn" onclick="openCreateMenu()">
         <i class="fa-solid fa-plus"></i>
     </div>
     
@@ -9234,7 +9268,6 @@ async function generateShareCard() {
         </div>
     </div>
 </div>
-
 
 <div class="search-overlay" id="searchScreen">
     <div class="search-header">
@@ -9685,6 +9718,33 @@ async function generateShareCard() {
    <div id="cm-gift-banner" class="cm-gift-banner-container" style="display: none;">
         </div>
 
+<div class="bottom-sheet" id="createMenuSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="flex:1; text-align:center;">إنشاء محتوى جديد</span>
+        <i class="fa-solid fa-xmark" onclick="closeCreateMenu()" style="cursor:pointer; padding:5px"></i>
+    </div>
+    
+    <div class="menu-list" style="padding: 20px;">
+        
+        <div class="menu-item" onclick="window.location.href='create_media.html'">
+            <div style="width:40px; height:40px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#4CC9F0;">
+                <i class="fa-solid fa-upload"></i>
+            </div>
+            <span class="menu-text" style="font-size:16px;">رفع فيديو</span>
+            <i class="fa-solid fa-chevron-left" style="color:#555"></i>
+        </div>
+
+        <div class="menu-item" onclick="window.location.href='go_live.html'">
+            <div style="width:40px; height:40px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ff3b30;">
+                <i class="fa-solid fa-tower-broadcast"></i>
+            </div>
+            <span class="menu-text" style="font-size:16px;">بث مباشر (Live)</span>
+            <i class="fa-solid fa-chevron-left" style="color:#555"></i>
+        </div>
+
+    </div>
+</div>
 
 </body>
 </html>

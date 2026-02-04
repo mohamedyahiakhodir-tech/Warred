@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بدأ بث مباشر - NABD Pro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.2.js"></script>
+    <style>
+        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #local-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+        .ui-layer { position: absolute; inset: 0; z-index: 10; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
+        .live-controls { pointer-events: auto; display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); color: #fff; font-size: 20px; cursor: pointer; backdrop-filter: blur(5px); }
+        .control-btn.red { background: #ff3b30; }
+        #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 40px; border-radius: 30px; background: #F72585; color: #fff; border: none; font-size: 18px; font-weight: bold; cursor: pointer; z-index: 20; pointer-events: auto; }
+        .status-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+        .live-indicator { width: 8px; height: 8px; background: #ff3b30; border-radius: 50%; display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="local-player"></div>
+    
+    <button id="start-btn" onclick="startStream()">🎥 ابدأ البث المباشر</button>
+
+    <div class="ui-layer" id="live-ui" style="display: none;">
+        <div class="status-badge">
+            <div class="live-indicator" id="live-dot"></div>
+            <span id="viewer-count">0</span> <i class="fa-solid fa-eye"></i>
+        </div>
+
+        <div class="live-controls">
+            <button class="control-btn" onclick="toggleMic()"><i class="fa-solid fa-microphone"></i></button>
+            <button class="control-btn" onclick="toggleCam()"><i class="fa-solid fa-video"></i></button>
+            <button class="control-btn red" onclick="endStream()"><i class="fa-solid fa-power-off"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // 1. إعدادات فايربيس (نفس إعدادات مشروعك)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // 2. إعدادات أجورا
+        const APP_ID = "f311de5105eb4fa7869dfffd2bb7ac2d";
+        const TOKEN = "007eJxTYGhhPet5ZLbkOikhVcfvlz9rM9ouv5yyO1hfY/fRZY/S8lkUGNKMDQ1TUk0NDUxTk0zSEs0tzCxT0tLSUoySkswTk41SOlubMhsCGRnSrBuZGRkgEMTnYShJLS6JT85IzMtLzWFgAAAh4iJc"; // ⚠️ التوكن لازم يتجدد لو خلصت مدته
+        const CHANNEL = "test_channel"; 
+
+        const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
+        let localTracks = { audio: null, video: null };
+        let currentUser = null;
+
+        // التأكد من تسجيل الدخول
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                console.log("Logged in as:", user.uid);
+            } else {
+                alert("يرجى تسجيل الدخول أولاً!");
+                window.location.href = 'home.html';
+            }
+        });
+
+                async function startStream() {
+            // 1. منع التكرار: لو الزرار مخفي أو احنا متصلين بالفعل، اخرج فوراً
+            if (!currentUser || client.connectionState === "CONNECTED" || client.connectionState === "CONNECTING") {
+                console.log("أنت متصل بالفعل!");
+                return;
+            }
+
+            // إخفاء الزرار فوراً لمنع الضغط المتكرر
+            const startBtn = document.getElementById('start-btn');
+            startBtn.disabled = true;
+            startBtn.innerText = "جاري الاتصال... ⏳";
+            
+            try {
+                // أ. جلب بيانات المذيع الحقيقية
+                const userDoc = await db.collection('users').doc(currentUser.uid).get();
+                const userData = userDoc.data();
+
+                // ب. الاتصال بـ Agora
+                client.setClientRole("host");
+                
+                // 🔥 تعديل هام: وضعنا null مكان currentUser.uid عشان يحل التحذير الأصفر
+                // Agora هتدينا رقم (Int) بدلاً من حروف فايربيس، وده أفضل للأداء
+                const uid = await client.join(APP_ID, CHANNEL, TOKEN, null);
+
+                // تجهيز المايك والكاميرا
+                [localTracks.audio, localTracks.video] = await AgoraRTC.createMicrophoneAndCameraTracks();
+                
+                // تشغيل الفيديو عندك
+                localTracks.video.play("local-player");
+                
+                // نشر البث للناس
+                await client.publish(Object.values(localTracks));
+
+                // ج. إنشاء وثيقة البث في فايربيس (عشان المشاهدين يشوفوك)
+                await db.collection('lives').doc(CHANNEL).set({
+                    hostUid: currentUser.uid, // هنا بنحفظ الـ ID الحقيقي بتاعك عشان البروفايل
+                    agoraUid: uid, // وده الـ ID المؤقت بتاع البث
+                    hostName: userData.name || "مستخدم نبض",
+                    hostPic: userData.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png",
+                    isVerified: userData.isVerified || false,
+                    channelId: CHANNEL,
+                    status: 'online',
+                    startedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    viewers: 0
+                });
+
+                // تحديث الواجهة وإخفاء زر البدء تماماً
+                startBtn.style.display = 'none';
+                document.getElementById('live-ui').style.display = 'flex';
+                document.getElementById('live-dot').style.display = 'block';
+
+                // الاستماع لعدد المشاهدين
+                db.collection('lives').doc(CHANNEL).onSnapshot(doc => {
+                    if(doc.exists) {
+                        document.getElementById('viewer-count').innerText = doc.data().viewers || 0;
+                    }
+                });
+
+            } catch (error) {
+                console.error(error);
+                alert("فشل بدء البث: " + error.message);
+                // لو فشل، نرجع الزرار تاني عشان تحاول
+                startBtn.style.display = 'block';
+                startBtn.disabled = false;
+                startBtn.innerText = "🎥 ابدأ البث المباشر";
+            }
+        }
+
+
+        async function endStream() {
+            // 1. تحديث الحالة في فايربيس لـ Offline
+            await db.collection('lives').doc(CHANNEL).update({
+                status: 'offline',
+                endedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // 2. إغلاق Agora
+            localTracks.audio && localTracks.audio.close();
+            localTracks.video && localTracks.video.close();
+            await client.leave();
+
+            // 3. توجيه للصفحة الرئيسية
+            window.location.href = 'home.html';
+        }
+
+        // أزرار التحكم
+        let micOn = true, camOn = true;
+        async function toggleMic() {
+            micOn = !micOn;
+            await localTracks.audio.setMuted(!micOn);
+        }
+        async function toggleCam() {
+            camOn = !camOn;
+            await localTracks.video.setMuted(!camOn);
+        }
+
+        // ضمان إغلاق البث عند قفل المتصفح
+        window.onbeforeunload = () => {
+            db.collection('lives').doc(CHANNEL).update({ status: 'offline' });
+        };
+    </script>
+</body>
+</html>
