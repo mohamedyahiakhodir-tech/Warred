@@ -9,8 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
-    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
 
     <style>
 /* =========================================
@@ -2264,18 +2262,161 @@ video.is-landscape {
 .coin-amount { font-size: 20px; font-weight: bold; color: #FFD700; }
 .coin-price { font-size: 14px; color: #fff; margin-top: 5px; }
 
-/* إصلاح قائمة الإنشاء لتظهر فوق التغببيش */
-#createMenuSheet {
-    z-index: 3000 !important; /* رقم عالي جداً عشان تطلع فوق */
-    background: #1e1e1e;      /* لون خلفية واضح */
-    border-top: 1px solid #333;
+/* =========================================
+   تنسيقات شاشة البث المباشر (المفقودة)
+   ========================================= */
+.live-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    z-index: 10000; /* لازم يكون رقم كبير عشان يغطي التطبيق */
+    display: none; /* مخفي افتراضياً */
+    flex-direction: column;
 }
 
-/* التأكد من أن التغببيش (Overlay) تحت القائمة */
-#overlay {
-    z-index: 2999 !important;
+.live-overlay.active {
+    display: flex; /* يظهر لما نضيف كلاس active */
 }
 
+.live-video-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+}
+
+.live-gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 20%, transparent 70%, rgba(0,0,0,0.8) 100%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+.live-header {
+    position: absolute;
+    top: 20px;
+    left: 10px;
+    right: 10px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.host-info-pill {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
+    border-radius: 30px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-right: 15px;
+}
+
+.host-img-live {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 1px solid #F72585;
+}
+
+.live-badge {
+    background: #F72585;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.close-live-btn {
+    width: 40px;
+    height: 40px;
+    background: rgba(0,0,0,0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+}
+
+.live-chat-area {
+    position: absolute;
+    bottom: 80px;
+    left: 15px;
+    right: 100px; /* مساحة للأزرار الجانبية */
+    height: 250px;
+    overflow-y: auto;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 8px;
+    mask-image: linear-gradient(to top, black 80%, transparent 100%);
+}
+
+.live-chat-msg {
+    background: rgba(0,0,0,0.4);
+    padding: 5px 10px;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 13px;
+    width: fit-content;
+    max-width: 100%;
+}
+
+.chat-username {
+    color: #4CC9F0;
+    font-weight: bold;
+}
+
+.live-footer-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+    background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+}
+
+.live-input {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 10px 15px;
+    color: #fff;
+    outline: none;
+}
+
+.live-action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    cursor: pointer;
+}
 
     </style>
 </head>
@@ -2440,6 +2581,20 @@ video.is-landscape {
 </div>
 
 
+    <div class="bottom-sheet" id="stickerSheet" style="height: auto; max-height: 60vh; z-index: 250;">
+        <div class="sheet-handle"></div>
+        <div style="padding: 15px; text-align: center; font-weight: 800; border-bottom: 1px solid var(--border-color); color:var(--text-color)">
+            استيكرات
+        </div>
+        <div class="stickers-grid" id="stickersGrid"></div>
+    </div>
+
+    <div class="bottom-sheet" id="walletSheet" style="height: 60vh;">
+        <div class="sheet-handle"></div>
+        <div class="cm-header">
+            <span>محفظتي</span>
+            <i class="fa-solid fa-xmark" onclick="closeWallet()" style="cursor:pointer; padding:5px;"></i>
+        </div>
         
         <div style="padding: 30px; text-align: center;">
             <div style="font-size: 14px; color: #aaa;">الرصيد الحالي</div>
@@ -2447,7 +2602,27 @@ video.is-landscape {
                 <i class="fa-solid fa-coins" style="color: #FFD700;"></i>
                 <span id="userBalance">0</span>
             </div>
-       
+            
+            <div class="wallet-actions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 30px;">
+                <div class="w-btn" onclick="addCoins(100)">
+                    <div class="coin-amount">100</div>
+                    <div class="coin-price">10 ج.م</div>
+                </div>
+                <div class="w-btn" onclick="addCoins(500)">
+                    <div class="coin-amount">500</div>
+                    <div class="coin-price">40 ج.م</div>
+                </div>
+                <div class="w-btn" onclick="addCoins(1000)">
+                    <div class="coin-amount">1000</div>
+                    <div class="coin-price">75 ج.م</div>
+                </div>
+                <div class="w-btn" onclick="addCoins(5000)">
+                    <div class="coin-amount">5000</div>
+                    <div class="coin-price">350 ج.م</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 
     <div class="bottom-sheet" id="commentOptionsSheet" style="height: auto;">
@@ -3689,7 +3864,30 @@ let rawText = c.text || "";
     return el;
 }
 
- 
+        // باقي الدوال كما هي دون حذف...
+        function handleInputTyping(textarea) {
+            const actionBtn = document.getElementById('dynamicActionBtn');
+            const micIcon = document.getElementById('mainMicIcon');
+            const sendIcon = document.getElementById('mainSendIcon');
+            
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
+
+            if (textarea.value.trim().length > 0) {
+                micIcon.style.display = 'none';
+                sendIcon.style.display = 'block';
+                actionBtn.classList.remove('mic-mode');
+                actionBtn.classList.add('send-mode');
+                actionBtn.onclick = function() { handleCommentAction(); };
+            } else {
+                micIcon.style.display = 'block';
+                sendIcon.style.display = 'none';
+                actionBtn.classList.add('mic-mode');
+                actionBtn.classList.remove('send-mode');
+                actionBtn.onclick = function() { toggleRecording(); };
+                textarea.style.height = '45px';
+            }
+        }
 
         function resetCommentInput() {
             const inp = document.getElementById('cmInput');
@@ -5686,80 +5884,21 @@ function createSafeCommentElement(c) {
     return container;
 }
 
-// تعديل دالة التبديل لتشمل قسم اللايف
 function switchFeedTab(tabName) {
     if (isLoading || currentFeedTab === tabName) return;
 
-    // تحديث الشكل
+    // 1. تحديث الشكل (UI)
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.getElementById(`tab-${tabName}`).classList.add('active');
 
+    // 2. تحديث المتغيرات
     currentFeedTab = tabName;
-    const feed = document.getElementById('feed');
-    feed.innerHTML = ''; // مسح الفيديوهات القديمة
-    lastDoc = null;
+    lastDoc = null; // تصفير عشان نبدأ من الأول
+    document.getElementById('feed').innerHTML = ''; // مسح الفيديوهات القديمة
 
-    // لو اختار "لايف"، نحمل البثوث، غير كدة نحمل الفيديوهات العادية
-    if (tabName === 'live') {
-        loadLiveStreams();
-    } else {
-        loadVideos(true);
-    }
+    // 3. تحميل الفيديوهات الجديدة
+    loadVideos(true);
 }
-
-// دالة جلب البثوث النشطة
-async function loadLiveStreams() {
-    const feed = document.getElementById('feed');
-    feed.innerHTML = '<div style="text-align:center; padding:50px; color:#fff;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث عن بثوث...</div>';
-
-    try {
-        // بنجيب البثوث اللي حالتها "online" فقط
-        const snapshot = await db.collection('lives')
-            .where('status', '==', 'online')
-            .orderBy('startedAt', 'desc')
-            .get();
-
-        feed.innerHTML = ''; // تنظيف اللودر
-
-        if (snapshot.empty) {
-            feed.innerHTML = `
-                <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#777;">
-                    <i class="fa-solid fa-tower-broadcast" style="font-size:50px; margin-bottom:10px;"></i>
-                    <p>لا يوجد بث مباشر الآن</p>
-                    <button onclick="window.location.href='go_live.html'" style="margin-top:10px; padding:10px 20px; background:#F72585; border:none; color:#fff; border-radius:20px;">ابدأ بث أنت!</button>
-                </div>`;
-            return;
-        }
-
-        // عرض البثوث كشبكة (Grid)
-        let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px;">';
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            const channelId = doc.id; // ده اللي هنستخدمه عشان ندخل اللايف
-            
-            html += `
-            <div onclick="window.location.href='live_viewer.html?channel=${channelId}'" style="position:relative; aspect-ratio:3/4; background:#222; border-radius:10px; overflow:hidden; cursor:pointer;">
-                <img src="${data.hostPic}" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
-                
-                <div style="position:absolute; top:10px; left:10px; background:#ff3b30; color:#fff; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">LIVE</div>
-                
-                <div style="position:absolute; bottom:0; left:0; right:0; padding:10px; background:linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
-                    <div style="font-weight:bold; font-size:14px;">${data.hostName}</div>
-                    <div style="font-size:11px; color:#ccc;"><i class="fa-solid fa-eye"></i> ${data.viewers || 0} مشاهد</div>
-                </div>
-            </div>`;
-        });
-        
-        html += '</div>';
-        feed.innerHTML = html;
-
-    } catch (e) {
-        console.error(e);
-        feed.innerHTML = '<div style="text-align:center; padding:20px; color:red;">حدث خطأ في تحميل البثوث</div>';
-    }
-}
-
 // متغير لتذكر الفيديو الذي تم إيقافه
 let videoPausedBySearch = null;
 
@@ -8650,11 +8789,14 @@ function toggleScreenLock(id) {
 }
 
 // 8. تحديث شريط الوقت (Seeker)
+// ابحث عن هذه الدالة في كودك واستبدلها بهذا الشكل
 function updateProSeeker(id) {
     const vid = document.getElementById(`vid-${id}`);
     
-    // 🔥 الحماية: لو الفيديو مش موجود، اخرج فوراً ومتعملش خطأ
+    // --- بداية التعديل (فحص الأمان) ---
+    // إذا لم يجد الفيديو (مثلاً لأننا في وضع البث المباشر)، يخرج من الدالة فوراً ولا يكمل
     if (!vid) return; 
+    // -------------------------------
 
     const seeker = document.getElementById(`pro-seeker-${id}`);
     const curr = document.getElementById(`pro-curr-time-${id}`);
@@ -8662,8 +8804,11 @@ function updateProSeeker(id) {
     
     if (!isNaN(vid.duration)) {
         const pct = (vid.currentTime / vid.duration) * 100;
+        
+        // تأكد أيضاً أن العناصر موجودة قبل التحديث
         if(seeker) seeker.value = pct;
         
+        // تنسيق الوقت
         if(curr) curr.innerText = formatTime(vid.currentTime);
         if(total) total.innerText = formatTime(vid.duration);
     }
@@ -8738,15 +8883,18 @@ function switchProVideo(currentId, direction) {
 
 // --- دالة التحديث الموحدة (الحل للمشكلة) ---
 function handleMainUpdate(vid, id) {
+    // فحص أمان هنا أيضاً
+    if (!vid) return;
+
     // 1. تحديث الشريط العائم والعداد التنازلي (للشاشة الرئيسية)
     updateFloatingSeeker(vid, id);
     
     // 2. تحديث شريط الوضع الاحترافي (لو مفتوح)
-    // نتأكد إن دالة updateProSeeker موجودة قبل استدعائها
     if (typeof updateProSeeker === 'function') {
         updateProSeeker(id);
     }
 }
+
 
 // تأكد أن هذه الدالة موجودة وسليمة أيضاً (إصلاح منطق الشريط والعداد)
 function updateFloatingSeeker(vid, id) {
@@ -9054,101 +9202,189 @@ function openWallet() {
     window.location.href = 'wallet.html';
 }
 
-async function generateShareCard() {
-    showToast("جاري التقاط المشهد وتصميم البطاقة... 🎨");
-    closeAllSheets();
+/* === منطق البث المباشر === */
 
-    // 1. تحديد الفيديو الحالي
-    const video = document.getElementById(`vid-${currentOpenVideoId}`);
-    
-    if (!video) {
-        showToast("لم يتم العثور على الفيديو");
-        return;
+// تحديث دالة التبديل (انسخ دي بدل القديمة اللي عندك)
+function switchFeedTab(tabName) {
+    if (isLoading || currentFeedTab === tabName) return;
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+    currentFeedTab = tabName;
+    const feed = document.getElementById('feed');
+    feed.innerHTML = ''; 
+    lastDoc = null;
+
+    if (tabName === 'live') {
+        loadLiveStreams(); 
+    } else {
+        loadVideos(true);
     }
+}
 
-    // 2. 📸 الخدعة: التقاط سكرين شوت من الفيديو يدوياً
-    let snapshotUrl = '';
+// دالة جلب البثوث
+// دالة جلب البثوث (المعدلة)
+// استبدل دالة loadLiveStreams القديمة بدي
+async function loadLiveStreams() {
+    const feed = document.getElementById('feed');
+    feed.innerHTML = '<div style="text-align:center; padding:50px; color:#fff;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث...</div>';
+
     try {
-        const canvas = document.createElement('canvas');
-        // نستخدم أبعاد الفيديو الحقيقية
-        canvas.width = video.videoWidth || 720; 
-        canvas.height = video.videoHeight || 1280;
-        const ctx = canvas.getContext('2d');
+        const snapshot = await db.collection('lives').where('status', '==', 'online').orderBy('startedAt', 'desc').get();
+        feed.innerHTML = ''; 
 
-        // رسم الكادر الحالي للفيديو جوه الكانفاس
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        if (snapshot.empty) {
+            feed.innerHTML = '<div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#777;"><i class="fa-solid fa-tower-broadcast" style="font-size:50px; margin-bottom:10px;"></i><p>لا يوجد بث مباشر الآن</p></div>';
+            return;
+        }
+
+        let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:10px;">';
         
-        // تحويل الكانفاس لرابط صورة
-        snapshotUrl = canvas.toDataURL('image/jpeg', 0.9); 
-    } catch (e) {
-        console.log("Video Snapshot Error (Security/CORS):", e);
-        // لو فشل الالتقاط (بسبب حماية المتصفح)، نستخدم صورة البروفايل أو أي صورة بديلة
-        snapshotUrl = "https://cdn-icons-png.flaticon.com/512/847/847969.png"; 
-    }
-
-    // 3. تصميم الكارت (مخفي)
-    const card = document.createElement('div');
-    // تنسيق الكارت ليكون فخم (أسود ووردي)
-    card.style.cssText = "position:fixed; top:-9999px; width:1080px; height:1920px; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; font-family:'Cairo', sans-serif;";
-    
-    // محتوى البطاقة
-    card.innerHTML = `
-        <h1 style="font-size:100px; color:#F72585; margin-bottom:60px; font-weight:900; text-shadow:0 0 20px rgba(247,37,133,0.5);">NABD Pro</h1>
-        
-        <div style="width:900px; height:1400px; background:#222; border-radius:50px; overflow:hidden; border:15px solid #333; box-shadow: 0 20px 80px rgba(0,0,0,0.8); position:relative;">
+        snapshot.forEach(doc => {
+            const data = doc.data();
             
-            <img src="${snapshotUrl}" style="width:100%; height:100%; object-fit:cover;">
-            
-            <div style="position:absolute; bottom:0; left:0; width:100%; height:400px; background:linear-gradient(to top, #000, transparent);"></div>
-            
-            <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:150px; height:150px; background:rgba(0,0,0,0.6); border-radius:50%; display:flex; align-items:center; justify-content:center; border:5px solid rgba(255,255,255,0.8);">
-                <i class="fa-solid fa-play" style="color:#fff; font-size:60px;"></i>
-            </div>
-        </div>
+            // هنا التعديل: بنجيب رقم القناة (ID) عشان نبعته للصفحة التانية
+            const channelId = doc.id; 
+            const hostName = data.hostName || "مذيع";
+            const hostPic = data.hostPic || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            const viewers = data.viewers || 0;
 
-        <div style="margin-top:60px; text-align:center;">
-            <p style="font-size:40px; color:#fff; font-weight:bold;">Scan to Watch Video</p>
-            <div style="font-size:30px; color:#777; margin-top:10px;">@NabdApp</div>
-        </div>
-    `;
-    
-    document.body.appendChild(card);
-
-    // 4. تحويل الكارت كله لصورة نهائية باستخدام html2canvas
-    try {
-        // نستخدم scale منخفض شوية (0.8) عشان السرعة والحجم
-        const canvas = await html2canvas(card, { 
-            useCORS: true, // مهم جداً للصور الخارجية
-            scale: 1 
+            // 🔥 لاحظ الـ onclick هنا اتغير عشان يوديك صفحة تانية
+            html += `
+            <div onclick="goToLiveRoom('${channelId}')" 
+                 style="position:relative; aspect-ratio:3/4; background:#222; border-radius:10px; overflow:hidden; cursor:pointer;">
+                
+                <img src="${hostPic}" style="width:100%; height:100%; object-fit:cover;">
+                
+                <div style="position:absolute; top:10px; left:10px; background:#ff3b30; color:#fff; padding:2px 8px; border-radius:4px; font-size:10px; font-weight:bold;">
+                    LIVE
+                </div>
+                
+                <div style="position:absolute; bottom:0; left:0; right:0; padding:10px; background:linear-gradient(to top, rgba(0,0,0,0.9), transparent);">
+                    <div style="font-weight:bold; font-size:14px; color:#fff;">${hostName}</div>
+                    <div style="font-size:11px; color:#ccc;"><i class="fa-solid fa-eye"></i> ${viewers}</div>
+                </div>
+            </div>`;
         });
         
-        const imgUrl = canvas.toDataURL("image/png");
+        html += '</div>';
+        feed.innerHTML = html;
         
-        // التنزيل
-        const link = document.createElement('a');
-        link.download = `Nabd_Share_${Date.now()}.png`;
-        link.href = imgUrl;
-        link.click();
-        
-        showToast("تم حفظ الصورة ✅");
-    } catch (err) {
-        console.error(err);
-        showToast("فشل إنشاء البطاقة");
+    } catch (e) { 
+        console.error(e); 
+        feed.innerHTML = '<div style="text-align:center; color:red;">حدث خطأ</div>'; 
     }
+}
+
+// دوال فتح وإغلاق البث
+let currentLiveId = null;
+let currentLiveHostUid = null;
+let liveChatUnsub = null;
+
+function openLiveViewer(liveData) {
+    document.querySelectorAll('video, audio').forEach(el => el.pause());
+    const overlay = document.getElementById('liveViewerOverlay');
+    const videoPlayer = document.getElementById('liveVideoPlayer');
     
-    document.body.removeChild(card);
+    document.getElementById('liveHostName').innerText = liveData.hostName;
+    document.getElementById('liveHostPic').src = liveData.hostPic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    document.getElementById('liveViewerCount').innerText = liveData.viewers || 0;
+    
+    currentLiveId = liveData.id;
+    currentLiveHostUid = liveData.uid;
+
+    if (liveData.streamUrl) videoPlayer.src = liveData.streamUrl;
+    else videoPlayer.src = "https://www.w3schools.com/html/mov_bbb.mp4"; // فيديو تجريبي
+    
+    videoPlayer.play().catch(e => console.log("Autoplay blocked"));
+    overlay.classList.add('active');
+    loadLiveChat(currentLiveId);
+    
+    db.collection('lives').doc(currentLiveId).update({ viewers: firebase.firestore.FieldValue.increment(1) });
 }
 
-// فتح قائمة الإنشاء
-function openCreateMenu() {
-    document.getElementById('createMenuSheet').classList.add('active');
-    document.getElementById('overlay').style.display = 'block';
+function closeLiveViewer() {
+    const overlay = document.getElementById('liveViewerOverlay');
+    const videoPlayer = document.getElementById('liveVideoPlayer');
+    overlay.classList.remove('active');
+    videoPlayer.pause();
+    videoPlayer.src = "";
+    if(liveChatUnsub) liveChatUnsub();
+    document.getElementById('liveChatList').innerHTML = '';
+    
+    if(currentLiveId) {
+        db.collection('lives').doc(currentLiveId).update({ viewers: firebase.firestore.FieldValue.increment(-1) });
+    }
+    currentLiveId = null;
 }
 
-// إغلاق قائمة الإنشاء
-function closeCreateMenu() {
-    document.getElementById('createMenuSheet').classList.remove('active');
-    document.getElementById('overlay').style.display = 'none';
+function loadLiveChat(liveId) {
+    const chatList = document.getElementById('liveChatList');
+    if(liveChatUnsub) liveChatUnsub();
+    liveChatUnsub = db.collection('lives').doc(liveId).collection('messages').orderBy('createdAt', 'desc').limit(20)
+        .onSnapshot(snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const msg = change.doc.data();
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'live-chat-msg';
+                    if (msg.isGift) {
+                        msgDiv.style.background = 'linear-gradient(90deg, rgba(255,215,0,0.3), rgba(0,0,0,0.5))';
+                        msgDiv.style.borderLeft = '3px solid #FFD700';
+                        msgDiv.innerHTML = `<span class="chat-username" style="color:#FFD700">${msg.name}</span>: أرسل ${msg.giftEmoji}`;
+                        showFloatingHeart(msg.giftEmoji);
+                    } else {
+                        msgDiv.innerHTML = `<span class="chat-username">${msg.name}</span>: ${msg.text}`;
+                    }
+                    chatList.appendChild(msgDiv);
+                    chatList.scrollTop = chatList.scrollHeight;
+                }
+            });
+        });
+}
+
+function handleLiveChatKey(e) {
+    if (e.key === 'Enter') {
+        const input = document.getElementById('liveChatInput');
+        const text = input.value.trim();
+        if (!text || !currentUser) return;
+        db.collection('lives').doc(currentLiveId).collection('messages').add({
+            uid: currentUser.uid,
+            name: currentUserData.name || 'مستخدم',
+            text: text,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = '';
+    }
+}
+
+function sendLiveHeart() {
+    showFloatingHeart('❤️');
+}
+
+function showFloatingHeart(emoji) {
+    const container = document.getElementById('flyingHeartsContainer');
+    const el = document.createElement('div');
+    el.innerText = emoji;
+    el.style.cssText = `position:absolute; bottom:0; left:${Math.random()*50}px; font-size:25px; animation:floatUp 2s linear forwards; opacity:0;`;
+    container.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+}
+
+// إضافة أنيميشن القلوب
+const style = document.createElement('style');
+style.innerHTML = `@keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity:1; } 100% { transform: translateY(-200px) scale(1.5) rotate(20deg); opacity:0; } }`;
+document.head.appendChild(style);
+
+function shareLiveStream() { alert("تم نسخ رابط البث!"); }
+
+// ضيف الدالة دي في أي مكان في السكربت
+function goToLiveRoom(channelId) {
+    // 1. وقف أي فيديو شغال في الخلفية
+    document.querySelectorAll('video, audio').forEach(el => el.pause());
+
+    // 2. الانتقال لملف المشاهدة الحقيقي
+    // ⚠️ غير كلمة 'viewer.html' لاسم الملف اللي فيه كود البث (Agora) اللي أنت عامله
+    window.location.href = `live_viewer.html?channel=${channelId}`;
 }
 
     </script>
@@ -9235,27 +9471,14 @@ function closeCreateMenu() {
     "></span>
 </div>
 
-<div class="top-nav-bar" style="display: flex; justify-content: space-between; align-items: center;">
-    
-    <div style="display: flex; align-items: center; gap: 5px;">
-        <div class="nav-icon-btn" onclick="window.location.href='home.html'">
-            <i class="fa-solid fa-house"></i>
-        </div>
+ <div class="nav-tabs" style="font-size: 13px; gap: 10px;">
+    <span class="nav-tab" onclick="switchFeedTab('friends')" id="tab-friends">الأصدقاء</span>
+    <span class="nav-tab" onclick="switchFeedTab('popular')" id="tab-popular">شائع</span>
+    <span class="nav-tab active" onclick="switchFeedTab('world')" id="tab-world">العالم</span>
+    <span class="nav-tab" onclick="switchFeedTab('live')" id="tab-live" style="color:#ff3b30; text-shadow:0 0 5px rgba(255,59,48,0.5);">LIVE</span>
+</div>
 
-        <div class="nav-icon-btn" onclick="window.location.href='notifications.html'" style="position: relative;">
-            <i class="fa-solid fa-bell"></i>
-            <span id="notif-dot" style="display: none; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px; background-color: #ff3b30; border-radius: 50%;"></span>
-        </div>
-    </div>
-
-    <div class="nav-tabs" style="font-size: 13px; gap: 10px;">
-        <span class="nav-tab" onclick="switchFeedTab('friends')" id="tab-friends">الأصدقاء</span>
-        <span class="nav-tab" onclick="switchFeedTab('popular')" id="tab-popular">شائع</span>
-        <span class="nav-tab active" onclick="switchFeedTab('world')" id="tab-world">العالم</span>
-        <span class="nav-tab" onclick="switchFeedTab('live')" id="tab-live" style="color:#ff3b30">LIVE</span>
-    </div>
-
-    <div class="nav-create-btn center-btn" onclick="openCreateMenu()">
+    <div class="nav-create-btn center-btn" onclick="window.location.href='create_media.html'">
         <i class="fa-solid fa-plus"></i>
     </div>
     
@@ -9268,6 +9491,7 @@ function closeCreateMenu() {
         </div>
     </div>
 </div>
+
 
 <div class="search-overlay" id="searchScreen">
     <div class="search-header">
@@ -9300,12 +9524,6 @@ function closeCreateMenu() {
         <div class="share-circle" style="background: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
         <span>واتساب</span>
     </div>
-
-<div class="share-action-item" onclick="generateShareCard()">
-    <div class="share-circle" style="background: #E1306C;"><i class="fa-solid fa-image"></i></div>
-    <span>صورة</span>
-</div>
-
 
     <div class="share-action-item" onclick="shareTo('facebook')">
         <div class="share-circle" style="background: #1877F2;"><i class="fa-brands fa-facebook-f"></i></div>
@@ -9378,6 +9596,7 @@ function closeCreateMenu() {
             <i class="fa-solid fa-bookmark" style="color:#FFD700"></i>
             <span class="menu-text">العناصر المحفوظة</span>
             <i class="fa-solid fa-chevron-left" style="font-size:12px; color:#555"></i>
+            
         </div>
 
 <div class="menu-item" onclick="toggleAddFavorite(currentOpenVideoId); closeAllSheets();">
@@ -9390,6 +9609,13 @@ function closeCreateMenu() {
             <span class="menu-text">سجل المشاهدة (30 يوم)</span>
             <i class="fa-solid fa-chevron-left" style="font-size:12px; color:#555"></i>
         </div>
+<div class="menu-item" onclick="window.location.href='live.html'">
+    <div style="width:40px; height:40px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ff3b30;">
+        <i class="fa-solid fa-tower-broadcast"></i>
+    </div>
+    <span class="menu-text" style="font-size:16px;">بث مباشر (Live)</span>
+    <i class="fa-solid fa-chevron-left" style="color:#555"></i>
+</div>
 
         <div class="menu-item" onclick="openLibraryPage('search_history')">
             <i class="fa-solid fa-magnifying-glass" style="color:#bf5af2"></i>
@@ -9718,32 +9944,54 @@ function closeCreateMenu() {
    <div id="cm-gift-banner" class="cm-gift-banner-container" style="display: none;">
         </div>
 
-<div class="bottom-sheet" id="createMenuSheet" style="height: auto;">
-    <div class="sheet-handle"></div>
-    <div class="cm-header">
-        <span style="flex:1; text-align:center;">إنشاء محتوى جديد</span>
-        <i class="fa-solid fa-xmark" onclick="closeCreateMenu()" style="cursor:pointer; padding:5px"></i>
-    </div>
+<div id="liveViewerOverlay" class="live-overlay">
     
-    <div class="menu-list" style="padding: 20px;">
-        
-        <div class="menu-item" onclick="window.location.href='create_media.html'">
-            <div style="width:40px; height:40px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#4CC9F0;">
-                <i class="fa-solid fa-upload"></i>
+    <video id="liveVideoPlayer" class="live-video-bg" loop playsinline autoplay webkit-playsinline></video>
+    
+    <div class="live-gradient-overlay"></div>
+
+    <div class="live-header">
+        <div class="host-info-pill" onclick="openProfileOverlay(currentLiveHostUid)">
+            <img id="liveHostPic" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" class="host-img-live">
+            <div>
+                <div id="liveHostName" style="font-size:12px; font-weight:bold;">اسم المضيف</div>
+                <div style="font-size:9px; opacity:0.8;">تابع</div>
             </div>
-            <span class="menu-text" style="font-size:16px;">رفع فيديو</span>
-            <i class="fa-solid fa-chevron-left" style="color:#555"></i>
+            <div class="live-badge">LIVE</div>
         </div>
 
-        <div class="menu-item" onclick="window.location.href='go_live.html'">
-            <div style="width:40px; height:40px; background:#222; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#ff3b30;">
-                <i class="fa-solid fa-tower-broadcast"></i>
-            </div>
-            <span class="menu-text" style="font-size:16px;">بث مباشر (Live)</span>
-            <i class="fa-solid fa-chevron-left" style="color:#555"></i>
+        <div class="live-viewers-count">
+            <i class="fa-solid fa-eye"></i> <span id="liveViewerCount">0</span>
         </div>
 
+        <div class="close-live-btn" onclick="closeLiveViewer()">
+            <i class="fa-solid fa-xmark"></i>
+        </div>
     </div>
+
+    <div class="live-chat-area" id="liveChatList">
+        <div class="live-chat-msg" style="background:rgba(247, 37, 133, 0.4);">
+            <span class="chat-username">System</span> مرحباً بك في البث!
+        </div>
+    </div>
+
+    <div class="live-footer-bar">
+        <input type="text" id="liveChatInput" class="live-input" placeholder="أضف تعليقاً..." onkeypress="handleLiveChatKey(event)">
+        
+        <div class="live-action-btn" onclick="GiftSystem.open()" style="color:#bf5af2">
+            <i class="fa-solid fa-gift"></i>
+        </div>
+        
+        <div class="live-action-btn" onclick="shareLiveStream()">
+            <i class="fa-solid fa-share"></i>
+        </div>
+        
+        <div class="live-action-btn" style="background: linear-gradient(45deg, #F72585, #7209b7);" onclick="sendLiveHeart()">
+            <i class="fa-solid fa-heart"></i>
+        </div>
+    </div>
+
+    <div id="flyingHeartsContainer" style="position:absolute; bottom:80px; right:20px; width:50px; height:300px; pointer-events:none; z-index:5;"></div>
 </div>
 
 </body>

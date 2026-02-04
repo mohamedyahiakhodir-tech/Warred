@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>مشاهدة البث - NABD Pro</title>
+    <title>NABD Live - Pro Gifts</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -12,116 +12,207 @@
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.2.js"></script>
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        /* =========================================
+           1. أساسيات الصفحة
+           ========================================= */
+        :root { --primary: #F72585; --gold: #FFD700; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background: #000; color: #fff; height: 100vh; overflow: hidden; }
-        
+
         /* مشغل الفيديو */
         #remote-player { position: absolute; inset: 0; z-index: 1; background: #111; }
         #remote-player video { object-fit: cover !important; }
-        
+
         /* طبقة الواجهة */
         .overlay-layer { 
             position: absolute; inset: 0; z-index: 10; pointer-events: none; 
-            background: linear-gradient(180deg, rgba(0,0,0,0.3) 0%, transparent 40%, rgba(0,0,0,0.8) 100%); 
+            background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 30%, rgba(0,0,0,0.8) 100%);
+            display: flex; flex-direction: column; justify-content: space-between; padding: 20px;
         }
-        
-        /* كارت معلومات المذيع */
+
+        /* --- الهيدر (معلومات المذيع) --- */
+        .top-section { width: 100%; display: flex; flex-direction: column; gap: 10px; pointer-events: auto; }
+        .host-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .host-info-card {
-            position: absolute; top: 20px; right: 20px;
-            background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
-            padding: 5px 15px 5px 5px; border-radius: 30px;
-            display: flex; align-items: center; gap: 10px; pointer-events: auto;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(8px);
+            padding: 4px 15px 4px 5px; border-radius: 30px;
+            display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.1);
         }
-        .host-img { width: 35px; height: 35px; border-radius: 50%; border: 2px solid #F72585; object-fit: cover; }
-        .live-tag { background: #F72585; font-size: 10px; padding: 2px 5px; border-radius: 4px; margin-left: 5px; }
-        
-        /* منطقة الشات */
-        .chat-area {
-            position: absolute; bottom: 80px; right: 15px; width: 75%; height: 250px;
-            overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-end;
-            mask-image: linear-gradient(to top, black 80%, transparent 100%);
-            scrollbar-width: none;
+        .host-img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); object-fit: cover; }
+        .host-name { font-weight: bold; font-size: 13px; color: #fff; }
+        .viewer-count { font-size: 10px; color: #ddd; }
+
+        /* --- منطقة الشات --- */
+        .chat-container { width: 100%; display: flex; flex-direction: column; justify-content: flex-end; margin-bottom: 10px; pointer-events: none; }
+        .chat-list {
+            height: 250px; overflow-y: auto; scrollbar-width: none;
+            mask-image: linear-gradient(to top, black 85%, transparent 100%);
+            display: flex; flex-direction: column; justify-content: flex-end; margin-bottom: 10px;
         }
         .chat-msg { 
-            background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 10px; 
-            margin-bottom: 6px; font-size: 13px; width: fit-content; max-width: 100%; word-wrap: break-word; 
-            animation: slideIn 0.3s ease; text-shadow: 0 1px 1px black;
+            background: rgba(0,0,0,0.4); padding: 5px 12px; border-radius: 15px; 
+            margin-bottom: 6px; font-size: 13px; width: fit-content; max-width: 85%; 
+            word-wrap: break-word; text-shadow: 0 1px 2px black; animation: slideIn 0.2s ease;
         }
-        .chat-user { color: #4CC9F0; font-weight: bold; margin-left: 5px; }
-        .gift-msg { color: #FFD700; font-weight: bold; background: rgba(255, 215, 0, 0.1); border: 1px solid rgba(255, 215, 0, 0.3); }
-        
-        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        .chat-user { color: #4CC9F0; font-weight: 800; margin-left: 5px; }
+        .gift-chat-msg {
+            background: linear-gradient(90deg, rgba(255, 215, 0, 0.3), transparent);
+            border-right: 3px solid #FFD700; color: #FFD700; font-weight: bold;
+        }
 
-        /* الشريط السفلي */
-        .bottom-bar {
-            position: absolute; bottom: 0; left: 0; right: 0; padding: 15px;
-            display: flex; gap: 10px; pointer-events: auto; align-items: center;
+        /* --- الشريط السفلي --- */
+        .bottom-bar { display: flex; gap: 10px; pointer-events: auto; align-items: center; width: 100%; }
+        #msg-input { 
+            flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); 
+            border-radius: 25px; padding: 10px 15px; color: #fff; outline: none; backdrop-filter: blur(5px);
         }
-        #msg-input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 10px; color: #fff; outline: none; backdrop-filter: blur(5px); }
-        .action-btn { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #fff; transition: transform 0.2s; }
+        .action-btn { 
+            width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; font-size: 20px; 
+            color: #fff; transition: transform 0.2s; backdrop-filter: blur(5px);
+        }
         .action-btn:active { transform: scale(0.9); }
-        .btn-send { background: #F72585; }
-        .btn-gift { background: linear-gradient(45deg, #FFD700, #ffab00); color: #000; }
-        .btn-heart { background: rgba(255,255,255,0.1); color: #F72585; border: 1px solid #F72585; margin-right: auto;}
+        .btn-send { background: var(--primary); }
+        .btn-gift { background: linear-gradient(135deg, #FFD700, #FFA500); color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4); animation: pulseGift 2s infinite; }
 
-        /* تأثيرات بصرية (قلوب وهدايا) */
-        .floating-element {
-            position: absolute; bottom: 80px; right: 20px; font-size: 30px;
-            animation: floatUp 2s ease-in forwards; pointer-events: none; z-index: 20;
-        }
-        .big-gift-anim {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 80px; animation: popAndFade 1.5s ease forwards; z-index: 50; pointer-events: none;
-        }
-
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-200px) scale(1.5) rotate(20deg); opacity: 0; }
-        }
-        @keyframes popAndFade {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        /* =========================================
+           2. نظام الهدايا الاحترافي (Ticker & Combo)
+           ========================================= */
+        .gift-ticker-wrapper {
+            position: absolute; top: 120px; left: 10px; z-index: 100; pointer-events: none;
+            display: flex; flex-direction: column; gap: 8px;
         }
         
-        /* شاشة الانتظار */
-        #loading-screen {
-            position: absolute; inset: 0; background: #000; z-index: 5;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        .gift-ticker-card {
+            display: flex; align-items: center; gap: 10px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(255, 215, 0, 0.1) 100%);
+            border-left: 4px solid #FFD700; border-radius: 50px;
+            padding: 5px 15px 5px 5px;
+            transform: translateX(-120%); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: fit-content;
         }
+        .gift-ticker-card.show { transform: translateX(0); }
+
+        .ticker-avatar { width: 35px; height: 35px; border-radius: 50%; border: 1px solid #FFD700; object-fit: cover; }
+        .ticker-info { display: flex; flex-direction: column; line-height: 1.1; margin-left: 5px; }
+        .ticker-name { color: #FFD700; font-weight: 800; font-size: 12px; }
+        .ticker-desc { color: #fff; font-size: 10px; font-weight: 600; }
+        .ticker-gift-icon { font-size: 28px; filter: drop-shadow(0 0 5px rgba(255,215,0,0.5)); }
+        
+        /* عداد الكومبو */
+        .gift-combo-count {
+            font-family: 'Impact', sans-serif; font-size: 24px; color: #fff;
+            text-shadow: 2px 2px 0 #F72585, -1px -1px 0 #000;
+            font-style: italic; margin-right: 10px; opacity: 0; transform: scale(0.5);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .gift-combo-count.active { opacity: 1; transform: scale(1); }
+        .gift-combo-count.pop { animation: comboPop 0.3s ease-in-out; }
+
+        /* =========================================
+           3. قائمة اختيار الهدايا (Bottom Sheet)
+           ========================================= */
+        .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; }
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0; background: #1a1a1a;
+            border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.3s ease;
+            z-index: 201; padding: 20px; border-top: 1px solid #333;
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+        .sheet-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; color: #fff; }
+        
+        .gift-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .gift-item {
+            background: rgba(255,255,255,0.05); border-radius: 12px; padding: 10px 5px;
+            display: flex; flex-direction: column; align-items: center; cursor: pointer;
+            border: 1px solid transparent; transition: 0.2s;
+        }
+        .gift-item:active { transform: scale(0.95); border-color: var(--primary); }
+        .g-emoji { font-size: 35px; margin-bottom: 5px; }
+        .g-name { font-size: 10px; font-weight: bold; color: #fff; }
+        .g-price { font-size: 9px; color: #FFD700; background: rgba(0,0,0,0.5); padding: 2px 6px; border-radius: 8px; margin-top: 2px; }
+
+        /* =========================================
+           4. الأنيميشن والتأثيرات
+           ========================================= */
+        .big-effect-container { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            z-index: 150; pointer-events: none; 
+        }
+        .big-gift-pop { 
+            font-size: 120px; animation: popBig 1s ease-out forwards; 
+            filter: drop-shadow(0 0 20px rgba(255,215,0,0.8));
+        }
+        
+        @keyframes comboPop { 0% { transform: scale(1); } 50% { transform: scale(1.5) rotate(-10deg); color: #FFD700; } 100% { transform: scale(1) rotate(0); } }
+        @keyframes popBig { 0% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.5); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes pulseGift { 0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(255, 215, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* شاشة التحميل */
+        #loading-screen { position: absolute; inset: 0; background: #000; z-index: 999; display: flex; justify-content: center; align-items: center; flex-direction: column; color: var(--primary); }
     </style>
 </head>
 <body>
 
     <div id="loading-screen">
-        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 40px; color: #F72585; margin-bottom: 20px;"></i>
-        <p style="color:#aaa;">جاري الاتصال بالبث...</p>
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 40px; margin-bottom: 15px;"></i>
+        <div style="color: #fff; font-weight: bold;">جاري دخول البث...</div>
     </div>
 
     <div id="remote-player"></div>
 
     <div class="overlay-layer">
-        <div class="host-info-card">
-            <div style="text-align: left;">
-                <div style="font-weight: bold; font-size: 14px;" id="host-name">..</div>
-                <div style="font-size: 11px; opacity: 0.8;"><span class="live-tag">LIVE</span> <span id="viewers">0</span></div>
+        
+        <div class="top-section">
+            <div class="host-header">
+                <div class="host-info-card">
+                    <img id="host-pic" src="https://via.placeholder.com/50" class="host-img">
+                    <div style="display:flex; flex-direction:column; line-height:1.2">
+                        <span class="host-name" id="host-name">..</span>
+                        <span class="viewer-count"><i class="fa-solid fa-user"></i> <span id="viewers">0</span></span>
+                    </div>
+                </div>
+                <div style="background:rgba(247,37,133,0.8); padding:4px 10px; border-radius:12px; font-size:11px; font-weight:bold;">LIVE</div>
             </div>
-            <img id="host-pic" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" class="host-img">
         </div>
 
-        <div class="chat-area" id="chat-list"></div>
+        <div id="gift-ticker-overlay" class="gift-ticker-wrapper"></div>
 
-        <div class="bottom-bar">
-            <input type="text" id="msg-input" placeholder="اكتب تعليقاً..." onkeypress="if(event.key==='Enter') sendMsg()">
-            <button class="action-btn btn-send" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
-            <button class="action-btn btn-gift" onclick="sendGift()"><i class="fa-solid fa-gift"></i></button>
-            <button class="action-btn btn-heart" onclick="sendFloatingHeart()"><i class="fa-solid fa-heart"></i></button>
+        <div id="big-effects-area" class="big-effect-container"></div>
+
+        <div class="chat-container">
+            <div class="chat-list" id="chat-list"></div>
+
+            <div class="bottom-bar">
+                <input type="text" id="msg-input" placeholder="قل شيئاً لطيفاً..." onkeypress="if(event.key==='Enter') sendMsg()">
+                
+                <button class="action-btn btn-send" onclick="sendMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+                
+                <button class="action-btn btn-gift" onclick="GiftSystem.open()">
+                    <i class="fa-solid fa-gift"></i>
+                </button>
+                
+                <button class="action-btn" style="background:rgba(255,255,255,0.15); color:#ff2d55" onclick="sendHeart()">
+                    <i class="fa-solid fa-heart"></i>
+                </button>
+            </div>
         </div>
     </div>
 
+    <div class="sheet-overlay" id="sheetOverlay" onclick="GiftSystem.close()"></div>
+    <div class="bottom-sheet" id="giftSheet">
+        <div class="sheet-header">
+            <h3>إرسال هدية</h3>
+            <div style="background:rgba(255,215,0,0.1); color:#FFD700; padding:5px 10px; border-radius:15px; font-size:12px; font-weight:bold;">
+                <i class="fa-solid fa-coins"></i> 5000
+            </div>
+        </div>
+        <div class="gift-grid" id="giftGridContainer"></div>
+    </div>
+
     <script>
-        // 1. إعدادات فايربيس
+        // --- 1. إعدادات Firebase ---
         const firebaseConfig = {
             apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
             authDomain: "pools-e4381.firebaseapp.com",
@@ -134,83 +225,235 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // 2. إعدادات أجورا
-        const APP_ID = "f311de5105eb4fa7869dfffd2bb7ac2d";
-        const TOKEN = "007eJxTYGhhPet5ZLbkOikhVcfvlz9rM9ouv5yyO1hfY/fRZY/S8lkUGNKMDQ1TUk0NDUxTk0zSEs0tzCxT0tLSUoySkswTk41SOlubMhsCGRnSrBuZGRkgEMTnYShJLS6JT85IzMtLzWFgAAAh4iJc"; 
+        // --- 2. إعدادات Agora ---
+        const APP_ID = "f311de5105eb4fa7869dfffd2bb7ac2d"; 
+        const TOKEN = "007eJxTYGhhPet5ZLbkOikhVcfvlz9rM9ouv5yyO1hfY/fRZY/S8lkUGNKMDQ1TUk0NDUxTk0zSEs0tzCxT0tLSUoySkswTk41SOlubMhsCGRnSrBuZGRkgEMTnYShJLS6JT85IzMtLzWFgAAAh4iJc";
         
-        // استلام القناة من الرابط (أو استخدام التست كافتراضي)
         const urlParams = new URLSearchParams(window.location.search);
         const CHANNEL = urlParams.get('channel') || "test_channel"; 
 
         const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
         let currentUser = null;
+        let userData = { name: "ضيف", profilePic: "https://via.placeholder.com/100" };
+// ضيف ده تحت المتغيرات اللي فوق (زي currentUser و localTracks)
+let pendingHearts = 0; // مخزن القلوب المؤقت
 
-        auth.onAuthStateChanged(user => {
-            if(user) currentUser = user;
-            // نبدأ سواء مسجل أو لأ (للمشاهدة)
+        // --- 3. تشغيل البث ---
+        auth.onAuthStateChanged(async user => {
+            if(user) {
+                currentUser = user;
+                const doc = await db.collection('users').doc(user.uid).get();
+                if(doc.exists) userData = doc.data();
+                else userData = { name: user.displayName, profilePic: user.photoURL };
+            }
             initLive();
         });
 
         async function initLive() {
-            console.log("Joining Channel:", CHANNEL);
-
-            // أ. الاستماع لبيانات اللايف في فايربيس
+            // بيانات المذيع
             db.collection('lives').doc(CHANNEL).onSnapshot(doc => {
-                if (doc.exists) {
+                if(doc.exists) {
                     const data = doc.data();
-                    
-                    if (data.status === 'offline') {
-                        alert("انتهى البث المباشر 👋");
-                        window.location.href = 'home.html';
-                        return;
-                    }
-
-                    document.getElementById('host-name').innerText = data.hostName || "مستخدم";
+                    document.getElementById('host-name').innerText = data.hostName || "مذيع";
                     if(data.hostPic) document.getElementById('host-pic').src = data.hostPic;
                     document.getElementById('viewers').innerText = data.viewers || 0;
-
-                    if(data.isVerified) {
-                        document.getElementById('host-name').innerHTML += ' <i class="fa-solid fa-circle-check" style="color:#20D5EC; font-size:12px;"></i>';
-                    }
                 }
             });
 
-            // ب. زيادة العداد
-            try {
-                await db.collection('lives').doc(CHANNEL).update({
-                    viewers: firebase.firestore.FieldValue.increment(1)
-                });
-            } catch(e) { console.log("Viewer count error", e); }
+            // عداد المشاهدة
+            db.collection('lives').doc(CHANNEL).update({ viewers: firebase.firestore.FieldValue.increment(1) }).catch(()=>{});
 
-            // ج. الاتصال بأجورا
+            // الاتصال بالفيديو
             try {
                 client.setClientRole("audience");
-                
-                // ملاحظة: لو اسم القناة مش نفس اللي في التوكن، الفيديو مش هيشتغل (لأننا في الوضع الآمن)
-                // للتجربة: خلي دايماً القناة test_channel
                 await client.join(APP_ID, CHANNEL, TOKEN, null);
-                
                 client.on("user-published", async (user, mediaType) => {
                     await client.subscribe(user, mediaType);
-                    document.getElementById('loading-screen').style.display = 'none'; // إخفاء شاشة التحميل
-
-                    if (mediaType === "video") {
-                        user.videoTrack.play("remote-player");
-                    }
-                    if (mediaType === "audio") {
-                        user.audioTrack.play();
-                    }
+                    document.getElementById('loading-screen').style.display = 'none';
+                    if (mediaType === "video") user.videoTrack.play("remote-player");
+                    if (mediaType === "audio") user.audioTrack.play();
                 });
             } catch (err) {
-                console.error("Agora Error:", err);
-                document.getElementById('loading-screen').innerHTML = `<p style="color:red">فشل الاتصال: تأكد من التوكن</p>`;
+                console.error(err);
+                document.getElementById('loading-screen').innerHTML = "<p style='color:red'>خطأ في الاتصال</p>";
             }
 
-            // د. تشغيل الشات
             loadChat();
         }
 
-        // --- نظام الشات والهدايا ---
+        // ========================================================
+        // 4. نظام الهدايا الاحترافي (Brain of the System)
+        // ========================================================
+
+        // بيانات الهدايا المتاحة
+        const AVAILABLE_GIFTS = [
+            { id: 'rose', name: 'وردة', emoji: '🌹', price: 10 },
+            { id: 'heart', name: 'قلب', emoji: '❤️', price: 50 },
+            { id: 'fire', name: 'نار', emoji: '🔥', price: 100 },
+            { id: 'diamond', name: 'ألماس', emoji: '💎', price: 500 },
+            { id: 'car', name: 'سيارة', emoji: '🏎️', price: 1000 },
+            { id: 'crown', name: 'تاج', emoji: '👑', price: 3000 },
+            { id: 'lion', name: 'أسد', emoji: '🦁', price: 5000 },
+            { id: 'rocket', name: 'صاروخ', emoji: '🚀', price: 10000 }
+        ];
+
+        // --- كائن التحكم في الهدايا ---
+        const GiftSystem = {
+            open: function() {
+                // رسم الهدايا في القائمة
+                const container = document.getElementById('giftGridContainer');
+                container.innerHTML = AVAILABLE_GIFTS.map(g => `
+                    <div class="gift-item" onclick="GiftSystem.send('${g.id}')">
+                        <div class="g-emoji">${g.emoji}</div>
+                        <div class="g-name">${g.name}</div>
+                        <div class="g-price">${g.price}</div>
+                    </div>
+                `).join('');
+
+                document.getElementById('giftSheet').classList.add('active');
+                document.getElementById('sheetOverlay').style.display = 'block';
+            },
+
+            close: function() {
+                document.getElementById('giftSheet').classList.remove('active');
+                document.getElementById('sheetOverlay').style.display = 'none';
+            },
+
+            send: async function(giftId) {
+                if (!currentUser) return alert("يرجى تسجيل الدخول");
+                
+                const gift = AVAILABLE_GIFTS.find(g => g.id === giftId);
+                if(!gift) return;
+
+                // إغلاق القائمة
+                this.close();
+
+                // تأثير فوري للمرسل
+                GiftTicker.add(userData.name, userData.profilePic, gift.name, gift.emoji);
+                playSystemSound('sent');
+
+                // إرسال للفايربيس (ليظهر للجميع)
+                await db.collection('lives').doc(CHANNEL).collection('messages').add({
+                    type: 'gift',
+                    userId: currentUser.uid,
+                    userName: userData.name || "مستخدم",
+                    userPic: userData.profilePic || "",
+                    giftId: gift.id,
+                    giftName: gift.name,
+                    giftEmoji: gift.emoji,
+                    price: gift.price,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+            },
+
+            // تشغيل تأثيرات الشاشة الكبيرة
+            playBigEffect: function(emoji) {
+                const area = document.getElementById('big-effects-area');
+                const el = document.createElement('div');
+                el.className = 'big-gift-pop';
+                el.innerText = emoji;
+                area.appendChild(el);
+                
+                // صوت قوي للهدايا الكبيرة
+                playSystemSound('combo');
+
+                setTimeout(() => el.remove(), 1500);
+            }
+        };
+
+        // --- نظام التيكر (العداد الجانبي) ---
+        const GiftTicker = {
+            queue: [],
+            activeData: null,
+            hideTimer: null,
+
+            add: function(senderName, senderPic, giftName, giftEmoji) {
+                // لو نفس الشخص ونفس الهدية شغالة دلوقتي، زود العداد (Combo)
+                if (this.activeData && 
+                    this.activeData.senderName === senderName && 
+                    this.activeData.giftName === giftName) {
+                    this.triggerCombo();
+                    return;
+                }
+                
+                // وإلا ضيفه للطابور
+                this.queue.push({ senderName, senderPic, giftName, giftEmoji, count: 1 });
+                if (!this.activeData) this.process();
+            },
+
+            process: function() {
+                if (this.queue.length === 0) {
+                    this.activeData = null;
+                    return;
+                }
+                const gift = this.queue.shift();
+                this.activeData = gift;
+                this.render(gift);
+            },
+
+            render: function(gift) {
+                const container = document.getElementById('gift-ticker-overlay');
+                
+                // تنظيف القديم
+                container.innerHTML = `
+                    <div class="gift-ticker-card" id="tickerCard">
+                        <img src="${gift.senderPic || 'https://via.placeholder.com/50'}" class="ticker-avatar">
+                        <div class="ticker-info">
+                            <span class="ticker-name">${gift.senderName}</span>
+                            <span class="ticker-desc">أرسل ${gift.giftName}</span>
+                        </div>
+                        <div class="ticker-gift-icon">${gift.giftEmoji}</div>
+                        <div class="gift-combo-count" id="comboCounter">x1</div>
+                    </div>
+                `;
+
+                // أنيميشن الدخول
+                setTimeout(() => {
+                    const card = document.getElementById('tickerCard');
+                    const counter = document.getElementById('comboCounter');
+                    if(card) card.classList.add('show');
+                    if(counter) counter.classList.add('active');
+                }, 50);
+
+                this.resetTimer();
+            },
+
+            triggerCombo: function() {
+                this.activeData.count++;
+                const counter = document.getElementById('comboCounter');
+                if (counter) {
+                    counter.innerText = 'x' + this.activeData.count;
+                    // إعادة تشغيل أنيميشن الـ Pop
+                    counter.classList.remove('pop');
+                    void counter.offsetWidth; // Trigger reflow
+                    counter.classList.add('pop');
+                    
+                    // صوت الكومبو
+                    if(this.activeData.count % 5 === 0) playSystemSound('combo');
+                }
+                this.resetTimer();
+            },
+
+            resetTimer: function() {
+                if (this.hideTimer) clearTimeout(this.hideTimer);
+                this.hideTimer = setTimeout(() => { this.close(); }, 4000); // يختفي بعد 4 ثواني من السكون
+            },
+
+            close: function() {
+                const card = document.getElementById('tickerCard');
+                if (card) {
+                    card.style.transform = "translateX(-120%)"; // خروج
+                    card.style.opacity = "0";
+                }
+                setTimeout(() => {
+                    document.getElementById('gift-ticker-overlay').innerHTML = '';
+                    this.activeData = null;
+                    this.process(); // شغل اللي بعده في الطابور
+                }, 300);
+            }
+        };
+
+        // --- 5. الشات والاستماع للأحداث ---
         function loadChat() {
             db.collection('lives').doc(CHANNEL).collection('messages')
                 .orderBy('timestamp', 'asc')
@@ -219,19 +462,34 @@
                     snapshot.docChanges().forEach(change => {
                         if (change.type === 'added') {
                             const msg = change.doc.data();
-                            const div = document.createElement('div');
-                            div.className = 'chat-msg';
                             
+                            // 1. معالجة الهدايا
                             if (msg.type === 'gift') {
-                                div.classList.add('gift-msg');
-                                div.innerHTML = `<span class="chat-user">${msg.userName}:</span> ${msg.text}`;
-                                showGiftAnimation(msg.giftEmoji || '🎁'); // تشغيل أنيميشن الهدية
+                                // إضافة للشات
+                                const div = document.createElement('div');
+                                div.className = 'chat-msg gift-chat-msg';
+                                div.innerHTML = `<span class="chat-user">${escapeHtml(msg.userName)}:</span> أرسل ${msg.giftName} ${msg.giftEmoji}`;
+                                list.appendChild(div);
+
+                                // 🔥 تشغيل التيكر والأنيميشن للجميع (ماعدا المرسل لأنه شافه لحظياً) 🔥
+                                // شرط: لو الرسالة مش بتاعتي، شغل التيكر (عشان بتاعتي اشتغلت في دالة send)
+                                // أو: ممكن نشغله للكل من هنا ونلغي التشغيل اللحظي في send لضمان التزامن
+                                if (currentUser && msg.userId !== currentUser.uid) {
+                                    GiftTicker.add(msg.userName, msg.userPic, msg.giftName, msg.giftEmoji);
+                                }
+                                
+                                // تأثير الشاشة الكبيرة للجميع
+                                GiftSystem.playBigEffect(msg.giftEmoji);
+
                             } else {
-                                div.innerHTML = `<span class="chat-user">${msg.userName}:</span> ${msg.text}`;
+                                // 2. رسائل عادية
+                                const div = document.createElement('div');
+                                div.className = 'chat-msg';
+                                div.innerHTML = `<span class="chat-user">${escapeHtml(msg.userName)}:</span> ${escapeHtml(msg.text)}`;
+                                list.appendChild(div);
                             }
                             
-                            list.appendChild(div);
-                            list.scrollTop = list.scrollHeight; // Auto-scroll
+                            list.scrollTop = list.scrollHeight;
                         }
                     });
                 });
@@ -240,79 +498,107 @@
         async function sendMsg() {
             const input = document.getElementById('msg-input');
             const text = input.value.trim();
-            if (!text) return;
-            if (!currentUser) return alert("يجب تسجيل الدخول للكتابة");
-
-            const uData = await getUserData();
+            if (!text || !currentUser) return;
             
             await db.collection('lives').doc(CHANNEL).collection('messages').add({
-                userId: currentUser.uid,
-                userName: uData.name,
-                text: text,
                 type: 'text',
+                userId: currentUser.uid,
+                userName: userData.name,
+                text: text,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp()
             });
             input.value = '';
         }
 
-        async function sendGift() {
-            if (!currentUser) return alert("يجب تسجيل الدخول");
+        function sendHeart() {
+    // 1. تشغيل الأنيميشن (عشان تحس إنك دوست)
+    const area = document.body; // أو hearts-container
+    const heart = document.createElement('div');
+    heart.className = 'floating-heart'; // تأكد إن الكلاس ده موجود في الـ CSS
+    heart.innerHTML = '❤️'; // أو أي إيموجي
+    
+    // مكان عشوائي للقلب عشان الواقعية
+    heart.style.left = (Math.random() * 80 + 10) + '%'; 
+    heart.style.bottom = '100px';
+    
+    // إضافة العنصر
+    document.getElementById('hearts-container').appendChild(heart);
+    
+    // حذفه بعد ما يطير
+    setTimeout(() => heart.remove(), 3000);
+
+    // 2. تشغيل الصوت
+    playSystemSound('pop'); // تأكد إنك ضايف دالة الصوت دي
+
+    // 3. 🔥 التعديل المهم: تزويد المخزن المؤقت
+    pendingHearts++; 
+}
+
+
+        // --- محاكي الأصوات (بدون ملفات خارجية) ---
+        // نستخدم Web Audio API لتوليد أصوات "بيب" بسيطة للإشعار
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSystemSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
             
-            // خصم رصيد (وهمي حالياً)
-            if(confirm("هل تريد إرسال هدية (10 عملات)؟ 🎁")) {
-                const uData = await getUserData();
-                await db.collection('lives').doc(CHANNEL).collection('messages').add({
-                    userId: currentUser.uid,
-                    userName: uData.name,
-                    text: "أرسل هدية مميزة! 💖",
-                    type: 'gift',
-                    giftEmoji: '💖',
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'sent') {
+                // صوت رقيق (Sine wave)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } 
+            else if (type === 'combo') {
+                // صوت قوي (Triangle wave)
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
             }
         }
 
-        // إرسال قلب (تفاعل بصري فقط للمستخدم الحالي + حفظ في الداتابيز اختياري)
-        function sendFloatingHeart() {
-            // 1. عرض القلب عندي أنا
-            createFloatingElement('<i class="fa-solid fa-heart" style="color:#F72585"></i>');
-            
-            // 2. ممكن تبعت رسالة خفية للداتابيز لو عايز الناس تشوف القلوب بتاعتك
-            // بس عشان التوفير، نخليها محلية أو نحدث عداد لايكات
-        }
-
-        // دوال مساعدة للأنيميشن
-        function showGiftAnimation(emoji) {
-            const el = document.createElement('div');
-            el.className = 'big-gift-anim';
-            el.innerText = emoji;
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 1500);
-        }
-
-        function createFloatingElement(htmlContent) {
-            const el = document.createElement('div');
-            el.className = 'floating-element';
-            el.innerHTML = htmlContent;
-            // تغيير المكان عشوائياً شوية
-            el.style.right = (20 + Math.random() * 50) + 'px';
-            document.body.appendChild(el);
-            setTimeout(() => el.remove(), 2000);
-        }
-
-        async function getUserData() {
-            const doc = await db.collection('users').doc(currentUser.uid).get();
-            const d = doc.data();
-            return { name: d.name || "مشاهد", pic: d.profilePic || "" };
+        // --- أدوات ---
+        function escapeHtml(text) {
+            if(!text) return "";
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
         }
 
         window.onbeforeunload = () => {
-            if(CHANNEL) {
-                db.collection('lives').doc(CHANNEL).update({
-                    viewers: firebase.firestore.FieldValue.increment(-1)
-                });
-            }
+            if(CHANNEL) db.collection('lives').doc(CHANNEL).update({ viewers: firebase.firestore.FieldValue.increment(-1) });
         };
     </script>
+
+    <style>
+        @keyframes floatUp {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-300px) scale(1.5) rotate(20deg); opacity: 0; }
+        }
+        
+        // --- 🔥 نظام إرسال القلوب الذكي (عشان ما يهنجش) 🔥 ---
+setInterval(() => {
+    // لو فيه قلوب متحوشة (أكثر من 0)
+    if (pendingHearts > 0) {
+        
+        // 1. ابعت العدد كله مرة واحدة للداتابيز
+        db.collection('lives').doc(CHANNEL).update({
+            hearts: firebase.firestore.FieldValue.increment(pendingHearts)
+        }).catch(err => console.log("فشل إرسال القلوب", err));
+
+        // 2. صفر العداد المؤقت
+        pendingHearts = 0;
+    }
+}, 2000); // كل 2000 مللي ثانية (ثانيتين) ينفذ العملية دي
+
+    </style>
 </body>
 </html>
