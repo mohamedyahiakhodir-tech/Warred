@@ -2,46 +2,172 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بدأ بث مباشر - NABD Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة المذيع - NABD Live Pro</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.18.2.js"></script>
+
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        #local-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
-        .ui-layer { position: absolute; inset: 0; z-index: 10; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; pointer-events: none; }
-        .live-controls { pointer-events: auto; display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
-        .control-btn { width: 50px; height: 50px; border-radius: 50%; border: none; background: rgba(255,255,255,0.2); color: #fff; font-size: 20px; cursor: pointer; backdrop-filter: blur(5px); }
-        .control-btn.red { background: #ff3b30; }
-        #start-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 15px 40px; border-radius: 30px; background: #F72585; color: #fff; border: none; font-size: 18px; font-weight: bold; cursor: pointer; z-index: 20; pointer-events: auto; }
-        .status-badge { position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.5); padding: 5px 12px; border-radius: 20px; font-size: 12px; display: flex; align-items: center; gap: 5px; }
-        .live-indicator { width: 8px; height: 8px; background: #ff3b30; border-radius: 50%; display: none; }
+        :root { --primary: #F72585; --gold: #FFD700; }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: #000; color: #fff; margin: 0; overflow: hidden; height: 100vh; }
+
+        #local-player { position: absolute; inset: 0; z-index: 1; }
+        #local-player video { object-fit: cover !important; transform: rotateY(180deg); }
+
+        /* طبقة القلوب المتطايرة */
+        .hearts-container { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 5; }
+        .floating-heart {
+            position: absolute; bottom: 100px; 
+            font-size: 28px; animation: floatUp 2.5s ease-in forwards;
+            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.5));
+        }
+
+        .ui-layer { 
+            position: absolute; inset: 0; z-index: 10; padding: 15px; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(0,0,0,0.6) 0%, transparent 20%, rgba(0,0,0,0.8) 100%);
+        }
+
+        /* --- الهيدر والعدادات --- */
+        .top-bar { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        
+        .host-pill {
+            background: rgba(0,0,0,0.5); padding: 4px 12px 4px 4px; border-radius: 30px;
+            display: flex; align-items: center; gap: 8px; border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px); pointer-events: auto;
+        }
+        .host-img { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--primary); }
+        .host-info { display: flex; flex-direction: column; line-height: 1.1; }
+        .host-name { font-size: 12px; font-weight: bold; color: #fff; }
+        
+        /* عدادات المشاهدة والقلوب */
+        .counters-group { display: flex; gap: 5px; }
+        .status-badge { 
+            background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 20px; 
+            font-size: 12px; display: flex; align-items: center; gap: 6px; 
+            backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1);
+            font-weight: bold; min-width: 60px; justify-content: center;
+        }
+
+        /* --- شريط التيكر (الهدايا) --- */
+        .gift-ticker-wrapper {
+            position: absolute; top: 80px; left: 10px; z-index: 20; pointer-events: none;
+            display: flex; flex-direction: column; gap: 8px; width: 70%;
+        }
+        .gift-ticker-card {
+            display: flex; align-items: center; gap: 8px;
+            background: linear-gradient(90deg, rgba(0,0,0,0.8) 0%, rgba(247,37,133,0.2) 100%);
+            border-left: 3px solid var(--gold); border-radius: 50px;
+            padding: 4px 15px 4px 4px;
+            transform: translateX(-120%); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .gift-ticker-card.show { transform: translateX(0); }
+        .t-avatar { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--gold); }
+        .t-text { font-size: 11px; color: #fff; line-height: 1.2; }
+        .t-name { color: var(--gold); font-weight: 800; }
+        .t-combo { font-family: 'Impact', sans-serif; font-size: 22px; color: #fff; text-shadow: 2px 2px 0 var(--primary); margin-right: auto; }
+        .t-combo.pop { animation: pop 0.2s ease-in-out; }
+
+        /* --- الشات والتحكم --- */
+        .bottom-section { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        
+        .chat-area {
+            height: 200px; overflow-y: auto; scrollbar-width: none;
+            mask-image: linear-gradient(to top, black 85%, transparent 100%);
+            display: flex; flex-direction: column; justify-content: flex-end;
+            pointer-events: auto; padding-bottom: 10px;
+        }
+        
+        .chat-msg {
+            background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 12px;
+            margin-bottom: 6px; font-size: 13px; width: fit-content; max-width: 85%;
+            animation: slideIn 0.2s ease; text-shadow: 0 1px 2px #000;
+        }
+        .chat-user { color: #4CC9F0; font-weight: bold; margin-left: 5px; }
+        .gift-msg { background: linear-gradient(90deg, rgba(255,215,0,0.2), transparent); border-right: 2px solid var(--gold); color: var(--gold); }
+        .join-msg { background: rgba(52, 199, 89, 0.2); color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; width: fit-content; }
+
+        .controls-bar {
+            display: flex; align-items: center; gap: 10px; pointer-events: auto;
+        }
+        .chat-input {
+            flex: 1; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 20px; padding: 10px 15px; color: #fff; outline: none;
+        }
+        .btn-control {
+            width: 40px; height: 40px; border-radius: 50%; border: none;
+            background: rgba(255,255,255,0.15); color: #fff; font-size: 18px;
+            display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(5px);
+        }
+        .btn-control.red { background: #ff3b30; }
+        .btn-control.gold { background: rgba(255,215,0,0.2); color: var(--gold); border: 1px solid var(--gold); }
+
+        /* شاشة التحميل */
+        #loading-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        /* التأثير الكبير */
+        .big-effect { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 100px; animation: zoomFade 1.5s forwards; z-index: 50; text-shadow: 0 0 30px rgba(255,215,0,0.8); }
+
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.8); opacity: 1; } 100% { transform: translateY(-250px) scale(1.5) rotate(20deg); opacity: 0; } }
+        @keyframes pop { 50% { transform: scale(1.5); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } }
+        @keyframes zoomFade { 0% { transform: translate(-50%, -50%) scale(0); opacity: 0; } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); } }
     </style>
 </head>
 <body>
 
-    <div id="local-player"></div>
-    
-    <button id="start-btn" onclick="startStream()">🎥 ابدأ البث المباشر</button>
+    <div id="loading-screen">
+        <i class="fa-solid fa-satellite-dish fa-spin" style="font-size: 40px; color: #F72585; margin-bottom: 20px;"></i>
+        <div style="font-weight: bold;">جاري إعداد البث...</div>
+    </div>
 
-    <div class="ui-layer" id="live-ui" style="display: none;">
-        <div class="status-badge">
-            <div class="live-indicator" id="live-dot"></div>
-            <span id="viewer-count">0</span> <i class="fa-solid fa-eye"></i>
+    <div id="local-player"></div>
+    <div id="hearts-container" class="hearts-container"></div>
+    <div id="big-effects-area" style="position:absolute; inset:0; pointer-events:none; z-index:40;"></div>
+
+    <div class="ui-layer">
+        <div class="top-bar">
+            <div class="host-pill">
+                <img id="host-pic" src="https://via.placeholder.com/50" class="host-img">
+                <div class="host-info">
+                    <span id="host-name" class="host-name">..</span>
+                    <span style="font-size:9px; color:#ccc;">المذيع</span>
+                </div>
+            </div>
+            
+            <div class="counters-group">
+                <div class="status-badge" style="background: rgba(255, 45, 85, 0.3); border-color: rgba(255, 45, 85, 0.5);">
+                    <span id="total-hearts">0</span> <i class="fa-solid fa-heart" style="color: #ff2d55;"></i>
+                </div>
+                <div class="status-badge">
+                    <span id="viewer-count">0</span> <i class="fa-solid fa-eye"></i>
+                </div>
+            </div>
         </div>
 
-        <div class="live-controls">
-            <button class="control-btn" onclick="toggleMic()"><i class="fa-solid fa-microphone"></i></button>
-            <button class="control-btn" onclick="toggleCam()"><i class="fa-solid fa-video"></i></button>
-            <button class="control-btn red" onclick="endStream()"><i class="fa-solid fa-power-off"></i></button>
+        <div id="gift-ticker" class="gift-ticker-wrapper"></div>
+
+        <div class="bottom-section">
+            <div id="chat-list" class="chat-area"></div>
+            
+            <div class="controls-bar">
+                <input type="text" id="chat-input" class="chat-input" placeholder="اكتب تعليقاً..." onkeypress="if(event.key==='Enter') sendMsg()">
+                
+                <button class="btn-control gold" onclick="playSfx('thankyou')"><i class="fa-solid fa-microphone-lines"></i></button>
+                <button class="btn-control" onclick="toggleCam()"><i class="fa-solid fa-video"></i></button>
+                <button class="btn-control" onclick="toggleMic()"><i class="fa-solid fa-microphone"></i></button>
+                <button class="btn-control red" onclick="endStream()"><i class="fa-solid fa-power-off"></i></button>
+            </div>
         </div>
     </div>
 
     <script>
-        // 1. إعدادات فايربيس (نفس إعدادات مشروعك)
         const firebaseConfig = {
             apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
             authDomain: "pools-e4381.firebaseapp.com",
@@ -50,130 +176,272 @@
             messagingSenderId: "339799216046",
             appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
         };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // 2. إعدادات أجورا
         const APP_ID = "f311de5105eb4fa7869dfffd2bb7ac2d";
-        const TOKEN = "007eJxTYGhhPet5ZLbkOikhVcfvlz9rM9ouv5yyO1hfY/fRZY/S8lkUGNKMDQ1TUk0NDUxTk0zSEs0tzCxT0tLSUoySkswTk41SOlubMhsCGRnSrBuZGRkgEMTnYShJLS6JT85IzMtLzWFgAAAh4iJc"; // ⚠️ التوكن لازم يتجدد لو خلصت مدته
+        const TOKEN = "007eJxTYGhhPet5ZLbkOikhVcfvlz9rM9ouv5yyO1hfY/fRZY/S8lkUGNKMDQ1TUk0NDUxTk0zSEs0tzCxT0tLSUoySkswTk41SOlubMhsCGRnSrBuZGRkgEMTnYShJLS6JT85IzMtLzWFgAAAh4iJc"; 
         const CHANNEL = "test_channel"; 
 
         const client = AgoraRTC.createClient({ mode: "live", codec: "vp8" });
         let localTracks = { audio: null, video: null };
         let currentUser = null;
+        let userData = {};
+        
+        // 🔥 حل مشكلة التكرار: تخزين معرفات الرسائل التي تمت معالجتها
+        const processedMsgIds = new Set();
 
-        // التأكد من تسجيل الدخول
-        auth.onAuthStateChanged(user => {
-            if (user) {
+        auth.onAuthStateChanged(async user => {
+            if(user) {
                 currentUser = user;
-                console.log("Logged in as:", user.uid);
+                const doc = await db.collection('users').doc(user.uid).get();
+                userData = doc.exists ? doc.data() : { name: "مذيع", profilePic: "" };
+                initStream();
             } else {
-                alert("يرجى تسجيل الدخول أولاً!");
+                alert("سجل دخول أولاً");
                 window.location.href = 'home.html';
             }
         });
 
-                async function startStream() {
-            // 1. منع التكرار: لو الزرار مخفي أو احنا متصلين بالفعل، اخرج فوراً
-            if (!currentUser || client.connectionState === "CONNECTED" || client.connectionState === "CONNECTING") {
-                console.log("أنت متصل بالفعل!");
-                return;
-            }
-
-            // إخفاء الزرار فوراً لمنع الضغط المتكرر
-            const startBtn = document.getElementById('start-btn');
-            startBtn.disabled = true;
-            startBtn.innerText = "جاري الاتصال... ⏳";
-            
+        async function initStream() {
             try {
-                // أ. جلب بيانات المذيع الحقيقية
-                const userDoc = await db.collection('users').doc(currentUser.uid).get();
-                const userData = userDoc.data();
-
-                // ب. الاتصال بـ Agora
+                // Agora
                 client.setClientRole("host");
-                
-                // 🔥 تعديل هام: وضعنا null مكان currentUser.uid عشان يحل التحذير الأصفر
-                // Agora هتدينا رقم (Int) بدلاً من حروف فايربيس، وده أفضل للأداء
-                const uid = await client.join(APP_ID, CHANNEL, TOKEN, null);
-
-                // تجهيز المايك والكاميرا
+                await client.join(APP_ID, CHANNEL, TOKEN, null);
                 [localTracks.audio, localTracks.video] = await AgoraRTC.createMicrophoneAndCameraTracks();
-                
-                // تشغيل الفيديو عندك
                 localTracks.video.play("local-player");
-                
-                // نشر البث للناس
                 await client.publish(Object.values(localTracks));
 
-                // ج. إنشاء وثيقة البث في فايربيس (عشان المشاهدين يشوفوك)
+                // Create/Update Live Doc
                 await db.collection('lives').doc(CHANNEL).set({
-                    hostUid: currentUser.uid, // هنا بنحفظ الـ ID الحقيقي بتاعك عشان البروفايل
-                    agoraUid: uid, // وده الـ ID المؤقت بتاع البث
-                    hostName: userData.name || "مستخدم نبض",
-                    hostPic: userData.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-                    isVerified: userData.isVerified || false,
-                    channelId: CHANNEL,
+                    hostUid: currentUser.uid,
+                    hostName: userData.name,
+                    hostPic: userData.profilePic,
                     status: 'online',
-                    startedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    viewers: 0
-                });
+                    viewers: 0,
+                    hearts: 0, // 🔥 العداد الجديد
+                    startedAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
 
-                // تحديث الواجهة وإخفاء زر البدء تماماً
-                startBtn.style.display = 'none';
-                document.getElementById('live-ui').style.display = 'flex';
-                document.getElementById('live-dot').style.display = 'block';
+                // UI Setup
+                document.getElementById('host-name').innerText = userData.name;
+                document.getElementById('host-pic').src = userData.profilePic || "https://via.placeholder.com/50";
+                document.getElementById('loading-screen').style.display = 'none';
 
-                // الاستماع لعدد المشاهدين
-                db.collection('lives').doc(CHANNEL).onSnapshot(doc => {
-                    if(doc.exists) {
-                        document.getElementById('viewer-count').innerText = doc.data().viewers || 0;
-                    }
-                });
+                // Listeners
+                listenToLiveStats();
+                listenToChat();
 
-            } catch (error) {
-                console.error(error);
-                alert("فشل بدء البث: " + error.message);
-                // لو فشل، نرجع الزرار تاني عشان تحاول
-                startBtn.style.display = 'block';
-                startBtn.disabled = false;
-                startBtn.innerText = "🎥 ابدأ البث المباشر";
+            } catch (e) {
+                console.error(e);
+                alert("خطأ: " + e.message);
             }
         }
 
-
-        async function endStream() {
-            // 1. تحديث الحالة في فايربيس لـ Offline
-            await db.collection('lives').doc(CHANNEL).update({
-                status: 'offline',
-                endedAt: firebase.firestore.FieldValue.serverTimestamp()
+        // --- 1. الاستماع للعدادات (قلوب + مشاهدين) ---
+        function listenToLiveStats() {
+            db.collection('lives').doc(CHANNEL).onSnapshot(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('viewer-count').innerText = data.viewers || 0;
+                    document.getElementById('total-hearts').innerText = data.hearts || 0; // 🔥 تحديث عداد القلوب
+                }
             });
+        }
 
-            // 2. إغلاق Agora
-            localTracks.audio && localTracks.audio.close();
-            localTracks.video && localTracks.video.close();
+        // --- 2. الاستماع للشات ومنع التكرار ---
+        function listenToChat() {
+            const list = document.getElementById('chat-list');
+            
+            // بنجيب بس آخر 50 رسالة عشان الأداء، وبنرتبهم بالوقت
+            db.collection('lives').doc(CHANNEL).collection('messages')
+                .orderBy('timestamp', 'asc')
+                .limitToLast(50) 
+                .onSnapshot(snapshot => {
+                    snapshot.docChanges().forEach(change => {
+                        // 🔥 الفلتر السحري: لو الرسالة دي اتعالجت قبل كده، تجاهلها فوراً
+                        if (change.type === 'added') {
+                            const msgId = change.doc.id;
+                            if (processedMsgIds.has(msgId)) return; // خروج
+                            processedMsgIds.add(msgId); // إضافة للقائمة
+
+                            const msg = change.doc.data();
+                            processMessage(msg); // معالجة الرسالة
+                        }
+                    });
+                });
+        }
+
+        function processMessage(msg) {
+            const list = document.getElementById('chat-list');
+            const div = document.createElement('div');
+
+            // 1. رسائل الانضمام (جديد)
+            if (msg.type === 'join') {
+                div.className = 'chat-msg join-msg';
+                div.innerHTML = `🚀 <b>${escapeHtml(msg.userName)}</b> انضم للبث`;
+            }
+            // 2. الهدايا
+            else if (msg.type === 'gift') {
+                div.className = 'chat-msg gift-msg';
+                div.innerHTML = `<span class="chat-user">${escapeHtml(msg.userName)}</span> أرسل ${msg.giftName} ${msg.giftEmoji}`;
+                
+                // تشغيل التيكر (الشريط الجانبي)
+                GiftTicker.add(msg.userName, msg.userPic, msg.giftName, msg.giftEmoji);
+                
+                // تشغيل التأثير الكبير
+                showBigEffect(msg.giftEmoji);
+                
+                // صوت
+                playTone('gift');
+            }
+            // 3. رسائل عادية
+            else {
+                div.className = 'chat-msg';
+                div.innerHTML = `<span class="chat-user">${escapeHtml(msg.userName)}:</span> ${escapeHtml(msg.text)}`;
+            }
+
+            list.appendChild(div);
+            list.scrollTop = list.scrollHeight;
+        }
+
+        async function sendMsg() {
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            await db.collection('lives').doc(CHANNEL).collection('messages').add({
+                type: 'text',
+                userId: currentUser.uid,
+                userName: userData.name,
+                text: text,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            input.value = '';
+        }
+
+        // --- 3. نظام التيكر والكومبو (Ticker System) ---
+        const GiftTicker = {
+            activeData: null,
+            timer: null,
+
+            add: function(name, pic, giftName, emoji) {
+                // لو نفس الشخص ونفس الهدية شغالة، زود الكومبو
+                if (this.activeData && this.activeData.name === name && this.activeData.gift === giftName) {
+                    this.activeData.count++;
+                    this.updateUI();
+                } else {
+                    // هدية جديدة
+                    this.activeData = { name, pic, gift: giftName, emoji, count: 1 };
+                    this.renderUI();
+                }
+                this.resetTimer();
+            },
+
+            renderUI: function() {
+                const container = document.getElementById('gift-ticker');
+                container.innerHTML = `
+                    <div class="gift-ticker-card" id="ticker-card">
+                        <img src="${this.activeData.pic || 'https://via.placeholder.com/50'}" class="t-avatar">
+                        <div class="ticker-info">
+                            <span class="t-name">${this.activeData.name}</span>
+                            <span class="t-text">أرسل ${this.activeData.gift}</span>
+                        </div>
+                        <div style="font-size:25px;">${this.activeData.emoji}</div>
+                        <div class="t-combo" id="ticker-combo">x1</div>
+                    </div>
+                `;
+                setTimeout(() => document.getElementById('ticker-card').classList.add('show'), 10);
+            },
+
+            updateUI: function() {
+                const comboEl = document.getElementById('ticker-combo');
+                if (comboEl) {
+                    comboEl.innerText = `x${this.activeData.count}`;
+                    comboEl.classList.remove('pop');
+                    void comboEl.offsetWidth; // Reset animation
+                    comboEl.classList.add('pop');
+                    playTone('combo');
+                }
+            },
+
+            resetTimer: function() {
+                if (this.timer) clearTimeout(this.timer);
+                this.timer = setTimeout(() => {
+                    const card = document.getElementById('ticker-card');
+                    if(card) {
+                        card.style.transform = "translateX(-120%)";
+                        setTimeout(() => { 
+                            document.getElementById('gift-ticker').innerHTML = ''; 
+                            this.activeData = null;
+                        }, 300);
+                    }
+                }, 3000);
+            }
+        };
+
+        // --- 4. تأثيرات بصرية وصوتية ---
+        function showBigEffect(emoji) {
+            const area = document.getElementById('big-effects-area');
+            const el = document.createElement('div');
+            el.className = 'big-effect';
+            el.innerText = emoji;
+            area.appendChild(el);
+            setTimeout(() => el.remove(), 1500);
+        }
+
+        // محرك أصوات بسيط (بدون ملفات)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'gift') {
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'combo') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+            }
+        }
+
+        function escapeHtml(text) {
+            return text ? text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : "";
+        }
+
+        // --- أدوات التحكم ---
+        async function endStream() {
+            if(!confirm("إنهاء البث؟")) return;
+            await db.collection('lives').doc(CHANNEL).update({ status: 'offline' });
             await client.leave();
-
-            // 3. توجيه للصفحة الرئيسية
             window.location.href = 'home.html';
         }
 
-        // أزرار التحكم
-        let micOn = true, camOn = true;
+        let isCam = true, isMic = true;
         async function toggleMic() {
-            micOn = !micOn;
-            await localTracks.audio.setMuted(!micOn);
+            isMic = !isMic;
+            await localTracks.audio.setMuted(!isMic);
         }
         async function toggleCam() {
-            camOn = !camOn;
-            await localTracks.video.setMuted(!camOn);
+            isCam = !isCam;
+            await localTracks.video.setMuted(!isCam);
         }
 
-        // ضمان إغلاق البث عند قفل المتصفح
+        // تنظيف عند الخروج
         window.onbeforeunload = () => {
             db.collection('lives').doc(CHANNEL).update({ status: 'offline' });
         };
+
     </script>
 </body>
 </html>
