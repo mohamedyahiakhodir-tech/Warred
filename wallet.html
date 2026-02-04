@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>المحفظة الذهبية - Warred</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-deep: #050505;
+            --card-dark: #161618;
+            --gold-light: #F2C94C;
+            --gold-dark: #F2994A;
+            --text-color: #ffffff;
+            --accent-purple: #8b5cf6;
+            --dragon-red: #ff3b30;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-color);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex; flex-direction: column;
+        }
+
+        /* الهيدر */
+        .wallet-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px;
+            background: rgba(22, 22, 24, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .back-btn {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; color: #fff; font-size: 18px;
+        }
+        .header-title { font-size: 18px; font-weight: 800; }
+        .history-btn { font-size: 12px; color: #aaa; padding: 5px 10px; border-radius: 20px; border: 1px solid #333; }
+
+        /* كارت الفيزا */
+        .vip-card-section { padding: 25px 20px; display: flex; justify-content: center; perspective: 1000px; }
+        .vip-card {
+            width: 100%; max-width: 380px; height: 200px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
+            border-radius: 24px; position: relative; overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .vip-card::before {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(242, 201, 76, 0.15) 0%, transparent 60%);
+            animation: shineCard 6s linear infinite;
+        }
+        @keyframes shineCard { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .card-content { position: relative; z-index: 2; padding: 25px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
+        .card-top { display: flex; justify-content: space-between; align-items: center; }
+        .card-chip { width: 50px; height: 35px; background: linear-gradient(135deg, #e0e0e0, #a0a0a0); border-radius: 8px; position: relative; overflow: hidden; }
+        .card-chip::after { content:''; position:absolute; top:50%; left:0; width:100%; height:1px; background:#666; }
+        
+        .balance-value { 
+            font-size: 38px; font-weight: 900; color: #fff; 
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5); display: flex; align-items: center; gap: 10px;
+        }
+        .balance-value i { color: var(--gold-light); }
+        .card-holder { font-size: 14px; color: #888; font-weight: 600; text-transform: uppercase; }
+
+        /* طرق الدفع */
+        .payment-methods { padding: 0 20px; margin-bottom: 20px; overflow-x: auto; display: flex; gap: 10px; scrollbar-width: none; }
+        .pay-method {
+            min-width: 100px; padding: 10px; background: #1f1f1f; border-radius: 12px;
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            border: 1px solid transparent; cursor: pointer; transition: 0.3s;
+        }
+        .pay-method.active { border-color: var(--gold-light); background: rgba(242, 201, 76, 0.1); }
+
+        /* شبكة الباقات */
+        .packages-title { padding: 0 20px 15px; font-size: 16px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 5px; }
+        .packages-grid {
+            padding: 0 20px 80px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;
+        }
+
+        .pkg-card {
+            background: var(--card-dark); border-radius: 20px; padding: 20px 10px;
+            text-align: center; position: relative; border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.3s; cursor: pointer; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .pkg-card:active { transform: scale(0.96); }
+
+        /* الشارات */
+        .pkg-badge {
+            position: absolute; top: 0; right: 0; 
+            color: #000; font-size: 9px; font-weight: bold; padding: 4px 10px;
+            border-radius: 0 20px 0 10px;
+        }
+        .bg-purple { background: var(--accent-purple); color: #fff; }
+        .bg-gold { background: linear-gradient(90deg, #F2994A, #F2C94C); }
+        .bg-red { background: var(--dragon-red); color: #fff; }
+
+        .pkg-icon { font-size: 30px; margin-bottom: 8px; color: var(--gold-light); }
+        .pkg-amount { font-size: 20px; font-weight: 900; color: #fff; line-height: 1; }
+        .pkg-bonus { font-size: 11px; color: #4ade80; font-weight: bold; margin-bottom: 12px; min-height: 15px; }
+        
+        .pkg-price-btn {
+            width: 100%; background: rgba(255,255,255,0.08); padding: 8px 0; border-radius: 12px;
+            color: #fff; font-weight: bold; font-size: 14px; transition: 0.3s; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .pkg-card:hover { border-color: var(--gold-light); }
+        .pkg-card:hover .pkg-price-btn { background: var(--gold-light); color: #000; border-color: transparent; }
+
+        /* 🔥 ستايل الباقة الأسطورية (10 آلاف) */
+        .pkg-card.legendary {
+            grid-column: span 2; /* تاخد العرض كله */
+            background: linear-gradient(135deg, #2b0a0a, #000);
+            border: 1px solid var(--dragon-red);
+            flex-direction: row; justify-content: space-between; padding: 15px 25px;
+            box-shadow: 0 0 20px rgba(255, 59, 48, 0.2);
+        }
+        .pkg-card.legendary .pkg-icon { font-size: 40px; margin: 0; color: var(--dragon-red); animation: pulse 1.5s infinite; }
+        .pkg-card.legendary .info-box { text-align: right; }
+        .pkg-card.legendary .pkg-amount { font-size: 28px; color: var(--dragon-red); }
+        .pkg-card.legendary .pkg-price-btn { width: auto; padding: 8px 25px; background: var(--dragon-red); color: #fff; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* نافذة المعالجة */
+        .processing-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .spinner {
+            width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.1);
+            border-top-color: var(--gold-light); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* التوست */
+        #toast {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(50px);
+            background: #222; color: #fff; padding: 12px 25px; border-radius: 30px;
+            font-weight: 600; opacity: 0; transition: 0.3s; pointer-events: none;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5); border: 1px solid #333; z-index: 300; display: flex; gap: 10px; align-items: center; width: max-content;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <div class="wallet-header">
+        <div class="back-btn" onclick="window.history.back()">
+            <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        <div class="header-title">المحفظة</div>
+        <div class="history-btn">السجل</div>
+    </div>
+
+    <div class="vip-card-section">
+        <div class="vip-card">
+            <div class="card-content">
+                <div class="card-top">
+                    <div class="card-chip"></div>
+                    <i class="fa-brands fa-cc-visa" style="font-size: 30px; color: #fff; opacity: 0.8;"></i>
+                </div>
+                <div>
+                    <div style="font-size: 12px; color: #aaa;">الرصيد المتاح</div>
+                    <div class="balance-value">
+                        <span id="displayBalance">0</span> <i class="fa-solid fa-coins"></i>
+                    </div>
+                </div>
+                <div class="card-holder">WARRED VIP</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="padding: 0 20px 10px; font-size: 13px; color: #888; font-weight: bold;">وسيلة الدفع</div>
+    <div class="payment-methods">
+        <div class="pay-method active" onclick="selectMethod(this)">
+            <i class="fa-brands fa-google-pay" style="font-size:20px; color:#fff;"></i>
+            <span style="font-size:11px; color:#aaa;">Google</span>
+        </div>
+        <div class="pay-method" onclick="selectMethod(this)">
+            <i class="fa-solid fa-mobile-screen" style="font-size:20px; color:#e60000;"></i>
+            <span style="font-size:11px; color:#aaa;">Vodafone</span>
+        </div>
+        <div class="pay-method" onclick="selectMethod(this)">
+            <i class="fa-brands fa-cc-visa" style="font-size:20px; color:#4CC9F0;"></i>
+            <span style="font-size:11px; color:#aaa;">Visa</span>
+        </div>
+        <div class="pay-method" onclick="selectMethod(this)">
+            <i class="fa-solid fa-building-columns" style="font-size:20px; color:#F2C94C;"></i>
+            <span style="font-size:11px; color:#aaa;">Fawry</span>
+        </div>
+    </div>
+
+    <div class="packages-title">
+        <i class="fa-solid fa-gem" style="color:var(--accent-purple)"></i> اختر الباقة
+    </div>
+    
+    <div class="packages-grid">
+        
+        <div class="pkg-card" onclick="buyPackage(50, 5)">
+            <i class="fa-solid fa-coins pkg-icon" style="font-size:24px; color:#aaa;"></i>
+            <div class="pkg-amount">50</div>
+            <div class="pkg-bonus" style="color:#aaa;">-</div>
+            <div class="pkg-price-btn">5 ج.م</div>
+        </div>
+
+        <div class="pkg-card" onclick="buyPackage(120, 10)">
+            <i class="fa-solid fa-coins pkg-icon" style="font-size:24px; color:#fff;"></i>
+            <div class="pkg-amount">120</div>
+            <div class="pkg-bonus">+20 مجاناً</div>
+            <div class="pkg-price-btn">10 ج.م</div>
+        </div>
+
+        <div class="pkg-card" onclick="buyPackage(650, 50)">
+            <div class="pkg-badge bg-gold">شائع 🔥</div>
+            <i class="fa-solid fa-sack-dollar pkg-icon"></i>
+            <div class="pkg-amount">650</div>
+            <div class="pkg-bonus">+150 مجاناً</div>
+            <div class="pkg-price-btn">50 ج.م</div>
+        </div>
+
+        <div class="pkg-card" onclick="buyPackage(1400, 100)">
+            <div class="pkg-badge bg-purple">مميز ✨</div>
+            <i class="fa-solid fa-layer-group pkg-icon" style="color:#8b5cf6;"></i>
+            <div class="pkg-amount">1,400</div>
+            <div class="pkg-bonus">+400 مجاناً</div>
+            <div class="pkg-price-btn">100 ج.م</div>
+        </div>
+
+        <div class="pkg-card" onclick="buyPackage(3000, 200)">
+            <i class="fa-solid fa-gem pkg-icon" style="color:#38bdf8;"></i>
+            <div class="pkg-amount">3,000</div>
+            <div class="pkg-bonus">+1000 مجاناً</div>
+            <div class="pkg-price-btn">200 ج.م</div>
+        </div>
+
+        <div class="pkg-card" onclick="buyPackage(8000, 500)">
+            <div class="pkg-badge bg-red" style="border-radius:0 20px 0 20px;">توفير ضخم</div>
+            <i class="fa-solid fa-crown pkg-icon" style="color:#FFD700;"></i>
+            <div class="pkg-amount">8,000</div>
+            <div class="pkg-bonus">+3000 مجاناً</div>
+            <div class="pkg-price-btn">500 ج.م</div>
+        </div>
+
+        <div class="pkg-card legendary" onclick="buyPackage(35000, 2000)">
+            <div class="info-box" style="text-align:right;">
+                <div style="color:#aaa; font-size:12px;">حزمة المحترفين</div>
+                <div class="pkg-amount" style="font-size:32px; color:#fff;">35,000</div>
+                <div class="pkg-bonus" style="color:#FFD700;">+15,000 بونص</div>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                <i class="fa-solid fa-trophy pkg-icon" style="color:#FFD700;"></i>
+                <div class="pkg-price-btn" style="background:#333; border:1px solid #FFD700;">2,000 ج.م</div>
+            </div>
+        </div>
+
+        <div class="pkg-card legendary" onclick="buyPackage(150000, 10000)" style="border-color:#ff3b30; background:linear-gradient(135deg, #1a0505, #000);">
+            <div class="pkg-badge bg-red" style="font-size:12px;">ASATIER 🐲</div>
+            
+            <div class="info-box" style="text-align:right;">
+                <div style="color:#ff3b30; font-size:12px; font-weight:bold;">حزمة التنين</div>
+                <div class="pkg-amount" style="font-size:35px; color:#ff3b30;">150,000</div>
+                <div class="pkg-bonus" style="color:#fff;">+50,000 عملة مجاناً!</div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; gap:10px;">
+                <i class="fa-solid fa-dragon pkg-icon"></i>
+                <div class="pkg-price-btn" style="background:#ff3b30; color:#fff; border:none; box-shadow:0 0 15px #ff3b30;">10,000 ج.م</div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="processing-modal" id="procModal">
+        <div class="spinner"></div>
+        <div style="color: #fff; font-weight: bold; margin-bottom: 5px;">جاري الاتصال بالبنك...</div>
+        <div style="color: #aaa; font-size: 12px;">لا تغلق الصفحة</div>
+    </div>
+
+    <div id="toast"><i class="fa-solid fa-check-circle" style="color:#4ade80;"></i> <span>تم الشحن</span></div>
+
+    <script>
+        // 1. تحميل الرصيد
+        let currentBalance = parseInt(localStorage.getItem('nabd_balance') || '0');
+        const displayEl = document.getElementById('displayBalance');
+        
+        // عرض الرصيد بأنيميشن
+        animateValue(displayEl, 0, currentBalance, 800);
+
+        // 2. اختيار طريقة الدفع
+        function selectMethod(el) {
+            document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
+            el.classList.add('active');
+            if(navigator.vibrate) navigator.vibrate(10);
+        }
+
+        // 3. شراء باقة
+        function buyPackage(coins, price) {
+            const modal = document.getElementById('procModal');
+            
+            // فتح نافذة التحميل
+            modal.style.display = 'flex';
+            if(navigator.vibrate) navigator.vibrate(20);
+
+            // محاكاة الاتصال (تأخير عشوائي لواقعية أكثر)
+            const delay = Math.floor(Math.random() * 1500) + 1500; // 1.5 to 3 seconds
+            
+            setTimeout(() => {
+                const oldBalance = currentBalance;
+                currentBalance += coins;
+                
+                // حفظ الرصيد
+                localStorage.setItem('nabd_balance', currentBalance);
+                
+                // إخفاء التحميل
+                modal.style.display = 'none';
+                
+                // تحديث العداد
+                animateValue(displayEl, oldBalance, currentBalance, 1500);
+                
+                showToast(`مبروك! تم إضافة ${coins.toLocaleString()} عملة 🎉`);
+                
+                // صوت النجاح (لو المتصفح سامح)
+                try {
+                    const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+                    audio.volume = 0.5;
+                    audio.play();
+                } catch(e){}
+
+                if(navigator.vibrate) navigator.vibrate([50, 50, 50, 50, 100]); // هزاز احتفالي
+
+            }, delay);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.querySelector('span').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // دالة تحريك الأرقام
+        function animateValue(obj, start, end, duration) {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        }
+    </script>
+
+</body>
+</html>

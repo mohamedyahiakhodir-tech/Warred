@@ -4493,6 +4493,73 @@ body {
     color: #fff !important;
 }
 
+/* --- تنسيق المنشن الاحترافي (الكبسولة) --- */
+.mention-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(93, 95, 239, 0.25); /* خلفية شفافة موف */
+    border: 1px solid rgba(93, 95, 239, 0.5);
+    border-radius: 50px;
+    padding: 2px 8px 2px 2px;
+    margin: 0 2px;
+    cursor: pointer;
+    vertical-align: middle;
+    text-decoration: none;
+    direction: ltr;
+    max-width: 90%;
+    overflow: hidden;
+}
+
+.mention-chip-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 6px;
+    object-fit: cover;
+    background: #fff;
+    flex-shrink: 0;
+}
+
+.mention-chip-name {
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mention-dropdown {
+    position: absolute;
+    bottom: 60px; /* بترفعها فوق مربع الكتابة */
+    left: 10px;
+    right: 10px;
+    background: #1e1e1e; /* لون الخلفية */
+    border: 1px solid #333;
+    border-radius: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    display: none; /* مخفية في الطبيعي */
+    z-index: 99999; /* 🔥 رقم عالي جداً عشان تظهر فوق كل حاجة */
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+}
+
+.mention-dropdown.active {
+    display: block; /* بتظهر لما الكود يشتغل */
+}
+
+.mention-suggest-item {
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #333;
+}
+.mention-suggest-item:hover {
+    background: rgba(255,255,255,0.05);
+}
 
 </style>
     
@@ -4633,16 +4700,20 @@ body {
 
             </div>
 
-            <div class="smart-input-wrapper" style="border-radius: 25px; padding: 0;">
-                <textarea id="cmInput" 
-                          class="smart-textarea" 
-                          placeholder="اكتب تعليقاً..." 
-                          rows="1" 
-                          onfocus="expandInputArea()" 
-                          oninput="handleInputTyping(this)"
-                          style="padding: 12px 15px !important; padding-left: 15px !important;"></textarea>
-                
-                </div>
+        <div class="smart-input-wrapper" style="border-radius: 25px; padding: 0; position: relative; overflow: visible;">
+    
+    <textarea id="cmInput" 
+              class="smart-textarea" 
+              placeholder="اكتب تعليقاً..." 
+              rows="1" 
+              onfocus="expandInputArea()" 
+              oninput="handleInputTyping(this)"
+              style="padding: 12px 15px !important; padding-left: 15px !important;"></textarea>
+    
+    <div class="mention-dropdown" id="mentionDropdown"></div>
+
+</div>
+
 
             <div id="dynamicActionBtn" class="action-submit-btn" onclick="toggleRecording()" style="opacity: 1; pointer-events: auto; background: rgba(255,255,255,0.1); color: var(--text-color);">
                 <i class="fa-solid fa-microphone" id="mainMicIcon"></i>
@@ -5011,6 +5082,9 @@ let isRedirecting = false;
         let pressTimer;
 // قائمة لتخزين أرقام الأشخاص المحظورين (عشان نخفيهم)
 let blockedUsersSet = new Set(); 
+
+// قائمة لتخزين بيانات المنشن مؤقتاً قبل الحفظ في قاعدة البيانات
+let tempMentionList = []; 
 
         const ghostColors = ["#ff0000", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#ff9900", "#9900ff", "#ffffff", "#00ff99"];
         const stickerCollection = ["🤣", "😂", "😅", "🥹", "😍", "🥰", "😘", "🤪", "😎", "😭", "😢", "😤", "😡", "🤬", "🤯", "😳", "😱", "😴", "🤮", "🤡", "💀", "👻", "👽", "💩", "👍", "👎", "👌", "✌️", "❤️", "💔", "🔥", "✨"];
@@ -5874,10 +5948,12 @@ function getPrivacyIcon(privacy) {
                 return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
             });
             finalHtml = finalHtml.replace(/(^|\s|>)(#[\w\u0600-\u06FF]+)/g, '$1<span class="text-link" style="color:#20D5EC;font-weight:bold;cursor:pointer;" onclick="searchForHashtag(event, \'$2\')">$2</span>');
-        } else if (p.text) {
-            finalHtml = processPostText(p.text);
         }
-
+        
+        else if (p.text) {
+    // 🔥 التعديل هنا: مرر p.mentionsList للدالة عشان تجيب الصور
+    finalHtml = processPostText(p.text, p.mentionsList || []); 
+}
         // --- 🆕 تطبيق الـ HTML الجديد للنص وزر العرض ---
         if (finalHtml) {
             contentHtml += `
@@ -6094,9 +6170,11 @@ function openOptions(pid, uid, txt, privacy) {
     
     // حفظ البيانات في متغيرات عامة
     window.currentPostId = pid; 
+    currentPostId = pid; // تحديث المتغير المحلي للاحتياط
     currentPostOwnerUid = uid; 
-    currentPostText = txt; // النص الحالي عشان التعديل
+    currentPostText = txt; 
     currentPostPrivacy = privacy;
+
 
     // --- الربط الذكي (Sync) ---
     // بنروح نجيب زرار الحفظ اللي في كارت المنشور نفسه
@@ -6396,99 +6474,85 @@ async function execute_update() {
             setupSmartInputListener('cmInput', 'mentionDropdown');
         }
     } catch(e) { console.log("Smart Input Error ignored"); }
+    // تشغيل نظام المنشن
+setupSmartInput('cmInput', 'mentionDropdown');
+
 }
+// عرف المتغير ده في أول السكريبت خالص عشان نضمن انه متشاف
+window.tempMentionList = []; 
 
-
- async function handleCommentAction(sticker = null) {
-    // ---------------------------------------------------------
-    // 1. حالة التسجيل الصوتي (الأولوية القصوى)
-    // ---------------------------------------------------------
-    // لو المستخدم بيسجل صوت وداس على الزرار، نوقف التسجيل ونرفعه
-    if (isRecording) {
-        stopAndSendRecording(); 
-        return; // ونخرج فوراً عشان ميكملش بقية الكود
-    }
-
-    // ---------------------------------------------------------
-    // 2. تجهيز النص
-    // ---------------------------------------------------------
-    const inp = document.getElementById('cmInput'); // تأكد إن ده نفس الـ ID في HTML
-    const txt = sticker || inp.value.trim();
+async function handleCommentAction(stickerContent = null, isSticker = false, giftData = null) {
+    const inp = document.getElementById('cmInput');
+    const txt = stickerContent || inp.value.trim();
     
-    // لو مفيش نص ومفيش ستيكر.. اخرج (متبعتش فاضي)
-    if (!txt && !sticker) return;
-    
-    // تشغيل صوت الإرسال وتفريغ الخانة
-    playSound('sent'); 
+    // لو مفيش نص ولا استيكر ولا هدية، اخرج
+    if(!txt && !isSticker && !giftData) return;
+
+    // تنظيف الحقل فوراً
     inp.value = "";
+    if(typeof handleInputTyping === 'function') handleInputTyping(inp); 
+    
+    if(typeof playSound === 'function') playSound('sent'); 
 
     try {
-        // ---------------------------------------------------------
-        // 3. حالة تعديل تعليق سابق (Edit Mode)
-        // ---------------------------------------------------------
-        if (isEditingComment && selectedComment && !sticker) {
-            
-            showToast("جاري التحديث...");
-            
-            await db.collection('posts').doc(currentPostId)
-                .collection('comments').doc(selectedComment.id)
-                .update({ 
-                    text: txt, 
-                    isEdited: true 
-                });
-            
-            showToast("تم تعديل التعليق ✅"); 
-            
-            // إعادة ضبط الزرار وشكله لوضعه الطبيعي
-            isEditingComment = false;
-            selectedComment = null;
-            
-            // إرجاع أيقونة الطيارة
-            const sendBtn = document.getElementById('cmSendBtn');
-            sendBtn.classList.remove('fa-check', 'update-mode');
-            sendBtn.classList.add('fa-paper-plane');
-        } 
-        
-        // ---------------------------------------------------------
-        // 4. حالة تعليق جديد (New Comment)
-        // ---------------------------------------------------------
-        else {
-            // جلب بيانات المستخدم الحالية
-            const uDoc = await db.collection('users').doc(currentUser.uid).get();
-            const uData = uDoc.data();
-            
-            // إنشاء التعليق في قاعدة البيانات
-            const commentRef = await db.collection('posts').doc(currentPostId).collection('comments').add({
-                uid: currentUser.uid, 
-                name: uData.name || "مستخدم", 
-                pic: uData.profilePic || "", 
-                isVerified: uData.isVerified || false,
-                text: txt, 
-                isSticker: !!sticker, // لو مبعوت ستيكر يبقى true
-                isGhost: isGhost,     // هل وضع الشبح مفعل؟
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-            
-            // تحديث عداد التعليقات في المنشور الأصلي
-            await db.collection('posts').doc(currentPostId).update({
-                commentsCount: firebase.firestore.FieldValue.increment(1)
-            });
+        const uDoc = await db.collection('users').doc(currentUser.uid).get();
+        const uData = uDoc.data();
 
-            // إرسال إشعار لصاحب المنشور (لو مش أنا اللي بعلق لنفسي)
-            if (currentPostOwnerUid && currentPostOwnerUid !== currentUser.uid) {
-                pushNotification(
-                    currentPostOwnerUid, 
-                    'comment', 
-                    'علق على منشورك 💬', 
-                    null, 
-                    currentPostId, 
-                    commentRef.id
-                );
-            }
+        // 🔥 التصحيح القاتل هنا: وحدنا الاسم لـ window.tempMentionList
+        // ده نفس الاسم اللي دالة insertSuggestion بتعبي فيه
+        let finalMentionsList = [];
+        if (window.tempMentionList && Array.isArray(window.tempMentionList)) {
+            finalMentionsList = window.tempMentionList.filter(m => txt.includes(m.name));
         }
+
+        const commentData = {
+            uid: currentUser.uid,
+            name: uData.name || "مستخدم",
+            pic: uData.profilePic || "",
+            isVerified: uData.isVerified || false,
+            text: txt,
+            
+            // 🔥 هنا بنبعت القائمة اللي فيها الصور للداتابيز
+            mentionsList: finalMentionsList, 
+
+            isSticker: isSticker,
+            isGift: !!giftData, 
+            giftEmoji: giftData ? giftData.emoji : null,
+            giftName: giftData ? giftData.name : null,
+            giftEffect: giftData ? giftData.effect : null,
+            
+            isGhost: (typeof isGhost !== 'undefined' ? isGhost : false),
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        // الحفظ في قاعدة البيانات
+        await db.collection('posts').doc(currentPostId).collection('comments').add(commentData);
+        
+        await db.collection('posts').doc(currentPostId).update({
+            commentsCount: firebase.firestore.FieldValue.increment(1)
+        });
+
+        // 🔥 تفريغ القائمة بعد الإرسال عشان المنشنات القديمة متبقاش موجودة
+        window.tempMentionList = [];
+
+        // إشعار لصاحب المنشور
+        if (currentPostOwnerUid && currentPostOwnerUid !== currentUser.uid) {
+             let notifText = isSticker ? "أرسل ملصقاً" : (giftData ? "أرسل هدية" : `علق: ${txt.substring(0, 30)}...`);
+             pushNotification(currentPostOwnerUid, 'comment', notifText, null, currentPostId);
+        }
+        
+        // إشعار للمنشن
+        if (finalMentionsList.length > 0) {
+            finalMentionsList.forEach(m => {
+                if (m.uid !== currentUser.uid && m.uid !== currentPostOwnerUid) {
+                    pushNotification(m.uid, 'mention', 'أشار إليك في تعليق', null, currentPostId);
+                }
+            });
+        }
+
     } catch (e) {
         console.error("Error sending comment:", e);
-        showToast("فشل الإرسال، تأكد من الإنترنت");
+        showToast("فشل الإرسال: " + e.message);
     }
 }
 
@@ -6781,7 +6845,7 @@ function handleReplyInputTyping(textarea) {
             const clean = r.text.substring(r.replyToName.length);
             displayText = `<span class="reply-mention-link" onclick="event.stopPropagation(); goToProfile('${r.replyToUid}')">${r.replyToName}</span> ${processPostText(clean)}`;
         } else {
-            displayText = r.isSticker ? r.text : processPostText(r.text);
+            displayText = r.isSticker ? r.text : processPostText(r.text, r.mentionsList);
         }
         contentHtml = `<div class="cm-text" style="${r.isSticker?'font-size:45px':''}">${displayText}</div>`;
     }
@@ -6840,10 +6904,10 @@ function handleReplyInputTyping(textarea) {
     
     playSound('sent'); 
     
-    // لو مش ستيكر، شيل العلامة @ من الأول لو موجودة
+    // لو مش ستيكر، شيل العلامة @ من الأول لو موجودة (تنظيف بسيط)
     if (!sticker) txt = txt.replace(/^@/, '');
 
-    // منطق المنشن (اختياري لو مفعله)
+    // منطق الرد المباشر القديم (Reply To) للحفاظ على شجرة الردود
     let replyToUid = null;
     let replyToName = null;
     if (!sticker) {
@@ -6870,10 +6934,18 @@ function handleReplyInputTyping(textarea) {
             document.getElementById('replySendBtn').classList.remove('fa-check', 'update-mode');
             document.getElementById('replySendBtn').classList.add('fa-paper-plane');
         } 
-        // --- حالة رد جديد (New Reply) - هنا التغيير المهم ---
+        // --- حالة رد جديد (New Reply) ---
         else {
             const uDoc = await db.collection('users').doc(currentUser.uid).get();
             const uData = uDoc.data();
+
+            // 🔥 بداية كود المنشن الجديد 🔥
+            // تصفية القائمة: نأخذ فقط الأشخاص الموجودين في نص الرد
+            let finalMentions = [];
+            if (typeof tempMentionList !== 'undefined' && Array.isArray(tempMentionList)) {
+                finalMentions = tempMentionList.filter(m => txt.includes(m.name));
+            }
+            // 🔥 نهاية التصفية 🔥
 
             // 1. إضافة الرد في الداتابيز
             await db.collection('posts').doc(currentPostId)
@@ -6884,6 +6956,9 @@ function handleReplyInputTyping(textarea) {
                     pic: uData.profilePic,
                     isVerified: uData.isVerified || false,
                     text: txt,
+                    
+                    mentionsList: finalMentions, // ✅ تم إضافة القائمة هنا
+
                     isSticker: !!sticker,
                     isGhost: isGhost,
                     replyToUid: replyToUid,
@@ -6891,7 +6966,10 @@ function handleReplyInputTyping(textarea) {
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-            // 🔥🔥🔥 2. تحديث عداد الردود في الكومنت الأب (عشان كلمة "عرض الردود" تظهر) 🔥🔥🔥
+            // تنظيف القائمة المؤقتة
+            tempMentionList = [];
+
+            // 2. تحديث عداد الردود
             const batch = db.batch();
             const postRef = db.collection('posts').doc(currentPostId);
             const commentRef = db.collection('posts').doc(currentPostId).collection('comments').doc(currentParentComment.id);
@@ -6900,23 +6978,30 @@ function handleReplyInputTyping(textarea) {
             batch.update(commentRef, { repliesCount: firebase.firestore.FieldValue.increment(1) });
             await batch.commit();
 
-            // 🔥🔥🔥 3. التحديث اللحظي للشاشة (عشان الرقم يزيد بره) 🔥🔥🔥
+            // 3. التحديث اللحظي للشاشة
             const postCard = document.getElementById(`post-${currentPostId}`);
             if (postCard) {
-                // الزرار التاني هو زرار التعليقات
                 const commentCounter = postCard.querySelectorAll('.action-btn')[1].querySelector('span');
                 if (commentCounter) {
                     let currentNum = parseInt(commentCounter.innerText) || 0;
-                    commentCounter.innerText = currentNum + 1; // زود 1 فوراً
+                    commentCounter.innerText = currentNum + 1;
                 }
             }
 
-            // 3. إرسال الإشعارات
+            // 4. إرسال الإشعارات
+            // إشعار لصاحب التعليق الأصلي
             if (currentParentComment.uid !== currentUser.uid) {
                 pushNotification(currentParentComment.uid, 'reply', 'رد على تعليقك', null, currentPostId, currentParentComment.id);
             }
-            if (replyToUid && replyToUid !== currentUser.uid && replyToUid !== currentParentComment.uid) {
-                pushNotification(replyToUid, 'reply', 'أشار إليك في رد', null, currentPostId, currentParentComment.id);
+
+            // إشعار للأشخاص المذكورين (بالنظام الجديد)
+            if (finalMentions.length > 0) {
+                finalMentions.forEach(m => {
+                    // نتأكد إننا مش بنبعت لنفس الشخص مرتين (لو هو صاحب التعليق الأصلي مثلاً)
+                    if (m.uid !== currentUser.uid && m.uid !== currentParentComment.uid) {
+                        pushNotification(m.uid, 'reply', 'أشار إليك في رد', null, currentPostId, currentParentComment.id);
+                    }
+                });
             }
         }
     } catch (e) {
@@ -7260,9 +7345,8 @@ function openReplyOptions(r) {
             extraClass = "collapsed";
             btnHtml = `<span class="read-more-btn" onclick="toggleReadMore(this)">قراءة المزيد... 👇</span>`;
         }
-        contentHtml = `<div class="cm-text ${extraClass}" style="${c.isSticker?'font-size:50px':''}">${c.isSticker ? c.text : processPostText(c.text)}</div>${btnHtml}`;
-    }
-
+        contentHtml = `<div class="cm-text ${extraClass}" style="${c.isSticker?'font-size:50px':''}">${c.isSticker ? c.text : processPostText(c.text, c.mentionsList)}</div>${btnHtml}`;
+}
 
 
     let repliesButtonHtml = "";
@@ -7438,8 +7522,10 @@ function goToMessages() {
 }
    function goToVideos() {
     playSound('click');
-    openPage('videos.html');
+    // 🔥 التعديل: استبدال الصفحة الحالية فوراً (بدون حفظ في الذاكرة)
+    window.location.replace('videos.html');
 }
+
   function goToSettings() {
     playSound('click');
     openPage('settings.html');
@@ -8463,26 +8549,44 @@ function getYouTubeID(url) {
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
 }
-
-// 2. معالجة النص (تلوين الروابط + فتح في نافذة جديدة)
-function processPostText(text) {
+// دالة تنسيق النص والمنشن (تم التعديل لتقبل الإيموجي والرموز)
+function formatSmartText(text, mentionsList = []) {
     if (!text) return "";
-    let processed = escapeHTML(text);
 
-    // تحويل الروابط لنص أزرق قابل للضغط
-    const urlRegex = /((https?:\/\/|www\.)[^\s]+)/g;
-    processed = processed.replace(urlRegex, (url) => {
-        let href = url.startsWith('www.') ? 'http://' + url : url;
-        // target="_blank" عشان يفتح في صفحة جديدة
-        return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
+    // حماية النص
+    let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // تلوين الهاشتاج
+    safeText = safeText.replace(/(^|\s)#([\u0600-\u06FFa-zA-Z0-9_]+)/g, 
+        '$1<span class="styled-hashtag" onclick="event.stopPropagation(); handleHashtagClick(\'$2\')">#$2</span>');
+
+    const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+    // تلوين المنشن والبحث عن الصورة
+    safeText = safeText.replace(/(^|\s)@([^\s]+)/g, function(match, space, name) {
+        
+        let userPic = defaultAvatar;
+        
+        // 🔥 هنا السحر: بندور في القائمة اللي جاية من الداتابيز
+        if (mentionsList && Array.isArray(mentionsList) && mentionsList.length > 0) {
+            const foundUser = mentionsList.find(u => u.name === name);
+            if (foundUser && foundUser.pic) {
+                userPic = foundUser.pic; 
+            }
+        }
+
+        // نشيل الشرطة السفلية للعرض فقط
+        const displayName = name.replace(/_/g, ' ');
+
+        return `${space}<div class="mention-chip" onclick="event.stopPropagation(); handleMentionClick('${name}')">
+                    <img src="${userPic}" class="mention-chip-img" onerror="this.src='${defaultAvatar}'">
+                    <span class="mention-chip-name">${displayName}</span>
+               </div>`;
     });
 
-    // معالجة الهاشتاج والمنشن
-    processed = processed.replace(/(^|\s)(#[^\s<]+)/g, '$1<span class="text-link" onclick="searchForHashtag(event, \'$2\')">$2</span>');
-    processed = processed.replace(/(^|\s)(@[^\s<]+)/g, (m, s, ment) => `${s}<span class="text-link" onclick="openSearchWithName('${ment.replace('@','')}')">${ment}</span>`);
-
-    return processed;
+    return safeText;
 }
+
 
 // 3. استخراج أول رابط من النص
 function extractFirstLink(text) {
@@ -8803,114 +8907,8 @@ function openFilterSheet() {
     }
 });
 
-function setupSmartInputListener(inputId, dropdownId) {
-    const inp = document.getElementById(inputId);
-    const drop = document.getElementById(dropdownId);
 
-    inp.addEventListener('keyup', async (e) => {
-        const val = inp.value;
-        const cursor = inp.selectionStart;
 
-        // تحديد الكلمة الحالية التي يكتبها المستخدم
-        const beforeCursor = val.substring(0, cursor);
-        const lastWord = beforeCursor.split(/(\s+)/).pop();
-
-        // ============================
-        // الحالة 1: المستخدم يكتب منشن @
-        // ============================
-        if (lastWord.startsWith('@') && lastWord.length > 1) {
-            const query = lastWord.substring(1);
-            activeInputId = inputId; // لتحديد الحقل النشط
-
-            // إظهار القائمة والتحميل
-            const wrapper = inp.parentElement.parentElement; 
-            if(!wrapper.contains(drop)) wrapper.insertBefore(drop, wrapper.firstChild);
-            drop.classList.add('active');
-            drop.innerHTML = '<div style="padding:10px;text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></div>';
-
-            try {
-                // البحث عن المستخدمين
-                const snap = await db.collection('users').orderBy('name').startAt(query).endAt(query + '\uf8ff').limit(5).get();
-                drop.innerHTML = "";
-
-                if(snap.empty) { drop.classList.remove('active'); return; }
-
-                snap.forEach(doc => {
-                    const d = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'mention-suggest-item';
-                    div.innerHTML = `<div style="width:30px;height:30px;border-radius:50%;background:${d.profilePic?`url(${d.profilePic})`:`#444`};background-size:cover"></div><div>${d.name}</div>`;
-                    
-                    div.onclick = () => {
-                        const afterCursor = val.substring(cursor);
-                        const textBeforeLastWord = beforeCursor.substring(0, beforeCursor.lastIndexOf(lastWord));
-                        // إكمال المنشن
-                        inp.value = textBeforeLastWord + '@' + d.name + " " + afterCursor;
-                        inp.focus();
-                        drop.classList.remove('active');
-                        
-                        // حفظ بيانات المنشن لاستخدامها عند الإرسال
-                        window.directMentionData = { uid: doc.id, name: d.name };
-                        if(activeInputId === 'replyInput') currentSubReplyTarget = {uid: doc.id, name: d.name};
-                    };
-                    drop.appendChild(div);
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        // ============================
-        // الحالة 2: المستخدم يكتب هاشتاج #
-        // ============================
-        else if (lastWord.startsWith('#') && lastWord.length > 1) {
-            const query = lastWord.substring(1);
-            
-            // إظهار القائمة والتحميل
-            const wrapper = inp.parentElement.parentElement; 
-            if(!wrapper.contains(drop)) wrapper.insertBefore(drop, wrapper.firstChild);
-            drop.classList.add('active');
-            drop.innerHTML = '<div style="padding:10px;text-align:center"><i class="fa-solid fa-spinner fa-spin"></i></div>';
-
-            try {
-                // البحث في كولكشن الهاشتاجات
-                const snap = await db.collection('hashtags').orderBy('name').startAt(query).endAt(query + '\uf8ff').limit(5).get();
-                drop.innerHTML = "";
-
-                if(snap.empty) { drop.classList.remove('active'); return; }
-
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    const div = document.createElement('div');
-                    div.className = 'mention-suggest-item';
-                    div.innerHTML = `
-                        <div style="width:30px;height:30px;border-radius:50%; background:rgba(93, 95, 239, 0.1); color:var(--primary-color); display:grid; place-items:center; font-size:16px;">
-                            <i class="fa-solid fa-hashtag"></i>
-                        </div>
-                        <div>
-                            <div style="font-weight:bold; font-size:14px;">${data.name}</div>
-                            <div style="font-size:10px; color:#777;">${data.postsCount || 0} منشور</div>
-                        </div>`;
-                    
-                    div.onclick = () => {
-                        const afterCursor = val.substring(cursor);
-                        const textBeforeLastWord = beforeCursor.substring(0, beforeCursor.lastIndexOf(lastWord));
-                        // إكمال الهاشتاج
-                        inp.value = textBeforeLastWord + '#' + data.name + " " + afterCursor;
-                        inp.focus();
-                        drop.classList.remove('active');
-                    };
-                    drop.appendChild(div);
-                });
-            } catch(e) { console.error(e); }
-        }
-
-        // ============================
-        // الحالة 3: لا شيء (إغلاق القائمة)
-        // ============================
-        else {
-            drop.classList.remove('active');
-        }
-    });
-}
 
 // --- نظام الألوان الجديد (30+ لون) ---
 const appColors = [
@@ -9372,27 +9370,34 @@ function monitorMessageCount() {
 }
 // --- دالة فتح أي صفحة بدون ريفريش ---
 // --- دالة فتح أي صفحة بدون ريفريش (معدلة لإخفاء الشريط) ---
+// --- دالة فتح الصفحات (مع إضافة للذاكرة) ---
 function openPage(url) {
     const overlay = document.getElementById('universalOverlay');
     const frame = document.getElementById('universalFrame');
     
-    // 1. تحديد الرابط
-    frame.src = url;
-    
-    // 2. إظهار الشاشة
-    overlay.classList.add('active');
-    
-    // 3. إخفاء الشريط السفلي (الهيدرا) عشان يوسع المكان
-    // 🔥 ده السطر الجديد
-    const navBar = document.querySelector('.fb-icons');
-    if(navBar) navBar.classList.add('hide-nav');
-    
-    // 4. وقف التمرير في الصفحة الرئيسية
-    document.body.style.overflow = 'hidden';
+    if (overlay && frame) {
+        // 1. تشغيل الصوت
+        if(typeof playSound === 'function') playSound('click');
 
-    // 5. إضافة خطوة في التاريخ
-    history.pushState({ pageOpen: true }, null, "");
+        // 2. تحميل الرابط
+        frame.src = url;
+        
+        // 3. إظهار الشاشة
+        overlay.classList.add('active');
+        
+        // 4. إخفاء الشريط السفلي
+        const navBar = document.querySelector('.fb-icons');
+        if(navBar) navBar.classList.add('hide-nav');
+        
+        // 5. تجميد الخلفية
+        document.body.style.overflow = 'hidden';
+
+        // 🔥 6. السطر السحري: إضافة الصفحة للذاكرة
+        // ده اللي بيخلي زرار الرجوع في الموبايل يحس إن فيه صفحة جديدة اتفتحت
+        window.history.pushState({ page: url }, null, "");
+    }
 }
+
 
 // --- دالة إغلاق الصفحة والعودة (معدلة لإرجاع الشريط) ---
 function closeUniversalPage() {
@@ -9702,71 +9707,6 @@ function resetRecordingUI() {
 }
 
 
-
-// 4. تعديل دالة handleCommentAction (الزرار الأزرق)
-async function handleCommentAction(sticker = null) {
-    console.log("تم ضغط زر الإرسال"); // للتأكد إن الزرار شغال
-
-    // 1. لو بنسجل صوت، وقف التسجيل وابعته
-    if (typeof isRecording !== 'undefined' && isRecording) {
-        stopAndSendRecording();
-        return;
-    }
-
-    // 2. محاولة العثور على خانة النص بأي طريقة
-    let inp = document.getElementById('cmInput');
-    if (!inp) inp = document.getElementById('commentInput'); // محاولة احتياطية
-    
-    if (!inp && !sticker) {
-        alert("خطأ: خانة الكتابة غير موجودة!");
-        return;
-    }
-
-    const txt = sticker || inp.value.trim();
-    
-    // لو مفيش نص ومفيش ستيكر، اخرج
-    if (!txt) return;
-
-    // تفريغ الخانة فوراً عشان يحس بالسرعة
-    inp.value = "";
-    if(typeof playSound === 'function') playSound('sent'); 
-
-    try {
-        const uDoc = await db.collection('users').doc(currentUser.uid).get();
-        const uData = uDoc.data();
-
-        // إرسال التعليق
-        await db.collection('posts').doc(currentPostId).collection('comments').add({
-            uid: currentUser.uid,
-            name: uData.name || "مستخدم",
-            pic: uData.profilePic || "",
-            isVerified: uData.isVerified || false,
-            text: txt,
-            isSticker: !!sticker,
-            isGhost: (typeof isGhost !== 'undefined' ? isGhost : false),
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        // تحديث العداد
-        await db.collection('posts').doc(currentPostId).update({
-            commentsCount: firebase.firestore.FieldValue.increment(1)
-        });
-        
-        // إشعار
-        if (currentPostOwnerUid && currentPostOwnerUid !== currentUser.uid) {
-            pushNotification(currentPostOwnerUid, 'comment', 'علق على منشورك', null, currentPostId);
-        }
-
-    } catch (e) {
-        console.error(e);
-        showToast("فشل الإرسال: " + e.message);
-    }
-}
-
-// --- دوال تشغيل الصوت (من كود الشات) ---
-// 1. تشغيل/إيقاف وتفعيل الأنيميشن
-// --- دوال تشغيل الصوت (المعدلة والمصلحة) ---
-
 // 1. تشغيل/إيقاف
 // --- دوال الصوت المصححة كلياً ---
 
@@ -9960,23 +9900,47 @@ function formatTimeSec(s) {
 /* --- دوال النظام الذكي (محدثة لليوتيوب) --- */
 
 // 1. معالجة النص (تحويل الروابط للون أزرق)
-function processPostText(text) {
+// دالة معالجة النصوص (روابط + هاشتاج + منشن متطور)
+function processPostText(text, mentionsList = []) {
     if (!text) return "";
+    
+    // 1. حماية النص من الأكواد الخبيثة
     let processed = escapeHTML(text);
 
-    // تحويل الروابط (URLs) لنصوص زرقاء قابلة للضغط
-    // Regex قوي يكتشف الروابط حتى لو لازقة في كلام
-    const urlRegex = /((https?:\/\/|www\.)[^\s]+)/g;
-    
-    processed = processed.replace(urlRegex, (url) => {
-        // التأكد إن الرابط يبدأ بـ http
+    // 2. تحويل الروابط (Links)
+    processed = processed.replace(/((https?:\/\/|www\.)[^\s]+)/g, (url) => {
         let href = url.startsWith('www.') ? 'http://' + url : url;
         return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
     });
 
-    // معالجة الهاشتاج والمنشن (زي ما هما)
+    // 3. تحويل الهاشتاج (#)
     processed = processed.replace(/(^|\s)(#[^\s<]+)/g, '$1<span class="text-link" onclick="searchForHashtag(event, \'$2\')">$2</span>');
-    processed = processed.replace(/(^|\s)(@[^\s<]+)/g, (m, s, ment) => `${s}<span class="text-link" onclick="openSearchWithName('${ment.replace('@','')}')">${ment}</span>`);
+
+    // 4. تحويل المنشن المتطور (@) [Image + Name]
+    // نبحث عن @ والكلمة التي تليها (حتى لو فيها شرطة سفلية)
+    processed = processed.replace(/(^|\s)@([^\s<]+)/g, function(match, space, nameWithUnderscore) {
+        
+        let userPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // صورة افتراضية
+        let uid = null;
+
+        // البحث في القائمة المحفوظة (mentionsList)
+        if (mentionsList && Array.isArray(mentionsList) && mentionsList.length > 0) {
+            const foundUser = mentionsList.find(u => u.name === nameWithUnderscore);
+            if (foundUser) {
+                if (foundUser.pic) userPic = foundUser.pic;
+                uid = foundUser.uid;
+            }
+        }
+
+        // تحسين العرض: إزالة الشرطة السفلية وجعلها مسافة للقراءة
+        const displayName = nameWithUnderscore.replace(/_/g, ' ');
+
+        // إنشاء الكبسولة
+        return `${space}<div class="mention-chip" onclick="event.stopPropagation(); goToProfile('${uid}')">
+                    <img src="${userPic}" class="mention-chip-img">
+                    <span class="mention-chip-name">${displayName}</span>
+               </div>`;
+    });
 
     return processed;
 }
@@ -11524,6 +11488,155 @@ document.addEventListener('touchend', function(e) {
     }
 }, {passive: true});
 
+// متغير لمنع تكرار البحث السريع
+
+
+// 1. الدالة المسؤولة عن مراقبة الكتابة
+function setupSmartInput(inputId, dropdownId) {
+    const inp = document.getElementById(inputId);
+    const drop = document.getElementById(dropdownId);
+
+    if (!inp || !drop) return;
+
+    inp.addEventListener('keyup', (e) => {
+        const cursorPosition = inp.selectionStart;
+        const textBeforeCursor = inp.value.substring(0, cursorPosition);
+        
+        // البحث عن آخر كلمة بدأت بـ @
+        const match = textBeforeCursor.match(/(@[\u0600-\u06FFa-zA-Z0-9_]*)$/);
+
+        if (match) {
+            const query = match[0]; // الكلمة كاملة (مثلاً @ahmed)
+            const searchTerm = query.substring(1); // النص بدون @
+
+            // إلغاء أي بحث سابق لم يكتمل
+            clearTimeout(searchTimeout);
+            
+            // تأخير بسيط عشان الأداء
+            searchTimeout = setTimeout(() => {
+                fetchSuggestions('@', searchTerm, drop, inp, query);
+            }, 300);
+
+        } else {
+            drop.classList.remove('active');
+        }
+    });
+    
+    // إخفاء القائمة عند الضغط خارجها
+    document.addEventListener('click', (e) => {
+        if (e.target !== inp && e.target !== drop && !drop.contains(e.target)) {
+            drop.classList.remove('active');
+        }
+    });
+}
+
+// 2. الدالة المسؤولة عن جلب الأسماء من الفايربيس
+// 2. الدالة المسؤولة عن جلب الأسماء من الفايربيس (معدلة)
+async function fetchSuggestions(type, term, drop, inp, fullWord) {
+    drop.innerHTML = '<div style="padding:10px; text-align:center; color:#777; font-size:12px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث...</div>';
+    drop.classList.add('active');
+
+    // تصحيح مكان القائمة
+    const footer = document.getElementById('commentFooter');
+    if(footer && !footer.contains(drop)) {
+        const inputContainer = inp.closest('.input-area-container');
+        if(inputContainer) {
+            inputContainer.style.position = 'relative';
+            inputContainer.appendChild(drop);
+        }
+    }
+
+    try {
+        let userQuery = db.collection('users');
+        
+        if (term.length === 0) {
+            userQuery = userQuery.where('isVerified', '==', true).limit(5);
+        } else {
+            userQuery = userQuery.where('name', '>=', term).where('name', '<=', term + '\uf8ff').limit(5);
+        }
+
+        const snapshot = await userQuery.get();
+        let html = '';
+
+        if (snapshot.empty && term.length > 0) {
+            html = '<div style="padding:10px; text-align:center; color:#555; font-size:12px;">لا يوجد مستخدم</div>';
+        } else {
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                
+                // 🔥 تنظيف الاسم من أي رموز تكسر الكود
+                const safeName = d.name.replace(/['"\\\n\r]/g, ""); 
+const rawPic = d.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+// استخدام window.insertSuggestion صراحةً
+const clickAction = `window.insertSuggestion('${inp.id}', '${fullWord}', '@${safeName}', '${doc.id}', '${rawPic}')`;
+
+                html += `
+                <div class="mention-suggest-item" onclick="${clickAction}">
+                    <div style="width:30px;height:30px;border-radius:50%;background-image:url('${rawPic}');background-size:cover;background-position:center;background-color:#333;"></div>
+                    <div>
+                        <div style="font-weight:bold;font-size:13px;color:#fff">${d.name} ${d.isVerified ? '<i class="fa-solid fa-check-circle" style="color:#20D5EC;font-size:10px"></i>' : ''}</div>
+                        <div style="font-size:10px;color:#777">@${doc.id.substring(0,6)}</div>
+                    </div>
+                </div>`;
+            });
+        }
+        
+        drop.innerHTML = html;
+
+    } catch (e) {
+        console.error("Autocomplete Error:", e);
+        drop.classList.remove('active');
+    }
+}
+
+// 3. دالة وضع الاسم المختار داخل المربع (المصححة والمنقذة)
+window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+
+    // 🔥 1. التأكد من المصفوفة
+    if (!window.tempMentionList) window.tempMentionList = [];
+    
+    // 🔥 2. تصحيح تعريف الاسم (ده كان سبب Error safeName)
+    const rawName = newWord.replace('@', '').trim();
+    // وحدنا الاسم هنا لـ safeName عشان نستخدمه تحت
+    const safeName = rawName.replace(/\s+/g, '_'); 
+
+    // التأكد من الصورة
+    const finalPic = (pic && pic !== "undefined") ? pic : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+    // إضافة البيانات للمصفوفة
+    window.tempMentionList.push({ uid: uid, name: safeName, pic: finalPic });
+
+    // استبدال النص في المربع
+    const val = inp.value;
+    const cursorPos = inp.selectionStart;
+    const before = val.substring(0, cursorPos);
+    const after = val.substring(cursorPos);
+    
+    // استبدال الكلمة القديمة بالجديدة
+    const newBefore = before.replace(new RegExp(oldWord + "$"), '@' + safeName + " ");
+    
+    inp.value = newBefore + after;
+    
+    // إخفاء القائمة
+    const drop = document.querySelector('.mention-dropdown.active');
+    if (drop) drop.classList.remove('active');
+    
+    inp.focus();
+    
+    // 🔥 3. حل مشكلة (Cannot read properties of null)
+    // بنشوف الـ ID بتاع المربع ايه، وبناء عليه ننادي الدالة المناسبة بس
+    if (inputId === 'replyInput') {
+        if(typeof handleReplyInputTyping === 'function') handleReplyInputTyping(inp);
+    } else {
+        if(typeof handleInputTyping === 'function') handleInputTyping(inp);
+    }
+};
+
+
+
     </script>
        <div class="custom-modal" id="accountSwitcherModal">
     <div class="modal-box">
@@ -12032,6 +12145,7 @@ document.addEventListener('touchend', function(e) {
         }
     });
 </script>
+
 
     
 </body>

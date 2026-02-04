@@ -82,6 +82,64 @@
 
         .empty-state { text-align: center; padding: 50px 20px; color: var(--secondary-text); }
         .empty-state i { font-size: 50px; margin-bottom: 15px; opacity: 0.5; }
+        /* إشعار الهدية يكون له لمعة بسيطة */
+/* --- ستايل إشعار الهدية الفاخر (Premium Gift) --- */
+.notif-item.gift-premium {
+    background: linear-gradient(135deg, #2b2000 0%, #1a1a1a 100%) !important; /* خلفية ذهبية مسودة */
+    border: 1px solid rgba(255, 215, 0, 0.5) !important; /* حدود ذهبية */
+    border-right: 5px solid #FFD700 !important; /* خط سميك يمين */
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.15) !important;
+    position: relative;
+    overflow: hidden;
+    padding: 15px;
+}
+
+/* تأثير اللمعة المتحركة (Shine Effect) */
+.notif-item.gift-premium::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -150%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
+    transform: skewX(-20deg);
+    animation: goldShine 3s infinite linear;
+    pointer-events: none;
+}
+
+@keyframes goldShine {
+    0% { left: -150%; }
+    100% { left: 150%; }
+}
+
+/* النص الذهبي */
+.gold-text {
+    color: #FFD700 !important;
+    font-weight: 800;
+    font-size: 14px;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    display: block;
+    margin-top: 4px;
+}
+
+/* أيقونة الهدية الكبيرة */
+.gift-big-icon {
+    font-size: 35px;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.6));
+    animation: bounceGift 2s infinite ease-in-out;
+}
+
+@keyframes bounceGift {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+
+/* إطار ذهبي لصورة الراسل */
+.gift-avatar-border {
+    border: 2px solid #FFD700 !important;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+}
+
+
     </style>
 </head>
 <body>
@@ -166,115 +224,163 @@
             await batch.commit();
         }
 
-        function loadNotifications(uid) {
-            let isFirstLoad = true;
-            db.collection('notifications').where('recipientId', '==', uid).orderBy('createdAt', 'desc')
-                .onSnapshot(snapshot => {
-                    const list = document.getElementById('notifList');
-                    
-                    if (snapshot.empty) {
-                        list.innerHTML = `<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><p>لا توجد إشعارات جديدة</p></div>`;
-                        return;
+        let unsubscribeNotifications = null; 
+
+function loadNotifications(uid) {
+    // 1. إيقاف المستمع القديم إذا كان موجوداً
+    if (unsubscribeNotifications) {
+        unsubscribeNotifications();
+        unsubscribeNotifications = null;
+    }
+
+    let isFirstLoad = true;
+    const list = document.getElementById('notifList');
+    
+    // تنظيف القائمة قبل البدء
+    list.innerHTML = '<div style="text-align: center; padding: 20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
+
+    // 2. تشغيل المستمع الجديد وتخزينه في المتغير
+    unsubscribeNotifications = db.collection('notifications')
+        .where('recipientId', '==', uid)
+        .orderBy('createdAt', 'desc')
+        .limit(50)
+        .onSnapshot(snapshot => {
+            // ... (باقي كود الدالة كما هو تماماً بدون تغيير) ...
+            // فقط تأكد أنك مسحت السطرين: const list = ... و list.innerHTML = ... من داخل الـ onSnapshot
+            // لأننا عرفناهم بره خلاص، بس مش مشكلة لو سبتهم
+            
+            // هام: تنظيف القائمة مرة واحدة عند وصول البيانات
+            list.innerHTML = ""; 
+            
+            if (snapshot.empty) {
+                list.innerHTML = `<div class="empty-state"><i class="fa-regular fa-bell-slash"></i><p>لا توجد إشعارات جديدة</p></div>`;
+                return;
+            }
+
+            // تشغيل صوت للإشعارات الجديدة
+            snapshot.docChanges().forEach(change => {
+                if (change.type === "added" && !isFirstLoad) {
+                    if (change.doc.data().read === false) { notificationSound.play().catch(()=>{}); }
+                }
+            });
+
+            list.innerHTML = "";
+            
+            snapshot.forEach(doc => {
+                const notif = doc.data();
+                const id = doc.id;
+                const isOpened = notif.opened === true;
+                
+                // المتغيرات الأساسية
+                let senderName = notif.senderName || 'مستخدم نبض';
+                let senderPic = notif.senderPic || "";
+                let isVerified = notif.isVerified === true;
+                let timeAgo = notif.createdAt ? moment(notif.createdAt.toDate()).fromNow() : 'الآن';
+
+                // ============================================================
+                // 🔥🔥🔥 الحالة الخاصة: إذا كان الإشعار هدية (GIFT) 🔥🔥🔥
+                // ============================================================
+                if (notif.type === 'gift') {
+                    const div = document.createElement('div');
+                    div.className = `notif-item gift-premium ${isOpened ? 'opened' : 'unopened'}`;
+                    div.onclick = () => handleNotificationClick(id, notif);
+
+                    // استخراج اسم الهدية
+                    let giftName = "هدية مميزة";
+                    if (notif.text && notif.text.includes('هدية')) {
+                        // محاولة تنظيف النص لعرض اسم الهدية فقط
+                        giftName = notif.text; 
                     }
 
-                    snapshot.docChanges().forEach(change => {
-                        if (change.type === "added" && !isFirstLoad) {
-                            if (change.doc.data().read === false) { notificationSound.play().catch(()=>{}); }
-                        }
-                    });
+                    div.innerHTML = `
+                        <div class="notif-avatar gift-avatar-border" 
+                             style="${senderPic ? `background-image: url('${senderPic}')` : `background-color: #333; color:#FFD700`}">
+                             ${!senderPic ? '<i class="fa-solid fa-user"></i>' : ''}
+                        </div>
 
-                    list.innerHTML = "";
-                    
-                    snapshot.forEach(doc => {
-                        const notif = doc.data();
-                        const id = doc.id;
-                        const isOpened = notif.opened === true; // استخدام opened للتحكم في لون الخلفية داخل القائمة
-                        
-                        // المتغيرات الافتراضية
-                        let senderName = notif.senderName || notif.name || 'مستخدم نبض';
-                        let rawPic = notif.senderPic || notif.pic || notif.photoURL;
-                        let senderPic = "";
-                        if (rawPic && rawPic !== "null" && rawPic !== "undefined" && rawPic.trim() !== "") {
-                            senderPic = rawPic;
-                        }
-
-                        let isVerified = notif.isVerified || notif.verified;
-                        if(isVerified === "true") isVerified = true;
-
-                        let avatarHtml = '';
-                        let nameStyle = '';
-                        let verifiedHtml = '';
-                        let iconHtml = '<i class="fa-solid fa-bell" style="color:var(--primary-solid)"></i>';
-                        let displayText = notif.text;
-                        let customClass = '';
-
-                        // --- معالجة أنواع الإشعارات ---
-
-                        if (notif.type === 'system_msg') {
-                            // 1. إشعار النظام (توثيق، رسائل إدارية)
-                            senderName = notif.title || "إدارة NABD";
-                            displayText = notif.body; 
-                            customClass = 'system-msg';
-                            verifiedHtml = '<i class="fa-solid fa-circle-check verified-badge" style="color:#f59e0b"></i>';
-                            
-                            // أيقونة التاج الذهبي
-                            avatarHtml = `
-                                <div class="notif-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none; box-shadow:0 0 10px rgba(245,158,11,0.4)">
-                                    <i class="fa-solid fa-crown" style="color:white; font-size:22px"></i>
-                                </div>`;
-                            iconHtml = '<i class="fa-solid fa-envelope-open-text" style="color:#f59e0b"></i>';
-
-                        } else if (notif.isGhost) {
-                            // 2. الشبح
-                            const ghost = getGhostIdentity(notif.senderUid);
-                            senderName = `مستخدم نبض #${ghost.id}`;
-                            nameStyle = `style="color: ${ghost.color} !important; text-shadow: 0 0 5px ${ghost.color}40;"`;
-                            avatarHtml = `<div class="notif-avatar" style="background: #000; border: 1px solid ${ghost.color}; box-shadow: 0 0 8px ${ghost.color}40;"><i class="fa-solid fa-user-secret" style="color: ${ghost.color}; font-size: 18px;"></i></div>`;
-                        
-                        } else {
-                            // 3. المستخدم العادي
-                            if (isVerified === true) {
-                                verifiedHtml = '<i class="fa-solid fa-circle-check verified-badge"></i>';
-                            }
-                            if (senderPic) {
-                                avatarHtml = `<div class="notif-avatar" style="background-image: url('${senderPic}')"></div>`;
-                            } else {
-                                avatarHtml = `<div class="notif-avatar" style="background-color: #444">${senderName[0]}</div>`;
-                            }
-
-                            // أيقونات التفاعل العادية + المنشن الجديد
-                            if (notif.type === 'like') iconHtml = '<i class="fa-solid fa-heart" style="color:#ff3b30"></i>';
-                            else if (notif.type === 'comment') iconHtml = '<i class="fa-solid fa-comment" style="color:#009EFD"></i>';
-                            else if (notif.type === 'reply') iconHtml = '<i class="fa-solid fa-reply" style="color:#F093FB"></i>';
-                            else if (notif.type === 'share') iconHtml = '<i class="fa-solid fa-share-nodes" style="color:#bf5af2"></i>';
-                            else if (notif.type === 'friend_request') iconHtml = '<i class="fa-solid fa-user-plus" style="color:#34c759"></i>';
-                            else if (notif.type === 'poke') iconHtml = '<i class="fa-solid fa-hand-point-up" style="color:#ffb533"></i>';
-                            
-                            // === إضافة المنشن ===
-                            else if (notif.type === 'mention') iconHtml = '<i class="fa-solid fa-at" style="color:#5D5FEF; font-size:20px;"></i>';
-                            else if (notif.type === 'mention_comment') iconHtml = '<i class="fa-solid fa-comments" style="color:#5D5FEF; font-size:20px;"></i>';
-                        }
-
-                        const div = document.createElement('div');
-                        div.className = `notif-item ${isOpened ? 'opened' : 'unopened'} ${customClass}`;
-                        div.onclick = () => handleNotificationClick(id, notif);
-                        
-                        div.innerHTML = `
-                            ${avatarHtml}
-                            <div class="notif-content">
-                                <div class="notif-text">
-                                    <b ${nameStyle}>${senderName}</b>${verifiedHtml} 
-                                    <div style="font-size:13px; margin-top:3px; opacity:0.9">${displayText}</div>
-                                </div>
-                                <div class="notif-time">${notif.createdAt ? moment(notif.createdAt.toDate()).fromNow() : 'الآن'}</div>
+                        <div class="notif-content">
+                            <div class="notif-text">
+                                <span style="color:#fff; font-weight:bold; font-size:15px;">${senderName}</span>
+                                ${isVerified ? '<i class="fa-solid fa-circle-check verified-badge" style="color:#FFD700"></i>' : ''}
+                                
+                                <span class="gold-text">
+                                    <i class="fa-solid fa-gem"></i> ${giftName}
+                                </span>
                             </div>
-                            <div class="notif-icon">${iconHtml}</div>
-                        `;
-                        list.appendChild(div);
-                    });
-                    isFirstLoad = false;
-                });
-        }
+                            <div class="notif-time" style="color:#FFD700; opacity:0.7; font-size:11px; margin-top:5px;">${timeAgo}</div>
+                        </div>
+
+                        <div class="notif-icon">
+                            <div class="gift-big-icon">🎁</div>
+                        </div>
+                    `;
+                    list.appendChild(div);
+                    return; // 🛑 توقف هنا وانتقل للإشعار التالي (عشان لا يرسم الشكل العادي)
+                }
+
+                // ============================================================
+                // باقي الإشعارات العادية (تعليق، لايك، الخ)
+                // ============================================================
+                
+                let avatarHtml = '';
+                let verifiedHtml = isVerified ? '<i class="fa-solid fa-circle-check verified-badge"></i>' : '';
+                let iconHtml = '<i class="fa-solid fa-bell" style="color:var(--primary-solid)"></i>';
+                let displayText = notif.text;
+                let customClass = '';
+
+                // معالجة الروابط في النصوص
+                if (displayText && (displayText.includes('firebasestorage') || displayText.includes('http'))) {
+                    if (displayText.includes('.m4a') || displayText.includes('.webm')) displayText = "أرسل تسجيلاً صوتياً 🎙️";
+                    else if (displayText.includes('.jpg') || displayText.includes('.png')) displayText = "أرسل صورة 📷";
+                    else if (displayText.includes('.mp4')) displayText = "أرسل فيديو 🎥";
+                }
+
+                // تحديد الأيقونات
+                if (notif.type === 'system_msg') {
+                    customClass = 'system-msg';
+                    verifiedHtml = '<i class="fa-solid fa-circle-check verified-badge" style="color:#f59e0b"></i>';
+                    avatarHtml = `<div class="notif-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706); border:none;"><i class="fa-solid fa-crown" style="color:white;"></i></div>`;
+                    iconHtml = '<i class="fa-solid fa-envelope-open-text" style="color:#f59e0b"></i>';
+                } 
+                else if (notif.isGhost) {
+                    const ghost = getGhostIdentity(notif.senderUid);
+                    senderName = `مستخدم نبض #${ghost.id}`;
+                    avatarHtml = `<div class="notif-avatar" style="background: #000; border: 1px solid ${ghost.color};"><i class="fa-solid fa-user-secret" style="color: ${ghost.color};"></i></div>`;
+                } 
+                else {
+                    if (senderPic) avatarHtml = `<div class="notif-avatar" style="background-image: url('${senderPic}')"></div>`;
+                    else avatarHtml = `<div class="notif-avatar" style="background-color: #444">${senderName[0]}</div>`;
+
+                    switch (notif.type) {
+                        case 'like': iconHtml = '<i class="fa-solid fa-heart" style="color:#ff3b30"></i>'; break;
+                        case 'star': iconHtml = '<i class="fa-solid fa-star" style="color:#FFD700"></i>'; break;
+                        case 'comment': iconHtml = '<i class="fa-solid fa-comment" style="color:#009EFD"></i>'; break;
+                        case 'reply': iconHtml = '<i class="fa-solid fa-reply" style="color:#F093FB"></i>'; break;
+                        case 'share': iconHtml = '<i class="fa-solid fa-share" style="color:#2AF598"></i>'; break;
+                    }
+                }
+
+                const div = document.createElement('div');
+                div.className = `notif-item ${isOpened ? 'opened' : 'unopened'} ${customClass}`;
+                div.onclick = () => handleNotificationClick(id, notif);
+                
+                div.innerHTML = `
+                    ${avatarHtml}
+                    <div class="notif-content">
+                        <div class="notif-text">
+                            <b>${senderName}</b>${verifiedHtml} 
+                            <div style="font-size:13px; margin-top:3px; opacity:0.9; color:${isOpened ? '#888' : '#eee'}">${displayText}</div>
+                        </div>
+                        <div class="notif-time">${timeAgo}</div>
+                    </div>
+                    <div class="notif-icon">${iconHtml}</div>
+                `;
+                list.appendChild(div);
+            });
+            isFirstLoad = false;
+        });
+}
+
 
         async function handleNotificationClick(docId, notif) {
             await db.collection('notifications').doc(docId).update({ opened: true, read: true });
