@@ -10,7 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="global-call.js"></script>
 
 <style>
 /* ========================================= */
@@ -364,6 +363,207 @@ button { border: none; outline: none; background: none; cursor: pointer; }
 @keyframes uraniumPulse { 0% { box-shadow: 0 0 5px #39ff14; } 100% { box-shadow: 0 0 20px #39ff14, 0 0 10px #39ff14 inset; } }
 
     }
+    /* ========================================= */
+/* تصميم تبويب "لمحة" الجديد (مثل الصورة)    */
+/* ========================================= */
+.details-card {
+    background: transparent;
+    padding: 10px 20px;
+    margin-bottom: 20px;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.edit-icon {
+    color: var(--secondary-text);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 5px;
+}
+
+/* قسم التفاصيل والروابط */
+.info-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    font-size: 15px;
+}
+.info-row i { color: var(--secondary-text); width: 20px; text-align: center; }
+.link-box {
+    color: #fff;
+    font-weight: bold;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* شبكة الأصدقاء */
+.friends-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+.friend-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+}
+.friend-card-img {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    background-color: #333;
+    margin-bottom: 5px;
+    border: 1px solid var(--border-color);
+}
+.friend-card-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 100%;
+}
+
+/* أبرز المنشورات (Highlights) */
+.highlights-scroller {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none; /* Firefox */
+}
+.highlights-scroller::-webkit-scrollbar { display: none; } /* Chrome */
+
+.highlight-card {
+    min-width: 100px;
+    height: 140px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    background: #222;
+    border: 1px solid var(--border-color);
+}
+.highlight-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.highlight-title {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 8px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    text-align: center;
+}
+.add-highlight-card {
+    min-width: 100px;
+    height: 140px;
+    border-radius: 12px;
+    border: 1px dashed var(--secondary-text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    gap: 5px;
+    cursor: pointer;
+}
+
+
+/* تنسيقات نافذة الرفع */
+.highlight-upload-area {
+    width: 100%;
+    height: 200px;
+    background: var(--input-bg);
+    border: 2px dashed var(--border-color);
+    border-radius: 12px;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    transition: 0.3s;
+}
+.highlight-upload-area:hover { border-color: var(--primary-solid); }
+.hl-input {
+    width: 100%;
+    padding: 12px;
+    background: var(--input-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-color);
+    outline: none;
+    font-family: 'Cairo';
+}
+
+/* تنسيقات عارض الستوري (Story Viewer) */
+.story-viewer-overlay {
+    position: fixed; inset: 0;
+    background: #000;
+    z-index: 99999;
+    display: none;
+    flex-direction: column;
+}
+.story-progress-bar {
+    position: absolute; top: 10px; left: 10px; right: 10px;
+    height: 3px; background: rgba(255,255,255,0.3); border-radius: 5px;
+    z-index: 10;
+}
+.story-progress-fill {
+    width: 0%; height: 100%; background: #fff;
+    transition: width linear;
+}
+.story-header {
+    position: absolute; top: 20px; left: 0; right: 0;
+    padding: 10px 15px;
+    display: flex; justify-content: space-between; align-items: center;
+    color: #fff; z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
+}
+.story-user-info { display: flex; align-items: center; gap: 10px; }
+.story-avatar { width: 35px; height: 35px; border-radius: 50%; background-size: cover; border: 1px solid #fff; }
+.story-image {
+    width: 100%; height: 100%; object-fit: contain;
+}
+.story-title {
+    position: absolute; bottom: 40px; left: 0; right: 0;
+    text-align: center; color: #fff; font-size: 18px; font-weight: bold;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+    background: linear-gradient(to top, rgba(0,0,0,0.6), transparent);
+    padding: 20px;
+}
+.story-delete-btn {
+    position: absolute; bottom: 20px; right: 20px;
+    width: 40px; height: 40px;
+    background: rgba(255, 0, 0, 0.6);
+    color: #fff; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+    cursor: pointer; z-index: 20;
+}
+
 </style>
 
 
@@ -605,12 +805,56 @@ button { border: none; outline: none; background: none; cursor: pointer; }
         </div>
     </div>
 
-    <div id="content-about" class="tab-content">
-        <div style="padding: 20px; background: var(--card-color); margin: 0 15px; border-radius: 18px; border: 1px solid var(--border-color);">
-            <h3 style="margin-bottom: 20px; font-size: 18px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">التفاصيل</h3>
-            <div id="aboutDetailsList" style="display: flex; flex-direction: column; gap: 15px;"></div>
+   <div id="content-about" class="tab-content">
+    <div class="details-card">
+        
+        <div class="section-header">
+            <span>التفاصيل الشخصية</span>
+            <i class="fa-solid fa-pen edit-icon" id="editInfoBtn" style="display:none" onclick="editProfileDetails()"></i>
         </div>
+        <div id="personalInfoWidget">
+            <div class="info-row"><i class="fa-solid fa-location-dot"></i> <span id="infoLocation">...</span></div>
+            <div class="info-row"><i class="fa-solid fa-briefcase"></i> <span id="infoWork">...</span></div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border-color); margin: 20px 0;">
+
+        <div class="section-header">
+            <span>الروابط</span>
+            <i class="fa-solid fa-pen edit-icon" id="editLinksBtn" style="display:none" onclick="editLinks()"></i>
+        </div>
+        <div id="linksWidget">
+            <div class="info-row">
+                <a href="#" target="_blank" id="infoWebsite" class="link-box" style="color:#5D5FEF">
+                   <i class="fa-solid fa-link"></i> <span id="infoWebsiteText">...</span>
+                </a>
+            </div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border-color); margin: 20px 0;">
+
+        <div class="section-header">
+            <span>الأصدقاء</span>
+            <span style="font-size:12px; color:var(--primary-solid); cursor:pointer" onclick="viewList('friends')">عرض الكل</span>
+        </div>
+        <div class="friends-preview-grid" id="friendsWidgetGrid">
+            <div style="text-align:center; grid-column:span 3; color:#777">جاري التحميل...</div>
+        </div>
+
+        <hr style="border:0; border-top:1px solid var(--border-color); margin: 20px 0;">
+
+        <div class="section-header">
+            <span> الصور المميزة</span>
+        </div>
+        <div class="highlights-scroller" id="highlightsWidget">
+            <div class="add-highlight-card" id="addHighlightBtn" style="display:none" onclick="createNewHighlight()">
+                <i class="fa-solid fa-plus" style="font-size:24px"></i>
+                <span>جديد</span>
+            </div>
+            </div>
+
     </div>
+</div>
 
     <div class="bottom-sheet" id="cmSheet" style="height: 85vh;">
         <div class="sheet-handle"></div>
@@ -784,10 +1028,13 @@ button { border: none; outline: none; background: none; cursor: pointer; }
         <img id="lb-img" src="" style="max-width:100%; max-height:90vh; border-radius:10px;">
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+      <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
 
     <script>
     // متغير عشان نحفظ مكاننا فين
@@ -1105,7 +1352,9 @@ listeners.push(db.collection("users").doc(profileUid).collection("followers").on
                     checkRelationship();
                 }
 
-            } catch(e) { console.error(e); }
+           } catch(e) { console.error(e); }
+           
+           loadAboutTabWidgets();
                         // ============ بداية            // ============ بداية كود مراقبة الحالة (المطور للبروفايل) ============
             if (profileUid) {
                 // 1. مراقبة الـ Realtime Database
@@ -1148,6 +1397,7 @@ listeners.push(db.collection("users").doc(profileUid).collection("followers").on
                             // إضافة أيقونة صغيرة للساعة لشكل أجمل
                             badge.innerHTML = `<i class="fa-regular fa-clock" style="font-size:9px; margin-left:3px;"></i> نشط ${timeText}`; 
                             container.appendChild(badge);
+                            
                         }
                     }
                 });
@@ -2573,7 +2823,15 @@ function showAddAccountForm() {
         }
 
         function openLightbox(s) { playSound('click'); document.getElementById('lb-img').src=s; document.getElementById('lightbox').style.display='flex'; }
-        function viewList(t) { if(profileUid) location.href=`friends.html?uid=${profileUid}&list=${t}`; }
+        // التعديل ده عشان لما تضغط يبعت الـ ID بتاع الشخص اللي انت عنده
+function viewList(type) {
+    // profileUid ده متغير موجود في صفحتك شايل رقم الشخص اللي انت فاتح بروفايله
+    if (profileUid) {
+        // هنا بنقوله روح لصفحة الأصدقاء وخد معاك الرقم ده
+        location.href = `friends.html?uid=${profileUid}`;
+    }
+}
+
         function formatNumber(num) { if (!num) return '0'; if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; return num.toString(); }
 
         function shareProfile() {
@@ -3826,6 +4084,363 @@ function getShortLastSeen(timestamp) {
     if (weeks <= 4) return `${weeks} أ`;
     return '';
 }
+// =========================================
+// دوال "لمحة" الجديدة (التفاصيل، الأصدقاء، الهايلايت)
+// =========================================
+
+// استدعِ هذه الدالة داخل loadProfile()
+async function loadAboutTabWidgets() {
+    const isMine = (currentUser.uid === profileUid);
+    
+    // 1. إظهار أزرار التعديل لصاحب الحساب
+    if(isMine) {
+        document.getElementById('editInfoBtn').style.display = 'block';
+        document.getElementById('editLinksBtn').style.display = 'block';
+        document.getElementById('addHighlightBtn').style.display = 'flex';
+    }
+
+    // 2. تعبئة البيانات الشخصية والروابط
+    if(profileData) {
+        // الموقع
+        document.getElementById('infoLocation').innerText = profileData.location || "غير محدد";
+        // العمل
+        document.getElementById('infoWork').innerText = profileData.work || "غير محدد";
+        
+        // الرابط
+        const webLink = document.getElementById('infoWebsite');
+        if(profileData.website) {
+            webLink.href = profileData.website;
+            document.getElementById('infoWebsiteText').innerText = profileData.website.replace(/^https?:\/\//, '');
+            webLink.style.display = 'flex';
+        } else {
+            webLink.style.display = 'none';
+        }
+    }
+
+    // 3. جلب الأصدقاء (أول 6 فقط)
+    loadFriendsWidget();
+
+    // 4. جلب الهايلايت
+    loadHighlightsWidget();
+}
+
+// دالة جلب وعرض الأصدقاء في الشبكة
+function loadFriendsWidget() {
+    const grid = document.getElementById('friendsWidgetGrid');
+    
+    db.collection("users").doc(profileUid).collection("friends").limit(6).get().then(async snap => {
+        grid.innerHTML = "";
+        if(snap.empty) {
+            grid.innerHTML = `<div style="text-align:center; grid-column:span 3; color:var(--secondary-text); font-size:13px;">لا يوجد أصدقاء لعرضهم</div>`;
+            return;
+        }
+
+        // نحتاج نجيب بيانات كل صديق (اسمه وصورته)
+        const promises = snap.docs.map(doc => db.collection("users").doc(doc.id).get());
+        const friendsDocs = await Promise.all(promises);
+
+        friendsDocs.forEach(doc => {
+            if(!doc.exists) return;
+            const f = doc.data();
+            const pic = f.profilePic || "";
+            const name = f.name || "مستخدم";
+            const color = generateColor(doc.id);
+            
+            // تصميم الكارت (الصورة + الاسم)
+            const bgStyle = pic ? `background-image: url('${pic}')` : `background-color: ${color}; display:grid; place-items:center; color:#fff; font-size:20px;`;
+            const content = pic ? '' : name[0];
+
+            grid.innerHTML += `
+                <div class="friend-card" onclick="location.href='profile.html?uid=${doc.id}'">
+                    <div class="friend-card-img" style="${bgStyle}">${content}</div>
+                    <div class="friend-card-name">${name}</div>
+                </div>
+            `;
+        });
+    });
+}
+
+// دالة جلب وعرض الهايلايت (أبرز المنشورات)
+function loadHighlightsWidget() {
+    const container = document.getElementById('highlightsWidget');
+    // بنفترض وجود كوليكشن اسمه highlights (ممكن تعمله لاحقاً)
+    // أو بنجيب المنشورات اللي فيها حقل isFeatured = true
+    
+    // همسح العناصر القديمة ماعدا زر "جديد"
+    const addBtn = document.getElementById('addHighlightBtn');
+    container.innerHTML = "";
+    if(addBtn) container.appendChild(addBtn);
+
+    db.collection("users").doc(profileUid).collection("highlights").orderBy("createdAt", "desc").get().then(snap => {
+        if(snap.empty && profileUid !== currentUser.uid) {
+            // لو مفيش هايلايت ومش بروفايلي، ممكن نخفي القسم كله
+            // container.parentElement.style.display = 'none'; 
+            return;
+        }
+
+        snap.forEach(doc => {
+            const h = doc.data();
+            const div = document.createElement('div');
+            div.className = 'highlight-card';
+            div.onclick = () => showToast("فتح الهايلايت (قريباً)"); // هنا ممكن تفتح عارض الصور
+            div.innerHTML = `
+                <img src="${h.coverUrl}" class="highlight-img">
+                <div class="highlight-title">${h.title}</div>
+            `;
+            container.appendChild(div);
+        });
+    });
+}
+
+// دالة إضافة هايلايت (وهمية حالياً للعرض)
+// =========================================
+//  نظام الهايلايت (Highlights System)
+// =========================================
+
+// 1. فتح نافذة الإنشاء
+function createNewHighlight() {
+    document.getElementById('createHighlightModal').style.display = 'flex';
+    // تصفير الحقول
+    document.getElementById('hlFile').value = "";
+    document.getElementById('hlTitle').value = "";
+    document.getElementById('hlPreview').style.display = 'none';
+    document.getElementById('hlPlaceholder').style.display = 'flex';
+}
+
+function closeHighlightModal() {
+    document.getElementById('createHighlightModal').style.display = 'none';
+}
+
+// 2. معاينة الصورة قبل الرفع
+function previewHighlightImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('hlPreview').src = e.target.result;
+            document.getElementById('hlPreview').style.display = 'block';
+            document.getElementById('hlPlaceholder').style.display = 'none';
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// 3. رفع وحفظ الهايلايت في Firebase
+async function uploadHighlight() {
+    // 1. فحوصات أولية
+    if (!currentUser) { showToast("يجب تسجيل الدخول!"); return; }
+
+    const fileInput = document.getElementById('hlFile');
+    const file = fileInput.files[0];
+    const title = document.getElementById('hlTitle').value;
+
+    if (!file) { showToast("من فضلك اختر صورة 📷"); return; }
+    
+    // تغيير الزر ليدل على البداية
+    const btn = document.querySelector('#createHighlightModal .btn-primary');
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+
+    try {
+        // 2. تجهيز الاسم الآمن (مهم جداً)
+        const extension = file.name.split('.').pop();
+        const safeName = `hl_${Date.now()}.${extension}`; 
+        
+        const storageRef = firebase.storage().ref();
+        const fileRef = storageRef.child(`highlights/${currentUser.uid}/${safeName}`);
+        
+        const metadata = { contentType: file.type };
+
+        // 🔥 الإضافة هنا: استخدام uploadTask بدلاً من await المباشر
+        // هذا يسمح لنا بمراقبة العملية
+        const uploadTask = fileRef.put(file, metadata);
+
+        uploadTask.on('state_changed', 
+            (snapshot) => {
+                // (أ) أثناء الرفع: حساب النسبة المئوية
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> ${Math.round(progress)}%`;
+                console.log('Upload is ' + progress + '% done');
+            }, 
+            (error) => {
+                // (ب) في حالة حدوث خطأ: كشف السبب بالتفصيل
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                
+                // هذه القائمة ستخبرك بالمشكلة بالضبط
+                switch (error.code) {
+                    case 'storage/unauthorized':
+                        alert("⛔ خطأ: ليس لديك إذن (User doesn't have permission). راجع الـ Rules.");
+                        break;
+                    case 'storage/canceled':
+                        showToast("تم إلغاء الرفع.");
+                        break;
+                    case 'storage/unknown':
+                        alert("❌ خطأ غير معروف (ربما بسبب اسم الملف أو الشبكة).");
+                        break;
+                    default:
+                        alert("خطأ Firebase: " + error.message);
+                }
+                console.error("Upload Failed:", error);
+            }, 
+            async () => {
+                // (ج) عند اكتمال الرفع بنجاح
+                const downloadUrl = await uploadTask.snapshot.ref.getDownloadURL();
+                
+                // الحفظ في قاعدة البيانات
+                await db.collection("users").doc(currentUser.uid).collection("highlights").add({
+                    imageUrl: downloadUrl,
+                    title: title || "هايلايت جديد",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                showToast("✅ تم النشر بنجاح!");
+                closeHighlightModal();
+                
+                // إعادة الزر وتنظيف الحقول
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                fileInput.value = "";
+                document.getElementById('hlTitle').value = "";
+                document.getElementById('hlPreview').style.display = 'none';
+                document.getElementById('hlPlaceholder').style.display = 'flex';
+                
+                // تحديث القائمة
+                if(typeof loadHighlightsWidget === 'function') loadHighlightsWidget();
+            }
+        );
+
+    } catch (error) {
+        console.error("General Error:", error);
+        alert("خطأ عام في الكود: " + error.message);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+
+// 4. عرض الهايلايت في البروفايل (Fetching)
+function loadHighlightsWidget() {
+    const container = document.getElementById('highlightsWidget');
+    container.innerHTML = ""; // تنظيف
+
+    // لو بروفايلي، أظهر زر الإضافة
+    if (currentUser.uid === profileUid) {
+        const addBtn = document.createElement('div');
+        addBtn.className = 'add-highlight-card';
+        addBtn.id = 'addHighlightBtn';
+        addBtn.onclick = createNewHighlight;
+        addBtn.innerHTML = `
+            <i class="fa-solid fa-plus" style="font-size:24px; color:var(--primary-solid)"></i>
+            <span style="font-size:11px; font-weight:bold;">جديد</span>
+        `;
+        container.appendChild(addBtn);
+    }
+
+    // جلب البيانات
+    db.collection("users").doc(profileUid).collection("highlights")
+        .orderBy("createdAt", "desc")
+        .get()
+        .then(snap => {
+            if (snap.empty && currentUser.uid !== profileUid) {
+                // لو زائر ومفيش هايلايت، نخفي القسم
+                // document.querySelector('.highlights-scroller').parentElement.style.display = 'none';
+                container.innerHTML = "<div style='padding:10px; color:#777; font-size:12px;'>لا توجد قصص مثبتة</div>";
+                return;
+            }
+
+            snap.forEach(doc => {
+                const h = { id: doc.id, ...doc.data() };
+                const div = document.createElement('div');
+                div.className = 'highlight-card';
+                // عند الضغط نفتح العارض ونبعت البيانات
+                div.onclick = () => openStoryViewer(h);
+                div.innerHTML = `
+                    <img src="${h.imageUrl}" class="highlight-img">
+                    <div class="highlight-title">${h.title}</div>
+                `;
+                container.appendChild(div);
+            });
+        });
+}
+
+// 5. عارض الستوري (Story Viewer Logic)
+let currentStoryId = null;
+let storyTimer = null;
+
+function openStoryViewer(highlightData) {
+    const viewer = document.getElementById('storyViewer');
+    const progress = document.getElementById('storyProgress');
+    
+    // تعبئة البيانات
+    document.getElementById('storyImage').src = highlightData.imageUrl;
+    document.getElementById('storyTitleDisplay').innerText = highlightData.title;
+    document.getElementById('storyUsername').innerText = profileData.name || "مستخدم";
+    document.getElementById('storyTime').innerText = "الآن"; // ممكن تستخدم moment.js للوقت
+
+    // الصورة الشخصية في الهيدر
+    const avatarDiv = document.getElementById('storyAvatar');
+    if(profileData.profilePic) {
+        avatarDiv.style.backgroundImage = `url('${profileData.profilePic}')`;
+    } else {
+        avatarDiv.style.background = generateColor(profileUid);
+    }
+
+    // إظهار زر الحذف لو أنا صاحب الستوري
+    const delBtn = document.getElementById('storyDeleteBtn');
+    if (currentUser.uid === profileUid) {
+        delBtn.style.display = 'flex';
+        currentStoryId = highlightData.id;
+    } else {
+        delBtn.style.display = 'none';
+    }
+
+    // عرض النافذة
+    viewer.style.display = 'flex';
+
+    // تشغيل العداد (Progress Bar) - مدة 5 ثواني
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
+    
+    setTimeout(() => {
+        progress.style.transition = 'width 5s linear';
+        progress.style.width = '100%';
+    }, 50);
+
+    // إغلاق تلقائي بعد 5 ثواني
+    if(storyTimer) clearTimeout(storyTimer);
+    storyTimer = setTimeout(closeStoryViewer, 5000);
+}
+
+function closeStoryViewer() {
+    document.getElementById('storyViewer').style.display = 'none';
+    document.getElementById('storyImage').src = ""; // توفير الذاكرة
+    if(storyTimer) clearTimeout(storyTimer);
+}
+
+// حذف الهايلايت
+async function deleteCurrentHighlight() {
+    if (!confirm("حذف هذه القصة المميزة؟")) return;
+
+    try {
+        // حذف من Firestore
+        await db.collection("users").doc(currentUser.uid).collection("highlights").doc(currentStoryId).delete();
+        
+        // (اختياري) حذف الصورة من Storage لو معاك مسار الملف
+        // ...
+
+        showToast("تم الحذف");
+        closeStoryViewer();
+        loadHighlightsWidget(); // تحديث القائمة
+    } catch (e) {
+        console.error(e);
+        showToast("حدث خطأ");
+    }
+}
+
+// دالة تعديل التفاصيل
+function editProfileDetails() {
+    location.href = 'edit.html'; // أو تفتح مودال تعديل سريع
+}
 
 
 </script> 
@@ -3959,8 +4574,7 @@ function getShortLastSeen(timestamp) {
         </div>
     </div>
 </div>
-        <script src="global-call.js"></script>
-<script>
+   <script>
 (function() {
     // 1. إعدادات الصوت (تحميل الحالة المحفوظة)
     window.appSoundsEnabled = localStorage.getItem('nabd_app_sounds') !== 'false';
@@ -4060,6 +4674,53 @@ function getShortLastSeen(timestamp) {
     <div style="font-size:18px; color:#777; font-weight:bold;">المستخدم غير متاح</div>
     <div style="font-size:14px; color:#555; margin-top:5px;">لا يمكن عرض هذا الملف بسبب إعدادات الخصوصية.</div>
     <button onclick="location.href='home.html'" style="margin-top:20px; padding:10px 25px; background:#1f1f1f; border:1px solid #333; color:#fff; border-radius:20px; cursor:pointer;">العودة للرئيسية</button>
+</div>
+
+
+<script src="global-call.js"></script>
+
+<div class="custom-modal" id="createHighlightModal">
+    <div class="modal-box">
+        <h3>إضافة هايلايت جديد</h3>
+        
+        <div class="highlight-upload-area" onclick="document.getElementById('hlFile').click()">
+            <input type="file" id="hlFile" accept="image/*" style="display:none" onchange="previewHighlightImage(this)">
+            <img id="hlPreview" src="" style="display:none; width:100%; height:100%; object-fit:cover; border-radius:12px;">
+            <div id="hlPlaceholder">
+                <i class="fa-solid fa-cloud-arrow-up" style="font-size:30px; margin-bottom:10px;"></i>
+                <div>اضغط لاختيار صورة</div>
+            </div>
+        </div>
+
+        <input type="text" id="hlTitle" placeholder="عنوان الهايلايت (مثلاً: سفريات)" class="hl-input">
+
+        <div style="display:flex; gap:10px; margin-top:15px;">
+            <button class="btn btn-secondary" onclick="closeHighlightModal()">إلغاء</button>
+            <button class="btn btn-primary" onclick="uploadHighlight()">نشر</button>
+        </div>
+    </div>
+</div>
+
+<div id="storyViewer" class="story-viewer-overlay">
+    <div class="story-progress-bar"><div class="story-progress-fill" id="storyProgress"></div></div>
+    
+    <div class="story-header">
+        <div class="story-user-info">
+            <div class="story-avatar" id="storyAvatar"></div>
+            <div style="display:flex; flex-direction:column;">
+                <span id="storyUsername" style="font-weight:bold;"></span>
+                <span id="storyTime" style="font-size:11px; opacity:0.7;"></span>
+            </div>
+        </div>
+        <i class="fa-solid fa-xmark" onclick="closeStoryViewer()" style="font-size:24px; cursor:pointer; padding:10px;"></i>
+    </div>
+
+    <img id="storyImage" src="" class="story-image">
+    <div class="story-title" id="storyTitleDisplay"></div>
+    
+    <div id="storyDeleteBtn" class="story-delete-btn" onclick="deleteCurrentHighlight()">
+        <i class="fa-solid fa-trash"></i>
+    </div>
 </div>
 
 </body>
