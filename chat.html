@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#050b14">
 
     <title>Wareed Chat - Professional</title>
-.    
+   
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
       
@@ -5177,6 +5177,7 @@ z-index: 2147483647 !important;
     border-color: transparent;
 }
 
+
     </style>
 </head>
 <body>
@@ -7116,22 +7117,58 @@ if (msg.type === 'image' || msg.type === 'video') {
     else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; } 
     // ================= انسخ هذا الكود وضعه داخل loadMessages مكان كود الفيديو القديم =================
 // ابحث عن جزء الفيديو في loadMessages واستبدله بده
-else if (msg.type === 'video') {
-    const videoUrl = msg.text; 
-    const vidId = `vid_${doc.id}`;
+        // ============================================================
+// 🎥 استبدل جزء الفيديو داخل loadMessages بهذا الكود 🎥
+// ============================================================
 
+else if (msg.type === 'video') {
+    const vidId = `vid_inline_${doc.id}`; 
+    const videoUrl = msg.text; 
+
+    // 1. إعداد متغيرات التوجيه (الرابط)
+    let wrapperClick = "";  // أمر الضغط
+    let cursorStyle = "";   // شكل الماوس
+    let sharedBadgeHTML = "";
+
+    // 2. فحص هل الفيديو مشاركة؟
+    if (msg.isShared === true && msg.postId) {
+        
+        // 🔥🔥 الإصلاح: وضعنا الرابط على الكارت بالكامل 🔥🔥
+        wrapperClick = `onclick="goToOriginalVideo('${msg.postId}')"`;
+        cursorStyle = "cursor: pointer;"; 
+        
+        // العلامة مجرد شكل جمالي
+        sharedBadgeHTML = `
+            <div class="shared-badge">
+                <i class="fa-solid fa-share"></i> عرض المنشور الأصلي
+            </div>
+        `;
+    }
+
+    // 3. بناء HTML الفيديو (لاحظ إضافة wrapperClick في الديف الرئيسي)
     content = `
-    <div class="video-msg-wrapper">
-        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline></video>
-        <div class="video-overlay">
-            <div class="center-play-btn" onclick="toggleInlinePlay('${vidId}', event)">
-                <i class="fa-solid fa-play"></i>
+    <div class="video-msg-wrapper" ${wrapperClick} style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5; ${cursorStyle}">
+        
+        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+        
+        <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+            
+            <div class="center-play-btn" onclick="event.stopPropagation(); toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
+                <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
             </div>
-            <div class="expand-icon" onclick="event.stopPropagation(); window.openProPlayer('${videoUrl}');">
-                <i class="fa-solid fa-expand"></i>
+
+            <div class="expand-icon" 
+                 onclick="event.stopPropagation(); window.openProPlayer('${videoUrl}');" 
+                 style="position: absolute; bottom: 10px; right: 10px; width: 35px; height: 35px; background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50;">
+                <i class="fa-solid fa-expand" style="color: #fff; font-size: 16px;"></i>
             </div>
+            
+            ${sharedBadgeHTML}
+            
         </div>
     </div>`;
+    
+    // إضافة كلاس لتمييز الفيديو
     bubbleClass += " media-bubble";
 }
 
@@ -9826,34 +9863,55 @@ function buildMessageHTML(msg, id, u) {
     if (msg.type === 'deleted') content = `<span style="font-style:italic;color:#94a3b8;"><i class="fa-solid fa-ban"></i> تم حذف الرسالة</span>`;
     else if (msg.type === 'text') content = linkify(escapeHtml(msg.text));
     else if (msg.type === 'image') content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`;
-                    else if (msg.type === 'video') {
-    const vidId = `vid_inline_${doc.id}`;
-    // نستخدم msg.text مباشرة لأنه يحتوي على رابط الفيديو
-    const videoUrl = msg.text; 
+                            else if (msg.type === 'video') {
+        const vidId = `vid_inline_${doc.id}`; 
+        const videoUrl = msg.text; 
 
-    content = `
-    <div class="video-msg-wrapper" style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5;">
-        
-        <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
-        
-        <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-            
-            <div class="center-play-btn" onclick="toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
-                <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
-            </div>
+        // 1. متغيرات للتحكم في التوجيه
+        let wrapperClick = ""; // أمر الضغط للصندوق كله
+        let cursorStyle = "";  // شكل الماوس
+        let sharedBadgeHTML = "";
 
-            <div class="expand-icon" 
-                 onclick="event.stopPropagation(); console.log('Opening Pro Player:', '${videoUrl}'); openProPlayer('${videoUrl}');" 
-                 style="position: absolute; bottom: 10px; right: 10px; width: 35px; height: 35px; background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50;">
-                <i class="fa-solid fa-expand" style="color: #fff; font-size: 16px;"></i>
-            </div>
+        // 2. لو الفيديو مشاركة وفيه رقم البوست -> نجهز الرابط
+        if (msg.isShared === true && msg.postId) {
             
-            <div style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.6); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 4px;">فيديو</div>
-        </div>
-    </div>`;
-    
-    bubbleClass += " media-bubble";
-}
+            // 🔥 هنا الحل: حطينا الأمر على الصندوق الكبير 🔥
+            wrapperClick = `onclick="goToOriginalVideo('${msg.postId}')"`;
+            cursorStyle = "cursor: pointer;"; 
+            
+            // العلامة مجرد شكل (شيلنا من عليها الـ onclick)
+            sharedBadgeHTML = `
+                <div class="shared-badge">
+                    <i class="fa-solid fa-share"></i> من الفيديوهات
+                </div>
+            `;
+        }
+
+        // 3. بناء الفيديو (لاحظ wrapperClick في أول سطر)
+        content = `
+        <div class="video-msg-wrapper" ${wrapperClick} style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5; ${cursorStyle}">
+            
+            <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
+            
+            <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
+                
+                <div class="center-play-btn" onclick="event.stopPropagation(); toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
+                    <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
+                </div>
+
+                <div class="expand-icon" 
+                     onclick="event.stopPropagation(); window.openProPlayer('${videoUrl}');" 
+                     style="position: absolute; bottom: 10px; right: 10px; width: 35px; height: 35px; background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50;">
+                    <i class="fa-solid fa-expand" style="color: #fff; font-size: 16px;"></i>
+                </div>
+                
+                ${sharedBadgeHTML}
+                
+            </div>
+        </div>`;
+        
+        bubbleClass += " media-bubble";
+    }
 
 // ... الشروط السابقة (image, video, etc.)
 
@@ -13447,53 +13505,73 @@ openGiftCenter = function() {
 }
 
 // ================= 1. التحكم في الفيديو داخل الشات (Inline) =================
+// ================= التحكم في الفيديو داخل الشات (النسخة الآمنة) =================
 function toggleInlinePlay(vidId, event) {
-    // 1. منع فتح البروفا (أهم سطر)
+    // 1. منع فتح الصفحة عند الضغط على زر التشغيل
     if(event) {
         event.stopPropagation();
         event.preventDefault();
     }
 
     const video = document.getElementById(vidId);
-    const wrapper = video.closest('.video-msg-wrapper');
-    const overlay = wrapper.querySelector('.video-overlay');
-    const blurBg = wrapper.querySelector('.video-bg-blur');
-    const btnIcon = wrapper.querySelector('.center-play-btn i');
+    
+    // أمان: لو الفيديو مش موجود اخرج
+    if (!video) return;
 
-    // إيقاف أي فيديو آخر
+    const wrapper = video.closest('.video-msg-wrapper');
+    
+    // جلب العناصر (مع احتمال عدم وجود بعضها)
+    const overlay = wrapper ? wrapper.querySelector('.video-overlay') : null;
+    const btnIcon = wrapper ? wrapper.querySelector('.center-play-btn i') : null;
+    
+    // العنصر ده هو اللي كان بيعمل المشكلة لو مش موجود (بقينا نتأكد منه)
+    const blurBg = wrapper ? wrapper.querySelector('.video-bg-blur') : null; 
+
+    // إيقاف أي فيديو آخر شغال حالياً
     document.querySelectorAll('video').forEach(v => {
         if(v.id !== vidId && !v.paused && v.classList.contains('video-main-content')) {
-            // نرجع الفيديوهات التانية لحالتها الطبيعية
             v.pause();
+            // ارجاع شكل الفيديو المتوقف لطبيعته
             const w = v.closest('.video-msg-wrapper');
             if(w) {
-                w.querySelector('.video-overlay').style.opacity = '1';
-                w.querySelector('.center-play-btn i').className = "fa-solid fa-play";
+                const ov = w.querySelector('.video-overlay');
+                const ic = w.querySelector('.center-play-btn i');
+                if(ov) ov.style.opacity = '1';
+                if(ic) ic.className = "fa-solid fa-play";
             }
         }
     });
 
     if (video.paused) {
-        // تشغيل
-        video.play();
-        btnIcon.className = "fa-solid fa-pause";
-        
-        // إخفاء الأزرار والخلفية الضبابية للتركيز
-        overlay.style.opacity = '0';
-        blurBg.style.opacity = '0'; 
-        
-        // إرجاع الأزرار عند اللمس/الماوس (اختياري)
-        wrapper.onmouseenter = () => overlay.style.opacity = '1';
-        wrapper.onmouseleave = () => overlay.style.opacity = '0';
+        // --- تشغيل ---
+        video.play().then(() => {
+            // تغيير الأيقونة (لو موجودة)
+            if (btnIcon) btnIcon.className = "fa-solid fa-pause";
+            
+            // إخفاء الطبقة الشفافة (لو موجودة)
+            if (overlay) overlay.style.opacity = '0';
+            
+            // 🔥 الإصلاح هنا: إخفاء الخلفية الضبابية فقط لو كانت موجودة 🔥
+            if (blurBg) blurBg.style.opacity = '0'; 
+            
+            // إرجاع الأزرار عند اللمس (اختياري)
+            if (wrapper && overlay) {
+                wrapper.onmouseenter = () => overlay.style.opacity = '1';
+                wrapper.onmouseleave = () => overlay.style.opacity = '0';
+            }
+        }).catch(err => console.log("Video play error:", err));
 
     } else {
-        // إيقاف
+        // --- إيقاف ---
         video.pause();
-        btnIcon.className = "fa-solid fa-play";
-        overlay.style.opacity = '1';
-        blurBg.style.opacity = '1'; // إظهار الخلفية الضبابية مرة أخرى
+        if (btnIcon) btnIcon.className = "fa-solid fa-play";
+        if (overlay) overlay.style.opacity = '1';
+        
+        // 🔥 الإصلاح هنا أيضاً 🔥
+        if (blurBg) blurBg.style.opacity = '1'; 
     }
 }
+
 
 // ================= منطق مشغل الفيديو (Pro Player) - نسخة التطبيقات =================
 
@@ -14580,6 +14658,14 @@ function updateBlockUI(isBlockedActive) {
     }
 }
 
+function goToOriginalVideo(postId) {
+    console.log("الانتقال للفيديو:", postId); // للتجربة
+    // 1. هزة خفيفة للموبايل
+    if(navigator.vibrate) navigator.vibrate(10);
+    
+    // 2. التوجيه للصفحة
+    window.location.href = `videos.html?openVideo=${postId}`;
+}
 
 
     </script>
@@ -14602,19 +14688,17 @@ function updateBlockUI(isBlockedActive) {
 </div>
 
 <audio id="ringtoneOut" loop preload="auto">
-    <source src="./sounds/ring_out.mp3" type="audio/mp3">
+    <source src="./sounds/ring_out.mp3" type="audio/mp3"> 
 </audio>
-
-
 
 <audio id="ringtoneIn" loop preload="auto">
-    <source src="./sounds/ring_in.wav" type="audio/wav">
+    <source src="./sounds/ring_in.mp3" type="audio/mp3"> 
 </audio>
-
 
 <audio id="callEndSound" preload="auto">
-    <source src="./sounds/end_call.mp3" type="audio/mp3">
+    <source src="./sounds/callEndSound.mp3" type="audio/mp3">
 </audio>
+
 
 <div id="profilePage" class="profile-page" style="display:none;">
     
@@ -15233,6 +15317,46 @@ function updateBlockUI(isBlockedActive) {
 <div id="coinExplosionContainer" style="position:fixed; inset:0; pointer-events:none; z-index:2147483647;"></div>
 
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. قراءة الرابط ومعرفة رقم الفيديو المطلوب
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetVideoId = urlParams.get('openVideo');
+
+        if (targetVideoId) {
+            // ننتظر قليلاً حتى يتم تحميل الفيديوهات من قاعدة البيانات
+            // (لو الفيديوهات بتاخد وقت عشان تحمل، زود الرقم ده لـ 2000 او 3000)
+            setTimeout(() => {
+                
+                // 2. البحث عن الفيديو في الصفحة
+                // ملاحظة: تأكد أن كل فيديو في صفحة videos.html واخد ID هو نفس رقم البوست
+                const targetElement = document.getElementById(targetVideoId) || document.getElementById(`post_${targetVideoId}`);
+
+                if (targetElement) {
+                    console.log("تم العثور على الفيديو، جاري الانتقال...");
+
+                    // 3. النزول للفيديو (Scroll)
+                    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+
+                    // 4. تشغيل الفيديو (اختياري)
+                    const videoTag = targetElement.querySelector('video');
+                    if (videoTag) {
+                        videoTag.play().catch(e => console.log("لم يمكن التشغيل التلقائي بسبب سياسة المتصفح"));
+                    }
+                    
+                    // 5. تمييز الفيديو بوميض (اختياري - عشان اليوزر ياخد باله)
+                    targetElement.style.transition = "0.5s";
+                    targetElement.style.border = "2px solid #00e5ff";
+                    targetElement.style.boxShadow = "0 0 20px rgba(0, 229, 255, 0.5)";
+                    setTimeout(() => {
+                        targetElement.style.border = "none";
+                        targetElement.style.boxShadow = "none";
+                    }, 2000);
+                }
+            }, 1500); // انتظار 1.5 ثانية للتحميل
+        }
+    });
+</script>
 
 </body>
 </html>

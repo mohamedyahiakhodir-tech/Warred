@@ -314,6 +314,12 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+// === استقبال الآي دي من الرابط ===
+const urlParams = new URLSearchParams(window.location.search);
+const targetUid = urlParams.get('uid'); // ده رقم الشخص اللي عايزين نشوف أصدقاؤه
+let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (يا إما أنا يا إما هو)
+
+
         // === Variables ===
         const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         let currentUserUid = null;
@@ -339,24 +345,41 @@
             setTimeout(() => t.classList.remove('show'), 2000); 
         }
         auth.onAuthStateChanged(async user => {
-            if (user) {
-                currentUserUid = user.uid;
-                
-                // ... أكوادك القديمة ...
-                
-                loadFromCache();
-                loadFriends(); 
-                startPresenceSystem();
-                checkReqCount(); // دالة طلبات الصداقة القديمة
-                
-                // 🔥 ضيف السطر ده هنا: تشغيل نظام الإشعارات
-                startNotificationListener(); 
+    if (user) {
+        currentUserUid = user.uid;
+        
+        // لو فيه رقم في الرابط، يبقى هنعرض أصدقاء الشخص ده، غير كدة هنعرض أصدقائي أنا
+        viewUid = targetUid || currentUserUid; 
 
-                setInterval(() => renderFriends(), 60000);
-            } else {
-                location.href = "index.html";
-            }
-        });
+        // لو بنعرض أصدقاء حد تاني
+        if (targetUid && targetUid !== currentUserUid) {
+            // 1. نغير عنوان الصفحة باسمه
+            db.collection('users').doc(targetUid).get().then(doc => {
+                if(doc.exists) document.querySelector('.header h2').innerText = `أصدقاء ${doc.data().name}`;
+            });
+            
+            // 2. نخفي فلاتر (المفضلة والأونلاين) لأنها مش منطقية عند حد تاني
+            document.querySelector('.filter-chips').style.display = 'none';
+            document.getElementById('pullIndicator').style.display = 'none'; // إلغاء السحب للتحديث
+            
+            // 3. نحمل القائمة مباشرة (بدون كاش)
+            loadFriends();
+            
+        } else {
+            // لو أنا في صفحتي العادية (أصدقائي أنا)
+            loadFromCache();
+            loadFriends(); 
+            startPresenceSystem();
+            checkReqCount();
+            startNotificationListener(); 
+            setInterval(() => renderFriends(), 60000);
+        }
+
+    } else {
+        location.href = "index.html";
+    }
+});
+
 
         // === Caching System ===
         function loadFromCache() {
@@ -376,53 +399,55 @@
 
         // تحميل الأصدقاء ومراقبة التغييرات
         function loadFriends() {
-            // الاستماع لقائمة الأصدقاء
-            db.collection("users").doc(currentUserUid).collection("friends")
-                .onSnapshot(async (snapshot) => {
-                    document.getElementById('loadingSkeleton').style.display = 'none';
-                    const listContainer = document.getElementById('friendsListContainer');
-                    
-                    if (snapshot.empty) {
-                        friendsData = [];
-                        renderFriends();
-                        return;
-                    }
+    // استخدمنا viewUid بدل currentUserUid
+    db.collection("users").doc(viewUid).collection("friends")
+        .onSnapshot(async (snapshot) => {
+            document.getElementById('loadingSkeleton').style.display = 'none';
+            
+            if (snapshot.empty) {
+                friendsData = [];
+                renderFriends();
+                return;
+            }
 
-                    // مصفوفة مؤقتة لتجميع البيانات
-                    let tempFriends = [];
-                    
-                    // استخدام Promise.all لضمان تحميل كل البيانات
-                    const promises = snapshot.docs.map(async (doc) => {
-                        const fid = doc.id;
-                        const relData = doc.data();
-                        
-                        // جلب بيانات الصديق من Users Collection (للحصول على LastSeen و Online)
-                        const userDoc = await db.collection("users").doc(fid).get();
-                        const uData = userDoc.data() || {};
-                        
-                        return {
-                            uid: fid,
-                            name: uData.name || "مستخدم مجهول",
-                            pic: uData.profilePic || uData.avatarUrl || defaultAvatar,
-                            since: relData.acceptedAt ? moment(relData.acceptedAt.toDate()).format('D MMM YYYY') : 'غير معروف',
-                            isFav: relData.isFavorite || false, 
-                            isVerified: uData.isVerified || false,
-                            // بيانات الحالة من Firestore مباشرة
-                            lastSeen: uData.lastSeen, 
-                            isOnlineSettings: uData.showActivity !== false // هل هو سامح بالظهور؟
-                        };
-                    });
+            let tempFriends = [];
+            
+            const promises = snapshot.docs.map(async (doc) => {
+                const fid = doc.id;
+                const relData = doc.data();
+                
+                // جلب بيانات الصديق
+                const userDoc = await db.collection("users").doc(fid).get();
+                const uData = userDoc.data() || {};
+                
+                return {
+                    uid: fid,
+                    name: uData.name || "مستخدم",
+                    pic: uData.profilePic || defaultAvatar,
+                    since: relData.acceptedAt ? moment(relData.acceptedAt.toDate()).format('D MMM YYYY') : 'غير معروف',
+                    isFav: relData.isFavorite || false, 
+                    isVerified: uData.isVerified || false,
+                    lastSeen: uData.lastSeen, 
+                    isOnlineSettings: uData.showActivity !== false
+                };
+            });
 
-                    tempFriends = await Promise.all(promises);
-                    
-                    friendsData = tempFriends;
-                    saveToCache(friendsData);
-                    renderFriends(); 
-                    
-                    pullIndicator.classList.remove('visible');
-                    pullIcon.classList.remove('rotate');
-                });
-        }
+            tempFriends = await Promise.all(promises);
+            friendsData = tempFriends;
+
+            // حفظ في الكاش "فقط" لو دي صفحتي أنا
+            if (!targetUid) {
+                saveToCache(friendsData);
+            }
+
+            renderFriends(); 
+            
+            // وقف أنيميشن السحب
+            pullIndicator.classList.remove('visible');
+            pullIcon.classList.remove('rotate');
+        });
+}
+
 
         // حساب حالة الأونلاين ووقت الظهور (نفس منطق الدردشة)
         function calculateStatus(friend) {

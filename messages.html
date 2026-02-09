@@ -1963,7 +1963,25 @@ function loadChats(userId) {
 
             // تجهيز نص الرسالة
                         // تحويل الرسالة لنص إجبارياً لضمان عمل دالة includes دون أخطاء
-            let rawMsg = d.lastMessage ? String(d.lastMessage) : '';
+                        // --- ✅ بداية التعديل لإصلاح [object Object] ---
+            let rawMsg = "";
+            
+            if (d.lastMessage && typeof d.lastMessage === 'object') {
+                // لو الرسالة نظام جديد (Object)، ناخد النص منها
+                rawMsg = d.lastMessage.text || "رسالة";
+                
+                // (اختياري) لو عايز تميز نوع الرسالة
+                if (d.lastMessage.type === 'video_share') {
+                    rawMsg = "🎥 مشاركة فيديو";
+                }
+                if (d.lastMessage.type === 'profile_card') {
+                    rawMsg = "👤 جهة اتصال";
+                }
+            } else {
+                // لو الرسالة نظام قديم (نص عادي)، نعرضها زي ما هي
+                rawMsg = String(d.lastMessage || "");
+            }
+            // --- ✅ نهاية التعديل ---
             let previewMsg = rawMsg || 'بدء المحادثة';
             let isMedia = false;
             let isTyping = (d.typing && Array.isArray(d.typing) && d.typing.includes(otherUid));

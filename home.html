@@ -192,7 +192,7 @@
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
     
-    z-index: 2147483647 !important; 
+    z-index: 4000 !important; 
     
     /* ترتيب العناصر */
     display: flex !important;
@@ -2433,15 +2433,6 @@ body {
     letter-spacing: 0.3px; /* تباعد خفيف بين الحروف */
 }
 
-/* --- 3. نص المنشور (مريح للقراءة) --- */
-.post-text {
-    font-size: 15px;
-    font-weight: 400; /* عادي مش تخين */
-    line-height: 1.6; /* 🔥 أهم سطر: بيبعد السطور عن بعض عشان القراءة */
-    color: #e0e0e0; /* أبيض هادي مش فاقع عشان العين */
-    padding: 5px 15px 10px; /* مساحات مريحة من الجوانب */
-    text-align: right; /* محاذاة لليمين */
-}
 
 /* --- 4. التوقيت والخصوصية (صغير وباهت) --- */
 .user-details span, 
@@ -4007,6 +3998,8 @@ body {
     line-height: 1.7;
     color: var(--text-color);
     white-space: pre-wrap;
+    word-break: break-word; /* ✅ يمنع الكلمات الطويلة إنها تكسر التصميم */
+    overflow-wrap: break-word
 }
 
 
@@ -4561,6 +4554,616 @@ body {
     background: rgba(255,255,255,0.05);
 }
 
+/* --- تنسيق كبسولة المنشن (المحسّن) --- */
+.mention-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(93, 95, 239, 0.2); /* خلفية شفافة أكتر */
+    border: 1px solid rgba(93, 95, 239, 0.4);
+    border-radius: 50px;
+    padding: 2px 8px 2px 2px; /* مسافة لليمين ولليسار */
+    margin: 0 3px;
+    cursor: pointer;
+    vertical-align: middle;
+    text-decoration: none;
+    direction: ltr; /* مهم عشان الصورة تفضل شمال والاسم يمين */
+    max-width: 140px; /* أقصى عرض للكبسولة */
+    height: 26px; /* ارتفاع ثابت */
+    position: relative;
+    top: -1px; /* ضبط المحاذاة مع النص */
+}
+
+/* تنسيق الصورة داخل المنشن */
+.mention-chip-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 6px; /* مسافة بين الصورة والاسم */
+    object-fit: cover;
+    background: #fff;
+    flex-shrink: 0; /* يمنع الصورة من الانكماش */
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+/* تنسيق الاسم داخل المنشن (يمنع الخروج) */
+.mention-chip-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    white-space: nowrap; /* يمنع نزول السطر */
+    overflow: hidden; /* يخفي الزيادات */
+    text-overflow: ellipsis; /* يحط نقط (...) */
+    max-width: 90px; /* أقصى عرض للاسم */
+    display: block;
+}
+
+/* تنسيق زرار العداد (+1) */
+.mention-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #FFD700; /* لون ذهبي مميز للعداد */
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    height: 24px;
+    border-radius: 12px;
+    margin-left: 2px;
+    vertical-align: middle;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: 0.2s;
+}
+
+.mention-counter:active {
+    background: #FFD700;
+    color: #000;
+    transform: scale(0.95);
+}
+
+/* تنسيق قائمة الأصدقاء (أفقي) */
+.share-row-container {
+    display: flex;
+    overflow-x: auto;
+    padding: 15px;
+    gap: 15px;
+    scrollbar-width: none; /* إخفاء السكرول */
+}
+.share-row-container::-webkit-scrollbar { display: none; }
+
+/* عنصر الصديق */
+.share-contact-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 60px;
+    cursor: pointer;
+    position: relative;
+}
+.share-contact-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid transparent;
+    background: #333;
+}
+.share-contact-name {
+    font-size: 10px;
+    color: #ddd;
+    max-width: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* علامة الإرسال */
+.share-sent-badge {
+    position: absolute;
+    top: 15px; left: 50%; transform: translateX(-50%) scale(0);
+    color: #4cd964; font-size: 20px; transition: 0.3s; z-index: 5;
+    background: rgba(0,0,0,0.5); border-radius: 50%;
+}
+.share-contact-item.selected .share-sent-badge { transform: translateX(-50%) scale(1); }
+.share-contact-item.selected .share-contact-img { filter: brightness(0.5); border-color: #4cd964; }
+
+/* تنسيق قائمة الأصدقاء الأفقية */
+.share-row-container {
+    display: flex;
+    overflow-x: auto;
+    padding: 15px;
+    gap: 15px;
+    scrollbar-width: none;
+}
+.share-row-container::-webkit-scrollbar { display: none; }
+
+/* عنصر الصديق */
+.share-contact-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    min-width: 60px;
+    cursor: pointer;
+    position: relative;
+}
+.share-contact-img {
+    width: 50px; height: 50px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid #333;
+    transition: 0.2s;
+}
+.share-contact-name {
+    font-size: 10px; color: #ddd;
+    max-width: 60px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* علامة الإرسال */
+.share-sent-badge {
+    position: absolute; top: 15px; left: 50%;
+    transform: translateX(-50%) scale(0);
+    color: #4cd964; font-size: 20px;
+    background: rgba(0,0,0,0.6); border-radius: 50%;
+    transition: 0.3s;
+}
+.share-contact-item.selected .share-sent-badge { transform: translateX(-50%) scale(1); }
+.share-contact-item.selected .share-contact-img { opacity: 0.5; border-color: #4cd964; }
+
+/* زر دائري */
+.share-circle {
+    width: 50px; height: 50px; border-radius: 50%;
+    display: grid; place-items: center; font-size: 22px; color: #fff;
+    margin-bottom: 5px;
+}
+.share-action-item {
+    display: flex; flex-direction: column; align-items: center; min-width: 70px; cursor: pointer;
+}
+.share-action-item span { font-size: 11px; color: #aaa; }
+
+/* تنسيق لودر السحب */
+.pull-loader {
+    position: fixed;
+    top: 60px; /* تحت الهيدر بشوية */
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px); /* مخفي فوق الشاشة */
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-color);
+    font-size: 20px;
+    z-index: 99; /* تحت الهيدر وفوق البوستات */
+    transition: transform 0.2s ease-out; /* حركة ناعمة */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* حركة الدوران عند التحديث */
+.pull-loader.loading i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+
+
+/* حاوية العناصر الموجودة على اليسار (المتابعة + الخيارات) */
+.header-left-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* مسافة بين زر المتابعة والنقاط */
+    margin-right: auto; /* 🔥 هذا السطر هو السر: بيدفع العناصر لأقصى اليسار في التصميم العربي */
+    margin-left: 0;
+    flex-direction: row-reverse; /* عشان النقط تيجي في الآخر وزر المتابعة قبلها */
+}
+
+/* تحديث زر المتابعة ليكون شكله مناسب */
+.mini-follow-btn {
+    margin: 0 !important; /* إلغاء الهوامش القديمة */
+    white-space: nowrap; /* منع نزول الكلام سطر تاني */
+    height: 28px; /* ارتفاع ثابت */
+    display: flex;
+    align-items: center;
+}
+/* 1. ضبط الحاوية لضمان بقاء العناصر في سطر واحد */
+.name-container {
+    display: flex;
+    align-items: center;
+    gap: 6px; 
+    max-width: 100%; /* تأكيد العرض */
+    overflow: hidden; /* إخفاء أي شيء يخرج عن الحدود */
+}
+
+/* 2. تنسيق الاسم ليتم قصه بنقاط (...) إذا كان طويلاً */
+.name-container h4 {
+    white-space: nowrap;      /* يمنع نزول النص لسطر جديد نهائياً */
+    overflow: hidden;         /* يخفي الزيادة */
+    text-overflow: ellipsis;  /* يضع ثلاث نقاط (...) في النهاية */
+    flex: 0 1 auto;           /* يسمح للاسم بالانكماش لو المساحة ضيقت */
+    min-width: 0;             /* ضروري جداً لعمل ellipsis داخل flexbox */
+    
+    /* تنسيقات الشكل */
+    font-size: 15px;
+    font-weight: 700;
+    margin: 0;
+    display: block; /* تغيير من flex لـ block عشان الـ ellipsis يشتغل صح مع النص */
+}
+
+/* 3. حماية زر المتابعة وعلامة التوثيق من الانكماش */
+.mini-follow-btn, 
+.fa-heart-circle-check,
+.nabd-badge {
+    flex-shrink: 0; /* يمنع هذه العناصر من الصغر، الاسم هو اللي هيصغر */
+}
+
+/* تعديل حاوية الثلاث نقاط لتكون وحدها في أقصى اليسار */
+.options-icon-container {
+    margin-right: auto; /* يدفع الأيقونة لأقصى اليسار في العربي */
+    margin-left: 0;
+}
+
+/* تنسيق الهيدر عشان العناصر تيجي جنب بعض صح */
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* تنسيق منطقة معلومات المستخدم (صورة + اسم) */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;       /* ياخد كل المساحة المتاحة */
+    min-width: 0;  /* 🔥 أهم سطر: بيسمح للنص إنه يصغر لو المساحة ديقة */
+}
+
+/* تنسيق النصوص (الاسم والوقت) */
+.user-details {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+    min-width: 0; /* ضروري جداً عشان الاسم يتقص */
+}
+
+/* الصف اللي فيه الاسم + التوثيق + المتابعة */
+.name-row-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+/* تنسيق الاسم (عشان يتقص لو طويل) */
+.post-username-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #fff;
+    white-space: nowrap;      /* سطر واحد */
+    overflow: hidden;         /* اخفاء الزيادة */
+    text-overflow: ellipsis;  /* وضع ثلاث نقاط (...) */
+    max-width: 100%;
+}
+
+/* حماية زر المتابعة والتوثيق من الانكماش */
+.mini-follow-btn, .nabd-badge {
+    flex-shrink: 0; /* ممنوع يصغروا مهما حصل */
+}
+
+/* تنسيق زر الخيارات (الثلاث نقاط) */
+.options-btn-wrapper {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* يلزق في الطرف */
+    flex-shrink: 0; /* ممنوع ينضغط */
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+/* حاوية الرد المخصصة داخل المربع */
+.reply-badge-container {
+    display: none; /* مخفي افتراضياً */
+    align-items: center;
+    gap: 5px;
+    background: rgba(93, 95, 239, 0.15);
+    border-radius: 8px;
+    padding: 4px 8px;
+    margin-bottom: 5px; /* مسافة بينه وبين النص */
+    border-left: 3px solid var(--primary-color);
+    width: fit-content;
+}
+
+.reply-badge-container.active {
+    display: flex;
+}
+
+/* صورة الشخص في الرد */
+.reply-badge-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* اسم الشخص */
+.reply-badge-name {
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+/* زر إلغاء الرد */
+.reply-badge-close {
+    font-size: 12px;
+    color: #ff3b30;
+    cursor: pointer;
+    margin-right: 5px;
+}
+
+/* حاوية الرد داخل المربع */
+.reply-badge-container {
+    display: none; /* مخفي افتراضياً */
+    align-items: center;
+    gap: 6px;
+    background: rgba(93, 95, 239, 0.15); /* خلفية شفافة */
+    border-radius: 12px;
+    padding: 4px 8px;
+    margin-bottom: 6px; /* مسافة تفصل الكبسولة عن النص */
+    border-left: 3px solid var(--primary-color);
+    width: fit-content;
+    max-width: 90%; /* عشان مياخدش العرض كله */
+}
+
+/* حالة الظهور */
+.reply-badge-container.active {
+    display: flex;
+}
+
+/* صورة الشخص في الرد */
+.reply-badge-img {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* اسم الشخص */
+.reply-badge-name {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+/* زر الإلغاء (X) */
+.reply-badge-close {
+    font-size: 14px;
+    color: #ff3b30;
+    cursor: pointer;
+    margin-right: 5px;
+    padding: 2px;
+}
+
+/* ================= نظام القصص الذهبي المتطور ================= */
+.stories-section {
+    padding: 8px 0 5px 0; 
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05); 
+    margin-bottom: 10px; 
+    position: relative; 
+    z-index: 1;
+}
+.stories-scroll { 
+    display: flex; 
+    gap: 8px; 
+    overflow-x: auto; 
+    scrollbar-width: none; 
+    padding: 0 12px; 
+}
+
+/* الكارت المصغر والذهبي */
+.story-card {
+    position: relative; width: 75px; height: 115px;
+    border-radius: 10px; overflow: visible !important; flex-shrink: 0; cursor: pointer;
+    background-color: #2a2a2a; margin-bottom: 5px; z-index: 1;
+}
+/* الإطار الذهبي المشع */
+.story-card::before {
+    content: ''; position: absolute; inset: -3px; border-radius: 14px;
+    background: linear-gradient(135deg, #BF953F, #FCF6BA, #B38728, #FBF5B7, #AA771C);
+    z-index: -1; box-shadow: 0 0 10px rgba(191, 149, 63, 0.5);
+}
+.story-card:active { transform: scale(0.97); }
+.story-card-bg, .story-card video {
+    width: 100%; height: 100%; object-fit: cover; border-radius: 10px; transition: 0.3s;
+}
+
+/* عناصر القصة الداخلية */
+.story-card-avatar {
+    position: absolute; top: 4px; left: 4px; width: 24px; height: 24px;
+    border-radius: 50%; border: 2px solid var(--primary-color);
+    background-size: cover; background-position: center; z-index: 2;
+}
+.story-card-name {
+    position: absolute; bottom: 0; left: 0; width: 100%;
+    padding: 15px 4px 4px 4px; border-radius: 0 0 10px 10px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    color: #fff; font-size: 9px; font-weight: bold;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; z-index: 2;
+}
+
+/* كارت إضافتي */
+.my-story-card { background: #1e1e1e; display: flex; flex-direction: column; overflow: hidden !important; }
+.my-story-card::before { display: none; } 
+.my-story-top-img { width: 100%; height: 70%; background-size: cover; background-position: center; filter: brightness(0.8); }
+.my-story-bottom { height: 30%; width: 100%; position: relative; background: #1e1e1e; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px; }
+.add-story-btn-circle {
+    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+    width: 24px; height: 24px; background: var(--primary-color);
+    border: 2px solid #1e1e1e; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; z-index: 5;
+}
+
+/* عارض القصص (Full Screen) */
+#storyViewer {
+    display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #000; z-index: 25000; flex-direction: column;
+}
+.story-blur-bg {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-size: cover; background-position: center; filter: blur(30px) brightness(0.6);
+    opacity: 0.8; z-index: 1; transition: background 0.5s ease;
+}
+.story-media-container {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; z-index: 2;
+}
+.story-media-container img, .story-media-container video {
+    max-width: 100%; max-height: 100%; object-fit: contain; width: 100%;
+}
+.progress-bars-wrapper {
+    position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 4px; z-index: 30;
+}
+.progress-segment { height: 3px; flex: 1; background: rgba(255,255,255,0.3); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; width: 0%; background: #fff; }
+
+.story-footer {
+    position: absolute; bottom: 20px; left: 0; width: 100%; padding: 0 15px;
+    display: flex; align-items: center; gap: 10px; z-index: 30;
+}
+.story-reply-input { flex: 1; position: relative; margin-left: 10px; }
+.story-reply-input input {
+    width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 25px; padding: 12px 15px 12px 45px; color: #fff; outline: none; backdrop-filter: blur(5px);
+}
+.send-btn-inside {
+    position: absolute; left: 15px; top: 50%; transform: translateY(-50%);
+    color: var(--primary-color); font-size: 18px; cursor: pointer; z-index: 10;
+}
+.story-reaction-btn { font-size: 24px; cursor: pointer; transition: 0.2s; padding: 5px; }
+.story-header-info {
+    position:absolute; top:20px; left:20px; right:20px; display:flex; justify-content:space-between; align-items:center; z-index:30;
+}
+.story-user-avatar-small { width: 32px; height: 32px; border-radius: 50%; background-size: cover; border: 1px solid #fff; }
+.story-views-count {
+    color: #fff; font-size: 14px; background: rgba(0,0,0,0.6); padding: 6px 14px;
+    border-radius: 20px; display: flex; align-items: center; gap: 6px; backdrop-filter: blur(5px); cursor: pointer;
+}
+
+/* قوائم القصص */
+.story-options-sheet {
+    position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a;
+    border-radius: 20px 20px 0 0; transform: translateY(100%); transition: transform 0.3s;
+    z-index: 30000; padding: 20px 0; border-top: 1px solid rgba(255,255,255,0.1);
+}
+.story-options-sheet.active { transform: translateY(0); }
+.story-opt-item { padding: 15px 20px; display: flex; align-items: center; gap: 15px; color: #fff; cursor: pointer; font-size: 14px; font-weight: bold; }
+.story-sheet-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 29000; opacity: 0; pointer-events: none; transition: 0.3s; }
+.story-sheet-overlay.active { opacity: 1; pointer-events: auto; }
+#floatingHearts { position: fixed; bottom: 0; right: 20px; width: 100px; height: 100vh; pointer-events: none; z-index: 99999; overflow: visible; }
+
+/* أرشيف القصص */
+.archive-item {
+    position: relative; width: 100%; aspect-ratio: 9/16;
+    background: rgba(126, 34, 206, 0.03); border-radius: 12px; overflow: hidden; cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.2s;
+}
+.archive-media { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+.archive-date-badge { position:absolute; bottom:0; right:0; width:100%; padding:20px 5px 5px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; font-size:10px; text-align:right; }
+.archive-more-btn {
+    position: absolute; top: 5px; left: 5px; width: 25px; height: 25px; background: rgba(0,0,0,0.5);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 12px; z-index: 10;
+}
+.archive-menu {
+    position: absolute; top: 35px; left: 5px; background: #222; border-radius: 8px; padding: 5px;
+    width: 120px; display: none; z-index: 20; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+.archive-menu.show { display: block; }
+.active-zindex { z-index: 1000 !important; }
+.archive-menu-item { padding: 8px; color: #fff; font-size: 11px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.archive-menu-item:last-child { border-bottom: none; }
+
+/* --- تنسيق كارت القصة (مهم جداً) --- */
+.story-card {
+    position: relative; /* ضروري عشان العناصر اللي جوه تترتب بالنسبة ليه */
+    width: 75px; 
+    height: 115px;
+    border-radius: 10px; 
+    overflow: hidden; /* عشان مفيش حاجة تخرج بره الحواف */
+    flex-shrink: 0; 
+    cursor: pointer;
+    background-color: #2a2a2a; 
+    margin-bottom: 5px; 
+    z-index: 1;
+}
+
+/* خلفية القصة (الفيديو أو الصورة) */
+.story-card-bg, .story-card video {
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    border-radius: 10px; 
+    transition: 0.3s;
+    position: absolute; /* عشان تفرش الكارت كله */
+    top: 0; left: 0;
+    z-index: 1; /* دي الطبقة اللي تحت */
+}
+
+/* --- صورة الشخص (الدائرة الصغيرة فوق) --- */
+.story-card-avatar {
+    position: absolute; 
+    top: 4px; 
+    left: 4px; 
+    width: 24px; 
+    height: 24px;
+    border-radius: 50%; 
+    border: 2px solid #38bdf8; /* لون الإطار (أزرق سماوي) */
+    background-size: cover; 
+    background-position: center; 
+    z-index: 5; /* 🔥 رقم عالي عشان تظهر فوق الفيديو */
+    background-color: #333; /* لون احتياطي لو الصورة محملتش */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5); /* ظل عشان تبان */
+}
+
+/* --- اسم الشخص (في الأسفل) --- */
+.story-card-name {
+    position: absolute; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%;
+    padding: 15px 4px 4px 4px; 
+    border-radius: 0 0 10px 10px;
+    /* تدرج لوني أسود شفاف عشان الكلام يبان بوضوح */
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+    color: #fff; 
+    font-size: 9px; 
+    font-weight: bold;
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    text-align: right; 
+    z-index: 5; /* 🔥 رقم عالي عشان يظهر فوق الفيديو */
+}
+
+
 </style>
     
 </head>
@@ -4820,17 +5423,7 @@ body {
         </div>
     </div>
 
-    <div class="custom-modal" id="reportReasonModal">
-        <div class="modal-box">
-            <h3 style="color:var(--danger-color); margin-bottom:15px;">تقديم بلاغ</h3>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn btn-secondary" onclick="submitReport('محتوى غير لائق')">🔞 محتوى غير لائق</button>
-                <button class="btn btn-secondary" onclick="submitReport('خطاب كراهية')">🤬 خطاب كراهية</button>
-                <button class="btn btn-secondary" onclick="submitReport('احتيال')">🚫 احتيال</button>
-            </div>
-            <button style="margin-top:15px; background:none; color:var(--secondary-text); border:none; cursor:pointer;" onclick="document.getElementById('reportReasonModal').style.display='none'">تراجع</button>
-        </div>
-    </div>
+  
 
    <div class="custom-modal" id="themeModal">
     <div class="modal-box">
@@ -4997,7 +5590,7 @@ body {
     <i class="fa-solid fa-magnifying-glass icon-btn" onclick="openFullSearch()"></i>
 </div>
 
-                                             
+                  
 
     <div class="container">
 <div class="new-post-wrapper">
@@ -5006,11 +5599,16 @@ body {
         <span class="typing-text" id="dynamicPlaceholder">شاركنا لحظاتك... ✨</span>
     </div>
 
+
     <div class="np-media-btn" onclick="playSound('click'); openPage('create_media.html')">
         <i class="fa-solid fa-image"></i>
     </div>
 </div>
 
+<div id="storiesContainer" class="stories-section">
+    <div class="stories-scroll" id="storiesList"></div>
+</div>
+                           
         </div>
         <div id="postsList"></div>
         <div id="scrollSentinel" style="display: none; text-align: center; padding: 20px;"></div>
@@ -5196,10 +5794,20 @@ auth.onAuthStateChanged(async user => {
     if(!user) { location.href="index.html"; return; }
     currentUser = user;
     
-    // جلب بيانات المستخدم
     const doc = await db.collection('users').doc(user.uid).get();
-        const d = doc.data() || {};
- const finalPic = d.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
+    const d = doc.data() || {};
+    
+    // ✅✅✅ (1) ضيف السطور دي هنا لاسترجاع حالة الشبح ✅✅✅
+    isGhost = d.isGhost || false; 
+    const ghostBtn = document.getElementById('ghostBtn');
+    if(ghostBtn && isGhost) {
+        ghostBtn.style.background = "#ff0000";
+        ghostBtn.style.boxShadow = "0 0 20px #ff0000";
+    }
+    // ✅✅✅ (نهاية الكود الجديد) ✅✅✅
+
+    const finalPic = d.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
+
 
     // 1. إعداد صورة الهيدر (المربع اللي بتضغط عليه عشان تكتب بوست)
     const myAvatarElem = document.getElementById('myAvatar');
@@ -5258,7 +5866,7 @@ const bottomAvatar = document.getElementById('bottomNavAvatar');
     updateHeaderBadges();
     monitorIncomingMessages();
     monitorMessageCount();
-    
+    renderStories(); 
     // 🔥 تشغيل حالة الزرار عشان يبقى متناسق مع اللمبة
     if(typeof updateOnlineToggleUI === 'function') updateOnlineToggleUI();
 
@@ -5512,13 +6120,21 @@ function openFullSearch() {
 function closeSearchPage() {
     document.getElementById('fullSearchPage').classList.remove('active');
     
-    // 🔥 الجديد: إعادة تفعيل مراقب الفيديوهات للصفحة الرئيسية
-    // (المراقب هيشغل الفيديو اللي عليه الدور لوحده)
-    const visibleVideos = document.querySelectorAll('#postsList video');
-    if(window.videoObserver) {
-        visibleVideos.forEach(v => window.videoObserver.observe(v));
-    }
+    // ✅ الكود المصحح لإعادة تشغيل الفيديوهات
+    setTimeout(() => {
+        const visibleVideos = document.querySelectorAll('#postsList video');
+        if(window.videoObserver) {
+            visibleVideos.forEach(v => {
+                window.videoObserver.observe(v);
+                // محاولة تشغيل الفيديو لو هو ظاهر فعلاً
+                if (v.getBoundingClientRect().top > 0 && v.getBoundingClientRect().bottom < window.innerHeight) {
+                    v.play().catch(()=>{});
+                }
+            });
+        }
+    }, 300); // استنى 300 ملي ثانية عشان الأنيميشن يخلص
 }
+
 
 
 function clearSearchInput() {
@@ -5857,19 +6473,7 @@ async function loadPosts(more = false) {
 
 
 // دالة لتحديد أيقونة الخصوصية بناءً على الحالة
-function getPrivacyIcon(privacy) {
-    if (privacy === 'private') {
-        return '<i class="fa-solid fa-lock" style="font-size:12px; margin-right:5px;" title="أنا فقط"></i>';
-    } else if (privacy === 'friends') {
-        return '<i class="fa-solid fa-user-group" style="font-size:12px; margin-right:5px;" title="الأصدقاء"></i>';
-    } else {
-        // الافتراضي عام
-        return '<i class="fa-solid fa-earth-americas" style="font-size:12px; margin-right:5px;" title="عام"></i>';
-    }
-}
-
-          
-           async function renderPost(p) {
+async function renderPost(p) {
     // ---------------------------------------------------------
     // 1. بوابة الخصوصية
     // ---------------------------------------------------------
@@ -5878,7 +6482,7 @@ function getPrivacyIcon(privacy) {
     }
 
     // ---------------------------------------------------------
-    // 2. جلب بيانات صاحب المنشور
+    // 2. جلب بيانات صاحب المنشور (الشخص اللي عمل المشاركة)
     // ---------------------------------------------------------
     let u = { name: "مستخدم", pic: defaultAvatar, isVerified: false, isOnline: false, totalViews: 0 };
 
@@ -5901,10 +6505,7 @@ function getPrivacyIcon(privacy) {
         }
     } catch(e){}
 
-    // توليد شارة الرتبة
     const rankHtml = getRankHTML(u.totalViews);
-
-    // التحقق من الإعجاب
     const isLiked = p.likes && p.likes[currentUser.uid];
     const likesCount = p.likes ? Object.keys(p.likes).length : 0;
 
@@ -5919,27 +6520,107 @@ function getPrivacyIcon(privacy) {
     }
 
     // ---------------------------------------------------------
-    // 4. بناء المحتوى (Content)
+    // 4. بناء المحتوى (هنا التعديل لمنع التكرار)
     // ---------------------------------------------------------
     let contentHtml = "";
     
-    // أ) خلفية ملونة
-    if (p.background) {
+    // 🔥 الحالة الأولى: إعادة نشر (Repost)
+if (p.type === 'repost' && p.originalContent) {
+        const org = p.originalContent;
+        
+        // أ) تجهيز الميديا الداخلية (للمنشور الأصلي)
+        let innerMediaHtml = "";
+        if (org.media && org.media.length > 0) {
+            const m = org.media[0]; 
+            
+            if (m.type === 'image') {
+                innerMediaHtml = `<img src="${m.url}" style="width:100%; height:250px; object-fit:cover; display:block;">`;
+            } 
+            // Video logic within repost (نسخة مصححة)
+// داخل دالة renderPost في جزء (p.type === 'repost')
+// داخل renderPost -> في جزء (p.type === 'repost') -> (m.type === 'video')
+
+else if (m.type === 'video') {
+    const uniqueVidId = `repost-vid-${p.id}`;
+
+    innerMediaHtml = `
+    <div class="repost-video-wrapper" 
+         style="position:relative; width:100%; height:250px; background:#000; cursor:pointer;"
+         onclick="event.stopPropagation(); window.location.href='videos.html?openVideo=${p.originalPostId}'">
+        
+        <video id="${uniqueVidId}" src="${m.url}" autoplay muted loop playsinline 
+               style="width:100%; height:100%; object-fit:cover; opacity:0.8; pointer-events:none;">
+        </video>
+        
+        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); pointer-events:none;">
+             <i class="fa-solid fa-circle-play" style="color:rgba(255,255,255,0.9); font-size:45px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.5));"></i>
+        </div>
+
+        <div class="video-mute-btn" 
+             onclick="toggleMute(event)"
+             style="position: absolute; bottom: 10px; right: 10px; width: 32px; height: 32px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; z-index: 20; backdrop-filter: blur(2px); border: 1px solid rgba(255,255,255,0.1);">
+            <i class="fa-solid ${isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high'}"></i>
+        </div>
+    </div>`;
+}
+
+
+}
+
+        // 🆕 جلب اسم وصورة صاحب البوست الأصلي الحقيقية (بدل البيانات القديمة)
+        let orgName = org.name || "مستخدم";
+        let orgAvatar = org.pic || defaultAvatar;
+        let orgVerified = org.isVerified || false; // القيمة الافتراضية
+
+        if (p.originalOwnerUid) {
+             try {
+                 const originalOwnerDoc = await db.collection('users').doc(p.originalOwnerUid).get();
+                 if (originalOwnerDoc.exists) {
+                     const originalOwnerData = originalOwnerDoc.data();
+                     orgName = originalOwnerData.name || orgName;
+                     orgAvatar = originalOwnerData.profilePic || orgAvatar;
+                     // 🔥 تحديث حالة التوثيق من الداتابيز
+                     orgVerified = originalOwnerData.isVerified || false; 
+                 }
+             } catch (e) { console.log("Error fetching original owner:", e); }
+        }
+
+        contentHtml = `
+        <div class="post-text" dir="auto" style="margin-bottom:10px;">${processPostText(p.text)}</div>
+        
+        <div class="repost-card" onclick="location.href='${window.location.pathname}?post=${p.originalPostId}'" 
+             style="border:1px solid rgba(255,255,255,0.1); border-radius:12px; margin:0 5px; overflow:hidden; background:rgba(255,255,255,0.03);">
+            
+            ${innerMediaHtml}
+            
+            <div style="padding:12px; display:flex; align-items:center; gap:10px; background:rgba(0,0,0,0.3);">
+                <div style="width:35px; height:35px; border-radius:50%; background-image:url('${orgAvatar}'); background-size:cover; background-position:center; border:1px solid #555;"></div>
+                
+                <div style="flex:1;">
+                    <div style="font-weight:bold; color:#fff; font-size:13px; display:flex; align-items:center; gap:4px;">
+                        ${orgName} ${getBadge(orgVerified, false)}
+                    </div>
+                    <div style="color:#aaa; font-size:11px; max-height:40px; overflow:hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${org.text}</div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // 🔥 الحالة الثانية: خلفية ملونة (استخدمنا else if عشان ميكررش)
+    else if (p.background) {
         let finalBodyText = p.contentHtml ? p.contentHtml : processPostText(p.text);
-        // معالجة الروابط داخل الخلفية
         if(p.contentHtml) {
             finalBodyText = finalBodyText.replace(/((https?:\/\/|www\.)[^\s<]+)/g, '<a href="$1" target="_blank" class="post-link" onclick="event.stopPropagation()">$1</a>');
             finalBodyText = finalBodyText.replace(/(^|\s|>)(#[\w\u0600-\u06FF]+)/g, '$1<span class="text-link" onclick="searchForHashtag(event, \'$2\')">$2</span>');
         }
         contentHtml = `<div class="colored-post-body" style="background: ${p.background}">${finalBodyText}</div>`;
     } 
-    // ب) نص وميديا عادي
+
+    // 🔥 الحالة الثالثة: منشور عادي (نص وميديا)
     else {
-        // --- 🆕 التعديل هنا: تحديد كلاس القص (3 سطور للميديا، 10 للنص بس) ---
         const hasMedia = (p.media && p.media.length > 0) || (p.linkMeta && p.linkMeta.url);
         const clampClass = hasMedia ? 'limit-media' : 'limit-text';
         
-        // تجهيز النص بمعالج الروابط والهاشتاج (لو موجود)
         let finalHtml = "";
         if (p.contentHtml) {
             finalHtml = p.contentHtml;
@@ -5948,13 +6629,10 @@ function getPrivacyIcon(privacy) {
                 return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
             });
             finalHtml = finalHtml.replace(/(^|\s|>)(#[\w\u0600-\u06FF]+)/g, '$1<span class="text-link" style="color:#20D5EC;font-weight:bold;cursor:pointer;" onclick="searchForHashtag(event, \'$2\')">$2</span>');
+        } else if (p.text) {
+            finalHtml = processPostText(p.text, p.mentionsList || []); 
         }
-        
-        else if (p.text) {
-    // 🔥 التعديل هنا: مرر p.mentionsList للدالة عشان تجيب الصور
-    finalHtml = processPostText(p.text, p.mentionsList || []); 
-}
-        // --- 🆕 تطبيق الـ HTML الجديد للنص وزر العرض ---
+
         if (finalHtml) {
             contentHtml += `
             <div class="post-text ${clampClass}" id="text-${p.id}">
@@ -5965,7 +6643,6 @@ function getPrivacyIcon(privacy) {
             </div>`;
         }
 
-        // كارت الرابط
         if (p.linkMeta && p.linkMeta.url) {
             const fallbackImg = "https://cdn-icons-png.flaticon.com/512/3669/3669968.png";
             const imgUrl = p.linkMeta.image || fallbackImg;
@@ -5980,49 +6657,57 @@ function getPrivacyIcon(privacy) {
             </div>`;
         }
         
-        // الميديا (صور وفيديو)
+               // الميديا العادية (صور وفيديو)
         if (p.media && p.media.length > 0) {
+            // تحديد نوع الشبكة بناءً على العدد
             let gridClass = 'single';
             if (p.media.length === 2) gridClass = 'double';
             else if (p.media.length === 3) gridClass = 'triple';
             else if (p.media.length >= 4) gridClass = 'quad';
 
             contentHtml += `<div class="media-grid ${gridClass}">`;
+            
+            // عرض أول 4 عناصر فقط
             const displayMedia = p.media.slice(0, 4);
 
             displayMedia.forEach((m, idx) => {
                 if (m.type === 'video') {
                     const uniqueVideoId = `vid-${p.id}-${idx}`;
                     const muteIcon = isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high';
-                    // إضافة event.stopPropagation() لمنع فتح البروفايل عند النقر على الفيديو (احتياطي)
+                    
+                    // 🔥 هنا التعديل: onclick يوديك لصفحة الفيديوهات برقم البوست 🔥
                     contentHtml += `
                     <div class="media-item-wrapper" style="position:relative; overflow:hidden; width:100%; height:100%;">
                         <video src="${m.url}" id="${uniqueVideoId}" class="media-item" loop playsinline ${isGlobalMuted ? 'muted' : ''} 
                             style="width:100%; height:100%; object-fit:cover;"
-                            onclick="location.href='videos.html?id=${p.id}&src=${encodeURIComponent(m.url)}'; event.stopPropagation();"
+                            
+                            onclick="window.location.href = 'videos.html?openVideo=${p.id}'; event.stopPropagation();"
+                            
                             onplay="incrementViewCount('${p.id}'); startLiveViews('${p.id}')" 
                             onpause="stopLiveViews()"></video>
                         <div class="video-mute-btn" onclick="toggleMute(event)"><i class="fa-solid ${muteIcon}"></i></div>
                     </div>`;
                 } else {
+                    // عرض الصورة
                     contentHtml += `<img src="${m.url}" class="media-item" loading="lazy" 
                         style="width:100%; height:100%; object-fit:cover; display:block;" 
                         onclick="viewImage('${m.url}'); event.stopPropagation();">`;
                 }
             });
 
+            // لو العدد أكبر من 4، نظهر العداد
             if (p.media.length > 4) {
                 contentHtml += `<div style="position:absolute; bottom:10px; left:10px; background:rgba(0,0,0,0.6); color:#fff; padding:5px 10px; border-radius:15px; font-size:12px; pointer-events:none;">+${p.media.length - 4}</div>`;
             }
             contentHtml += `</div>`;
         }
-    }
 
-    // تنظيف النص لزر الخيارات
+    }
+    // (نهاية شروط المحتوى)
+
     const rawText = p.text || '';
     const safeText = rawText.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
 
-    // زر المتابعة
     let followBtnHtml = "";
     if (currentUser && p.uid !== currentUser.uid) {
         followBtnHtml = `<button class="mini-follow-btn" onclick="toggleMiniFollow(this, '${p.uid}', event)">متابعة <i class="fa-solid fa-plus"></i></button>`;
@@ -6031,9 +6716,19 @@ function getPrivacyIcon(privacy) {
     const div = document.createElement('div');
     div.className = 'post';
     div.id = `post-${p.id}`;
+const textDir = getTextDirection(u.name);
+
+    const alignStyle = "justify-content: flex-start;"; 
+
+    // ... (باقي الكود اللي فوق زي ما هو) ...
+
+        // ... (باقي الكود اللي فوق زي ما هو) ...
+
+        // ... داخل دالة renderPost ...
 
     div.innerHTML = `
         <div class="post-header">
+            
             <div class="user-info">
                 <div class="post-avatar ${u.isOnline ? 'online' : ''}" 
                      style="background-image:url('${u.pic}');"
@@ -6041,28 +6736,38 @@ function getPrivacyIcon(privacy) {
                 </div>
                 
                 <div class="user-details">
-                    <h4 onclick="goToProfile('${p.uid}'); event.stopPropagation();" style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
-                        ${u.name} 
+                    <div class="name-row-container">
+                        <span class="post-username-text" onclick="goToProfile('${p.uid}'); event.stopPropagation();">
+                            ${u.name}
+                        </span>
+                        
                         ${getBadge(u.isVerified, false)} 
+                        
                         ${followBtnHtml}
-                    </h4>
-                    
-                    ${rankHtml} ${feelingHtml}
+                    </div>
                     
                     <div style="display:flex; align-items:center; gap:6px; color:var(--secondary-text); font-size:11px; margin-top:2px;">
                         <span>${moment(p.createdAt?.toDate()).fromNow()}</span>
                         <span style="font-size:6px; opacity:0.6">•</span>
                         ${getPrivacyIcon(p.privacy)}
+                        ${rankHtml ? `<span style="margin-right:5px">${rankHtml}</span>` : ''}
                     </div>
                 </div>
             </div>
-            <i class="fa-solid fa-ellipsis" onclick="openOptions('${p.id}', '${p.uid}', \`${safeText}\`, '${p.privacy || 'public'}')" style="cursor:pointer; padding:5px; color:var(--secondary-text)"></i>
+
+            <div class="options-btn-wrapper">
+                <i class="fa-solid fa-ellipsis" 
+                   onclick="openOptions('${p.id}', '${p.uid}', \`${safeText}\`, '${p.privacy || 'public'}')" 
+                   style="color:var(--secondary-text); font-size: 18px;">
+                </i>
+            </div>
+
         </div>
 
         ${contentHtml}
                    
         <div class="post-actions">
-            <div class="action-btn ${isLiked?'liked':''}" onclick="toggleLike('${p.id}', '${p.uid}', this)">
+           <div class="action-btn ${isLiked?'liked':''}" onclick="toggleLike('${p.id}', '${p.uid}', this)">
                 <i class="${isLiked?'fa-solid':'fa-regular'} fa-heart"></i> <span id="cnt-${p.id}">${likesCount}</span>
             </div>
             <div class="action-btn" onclick="openComments('${p.id}', '${p.uid}')">
@@ -6077,15 +6782,15 @@ function getPrivacyIcon(privacy) {
         </div>
     `;
 
+
     document.getElementById('postsList').appendChild(div);
-    // بدل ما نقيس فوراً ونهنج الصفحة، بنقول للمراقب: "خلي بالك من النص ده"
-if (p.text || p.contentHtml) {
-    // لازم نستخدم setTimeout صغير جداً عشان نضمن إن العنصر اتحط في الصفحة
-    setTimeout(() => {
-        const textEl = document.getElementById(`text-${p.id}`);
-        if(textEl) textResizeObserver.observe(textEl);
-    }, 0);
-}
+
+    if (p.text || p.contentHtml) {
+        setTimeout(() => {
+            const textEl = document.getElementById(`text-${p.id}`);
+            if(textEl) textResizeObserver.observe(textEl);
+        }, 0);
+    }
 
     div.querySelectorAll('video').forEach(v => {
         if(window.videoObserver) window.videoObserver.observe(v);
@@ -6681,15 +7386,22 @@ function stopRecordingProcess() {
 
             </div>
 
-            <div class="smart-input-wrapper" style="border-radius: 25px; padding: 0; flex: 1;">
-                <textarea id="replyInput" 
-                          class="smart-textarea" 
-                          placeholder="اكتب رداً..." 
-                          rows="1" 
-                          oninput="handleReplyInputTyping(this)"
-                          style="padding: 12px 15px !important;"></textarea>
-            </div>
+           
+<div class="smart-input-wrapper" style="border-radius: 20px; padding: 8px; flex: 1; display: flex; flex-direction: column; align-items: flex-start; justify-content: center;">
+    
+    <div id="replyBadgeContainer" class="reply-badge-container">
+        <img id="replyBadgeImg" src="" class="reply-badge-img">
+        <span id="replyBadgeName" class="reply-badge-name"></span>
+        <i class="fa-solid fa-xmark reply-badge-close" onclick="cancelReplyTarget()"></i>
+    </div>
 
+    <textarea id="replyInput" 
+              class="smart-textarea" 
+              placeholder="اكتب رداً..." 
+              rows="1" 
+              oninput="handleReplyInputTyping(this)"
+              style="padding: 5px 5px !important; min-height: 30px; width: 100%;"></textarea>
+</div>
             <div id="replyDynamicActionBtn" class="action-submit-btn" onclick="toggleReplyRecording()" style="opacity: 1; pointer-events: auto; background: rgba(255,255,255,0.1); color: var(--text-color);">
                 <i class="fa-solid fa-microphone" id="replyMicIcon"></i>
                 <i class="fa-solid fa-paper-plane" id="replySendIcon" style="display: none;"></i>
@@ -6881,19 +7593,56 @@ function handleReplyInputTyping(textarea) {
                 </div>
                 <div style="font-size:10px; color:#777; margin-top:3px; display:flex; gap:10px">
                     <span>${moment(r.createdAt?.toDate()).fromNow()}</span>
-                    ${!r.isGhost ? `<span style="cursor:pointer; font-weight:bold; color:var(--text-color)" onclick="prepareSubReply('${r.uid}', '${name}')">رد</span>` : ''}
+                    ${!r.isGhost ? `<span style="cursor:pointer; font-weight:bold; color:var(--text-color)" onclick="prepareSubReply('${r.uid}', '${name}', '${pic || ''}')">رد</span>` : ''}
                 </div>
             </div>
         </div>`;
     container.appendChild(div);
 }
 
-        function prepareSubReply(uid, name) {
-            currentSubReplyTarget = {uid, name};
-            const inp = document.getElementById('replyInput');
-            inp.value = name + " "; inp.focus();
-            if(navigator.vibrate) navigator.vibrate(30);
-        }
+        // دالة تجهيز الرد (المعدلة)
+function prepareSubReply(uid, name, pic) {
+    currentSubReplyTarget = { uid, name, pic };
+    
+    const container = document.getElementById('replyBadgeContainer');
+    const imgEl = document.getElementById('replyBadgeImg');
+    const nameEl = document.getElementById('replyBadgeName');
+    const input = document.getElementById('replyInput');
+
+    // 1. تعبئة البيانات في الكبسولة
+    if(container && imgEl && nameEl) {
+        // صورة افتراضية لو مفيش صورة
+        const finalPic = pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        
+        imgEl.src = finalPic;
+        nameEl.innerText = `رد على ${name}`;
+        
+        // إظهار الكبسولة
+        container.classList.add('active');
+    }
+
+    // 2. تجهيز مربع الكتابة
+    input.value = ""; // تفريغ النص (لأن الاسم بقى في الكبسولة فوق)
+    input.placeholder = "اكتب ردك هنا...";
+    input.focus();
+    
+    // 3. توسيع المربع (Auto Resize)
+    // بنخلي الـ wrapper يكبر عشان يسع الكبسولة والنص
+    input.style.height = 'auto'; 
+    // هزة خفيفة للموبايل
+    if(navigator.vibrate) navigator.vibrate(30);
+}
+
+// دالة إلغاء الرد (عند الضغط على X في الكبسولة)
+function cancelReplyTarget() {
+    currentSubReplyTarget = null;
+    const container = document.getElementById('replyBadgeContainer');
+    const input = document.getElementById('replyInput');
+    
+    if(container) container.classList.remove('active');
+    if(input) input.placeholder = "اكتب رداً...";
+}
+
 
       async function sendReplyToComment(sticker = null) {
     const inp = document.getElementById('replyInput');
@@ -6904,8 +7653,6 @@ function handleReplyInputTyping(textarea) {
     
     playSound('sent'); 
     
-    // لو مش ستيكر، شيل العلامة @ من الأول لو موجودة (تنظيف بسيط)
-    if (!sticker) txt = txt.replace(/^@/, '');
 
     // منطق الرد المباشر القديم (Reply To) للحفاظ على شجرة الردود
     let replyToUid = null;
@@ -7011,7 +7758,7 @@ function handleReplyInputTyping(textarea) {
 
     // تنظيف الخانة
     inp.value = "";
-    currentSubReplyTarget = null;
+    cancelReplyTarget();
 }
 
 
@@ -7137,98 +7884,299 @@ function openReplyOptions(r) {
         function closeRepliesSheet() { document.getElementById('repliesSheet').classList.remove('active'); currentParentComment = null; }
         function showChicConfirm(title, msg, icon, callback) { document.getElementById('chicTitle').innerText = title; document.getElementById('chicMessage').innerText = msg; document.getElementById('chicIcon').innerHTML = icon; document.getElementById('chicConfirmModal').style.display='flex'; document.getElementById('chicConfirmBtn').onclick = () => { callback(); document.getElementById('chicConfirmModal').style.display='none'; }; }
         function closeChicModal() { document.getElementById('chicConfirmModal').style.display='none'; }
-      async function sharePost(pid, ownerUid) {
+    // استبدال دالة sharePost القديمة بهذه النسخة الجديدة
+// 1. الدالة الرئيسية لزر المشاركة
+function sharePost(pid, ownerUid) {
     playSound('click');
-    showToast("جاري تجهيز المشاركة... 🎨");
+    
+    // تحديث المتغيرات العامة
+    currentPostId = pid;
+    currentPostOwnerUid = ownerUid;
+
+    const shareSheet = document.getElementById('shareSheet');
+    const overlay = document.getElementById('globalOverlay');
+
+    if (shareSheet && overlay) {
+        shareSheet.classList.add('active');
+        overlay.style.display = 'block';
+        
+        // تحميل الأصدقاء فوراً
+        loadDirectShareFriends();
+    }
+}
+
+// 2. دالة جلب الأصدقاء والمحادثات
+async function loadDirectShareFriends() {
+    const container = document.getElementById('directShareList');
+    if (!currentUser) return;
 
     try {
-        // 1. جلب بيانات البوست الحالية من الشاشة
-        const postCard = document.getElementById(`post-${pid}`);
-        const userImg = postCard.querySelector('.post-avatar').style.backgroundImage.slice(5, -2).replace(/"/g, "");
-        const userName = postCard.querySelector('h4').innerText.split('\n')[0]; // اسم المستخدم فقط
-        const postText = postCard.querySelector('.post-text') ? postCard.querySelector('.post-text').innerText : "شاهد هذا المنشور المميز!";
+        const snapshot = await db.collection('chats')
+            .where('users', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageTime', 'desc')
+            .limit(10)
+            .get();
 
-        // 2. تعبئة الكارت المخفي بالبيانات
-        document.getElementById('scUserPic').src = userImg || 'https://cdn-icons-png.flaticon.com/512/149/149071.png';
-        document.getElementById('scUserName').innerText = userName;
-        // هناخد أول 100 حرف بس عشان الشكل
-        document.getElementById('scPostText').innerText = postText.length > 100 ? postText.substring(0, 100) + "..." : postText;
+        if (snapshot.empty) {
+            container.innerHTML = '<div style="padding:10px;text-align:center;color:#777;width:100%;font-size:11px;">لا توجد محادثات حديثة</div>';
+            return;
+        }
 
-        // 3. تحويل الكارت لصورة (Canvas)
-        const canvas = await html2canvas(document.querySelector("#shareCardContainer"), {
-            useCORS: true, // مهم عشان صور البروفايل تظهر
-            scale: 2 // جودة عالية
-        });
+        container.innerHTML = '';
 
-        // 4. تحويل الـ Canvas لملف صورة (Blob)
-        canvas.toBlob(async (blob) => {
-            const file = new File([blob], "wareed_share.png", { type: "image/png" });
-            const shareUrl = `${window.location.origin}${window.location.pathname}?post=${pid}`;
+        for (const doc of snapshot.docs) {
+            const chatData = doc.data();
+            const otherUid = chatData.users.find(u => u !== currentUser.uid);
             
-            // 5. الرسالة الاحترافية المرافقة
-            const shareData = {
-                title: 'Wareed - وريد',
-                text: `✨ شوف المنشور ده من ${userName} على تطبيق Wareed!\n\n"${postText.substring(0, 50)}..."\n\n🔗 اضغط هنا للمشاهدة والتفاعل:`,
-                url: shareUrl,
-                files: [file] // إرفاق الصورة اللي عملناها
-            };
-
-            // 6. فتح نافذة المشاركة
-            if (navigator.share && navigator.canShare({ files: [file] })) {
-                await navigator.share(shareData);
-                
-                // إشعار لصاحب البوست (لو مش أنا)
-                if (ownerUid && ownerUid !== currentUser.uid) {
-                    pushNotification(ownerUid, 'share', 'قام بمشاركة منشورك بأسلوب مميز 🌟', null, pid);
-                }
+            // جلب بيانات الصديق من الكاش أو الداتابيز
+            let uName = "مستخدم";
+            let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+            
+            // محاولة استخدام الكاش لو موجود
+            if (typeof userCache !== 'undefined' && userCache[otherUid]) {
+                uName = userCache[otherUid].name;
+                uPic = userCache[otherUid].profilePic || uPic;
             } else {
-                // لو المتصفح مش بيدعم مشاركة الصور (كمبيوتر مثلاً)، ننسخ الرابط بس
-                navigator.clipboard.writeText(shareData.text + " " + shareData.url);
-                showToast("تم نسخ الرابط والنص للحافظة 📋");
+                const userDoc = await db.collection('users').doc(otherUid).get();
+                if (userDoc.exists) {
+                    uName = userDoc.data().name;
+                    uPic = userDoc.data().profilePic || uPic;
+                }
             }
+
+            const item = document.createElement('div');
+            item.className = 'share-contact-item';
+            // عند الضغط يتم الإرسال
+            item.onclick = function() { sendPostToChat(otherUid, this); };
+
+            item.innerHTML = `
+                <img src="${uPic}" class="share-contact-img">
+                <i class="fa-solid fa-circle-check share-sent-badge"></i>
+                <span class="share-contact-name">${uName}</span>
+            `;
+            container.appendChild(item);
+        }
+    } catch (e) {
+        console.log(e);
+        container.innerHTML = ''; 
+    }
+}
+
+// 3. دالة إرسال المنشور في الشات
+async function sendPostToChat(targetUid, element) {
+    if (element.classList.contains('selected')) return;
+
+    // 1. استخدام رابط حقيقي (لو عندك موقع) أو رابط وهمي يعتمد على الـ ID
+    // ملاحظة: الروابط المحلية file:// لا تعمل عند الأصدقاء
+    // الأفضل نعتمد على postId في العرض
+    const postUrl = `https://wareed.lol/post?id=${currentPostId}`; 
+    
+    const chatId = [currentUser.uid, targetUid].sort().join("_");
+    
+    try {
+        await db.collection('chats').doc(chatId).set({
+            users: [currentUser.uid, targetUid],
+            lastMessage: "🔗 مشاركة منشور",
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            read: false
+        }, { merge: true });
+
+        // 🔥 التعديل هنا: نرسل النوع 'post_share' بدلاً من 'text'
+        await db.collection('chats').doc(chatId).collection('messages').add({
+            uid: currentUser.uid,
+            text: "قام بمشاركة منشور", // نص بديل للعرض في الإشعارات
+            type: 'post_share', // ✅ تحديد النوع عشان الشات يفهم إنه منشور
+            postId: currentPostId, // ✅ إرسال رقم المنشور فقط
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        element.classList.add('selected');
+        playSound('sent');
+        showToast("تم الإرسال ✅");
 
     } catch (e) {
         console.error(e);
-        // في حالة الفشل، نرجع للطريقة القديمة (نسخ الرابط)
-        const url = `${window.location.origin}${window.location.pathname}?post=${pid}`;
-        navigator.clipboard.writeText(url);
-        showToast("تم نسخ رابط المنشور");
+        showToast("فشل الإرسال");
+    }
+}
+
+// 4. دالة المشاركة الخارجية (واتساب، نسخ..)
+function shareToExternal(platform) {
+    const postUrl = `${window.location.origin}${window.location.pathname}?post=${currentPostId}`;
+    
+    if (platform === 'copy') {
+        navigator.clipboard.writeText(postUrl);
+        showToast("تم نسخ الرابط");
+    } else if (platform === 'whatsapp') {
+        window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(postUrl)}`, '_blank');
+    } else if (platform === 'facebook') {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank');
+    }
+    closeAllSheets();
+}
+
+// ================= دوال إعادة النشر في البروفايل (Repost) =================
+
+// 1. فتح نافذة الكتابة
+function openRepostModal() {
+    closeAllSheets(); // قفل القائمة السابقة
+    
+    if (!currentUser) {
+        showToast("سجل دخولك أولاً");
+        return;
+    }
+
+    // جلب اسم صاحب المنشور الأصلي
+    const postEl = document.getElementById(`post-${currentPostId}`);
+    let ownerName = "مستخدم";
+    if(postEl) {
+        const nameEl = postEl.querySelector('.user-details h4');
+        if(nameEl) ownerName = nameEl.innerText.split(' ')[0];
+    }
+    
+    document.getElementById('repostOwnerName').innerText = ownerName;
+    document.getElementById('repostCaptionInput').value = "";
+    document.getElementById('repostModal').style.display = 'flex';
+}
+
+// 2. تنفيذ النشر (الحفظ في الداتابيز)
+async function confirmRepostWithCaption() {
+    const caption = document.getElementById('repostCaptionInput').value;
+    const modal = document.getElementById('repostModal');
+    
+    modal.style.display = 'none';
+    showToast("جاري النشر في ملفك الشخصي... 🚀");
+
+    try {
+        // 1. جلب بياناتك أنت (الناشر الجديد)
+        const myDoc = await db.collection('users').doc(currentUser.uid).get();
+        const myData = myDoc.data();
+
+        // 2. جلب بيانات المنشور الأصلي
+        const originalPostDoc = await db.collection('posts').doc(currentPostId).get();
+        if(!originalPostDoc.exists) return;
+        const originalPostData = originalPostDoc.data();
+
+        // 🔥 3. (مهم جداً) جلب بيانات "صاحب" المنشور الأصلي الحقيقية من جدول Users 🔥
+        // عشان نتأكد إن الاسم والصورة محدثين ومش "مستخدم"
+        const originalOwnerUid = originalPostData.uid;
+        let originalOwnerName = "مستخدم";
+        let originalOwnerPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+        try {
+            const ownerDoc = await db.collection('users').doc(originalOwnerUid).get();
+            if (ownerDoc.exists) {
+                const ownerData = ownerDoc.data();
+                originalOwnerName = ownerData.name || originalOwnerName;
+                originalOwnerPic = ownerData.profilePic || originalOwnerPic;
+            }
+        } catch(err) { console.log("خطأ في جلب بيانات المالك الأصلي", err); }
+
+        // استخراج الميديا
+        const videoMedia = originalPostData.media ? originalPostData.media.find(m => m.type === 'video') : null;
+        const imageMedia = originalPostData.media ? originalPostData.media.find(m => m.type === 'image') : null;
+        
+        let mediaToSave = [];
+        if (videoMedia) mediaToSave.push(videoMedia);
+        else if (imageMedia) mediaToSave.push(imageMedia);
+
+        // 4. إنشاء المنشور الجديد
+        await db.collection('posts').add({
+            uid: currentUser.uid,        
+            text: caption,               // جملتك أنت
+            
+            type: 'repost',              
+            originalPostId: currentPostId,
+            originalOwnerUid: originalOwnerUid,
+            
+            // تخزين البيانات الصحيحة للعرض
+            originalContent: {
+                text: originalPostData.text || "",
+                media: mediaToSave,
+                name: originalOwnerName, // الاسم الحقيقي
+                pic: originalOwnerPic    // الصورة الحقيقية
+            },
+            
+            // بياناتك أنت
+            name: myData.name,
+            pic: myData.profilePic,
+            isVerified: myData.isVerified || false,
+            
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            likes: {},
+            commentsCount: 0,
+            views: 0
+        });
+
+        // إشعار
+        if (originalOwnerUid !== currentUser.uid) {
+            db.collection('notifications').add({
+                recipientId: originalOwnerUid,
+                senderUid: currentUser.uid,
+                type: 'repost',
+                text: `قام بمشاركة منشورك: "${caption.substring(0,20)}..."`,
+                postId: currentPostId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+        }
+
+        showToast("تم النشر في ملفك الشخصي ✅");
+        
+        // تحديث الصفحة
+        setTimeout(() => {
+            const list = document.getElementById('postsList');
+            list.innerHTML = "";
+            lastVisibleDoc = null;
+            loadPosts();
+        }, 1000);
+
+    } catch (e) {
+        console.error("Repost Error:", e);
+        showToast("حدث خطأ أثناء النشر");
+    }
+}
+
+// دالة تحديد أيقونة الخصوصية (كانت ناقصة وبتعمل Error)
+function getPrivacyIcon(privacy) {
+    if (privacy === 'private') {
+        return '<i class="fa-solid fa-lock" style="font-size:12px; margin-right:5px;" title="أنا فقط"></i>';
+    } else if (privacy === 'friends') {
+        return '<i class="fa-solid fa-user-group" style="font-size:12px; margin-right:5px;" title="الأصدقاء"></i>';
+    } else {
+        // الافتراضي عام
+        return '<i class="fa-solid fa-earth-americas" style="font-size:12px; margin-right:5px;" title="عام"></i>';
     }
 }
 
 
-             function toggleMute(e) { 
-    e.stopPropagation(); 
+             // دالة التحكم الموحد في الصوت (تعمل مع المنشورات العادية والمشاركة)
+function toggleMute(e) { 
+    if(e) {
+        e.stopPropagation(); // منع فتح البوست عند الضغط على الزر
+        e.preventDefault();
+    }
     
-    // 1. عكس الحالة العامة
+    // 1. عكس الحالة العامة للصوت في التطبيق
     isGlobalMuted = !isGlobalMuted; 
 
-    // 2. تحديد احنا فين؟ (في البحث ولا الرئيسية)
-    const isSearchOpen = document.getElementById('fullSearchPage').classList.contains('active');
-    
-    // 3. تحديد الفيديوهات المستهدفة بناءً على المكان
-    // لو البحث مفتوح -> هات فيديوهات البحث بس
-    // لو مقفول -> هات فيديوهات الرئيسية بس
-    const selector = isSearchOpen ? '#searchResultsSection video' : '#postsList video';
-    const targetVideos = document.querySelectorAll(selector);
-
-    // 4. تطبيق الصوت/الكتم على الفيديوهات المحددة فقط
-    targetVideos.forEach(v => {
+    // 2. تطبيق الحالة الجديدة على جميع الفيديوهات في الصفحة
+    document.querySelectorAll('video').forEach(v => {
         v.muted = isGlobalMuted;
     });
 
-    // 5. تغيير شكل الأيقونات في المكان الصحيح فقط
-    const btnSelector = isSearchOpen ? '#searchResultsSection .video-mute-btn i' : '#postsList .video-mute-btn i';
-    const allIcons = document.querySelectorAll(btnSelector);
-    
+    // 3. تحديث شكل جميع أيقونات الصوت في الصفحة (سواء عادية أو مشاركة)
+    const allIcons = document.querySelectorAll('.video-mute-btn i');
     allIcons.forEach(icon => {
         if(isGlobalMuted) {
-            icon.className = 'fa-solid fa-volume-xmark';
+            icon.className = 'fa-solid fa-volume-xmark'; // شكل الكتم
         } else {
-            icon.className = 'fa-solid fa-volume-high';
+            icon.className = 'fa-solid fa-volume-high'; // شكل التشغيل
         }
     });
+
+    // 4. هزة بسيطة للموبايل للتأكيد
+    if(navigator.vibrate) navigator.vibrate(30);
 }
 
 
@@ -8451,16 +9399,19 @@ function renderUserCardInSearch(doc) {
             
             p.media.forEach((m, idx) => {
                 if (m.type === 'video') {
-                    const uniqueVideoId = `search-vid-${p.id}-${idx}`;
-                    const videoLink = `videos.html?id=${p.id}&post=${p.id}&index=${idx}&src=${encodeURIComponent(m.url)}`;
-                    
-                    contentHtml += `
-                    <div style="position:relative; overflow:hidden; border-radius:4px; cursor:pointer;">
-                        <video src="${m.url}" id="${uniqueVideoId}" class="media-item search-video-item" loop playsinline muted 
-                            onclick="openPage('${videoLink}')"
-></video>
-                        <div class="video-mute-btn" onclick="toggleMute(event)"><i class="fa-solid fa-volume-xmark"></i></div>
-                    </div>`;
+    const uniqueVideoId = `search-vid-${p.id}-${idx}`;
+    // 🔥 التعديل هنا: توجيه مباشر باستخدام openVideo
+    const videoLink = `videos.html?openVideo=${p.id}`;
+    
+    contentHtml += `
+    <div style="position:relative; overflow:hidden; border-radius:4px; cursor:pointer;">
+        <video src="${m.url}" id="${uniqueVideoId}" class="media-item search-video-item" loop playsinline muted 
+            onclick="window.location.href = '${videoLink}'"
+        ></video>
+        <div class="video-mute-btn" onclick="toggleMute(event)"><i class="fa-solid fa-volume-xmark"></i></div>
+    </div>`;
+
+
                 } else {
                     contentHtml += `<img src="${m.url}" class="media-item">`;
                 }
@@ -8553,40 +9504,201 @@ function getYouTubeID(url) {
 function formatSmartText(text, mentionsList = []) {
     if (!text) return "";
 
-    // حماية النص
     let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    // تلوين الهاشتاج
+    // 1. تلوين الهاشتاج (كما هو)
     safeText = safeText.replace(/(^|\s)#([\u0600-\u06FFa-zA-Z0-9_]+)/g, 
         '$1<span class="styled-hashtag" onclick="event.stopPropagation(); handleHashtagClick(\'$2\')">#$2</span>');
 
     const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    
+    // 2. حساب عدد المنشنات في النص
+    const matches = safeText.match(/(^|\s)@([^\s]+)/g);
+    const totalMentions = matches ? matches.length : 0;
+    let mentionIndex = 0; 
 
-    // تلوين المنشن والبحث عن الصورة
-    safeText = safeText.replace(/(^|\s)@([^\s]+)/g, function(match, space, name) {
+    // 3. استبدال المنشنات (النظام الذكي)
+    safeText = safeText.replace(/(^|\s)@([^\s]+)/g, function(match, space, rawName) {
+        mentionIndex++;
+        let cleanName = rawName.trim(); 
         
+        // البحث عن بيانات المستخدم
         let userPic = defaultAvatar;
+        let uid = null;
         
-        // 🔥 هنا السحر: بندور في القائمة اللي جاية من الداتابيز
-        if (mentionsList && Array.isArray(mentionsList) && mentionsList.length > 0) {
-            const foundUser = mentionsList.find(u => u.name === name);
-            if (foundUser && foundUser.pic) {
-                userPic = foundUser.pic; 
+        // محاولة إيجاد المستخدم في القائمة المحفوظة
+        if (mentionsList && Array.isArray(mentionsList)) {
+            const nameWithSpace = cleanName.replace(/_/g, ' ');      
+            const nameWithUnderscore = cleanName.replace(/ /g, '_'); 
+
+            const foundUser = mentionsList.find(u => 
+                u.name === cleanName || 
+                u.name === nameWithSpace || 
+                u.name === nameWithUnderscore
+            );
+            
+            if (foundUser) {
+                userPic = foundUser.pic || defaultAvatar;
+                uid = foundUser.uid;
             }
         }
 
-        // نشيل الشرطة السفلية للعرض فقط
-        const displayName = name.replace(/_/g, ' ');
+        const displayName = cleanName.replace(/_/g, ' ');
+        
+        // تجهيز الرابط
+        let clickAction = "";
+        let chipStyle = "cursor: default; opacity: 0.9;";
+        
+        if (uid && uid !== 'undefined' && uid !== 'null') {
+            clickAction = `onclick="event.stopPropagation(); goToProfile('${uid}')"`;
+            chipStyle = "cursor: pointer;";
+        }
 
-        return `${space}<div class="mention-chip" onclick="event.stopPropagation(); handleMentionClick('${name}')">
-                    <img src="${userPic}" class="mention-chip-img" onerror="this.src='${defaultAvatar}'">
-                    <span class="mention-chip-name">${displayName}</span>
-               </div>`;
+        // --- المنطق: عرض الأول فقط + العداد ---
+        if (mentionIndex === 1) {
+            // هذا هو الشخص الأول: نعرضه كاملاً
+            
+            let counterHTML = "";
+            // لو فيه أكتر من واحد، نضيف زر العداد جنب الأول
+            if (totalMentions > 1) {
+                const remainingCount = totalMentions - 1;
+                
+                // نجهز قائمة "المخفيين" عشان لما يضغط تظهرله
+                // بنفلتر القائمة ونشيل منها الشخص الأول اللي اتعرض خلاص
+                let hiddenUsersData = (mentionsList || []).filter(u => u.uid !== uid);
+                
+                // تشفير البيانات لإرسالها للدالة (Base64) لمنع مشاكل النصوص
+                let safeDataString = "";
+                try {
+                    safeDataString = btoa(unescape(encodeURIComponent(JSON.stringify(hiddenUsersData))));
+                } catch(e) { safeDataString = ""; }
+                
+                counterHTML = `<span class="mention-counter" onclick="event.stopPropagation(); openHiddenMentionsList('${safeDataString}')">+${remainingCount}</span>`;
+            }
+
+            return `${space}<div class="mention-chip" style="${chipStyle}" ${clickAction}>
+                        <img src="${userPic}" class="mention-chip-img" onerror="this.src='${defaultAvatar}'">
+                        <span class="mention-chip-name">${displayName}</span>
+                   </div>${counterHTML}`;
+        }
+        else {
+            // أي منشن تاني غير الأول: نرجعه نص فاضي (يختفي من العرض)
+            // لأننا عبرنا عنه في العداد (+1)
+            return ""; 
+        }
     });
 
     return safeText;
 }
 
+// 4. دوال فتح وإغلاق قائمة المخفيين
+// دالة فتح قائمة المنشنات (تعرض كل الأشخاص)
+// دالة عرض قائمة المنشنات (مع التوثيق وعدد المتابعين)
+async function openHiddenMentionsList(encodedData) {
+    const sheet = document.getElementById('mentionsListSheet');
+    const container = document.getElementById('hiddenMentionsContainer');
+    const overlay = document.getElementById('globalOverlay'); 
+
+    // 1. فتح القائمة وعرض مؤشر التحميل فوراً
+    sheet.classList.add('active');
+    if(overlay) overlay.style.display = 'block';
+    container.innerHTML = '<div style="text-align:center; padding:20px; color:#fff;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
+
+    try {
+        // 2. فك تشفير البيانات الأساسية (التي تحتوي على الـ UIDs)
+        const jsonString = decodeURIComponent(escape(atob(encodedData)));
+        const basicUsers = JSON.parse(jsonString);
+
+        if (!basicUsers || basicUsers.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#777; padding:20px;">لا توجد بيانات</div>';
+            return;
+        }
+
+        // 3. جلب البيانات الكاملة من الداتابيز لكل مستخدم
+        // نستخدم Promise.all عشان نجيبهم كلهم في نفس الوقت وبسرعة
+        const userPromises = basicUsers.map(async (u) => {
+            if (!u.uid) return null;
+            try {
+                const doc = await db.collection('users').doc(u.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    // دمج البيانات الأساسية مع البيانات الحديثة من السيرفر
+                    return { 
+                        uid: u.uid, 
+                        name: data.name || u.name, 
+                        pic: data.profilePic || u.pic, 
+                        isVerified: data.isVerified || false,
+                        followersCount: (data.followers ? data.followers.length : 0) + (data.fakeFollowersCount || 0), // حساب المتابعين
+                        username: data.username || "" 
+                    };
+                }
+            } catch(e) { console.error(e); }
+            // لو فشل الجلب، نرجع البيانات القديمة كاحتياطي
+            return u;
+        });
+
+        const fullUsersData = (await Promise.all(userPromises)).filter(u => u !== null);
+
+        // 4. رسم القائمة بالشكل الجديد
+        container.innerHTML = ''; // تفريغ اللودر
+
+        fullUsersData.forEach(u => {
+            const defaultPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            
+            // شارة التوثيق (القلب الموثق)
+            const badge = u.isVerified ? `<i class="fa-solid fa-heart-circle-check nabd-badge" style="color:#20D5EC; font-size:14px; margin-right:5px;"></i>` : '';
+            
+            // تنسيق عدد المتابعين (مثلاً 1.5K)
+            const followersText = formatNumber(u.followersCount || 0) + " متابع";
+
+            const clickAttr = `onclick="goToProfile('${u.uid}'); closeMentionsSheet();"`;
+
+            const userHTML = `
+            <div class="user-result-card" ${clickAttr} style="cursor:pointer; display:flex; align-items:center; gap:12px; padding:15px; border-bottom:1px solid rgba(255,255,255,0.05); transition:0.2s;">
+                
+                <div style="position:relative;">
+                    <img src="${u.pic || defaultPic}" class="user-result-img" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid #333;">
+                    ${u.isVerified ? '<div style="position:absolute; bottom:0; right:0; background:#20D5EC; width:12px; height:12px; border-radius:50%; border:2px solid #1e1e1e;"></div>' : ''}
+                </div>
+
+                <div style="flex:1;">
+                    <div style="font-weight:800; color:#fff; display:flex; align-items:center; font-size:15px; margin-bottom:4px;">
+                        ${u.name} ${badge}
+                    </div>
+                    
+                    <div style="display:flex; align-items:center; gap:10px; font-size:12px; color:#aaa;">
+                        <span>@${u.username || u.uid.substring(0,8)}</span>
+                        <span style="width:4px; height:4px; background:#555; border-radius:50%;"></span>
+                        <span style="color:#FFD700; font-weight:bold;">${followersText}</span>
+                    </div>
+                </div>
+
+                <i class="fa-solid fa-chevron-left" style="color:#555; font-size:14px;"></i>
+            </div>`;
+            
+            container.insertAdjacentHTML('beforeend', userHTML);
+        });
+
+    } catch (e) {
+        console.error("Error loading mentions details:", e);
+        container.innerHTML = '<div style="text-align:center; color:red; padding:20px;">حدث خطأ في التحميل</div>';
+    }
+}
+
+
+function closeMentionsSheet() {
+    const sheet = document.getElementById('mentionsListSheet');
+    const overlay = document.getElementById('globalOverlay');
+    
+    if(sheet) sheet.classList.remove('active');
+    
+    // لو مفيش قوائم تانية مفتوحة، اقفل الأوفرلاي
+    // (بنشوف لو فيه أي شيت تاني واخد كلاس active غير ده)
+    const otherActive = document.querySelector('.bottom-sheet.active:not(#mentionsListSheet)');
+    if (!otherActive && overlay) {
+        overlay.style.display = 'none';
+    }
+}
 
 // 3. استخراج أول رابط من النص
 function extractFirstLink(text) {
@@ -9518,12 +10630,17 @@ let recordSeconds = 0;
 let isRecording = false;
 
 /* 1. تشغيل التسجيل (التبديل لواجهة التسجيل) */
-async function toggleRecording() {
-    if (isRecording) {
-        stopAndSendRecording(); // لو ضغط تاني يبعت
-        return;
+async function toggleReplyRecording() {
+    // ✅ (2) ضيف السطر ده: لو بسجل تعليق رئيسي، اقفله الأول
+    if (typeof isRecording !== 'undefined' && isRecording) {
+        cancelRecording();
     }
 
+    if (!replyIsRecording) {
+
+        stopAndSendRecording();
+        return;
+    }
     try {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         mediaRecorder = new MediaRecorder(stream);
@@ -9891,39 +11008,36 @@ function formatTimeSec(s) {
     return `${m}:${sc.toString().padStart(2,'0')}`; 
 }
 
-
-/* --- دوال نظام الروابط الذكي --- */
-
-// 1. استخراج أول رابط من النص
-
-// 2. جلب البيانات من API خارجي
-/* --- دوال النظام الذكي (محدثة لليوتيوب) --- */
-
-// 1. معالجة النص (تحويل الروابط للون أزرق)
-// دالة معالجة النصوص (روابط + هاشتاج + منشن متطور)
+// دالة معالجة النصوص (روابط + هاشتاج + منشن متطور مع العداد الشامل)
 function processPostText(text, mentionsList = []) {
     if (!text) return "";
     
-    // 1. حماية النص من الأكواد الخبيثة
+    // 1. حماية النص
     let processed = escapeHTML(text);
 
-    // 2. تحويل الروابط (Links)
+    // 2. تحويل الروابط
     processed = processed.replace(/((https?:\/\/|www\.)[^\s]+)/g, (url) => {
         let href = url.startsWith('www.') ? 'http://' + url : url;
         return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
     });
 
-    // 3. تحويل الهاشتاج (#)
+    // 3. تحويل الهاشتاج
     processed = processed.replace(/(^|\s)(#[^\s<]+)/g, '$1<span class="text-link" onclick="searchForHashtag(event, \'$2\')">$2</span>');
 
-    // 4. تحويل المنشن المتطور (@) [Image + Name]
-    // نبحث عن @ والكلمة التي تليها (حتى لو فيها شرطة سفلية)
-    processed = processed.replace(/(^|\s)@([^\s<]+)/g, function(match, space, nameWithUnderscore) {
+    // 4. تحويل المنشن
+    
+    // حساب عدد المنشنات
+    const mentionRegex = /(^|\s)@([^\s<]+)/g;
+    const matches = processed.match(mentionRegex);
+    const totalMentions = matches ? matches.length : 0;
+    let mentionIndex = 0; 
+
+    processed = processed.replace(mentionRegex, function(match, space, nameWithUnderscore) {
+        mentionIndex++;
         
-        let userPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // صورة افتراضية
+        let userPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
         let uid = null;
 
-        // البحث في القائمة المحفوظة (mentionsList)
         if (mentionsList && Array.isArray(mentionsList) && mentionsList.length > 0) {
             const foundUser = mentionsList.find(u => u.name === nameWithUnderscore);
             if (foundUser) {
@@ -9932,18 +11046,46 @@ function processPostText(text, mentionsList = []) {
             }
         }
 
-        // تحسين العرض: إزالة الشرطة السفلية وجعلها مسافة للقراءة
         const displayName = nameWithUnderscore.replace(/_/g, ' ');
 
-        // إنشاء الكبسولة
-        return `${space}<div class="mention-chip" onclick="event.stopPropagation(); goToProfile('${uid}')">
-                    <img src="${userPic}" class="mention-chip-img">
-                    <span class="mention-chip-name">${displayName}</span>
-               </div>`;
+        // === 🔥 التعديل هنا: عرض الكل في القائمة 🔥 ===
+        
+        // الشخص الأول (رقم 1): نعرضه كـ كبسولة + زر العداد
+        if (mentionIndex === 1) {
+            let counterHTML = "";
+            
+            if (totalMentions > 1) {
+                const remainingCount = totalMentions - 1;
+                
+                // 🔥 التغيير: نبعت القائمة كاملة (mentionsList) بدل ما نفلترها
+                // عشان لما تفتح يظهرلك (شاهين + الشخص التاني) مع بعض
+                let allUsersData = mentionsList || [];
+                
+                let safeDataString = "";
+                try {
+                    // تشفير البيانات
+                    safeDataString = btoa(unescape(encodeURIComponent(JSON.stringify(allUsersData))));
+                } catch(e) { safeDataString = ""; }
+
+                // زرار العداد يفتح القائمة بكل الناس
+                counterHTML = `<span class="mention-counter" onclick="event.stopPropagation(); openHiddenMentionsList('${safeDataString}')">+${remainingCount}</span>`;
+            }
+
+            return `${space}<div class="mention-chip" onclick="event.stopPropagation(); goToProfile('${uid}')">
+                        <img src="${userPic}" class="mention-chip-img">
+                        <span class="mention-chip-name">${displayName}</span>
+                   </div>${counterHTML}`;
+        }
+        
+        // باقي الأشخاص: نخفيهم من النص لأنهم موجودين في زر العداد
+        else {
+            return ""; 
+        }
     });
 
     return processed;
 }
+
 
 // 2. استخراج أول رابط
 function extractFirstLink(text) {
@@ -10462,21 +11604,32 @@ async function toggleReplyRecording() {
 
 
 // 2. إيقاف وإرسال الريكورد للردود
+// 2. إيقاف وإرسال الريكورد للردود (تم التصحيح)
 async function stopAndSendReplyRecording() {
+    // 1. حماية: لو مفيش مسجل أو مش شغال، اخرج
     if(!replyMediaRecorder || replyMediaRecorder.state === "inactive") return;
     
-    replyMediaRecorder.stop();
+    // 🔥 التغيير الجوهري: نحدد ماذا سيحدث عند التوقف "أولاً"
     replyMediaRecorder.onstop = async () => {
+        // تنظيف العداد والواجهة
         clearInterval(replyRecordInterval);
-        document.getElementById("replyRecordingInterface").style.display = "none";
-        document.getElementById("replyNormalInterface").style.display = "flex";
-        document.getElementById("replyMicBtn").classList.remove("recording");
+        
+        // إعادة الواجهة للشكل الطبيعي
+        const recUI = document.getElementById("replyRecordingModeUI");
+        const normUI = document.getElementById("replyNormalModeUI");
+        if (recUI) recUI.style.display = "none";
+        if (normUI) normUI.style.display = "flex";
+        
         replyIsRecording = false;
 
-        if (replyAudioChunks.length === 0) return;
+        if (replyAudioChunks.length === 0) {
+            showToast("⚠️ التسجيل فارغ");
+            return;
+        }
 
-        // تجهيز الملف
+        // --- بداية كود الرفع ---
         const blob = new Blob(replyAudioChunks, { type: 'audio/mp4' });
+        // استخدام currentParentComment.id لضمان عدم تداخل الملفات
         const voicePath = `comments_media_v2/${currentPostId}/replies_voices/${Date.now()}_${currentUser.uid}.m4a`;
         const ref = storage.ref().child(voicePath);
 
@@ -10504,6 +11657,9 @@ async function stopAndSendReplyRecording() {
                     duration: durationText,
                     isSticker: false,
                     isGhost: isGhost,
+                    // إضافة بيانات الرد على شخص معين لو موجودة
+                    replyToUid: currentSubReplyTarget ? currentSubReplyTarget.uid : null,
+                    replyToName: currentSubReplyTarget ? currentSubReplyTarget.name : null,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
@@ -10517,9 +11673,18 @@ async function stopAndSendReplyRecording() {
 
             showToast("تم إرسال الرد ✅");
             playSound('sent');
+            
+            // تصفير الهدف بعد الإرسال
+            currentSubReplyTarget = null;
 
-        } catch(e) { console.error(e); showToast("فشل الإرسال"); }
-    }
+        } catch(e) { 
+            console.error(e); 
+            showToast("فشل الإرسال"); 
+        }
+    };
+
+    // 🔥 أمر الإيقاف نضعه في النهاية (بعد ما جهزنا دالة الرفع)
+    replyMediaRecorder.stop();
 }
 
 // 3. إلغاء تسجيل الرد
@@ -10537,6 +11702,13 @@ function cancelReplyRecording() {
 
 
 async function uploadCommentMedia(input) {
+    // ✅ ضيف السطرين دول في الأول
+    if (!storage) {
+        showToast("⚠️ جاري تحميل الخدمات، حاول بعد قليل...");
+        input.value = ''; // فضي الملف
+        return;
+    }
+
     const file = input.files[0];
     if (!file) return;
 
@@ -11427,7 +12599,7 @@ document.addEventListener('touchstart', function(e) {
 // 3. نهاية اللمس (المعدل: للكتم فقط)
 // 3. نهاية اللمس (التحكم في الصوت بالاتجاهين)
 document.addEventListener('touchend', function(e) {
-    // حماية إضافية
+    // حماية إضافية: لو اللمسة على الكرة أو القوائم السفلية، نخرج
     if (e.target.closest('#uraniumOrb') || e.target.closest('.bottom-sheet')) return;
 
     let touchEndX = e.changedTouches[0].screenX;
@@ -11437,54 +12609,30 @@ document.addEventListener('touchend', function(e) {
     let diffX = touchEndX - touchStartX;
     let diffY = touchEndY - touchStartY;
 
-    // التأكد إنها سحبة أفقية واضحة (مش سكرول)
+    // التأكد إنها سحبة أفقية واضحة (مش سكرول رأسي)
     if (Math.abs(diffY) < 60) {
         
-        const allMuteBtns = document.querySelectorAll('.video-mute-btn');
-        let actionTaken = false;
+        // البحث عن الحاوية (Wrapper) التي تم السحب عليها
+        // هنا أضفنا repost-video-wrapper عشان يتعرف على فيديوهات المشاركة
+        const wrapper = e.target.closest('.media-item-wrapper') || 
+                        e.target.closest('.custom-video-container') || 
+                        e.target.closest('.repost-video-wrapper');
 
-        allMuteBtns.forEach(btn => {
-            if (actionTaken) return; // ننفذ على فيديو واحد فقط
-
-            const rect = btn.getBoundingClientRect();
-
-            // هل الزرار ظاهر في الشاشة؟
-            if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                
-                let wrapper = btn.closest('.media-item-wrapper') || btn.closest('.custom-video-container');
-                
-                if (wrapper) {
-                    const video = wrapper.querySelector('video');
-                    const icon = btn.querySelector('i');
-
-                    // ⬅️ الحالة الأولى: سحب من اليسار لليمين (diffX > 80) -> كتم الصوت
-                    if (diffX > 80) {
-                        if (video && !video.muted) {
-                            video.muted = true;
-                            if (icon) icon.className = "fa-solid fa-volume-xmark";
-                            isGlobalMuted = true;
-
-                            if (navigator.vibrate) navigator.vibrate(50);
-                            showToast("🔇 تم كتم الصوت");
-                            actionTaken = true;
-                        }
-                    }
-                    
-                    // ➡️ الحالة الثانية: سحب من اليمين لليسار (diffX < -80) -> تشغيل الصوت
-                    else if (diffX < -80) {
-                        if (video && video.muted) {
-                            video.muted = false;
-                            if (icon) icon.className = "fa-solid fa-volume-high";
-                            isGlobalMuted = false;
-
-                            if (navigator.vibrate) navigator.vibrate(50);
-                            showToast("🔊 تم تشغيل الصوت");
-                            actionTaken = true;
-                        }
-                    }
-                }
+        if (wrapper) {
+            // ⬅️ الحالة الأولى: سحب من اليسار لليمين (diffX > 80) -> كتم الصوت
+            // الشرط: بنفذ الأمر فقط لو الصوت شغال حالياً (!isGlobalMuted)
+            if (diffX > 80 && !isGlobalMuted) {
+                toggleMute(); // استدعاء الدالة الموحدة لقلب الحالة في التطبيق كله
+                showToast("🔇 تم كتم الصوت");
             }
-        });
+            
+            // ➡️ الحالة الثانية: سحب من اليمين لليسار (diffX < -80) -> تشغيل الصوت
+            // الشرط: بنفذ الأمر فقط لو الصوت مكتوم حالياً (isGlobalMuted)
+            else if (diffX < -80 && isGlobalMuted) {
+                toggleMute(); // استدعاء الدالة الموحدة
+                showToast("🔊 تم تشغيل الصوت");
+            }
+        }
     }
 }, {passive: true});
 
@@ -11635,7 +12783,1051 @@ window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
     }
 };
 
+// استبدل دالة shareVideo القديمة بهذه النسخة المحدثة
+function shareVideo(id, text, ownerUid) {
+    currentOpenVideoId = id;
+    currentPostOwnerUid = ownerUid;
 
+    const shareSheet = document.getElementById('shareSheet');
+    const overlay = document.getElementById('overlay');
+
+    if (shareSheet && overlay) {
+        shareSheet.classList.add('active');
+        overlay.style.display = 'block';
+        
+        // 🔥 تحميل قائمة الأصدقاء فوراً
+        loadDirectShareFriends();
+    }
+}
+
+// دالة جلب الأصدقاء (مأخوذة من الكود الثاني ومعدلة)
+async function loadDirectShareFriends() {
+    const container = document.getElementById('directShareList');
+    if (!currentUser) {
+        container.innerHTML = '<div style="padding:10px;text-align:center;color:#777;width:100%;font-size:11px;">سجل دخولك للمشاركة مع الأصدقاء</div>';
+        return;
+    }
+
+    try {
+        // جلب آخر 10 محادثات
+        const snapshot = await db.collection('chats')
+            .where('users', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageTime', 'desc')
+            .limit(10)
+            .get();
+
+        if (snapshot.empty) {
+            container.innerHTML = '<div style="padding:10px;text-align:center;color:#777;width:100%;font-size:11px;">لا توجد محادثات حديثة</div>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        for (const doc of snapshot.docs) {
+            const chatData = doc.data();
+            const otherUid = chatData.users.find(u => u !== currentUser.uid);
+            
+            // جلب بيانات الصديق
+            const userDoc = await db.collection('users').doc(otherUid).get();
+            if (!userDoc.exists) continue;
+            
+            const uData = userDoc.data();
+            const uName = uData.name || "مستخدم";
+            const uPic = uData.profilePic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+            const item = document.createElement('div');
+            item.className = 'share-contact-item';
+            item.onclick = function() { sendVideoToChat(otherUid, this); };
+
+            item.innerHTML = `
+                <img src="${uPic}" class="share-contact-img">
+                <i class="fa-solid fa-circle-check share-sent-badge"></i>
+                <span class="share-contact-name">${uName}</span>
+            `;
+            container.appendChild(item);
+        }
+    } catch (e) {
+        console.error("Error loading friends:", e);
+        container.innerHTML = ''; // إخفاء القسم عند الخطأ
+    }
+}
+
+// دالة الإرسال للصديق
+// دالة الإرسال للصديق (المصححة للصفحة الرئيسية)
+async function sendVideoToChat(targetUid, element) {
+    if (element.classList.contains('selected')) return; // منع التكرار
+
+    // 🔥 تصحيح 1: استخدام currentPostId بدلاً من currentOpenVideoId
+    if (!currentPostId) {
+        showToast("خطأ: لا يوجد منشور محدد");
+        return;
+    }
+
+    // 1. تجهيز رابط المنشور
+    const postUrl = `${window.location.origin}${window.location.pathname}?post=${currentPostId}`;
+    
+    // 2. تحديد معرف الشات
+    const chatId = [currentUser.uid, targetUid].sort().join("_");
+    
+    try {
+        // ضمان وجود الشات
+        await db.collection('chats').doc(chatId).set({
+            users: [currentUser.uid, targetUid],
+            lastMessage: "🔗 مشاركة منشور",
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            read: false
+        }, { merge: true });
+
+        // إرسال الرسالة
+        await db.collection('chats').doc(chatId).collection('messages').add({
+            uid: currentUser.uid,
+            text: postUrl,
+            type: 'text', // نرسله كنص عادي وفيه الرابط عشان يظهر معاينة
+            
+            // 🔥 تصحيح 2: استخدام currentPostId هنا أيضاً
+            postId: currentPostId, 
+            
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // تحديث الشكل (علامة صح خضراء)
+        element.classList.add('selected');
+        
+        // تشغيل صوت وتوست
+        if(typeof playSound === 'function') playSound('sent');
+        showToast("تم الإرسال ✅");
+
+    } catch (e) {
+        console.error(e);
+        showToast("فشل الإرسال");
+    }
+}
+
+// 1. فتح نافذة الكتابة
+function openRepostModal() {
+    closeAllSheets(); // إغلاق قائمة المشاركة
+    
+    if (!currentUser) {
+        showToast("يجب تسجيل الدخول أولاً");
+        return;
+    }
+
+    // جلب اسم صاحب الفيديو الأصلي للعرض
+    const slide = document.getElementById(`slide-${currentOpenVideoId}`);
+    const ownerName = slide.querySelector('.header-username')?.innerText || "مستخدم";
+    
+    document.getElementById('repostOwnerName').innerText = ownerName;
+    document.getElementById('repostCaptionInput').value = ""; // تفريغ الخانة
+    document.getElementById('repostModal').style.display = 'flex';
+}
+
+// 2. تنفيذ النشر (الحفظ في الداتابيز)
+async function confirmRepostWithCaption() {
+    const caption = document.getElementById('repostCaptionInput').value;
+    const modal = document.getElementById('repostModal');
+    
+    // إخفاء المودال فوراً
+    modal.style.display = 'none';
+    showToast("جاري النشر في ملفك الشخصي... 🚀");
+
+    try {
+        // جلب بياناتك أنت
+        const myDoc = await db.collection('users').doc(currentUser.uid).get();
+        const myData = myDoc.data();
+
+        // جلب بيانات الفيديو الأصلي (عشان نخزنها معانا)
+        // ملاحظة: الأفضل تخزين ID فقط، لكن للتسهيل سنخزن البيانات الأساسية
+        const originalPostDoc = await db.collection('posts').doc(currentOpenVideoId).get();
+        const originalData = originalPostDoc.data();
+        
+        // استخراج رابط الفيديو والصورة المصغرة من الفيديو الأصلي
+        const videoMedia = originalData.media.find(m => m.type === 'video');
+
+        // 🔥 إنشاء "بوست جديد" في كولكشن posts
+        // النوع هنا هيكون 'repost' عشان البروفايل يعرف يعرضه بشكل مختلف
+        await db.collection('posts').add({
+            uid: currentUser.uid,          // أنت الناشر
+            text: caption,                 // جملتك أنت
+            
+            type: 'repost',                // نوع البوست: إعادة نشر
+            originalPostId: currentOpenVideoId, // رابط الأصل
+            originalOwnerUid: originalData.uid, // صاحب الأصل
+            
+            // نخزن نسخة من الميديا الأصلية عشان تظهر عندك
+            media: [videoMedia], 
+            
+            // بياناتك
+            name: myData.name,
+            pic: myData.profilePic,
+            isVerified: myData.isVerified || false,
+            
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            likes: {},
+            commentsCount: 0,
+            views: 0
+        });
+
+        // (اختياري) إضافة إشعار لصاحب الفيديو الأصلي
+        if (originalData.uid !== currentUser.uid) {
+            db.collection('notifications').add({
+                recipientId: originalData.uid,
+                senderUid: currentUser.uid,
+                type: 'repost',
+                text: `قام بمشاركة الفيديو الخاص بك: "${caption}"`,
+                postId: currentOpenVideoId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+        }
+
+        showToast("تم النشر في ملفك الشخصي بنجاح ✅");
+
+    } catch (e) {
+        console.error("Repost Error:", e);
+        showToast("حدث خطأ أثناء النشر");
+    }
+}
+
+// 1. فتح نافذة الكتابة (إعادة النشر)
+function openRepostModal() {
+    closeAllSheets(); // إغلاق قائمة المشاركة
+    
+    if (!currentUser) {
+        showToast("يجب تسجيل الدخول أولاً");
+        return;
+    }
+
+    // محاولة جلب اسم صاحب المنشور الأصلي
+    const postEl = document.getElementById(`post-${currentPostId}`);
+    let ownerName = "مستخدم";
+    if(postEl) {
+        const nameEl = postEl.querySelector('.user-details h4');
+        if(nameEl) ownerName = nameEl.innerText.split('\n')[0]; // ناخد الاسم بس
+    }
+    
+    document.getElementById('repostOwnerName').innerText = ownerName;
+    document.getElementById('repostCaptionInput').value = ""; // تفريغ الخانة
+    document.getElementById('repostModal').style.display = 'flex';
+}
+
+// 2. تنفيذ النشر (الحفظ في الداتابيز)
+async function confirmRepostWithCaption() {
+    const caption = document.getElementById('repostCaptionInput').value;
+    const modal = document.getElementById('repostModal');
+    
+    // إخفاء المودال فوراً
+    modal.style.display = 'none';
+    showToast("جاري النشر في ملفك الشخصي... 🚀");
+
+    try {
+        // جلب بياناتك أنت
+        const myDoc = await db.collection('users').doc(currentUser.uid).get();
+        const myData = myDoc.data();
+
+        // جلب بيانات المنشور الأصلي
+        const originalPostDoc = await db.collection('posts').doc(currentPostId).get();
+        const originalData = originalPostDoc.data();
+        
+        // 🔥 إنشاء "بوست جديد" في كولكشن posts
+        await db.collection('posts').add({
+            uid: currentUser.uid,          // أنت الناشر
+            text: caption,                 // جملتك أنت
+            
+            type: 'repost',                // نوع البوست: إعادة نشر
+            originalPostId: currentPostId, // رابط الأصل
+            originalOwnerUid: originalData.uid, // صاحب الأصل
+            
+            // نسخ محتوى الأصل (نص أو ميديا) لعرضه عندك
+            originalContent: {
+                text: originalData.text || "",
+                media: originalData.media || [],
+                name: originalData.name || "مستخدم"
+            },
+            
+            // بياناتك
+            name: myData.name,
+            pic: myData.profilePic,
+            isVerified: myData.isVerified || false,
+            
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            likes: {},
+            commentsCount: 0,
+            views: 0
+        });
+
+        // (اختياري) إضافة إشعار لصاحب المنشور الأصلي
+        if (originalData.uid !== currentUser.uid) {
+            db.collection('notifications').add({
+                recipientId: originalData.uid,
+                senderUid: currentUser.uid,
+                type: 'repost',
+                text: `قام بمشاركة منشورك: "${caption}"`,
+                postId: currentPostId,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                read: false
+            });
+        }
+
+        showToast("تم النشر في ملفك الشخصي بنجاح ✅");
+
+    } catch (e) {
+        console.error("Repost Error:", e);
+        showToast("حدث خطأ أثناء النشر");
+    }
+}
+
+// دالة خاصة للتحكم في صوت فيديوهات المشاركة (Reposts)
+function toggleRepostSound(e, videoId, btn) {
+    // 1. منع الضغطة من الوصول للكارت (عشان الصفحة متفتحش)
+    e.stopPropagation(); 
+    e.preventDefault();
+
+    const vid = document.getElementById(videoId);
+    const icon = btn.querySelector('i');
+
+    if (!vid) return;
+
+    // تبديل حالة الصوت
+    vid.muted = !vid.muted;
+
+    // تغيير شكل الأيقونة
+    if (vid.muted) {
+        icon.className = "fa-solid fa-volume-xmark"; // مكتوم
+    } else {
+        icon.className = "fa-solid fa-volume-high"; // شغال
+        // نتأكد إن الفيديو شغال (أحياناً المتصفح بيوقفه لو شلنا الكتم)
+        vid.play().catch(()=>{});
+    }
+}
+
+/* ==========================================
+   🔄 منطق السحب للتحديث (Pull to Refresh)
+   ========================================== */
+let ptrStart = 0;
+let ptrCurrent = 0;
+let isPullingToRefresh = false;
+
+document.addEventListener('touchstart', function(e) {
+    // 1. نتأكد إننا في أعلى الصفحة تماماً
+    if (window.scrollY === 0) {
+        // حماية: لو فاتحين أي قائمة أو صورة، نوقف السحب
+        if (document.querySelector('.bottom-sheet.active') || 
+            document.querySelector('.custom-modal[style*="flex"]') ||
+            document.querySelector('.lightbox.active')) {
+            return;
+        }
+
+        ptrStart = e.touches[0].clientY;
+        isPullingToRefresh = true;
+    }
+}, {passive: true});
+
+document.addEventListener('touchmove', function(e) {
+    if (!isPullingToRefresh) return;
+
+    ptrCurrent = e.touches[0].clientY;
+    let diff = ptrCurrent - ptrStart;
+
+    // لو السحب لتحت (diff > 0) وفي أعلى الصفحة
+    if (diff > 0 && window.scrollY === 0) {
+        // تحريك اللودر لأسفل مع السحب (بحد أقصى 100 بكسل)
+        // بنقسم على 2.5 عشان نعمل مقاومة (Resistance)
+        let move = Math.min(diff / 2.5, 100); 
+        
+        const loader = document.getElementById('pullToRefresh');
+        if (loader) {
+            loader.style.transform = `translateX(-50%) translateY(${move - 50}px)`; // -50 عشان يبدأ من فوق
+            loader.style.opacity = '1';
+            
+            // تدوير الأيقونة حسب السحب
+            const icon = loader.querySelector('i');
+            if(icon) icon.style.transform = `rotate(${diff * 2}deg)`;
+        }
+    } else {
+        // لو نزلنا بالصفحة، نلغي السحب
+        isPullingToRefresh = false;
+    }
+}, {passive: true});
+
+document.addEventListener('touchend', function(e) {
+    if (!isPullingToRefresh) return;
+
+    const loader = document.getElementById('pullToRefresh');
+    const diff = ptrCurrent - ptrStart;
+
+    // لو سحب مسافة كافية (أكبر من 150 بكسل)
+    if (diff > 150 && window.scrollY === 0) {
+        
+        // 1. تثبيت اللودر وتشغيل الدوران
+        if (loader) {
+            loader.style.transform = `translateX(-50%) translateY(20px)`; // يثبت تحت الهيدر
+            loader.classList.add('loading');
+            
+            // هزاز للموبايل
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+
+        // 2. تنفيذ التحديث (إعادة تحميل المنشورات)
+        playSound('tab'); // صوت تحديث
+        
+        // محاكاة وقت التحميل
+        setTimeout(() => {
+            // إعادة تحميل الصفحة بالكامل (Restart)
+            // location.reload(); 
+            
+            // أو: إعادة تحميل البوستات فقط (أشيك وأسرع)
+            loadPosts(); 
+
+            // إخفاء اللودر بعد الانتهاء
+            resetPullLoader();
+            
+        }, 1000); // ثانية واحدة عشان الأنيميشن يبان
+
+    } else {
+        // لو السحبة ضعيفة، رجع اللودر مكانه
+        resetPullLoader();
+    }
+
+    isPullingToRefresh = false;
+    ptrStart = 0;
+    ptrCurrent = 0;
+});
+
+function resetPullLoader() {
+    const loader = document.getElementById('pullToRefresh');
+    if (loader) {
+        loader.style.transform = `translateX(-50%) translateY(-100px)`; // يرجع يختفي فوق
+        loader.classList.remove('loading');
+        
+        // إعادة الأيقونة لوضعها الطبيعي
+        const icon = loader.querySelector('i');
+        if(icon) icon.style.transform = 'rotate(0deg)';
+    }
+}
+
+// دالة لتحديد اتجاه النص بناءً على الحروف العربية
+function getTextDirection(text) {
+    if (!text) return 'ltr';
+    // التعبير النمطي للكشف عن الحروف العربية
+    const arabicPattern = /[\u0600-\u06FF]/;
+    return arabicPattern.test(text) ? 'rtl' : 'ltr';
+}
+
+// ================= متغيرات القصص =================
+let storyGroups = [];
+let currentGroupIndex = 0;
+let currentStoryIndex = 0;
+let storyTimer = null;
+let isStoryPaused = false;
+let storyDuration = 5000;
+let areGesturesSetup = false;
+let isStoryMuted = false;
+
+// ================= تشغيل النظام (في دالة البدء) =================
+// ضيف السطر ده `renderStories();` جوه دالة auth.onAuthStateChanged بتاعتك
+
+// ================= دالة جلب وعرض القصص =================
+// ================= دالة جلب وعرض القصص (المصححة) =================
+async function renderStories() {
+    const list = document.getElementById('storiesList');
+    const container = document.getElementById('storiesContainer');
+    
+    // إخفاء الكونتينر لو مفيش قصص (اختياري)
+    // if(container) container.style.display = 'block';
+
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // 1. جلب بياناتي الشخصية الحقيقية أولاً (للصورة)
+    let myRealPic = defaultAvatar;
+    if (currentUser) {
+        try {
+            // استخدام البيانات المحملة مسبقاً لو موجودة لتسريع الأداء
+            if (typeof currentUserData !== 'undefined' && currentUserData) {
+                myRealPic = currentUserData.profilePic || currentUserData.pic || defaultAvatar;
+            } else {
+                const myDoc = await db.collection('users').doc(currentUser.uid).get();
+                if (myDoc.exists) {
+                    myRealPic = myDoc.data().profilePic || myDoc.data().pic || defaultAvatar;
+                }
+            }
+        } catch (e) { console.log("Error fetching my pic for stories", e); }
+    }
+
+    db.collection('stories')
+    .where('timestamp', '>', twentyFourHoursAgo)
+    .orderBy('timestamp', 'asc')
+    .onSnapshot(async snapshot => {
+        const storiesMap = {};
+        snapshot.docs.forEach(doc => {
+            const d = doc.data();
+            if (d.isArchived === true) return; 
+            if(!storiesMap[d.uid]) storiesMap[d.uid] = [];
+            storiesMap[d.uid].push({ id: doc.id, ...d });
+        });
+
+        list.innerHTML = ''; 
+        storyGroups = [];
+
+        // ------------------------------------------
+        // 1. كارت "إنشاء قصة" (زر الإضافة)
+        // ------------------------------------------
+        const addCard = document.createElement('div');
+        addCard.className = 'story-card my-story-card';
+        addCard.innerHTML = `
+            <div class="my-story-top-img" style="background-image: url('${myRealPic}');"></div>
+            <div class="my-story-bottom">
+                <div class="add-story-btn-circle"><i class="fa-solid fa-plus"></i></div>
+                <div style="font-size:12px; font-weight:bold; color:#fff;">إنشاء قصة</div>
+            </div>`;
+        addCard.onclick = () => { window.location.href = 'add_story.html'; };
+        list.appendChild(addCard);
+
+        // ------------------------------------------
+        // 2. كارت "قصتك" (لو عندك قصص منشورة)
+        // ------------------------------------------
+        const myStories = storiesMap[currentUser.uid] || [];
+        
+        if (myStories.length > 0) {
+            // إضافة قصصي للمصفوفة عشان العارض يشتغل
+            const myUserObj = { 
+                uid: currentUser.uid, 
+                name: 'قصتك', 
+                avatar: myRealPic,
+                isVerified: false 
+            };
+            storyGroups.push({ user: myUserObj, stories: myStories });
+            
+            // رسم الكارت
+            const myViewCard = document.createElement('div');
+            myViewCard.className = 'story-card';
+            const lastStory = myStories[myStories.length - 1];
+            
+            let contentHTML = lastStory.type === 'video' 
+                ? `<video src="${lastStory.url}#t=0.1" class="story-card-bg" style="object-fit:cover;" muted preload="metadata"></video>`
+                : `<div class="story-card-bg" style="background-image:url('${lastStory.url}'); background-size:cover; background-position:center;"></div>`;
+
+            myViewCard.innerHTML = `
+                <div class="story-card-avatar" style="background-image:url('${myRealPic}'); border-color: #ddd;"></div>
+                ${contentHTML}
+                <div class="story-card-name">قصتك</div>`;
+            
+            // الاندكس 0 لأن قصتي دايماً الأولى
+            myViewCard.onclick = () => openStoryViewer(0);
+            list.appendChild(myViewCard);
+        }
+
+        // ------------------------------------------
+        // 3. قصص الأصدقاء
+        // ------------------------------------------
+        const otherUids = Object.keys(storiesMap).filter(uid => uid !== currentUser.uid);
+
+        for (const uid of otherUids) {
+            // تخطي المحظورين (لو القائمة موجودة)
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(uid)) continue;
+
+            // جلب بيانات الصديق (بالدالة الناقصة اللي هنضيفها تحت)
+            let u = await fetchAndCacheUser(uid);
+            
+            // إضافة للمجموعة
+            storyGroups.push({ user: u, stories: storiesMap[uid] });
+            const thisGroupIndex = storyGroups.length - 1;
+            
+            const userStories = storiesMap[uid];
+            const lastStory = userStories[userStories.length - 1]; 
+            const hasUnseen = userStories.some(s => !s.viewers || !s.viewers.includes(currentUser.uid));
+            const borderCol = hasUnseen ? 'var(--primary-color)' : '#555';
+
+            const item = document.createElement('div');
+            item.className = 'story-card';
+            item.onclick = () => openStoryViewer(thisGroupIndex);
+            
+            let contentHTML = lastStory.type === 'video' 
+                ? `<video src="${lastStory.url}#t=0.1" class="story-card-bg" style="object-fit:cover;" muted preload="metadata"></video>`
+                : `<div class="story-card-bg" style="background-image:url('${lastStory.url}'); background-size:cover; background-position:center;"></div>`;
+
+            let displayNameHTML = u.name;
+            if (u.isVerified) displayNameHTML += ` <i class="fa-solid fa-heart-circle-check" style="color:#20D5EC; font-size:10px;"></i>`;
+
+            item.innerHTML = `
+                <div class="story-card-avatar" style="background-image:url('${u.avatar}'); border-color:${borderCol}"></div>
+                ${contentHTML}
+                <div class="story-card-name">${displayNameHTML}</div>
+            `;
+            
+            list.appendChild(item);
+        }
+    });
+}
+
+// ================= فتح وتشغيل القصة =================
+function openStoryViewer(groupIndex) {
+    currentGroupIndex = groupIndex;
+    currentStoryIndex = 0;
+    isStoryPaused = false;
+
+    const group = storyGroups[currentGroupIndex];
+    // البدء من أول قصة غير مشاهدة
+    const firstUnseen = group.stories.findIndex(s => !s.viewers || !s.viewers.includes(currentUser.uid));
+    if(firstUnseen > 0) currentStoryIndex = firstUnseen;
+
+    const viewer = document.getElementById('storyViewer');
+    viewer.style.display = 'flex';
+    
+    updateStoryUI();
+    loadStory();
+
+    if (!areGesturesSetup) {
+        setupStoryGestures(viewer);
+        areGesturesSetup = true;
+    }
+}
+
+function loadStory() {
+    clearTimeout(storyTimer);
+    const group = storyGroups[currentGroupIndex];
+    const story = group.stories[currentStoryIndex];
+    const contentDiv = document.getElementById('storyContent');
+    const blurBg = document.getElementById('storyBlurBg');
+    
+    // UI Updates
+    document.querySelector('.story-header-info').style.opacity = '1';
+    document.getElementById('storyFooter').style.opacity = '1';
+    document.getElementById('storyTimeAgo').innerText = moment(story.timestamp.toDate()).fromNow();
+
+    contentDiv.innerHTML = '<div style="color:#fff; font-size:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+
+    if (story.type === 'video') {
+        const video = document.createElement('video');
+        video.src = story.url;
+        video.playsInline = true;
+        video.preload = "auto";
+        video.muted = isStoryMuted; // تطبيق حالة الصوت
+        
+        video.onloadedmetadata = () => {
+            storyDuration = video.duration * 1000;
+            if(!isFinite(storyDuration)) storyDuration = 15000;
+        };
+        video.oncanplay = () => {
+            contentDiv.innerHTML = '';
+            contentDiv.appendChild(video);
+            video.play().catch(e => { video.muted = true; video.play(); });
+            startProgress(storyDuration);
+            blurBg.style.background = '#000';
+        };
+        video.onended = nextStory;
+        
+    } else {
+        const img = new Image();
+        img.src = story.url;
+        img.onload = () => {
+            contentDiv.innerHTML = '';
+            contentDiv.appendChild(img);
+            storyDuration = 5000;
+            startProgress(5000);
+            storyTimer = setTimeout(nextStory, 5000);
+            blurBg.style.backgroundImage = `url('${story.url}')`;
+        };
+    }
+
+    // تسجيل المشاهدة
+    if (group.user.uid !== currentUser.uid) {
+        if(!story.viewers || !story.viewers.includes(currentUser.uid)) {
+            db.collection('stories').doc(story.id).update({
+                viewers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+            });
+        }
+    }
+}
+
+function startProgress(duration) {
+    const bar = document.getElementById(`prog-${currentStoryIndex}`);
+    if(bar) {
+        bar.style.transition = 'none';
+        bar.style.width = '0%';
+        void bar.offsetWidth; // Trigger reflow
+        bar.style.transition = `width ${duration}ms linear`;
+        bar.style.width = '100%';
+    }
+}
+
+function nextStory() {
+    if(isStoryPaused) return;
+    const group = storyGroups[currentGroupIndex];
+    if (currentStoryIndex < group.stories.length - 1) {
+        currentStoryIndex++;
+        loadStory();
+        updateMuteBtnState();
+    } else {
+        if (currentGroupIndex < storyGroups.length - 1) {
+            currentGroupIndex++;
+            currentStoryIndex = 0;
+            updateStoryUI();
+            loadStory();
+        } else {
+            closeStory();
+        }
+    }
+}
+
+function prevStory() {
+    if (currentStoryIndex > 0) {
+        currentStoryIndex--;
+        loadStory();
+        updateMuteBtnState();
+    } else {
+        if (currentGroupIndex > 0) {
+            currentGroupIndex--;
+            currentStoryIndex = storyGroups[currentGroupIndex].stories.length - 1;
+            updateStoryUI();
+            loadStory();
+        } else {
+            loadStory();
+        }
+    }
+}
+
+function closeStory() {
+    document.getElementById('storyViewer').style.display = 'none';
+    clearTimeout(storyTimer);
+    document.getElementById('storyContent').innerHTML = '';
+    isStoryPaused = false;
+}
+
+// ================= تحديث الواجهة (UI Update) =================
+function updateStoryUI() {
+    const group = storyGroups[currentGroupIndex];
+    const user = group.user;
+    const isMe = user.uid === currentUser.uid;
+
+    document.getElementById('storyViewerName').innerHTML = user.name + (user.isVerified ? ' <i class="fa-solid fa-circle-check" style="color:#38bdf8;font-size:12px"></i>' : '');
+    document.getElementById('storyUserAvatarSmall').style.backgroundImage = `url('${user.avatar}')`;
+
+    // أشرطة التقدم
+    const barsContainer = document.getElementById('storyBarsContainer');
+    barsContainer.innerHTML = '';
+    group.stories.forEach((_, i) => {
+        const seg = document.createElement('div');
+        seg.className = 'progress-segment';
+        seg.innerHTML = `<div class="progress-fill" id="prog-${i}" style="width: ${i < currentStoryIndex ? '100%' : '0%'}"></div>`;
+        barsContainer.appendChild(seg);
+    });
+
+    // الفوتر والعدادات
+    document.getElementById('storyFooter').style.display = isMe ? 'none' : 'flex';
+    const viewsDiv = document.getElementById('storyViewsCount');
+    
+    if(isMe) {
+        const story = group.stories[currentStoryIndex];
+        const viewCount = story.viewers ? story.viewers.length : 0;
+        const reactCount = story.reactions ? Object.keys(story.reactions).length : 0;
+        
+        viewsDiv.style.display = 'flex';
+        viewsDiv.innerHTML = `<i class="fa-solid fa-eye"></i> ${viewCount} ${reactCount > 0 ? `| <i class="fa-solid fa-heart" style="color:red"></i> ${reactCount}` : ''}`;
+        viewsDiv.onclick = (e) => { e.stopPropagation(); showStoryViewers(); };
+    } else {
+        viewsDiv.style.display = 'none';
+    }
+    updateMuteBtnState();
+}
+
+function showStoryViewers() {
+    isStoryPaused = true;
+    const vid = document.querySelector('video');
+    if(vid) vid.pause();
+
+    const modal = document.getElementById('storyViewersModal');
+    const list = document.getElementById('viewersListContainer');
+    const countSpan = document.getElementById('viewersTotalCount');
+    
+    modal.classList.add('active');
+    list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">جاري التحميل...</div>';
+
+    const group = storyGroups[currentGroupIndex];
+    const story = group.stories[currentStoryIndex];
+
+    db.collection('stories').doc(story.id).get().then(doc => {
+        if (!doc.exists) return;
+        const data = doc.data();
+        const viewers = data.viewers || [];
+        const reactions = data.reactions || {};
+
+        countSpan.innerText = `(${viewers.length})`;
+        list.innerHTML = '';
+
+        if (viewers.length === 0) {
+            list.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">لا توجد مشاهدات بعد</div>';
+        } else {
+            viewers.forEach(async uid => {
+                let u = usersCache[uid];
+                if(!u) u = await fetchAndCacheUser(uid);
+                
+                const react = reactions[uid] ? `<span style="font-size:20px;">${reactions[uid]}</span>` : '';
+                
+                const item = document.createElement('div');
+                item.style.cssText = "display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid #333;";
+                item.innerHTML = `
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <div style="width:40px; height:40px; border-radius:50%; background-image:url('${u.avatar}'); background-size:cover;"></div>
+                        <div style="font-weight:bold; color:#fff;">${u.name}</div>
+                    </div>
+                    <div>${react}</div>
+                `;
+                list.appendChild(item);
+            });
+        }
+    });
+}
+
+// ================= التفاعل واللمس (Gestures) =================
+function setupStoryGestures(element) {
+    let startX = 0, startY = 0, startTime = 0;
+    let isDragging = false;
+
+    element.addEventListener('touchstart', (e) => {
+        if(e.target.closest('#storyFooter') || e.target.closest('.story-header-info')) return;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startTime = Date.now();
+        isDragging = false;
+        pauseStoryInteraction();
+    }, {passive: true});
+
+    element.addEventListener('touchend', (e) => {
+        if(e.target.closest('#storyFooter') || e.target.closest('.story-header-info')) return;
+        resumeStoryInteraction();
+        
+        const endX = e.changedTouches[0].clientX;
+        const diffX = endX - startX;
+        const timeDiff = Date.now() - startTime;
+
+        if (Math.abs(diffX) > 50) { // سحب جانبي
+            // لو بتسحب عشان تقلب المستخدمين ممكن تضيف الكود هنا
+        } else if (timeDiff < 250) { // نقرة سريعة
+            if (endX < window.innerWidth / 3) prevStory();
+            else nextStory();
+        }
+    });
+}
+
+function pauseStoryInteraction() {
+    isStoryPaused = true;
+    clearTimeout(storyTimer);
+    const vid = document.querySelector('video');
+    if(vid) vid.pause();
+    // وقف الانيميشن بتاع الشريط
+    const bar = document.getElementById(`prog-${currentStoryIndex}`);
+    if(bar) {
+        const w = window.getComputedStyle(bar).width;
+        bar.style.transition = 'none';
+        bar.style.width = w;
+    }
+}
+
+function resumeStoryInteraction() {
+    isStoryPaused = false;
+    const vid = document.querySelector('video');
+    if(vid) vid.play();
+    else {
+        // استئناف الشريط
+        const bar = document.getElementById(`prog-${currentStoryIndex}`);
+        if(bar) {
+            bar.style.transition = `width ${storyDuration}ms linear`;
+            bar.style.width = '100%';
+        }
+        storyTimer = setTimeout(nextStory, 2000); // وقت تقريبي
+    }
+}
+
+// ================= التفاعلات (أزرار) =================
+function sendQuickReaction(emoji) {
+    const container = document.getElementById('floatingHearts');
+    const heart = document.createElement('div');
+    heart.innerText = emoji;
+    heart.style.cssText = `position:absolute; bottom:50px; right:${Math.random()*50}px; font-size:30px; animation: floatUp 2s linear forwards;`;
+    container.appendChild(heart);
+    setTimeout(() => heart.remove(), 2000);
+
+    // حفظ في الداتابيز
+    const story = storyGroups[currentGroupIndex].stories[currentStoryIndex];
+    if(storyGroups[currentGroupIndex].user.uid === currentUser.uid) return;
+
+    const updateData = {};
+    updateData[`reactions.${currentUser.uid}`] = emoji;
+    db.collection('stories').doc(story.id).update({
+        ...updateData,
+        viewers: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+    });
+}
+
+async function sendStoryReply() {
+    const input = document.getElementById('storyReplyInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const group = storyGroups[currentGroupIndex];
+    const storyOwnerId = group.user.uid;
+    const story = group.stories[currentStoryIndex];
+
+    if (storyOwnerId === currentUser.uid) return;
+
+    input.value = ''; 
+    showToast("جاري الإرسال...");
+
+    try {
+        // البحث عن شات موجود أو إنشاء واحد
+        const chatId = [currentUser.uid, storyOwnerId].sort().join("_");
+        
+        await db.collection('chats').doc(chatId).set({
+            users: [currentUser.uid, storyOwnerId],
+            lastMessage: "رد على قصتك",
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            read: false
+        }, { merge: true });
+
+        // إرسال الرد
+        await db.collection('chats').doc(chatId).collection('messages').add({
+            text: text,
+            uid: currentUser.uid,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            type: 'story_reply',
+            storyUrl: story.url,
+            storyType: story.type
+        });
+
+        showToast("تم إرسال الرد ✅");
+        if(typeof resumeFromInput === 'function') resumeFromInput();
+
+    } catch (error) {
+        console.error(error);
+        showToast("فشل الإرسال");
+    }
+}
+
+function toggleStoryMute(btn) {
+    isStoryMuted = !isStoryMuted;
+    updateMuteBtnState();
+    const vid = document.querySelector('video');
+    if(vid) vid.muted = isStoryMuted;
+    event.stopPropagation();
+}
+
+function updateMuteBtnState() {
+    const story = storyGroups[currentGroupIndex].stories[currentStoryIndex];
+    const btn = document.getElementById('storyMuteBtn');
+    if(story.type === 'video') {
+        btn.style.display = 'block';
+        btn.className = isStoryMuted ? 'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+    } else {
+        btn.style.display = 'none';
+    }
+}
+
+// تعريف الكاش لو مش موجود
+if (typeof usersCache === 'undefined') var usersCache = {};
+
+async function fetchAndCacheUser(uid) {
+    if (usersCache[uid]) return usersCache[uid];
+    
+    try {
+        const doc = await db.collection("users").doc(uid).get();
+        if (doc.exists) {
+            const d = doc.data();
+            const userData = { 
+                uid: uid, 
+                name: d.name || "مستخدم", 
+                avatar: d.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png", 
+                isVerified: d.isVerified || false 
+            };
+            usersCache[uid] = userData;
+            return userData;
+        }
+    } catch (e) { console.error(e); }
+    
+    return { uid, name: "مستخدم", avatar: "https://cdn-icons-png.flaticon.com/512/149/149071.png", isVerified: false };
+}
+
+  function openStoryOptions(e) {
+            if(e) e.stopPropagation();
+            isStoryPaused = true; 
+            const vid = document.querySelector('video');
+            if(vid) vid.pause();
+
+            const group = storyGroups[currentGroupIndex];
+            const user = group.user;
+            const isMe = user.uid === currentUser.uid;
+            
+            const container = document.getElementById('storyDynamicOptions');
+            container.innerHTML = '';
+
+            // داخل دالة openStoryOptions في حالة (isMe)
+if (isMe) {
+    container.innerHTML = `
+        <div class="story-opt-item" onclick="archiveCurrentStoryManual()">
+            <i class="fa-solid fa-box-archive" style="color: #f59e0b;"></i> 
+            <span>أرشفة الآن (إخفاء)</span>
+        </div>
+
+        <div style="height:1px; background:rgba(255,255,255,0.1); margin:5px 0;"></div>
+
+        <div class="story-opt-item danger" onclick="confirmDeleteStory()">
+            <i class="fa-solid fa-trash-can"></i> <span>حذف نهائي</span>
+        </div>
+    `;
+}
+else {
+                container.innerHTML += `
+                    <div class="story-opt-item" onclick="muteUserStories('${user.uid}')">
+                        <i class="fa-solid fa-bell-slash"></i> كتم قصص ${user.name}
+                    </div>
+                    <div class="story-opt-item danger" onclick="reportStory()">
+                        <i class="fa-solid fa-triangle-exclamation"></i> إبلاغ عن المحتوى
+                    </div>`;
+            }
+
+            document.getElementById('storyOptionsOverlay').classList.add('active');
+            document.getElementById('storyOptionsSheet').classList.add('active');
+        }
+
+        function closeStoryOptions() {
+            document.getElementById('storyOptionsOverlay').classList.remove('active');
+            document.getElementById('storyOptionsSheet').classList.remove('active');
+            resumeFromInput(); 
+        }
+
+        function downloadStoryMedia() {
+            const group = storyGroups[currentGroupIndex];
+            const story = group.stories[currentStoryIndex];
+            
+            const a = document.createElement('a');
+            a.href = story.url;
+            a.target = '_blank';
+            a.download = `story_${Date.now()}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showToast("جاري التنزيل...");
+            closeStoryOptions();
+        }
+
+        function confirmDeleteStory() {
+            if(confirm("هل أنت متأكد من حذف هذه القصة؟ لا يمكن التراجع.")) {
+                const group = storyGroups[currentGroupIndex];
+                const story = group.stories[currentStoryIndex];
+                deleteCurrentStory(story);
+                closeStoryOptions();
+            }
+        }
+
+        function muteUserStories(uid) {
+            showToast("تم كتم القصص لهذا المستخدم");
+            closeStoryOptions();
+        }
+
+        function reportStory() {
+            showToast("تم إرسال البلاغ للإدارة للمراجعة");
+            closeStoryOptions();
+        }
 
     </script>
        <div class="custom-modal" id="accountSwitcherModal">
@@ -11972,6 +14164,87 @@ window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
         </div>
     </div>
 </div>
+<div id="pullToRefresh" class="pull-loader">
+        <i class="fa-solid fa-rotate-right"></i>
+    </div>
+
+
+<div id="storyViewer">
+    <div class="story-blur-bg" id="storyBlurBg"></div>
+    
+    <div class="progress-bars-wrapper" id="storyBarsContainer"></div>
+
+    <div class="story-header-info">
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-xmark" onclick="closeStory()" style="color:#fff; font-size:24px; cursor:pointer; text-shadow:0 2px 5px #000; padding:10px; z-index:50;"></i>
+            
+            <div style="display: flex; align-items: center; gap: 8px; cursor: pointer;" onclick="viewUserProfileFromStory()">
+                <div id="storyUserAvatarSmall" class="story-user-avatar-small"></div>
+                <div class="story-user-details">
+                    <div id="storyViewerName" style="color:#fff; font-weight:bold; text-shadow:0 2px 5px #000; font-size: 14px; display:flex; align-items:center;">User</div>
+                    <div id="storyTimeAgo" style="color:#ddd; font-size:11px; text-shadow:0 1px 3px #000;">منذ دقيقة</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="display:flex; align-items:center; gap: 5px;">
+            <div id="storyViewsCount" class="story-views-count" style="display:none; margin-left: 10px;"></div>
+            <i id="storyMuteBtn" class="fa-solid fa-volume-high" onclick="toggleStoryMute(this)" style="color:#fff; font-size:18px; cursor:pointer; text-shadow:0 2px 5px #000; padding:10px; display:none; z-index:50;"></i>
+            <div class="story-more-btn" onclick="openStoryOptions(event)">
+                <i class="fa-solid fa-ellipsis-vertical" style="color:#fff; font-size:20px; padding:10px; cursor:pointer;"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="story-media-container" id="storyContent"></div>
+
+    <div id="storyFooter" class="story-footer" onclick="event.stopPropagation()">
+        <div class="story-reply-input">
+            <input type="text" id="storyReplyInput" placeholder="إرسال رسالة..." enterkeyhint="send" onfocus="pauseForInput()" onblur="resumeFromInput()">
+            <i class="fa-solid fa-paper-plane send-btn-inside" onclick="sendStoryReply()"></i>
+        </div>
+        
+        <div class="story-reaction-btn" onclick="sendQuickReaction('❤️')">❤️</div>
+        <div class="story-reaction-btn" onclick="sendQuickReaction('🔥')">🔥</div>
+        <div class="story-reaction-btn" onclick="sendQuickReaction('😂')">😂</div>
+    </div>
+
+    <div id="floatingHearts" style="position: absolute; bottom: 0; right: 20px; width: 50px; height: 100%; pointer-events: none; z-index: 25; overflow: hidden;"></div>
+</div>
+
+<div class="story-sheet-overlay" id="storyOptionsOverlay" onclick="closeStoryOptions()"></div>
+<div class="story-options-sheet" id="storyOptionsSheet">
+    <div class="sheet-handle" style="margin-bottom:15px;"></div>
+    <div id="storyDynamicOptions"></div>
+    <div class="story-opt-item" onclick="downloadStoryMedia()">
+        <i class="fa-solid fa-download"></i> حفظ في الجهاز
+    </div>
+</div>
+
+<div class="bottom-sheet-overlay" id="storyViewersModal" onclick="closeStoryViewers()">
+    <div class="bottom-sheet" onclick="event.stopPropagation()" style="height: 60vh;">
+        <div class="sheet-handle"></div>
+        <h3 style="text-align:center; color:#fff; margin-bottom:15px;">المشاهدات <span id="viewersTotalCount" style="font-size:14px; color:#777;">(0)</span></h3>
+        <div id="viewersListContainer" style="overflow-y:auto; height:calc(100% - 60px);"></div>
+    </div>
+</div>
+
+<div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
+    <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; background: #000; border: 1px solid #333;">
+        <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="color: #fff; margin: 0;">🗂️ أرشيف القصص</h3>
+            <i class="fa-solid fa-xmark" onclick="closeStoryArchive()" style="color: #fff; font-size: 20px; cursor: pointer;"></i>
+        </div>
+        <div id="archiveGrid" style="flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;"></div>
+    </div>
+</div>
+
+<div id="archiveFullViewer" class="archive-viewer-overlay" onclick="closeArchiveViewer()" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 60000;">
+    <div style="position: absolute; top: 20px; right: 20px; color: #fff; font-size: 30px; cursor: pointer; z-index: 60001;">
+        <i class="fa-solid fa-xmark"></i>
+    </div>
+    <div id="archiveViewerContainer" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div>
+</div>
 
 <script src="global-call.js"></script>
 <script src="global-notifications.js"></script>
@@ -12145,8 +14418,79 @@ window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
         }
     });
 </script>
+<div class="bottom-sheet" id="mentionsListSheet" style="height: auto; max-height: 60vh;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="font-weight: 800;">الإشارات</span>
+        <i class="fa-solid fa-xmark" onclick="closeMentionsSheet()" style="cursor:pointer; padding:5px;"></i>
+    </div>
+    <div class="menu-list" id="hiddenMentionsContainer" style="padding: 10px; overflow-y: auto;">
+        </div>
+</div>
 
-
+<div class="bottom-sheet" id="shareSheet" style="height: auto; max-height: 85vh; background: #161616;">
+    <div class="sheet-handle"></div>
+    <div style="text-align: center; padding: 10px 0; font-weight: bold; border-bottom: 1px solid #333; color: #fff;">إرسال إلى</div>
     
+    <div class="share-row-container" id="directShareList" style="padding-bottom: 5px; min-height: 90px;">
+        <div style="padding: 20px; color: #777; font-size: 12px; text-align: center; width: 100%;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل المحادثات...
+        </div>
+    </div>
+    
+    <div style="height: 1px; background: #333; margin: 0 15px;"></div>
+
+    <div class="share-row-container">
+        <div class="share-action-item" onclick="shareToExternal('whatsapp')">
+            <div class="share-circle" style="background: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
+            <span>واتساب</span>
+        </div>
+        <div class="share-action-item" onclick="shareToExternal('facebook')">
+            <div class="share-circle" style="background: #1877F2;"><i class="fa-brands fa-facebook-f"></i></div>
+            <span>فيسبوك</span>
+        </div>
+        <div class="share-action-item" onclick="shareToExternal('copy')">
+            <div class="share-circle" style="background: #555;"><i class="fa-solid fa-link"></i></div>
+            <span>نسخ الرابط</span>
+        </div>
+    </div>
+
+    <div style="height: 1px; background: #333; margin: 5px 15px;"></div>
+
+    <div class="share-row-container">
+        <div class="share-action-item" onclick="openRepostModal()">
+            <div class="share-circle" style="background: #FFD700; color: #000; box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);">
+                <i class="fa-solid fa-pen-nib"></i>
+            </div>
+            <span style="color:#FFD700; font-weight:bold;">مشاركة في ملفي</span>
+        </div>
+    </div>
+</div>
+
+<div class="custom-modal" id="repostModal" style="z-index: 10000;">
+    <div class="modal-box" style="background: #1a1a1a; width: 90%; max-width: 400px; border: 1px solid #333;">
+        <h3 style="color: #fff; margin-bottom: 15px;">مشاركة المنشور</h3>
+        
+        <div style="display: flex; gap: 10px; background: #222; padding: 10px; border-radius: 10px; margin-bottom: 15px;">
+            <div style="width: 4px; background: #FFD700; border-radius: 2px;"></div>
+            <div style="flex: 1; text-align: right;">
+                <div style="font-size: 11px; color: #aaa;">إعادة نشر من</div>
+                <div style="font-weight: bold; color: #fff; font-size: 13px;" id="repostOwnerName">اسم المستخدم</div>
+            </div>
+        </div>
+
+        <textarea id="repostCaptionInput" placeholder="اكتب رأيك أو تعليقك هنا..." 
+            style="width: 100%; height: 100px; background: #0d0d0f; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 10px; resize: none; outline: none; margin-bottom: 15px; font-family: 'Cairo', sans-serif;"></textarea>
+        
+        <div style="display: flex; gap: 10px;">
+            <button onclick="document.getElementById('repostModal').style.display='none'" 
+                style="flex: 1; padding: 12px; background: transparent; border: 1px solid #444; color: #ccc; border-radius: 20px; cursor: pointer; font-weight:bold;">إلغاء</button>
+            <button onclick="confirmRepostWithCaption()" 
+                style="flex: 1; padding: 12px; background: linear-gradient(45deg, #FFD700, #FFC107); border: none; color: #000; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);">نشر الآن</button>
+        </div>
+    </div>
+</div>
+
+
 </body>
 </html>

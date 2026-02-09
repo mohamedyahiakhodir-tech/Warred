@@ -215,7 +215,17 @@ video { width: 100%; height: 100%; object-fit: cover; display: block; }
     color: #fff; font-size: 11px; font-weight: bold; padding: 6px 12px;
     border-radius: 6px; cursor: pointer; white-space: nowrap; flex-shrink: 0; margin-left: 0;
 }
-.video-desc { font-size: 13px; color: #eee; line-height: 1.4; text-shadow: 0 1px 2px rgba(0,0,0,0.5); margin-right: 5px; }
+/* ابحث عن هذا الكلاس واستبدله أو عدله */
+.video-desc {
+    font-size: 13px;
+    color: #eee;
+    line-height: 1.8; /* زيادة المسافة بين السطور عشان العناصر العائمة */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    margin-right: 5px;
+    text-align: right; /* محاذاة النص لليمين */
+    display: block; /* مهم جداً عشان الـ float يشتغل صح */
+    width: 100%;
+}
 
 /* شارة التوثيق (نبض) */
 .nabd-badge {
@@ -1778,22 +1788,23 @@ video.is-landscape {
 .hashtag-count { font-size: 10px; color: #aaa; margin-right: auto; }
 
 /* تنسيق كبسولة المنشن (The Mention Chip) - تم التعديل */
+/* --- تنسيق كبسولة المنشن (المحسّن) --- */
 .mention-chip {
     display: inline-flex;
     align-items: center;
-    background: rgba(93, 95, 239, 0.25);
-    border: 1px solid rgba(93, 95, 239, 0.5);
+    background: rgba(93, 95, 239, 0.2); /* خلفية شفافة أكتر */
+    border: 1px solid rgba(93, 95, 239, 0.4);
     border-radius: 50px;
-    padding: 2px 8px 2px 2px; /* مسافة أقل عند الصورة */
-    margin: 0 2px;
+    padding: 2px 8px 2px 2px; /* مسافة لليمين ولليسار */
+    margin: 0 3px;
     cursor: pointer;
     vertical-align: middle;
     text-decoration: none;
-    direction: ltr;
-    
-    /* 🔥 أهم جزء: منع الخروج عن الإطار */
-    max-width: 90%; /* لا يتعدى 90% من عرض التعليق */
-    overflow: hidden; /* إخفاء الزيادات */
+    direction: ltr; /* مهم عشان الصورة تفضل شمال والاسم يمين */
+    max-width: 140px; /* أقصى عرض للكبسولة */
+    height: 26px; /* ارتفاع ثابت */
+    position: relative;
+    top: -1px; /* ضبط المحاذاة مع النص */
 }
 
 /* تنسيق الصورة داخل المنشن */
@@ -1801,23 +1812,50 @@ video.is-landscape {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    margin-right: 6px;
+    margin-right: 6px; /* مسافة بين الصورة والاسم */
     object-fit: cover;
     background: #fff;
-    flex-shrink: 0; /* منع الصورة من الانكماش */
+    flex-shrink: 0; /* يمنع الصورة من الانكماش */
+    border: 1px solid rgba(255,255,255,0.3);
 }
 
-/* تنسيق الاسم داخل المنشن */
+/* تنسيق الاسم داخل المنشن (يمنع الخروج) */
 .mention-chip-name {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #fff;
     line-height: 1;
-    
-    /* 🔥 التعامل مع الأسماء الطويلة */
-    white-space: nowrap; /* يمنع نزول الاسم لسطر جديد */
-    overflow: hidden;
-    text-overflow: ellipsis; /* يضع ثلاث نقاط ... لو الاسم طويل */
+    white-space: nowrap; /* يمنع نزول السطر */
+    overflow: hidden; /* يخفي الزيادات */
+    text-overflow: ellipsis; /* يحط نقط (...) */
+    max-width: 90px; /* أقصى عرض للاسم */
+    display: block;
+}
+
+/* تنسيق زرار العداد (+1) */
+.mention-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #FFD700; /* لون ذهبي مميز للعداد */
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 8px;
+    height: 24px;
+    border-radius: 12px;
+    margin-left: 2px;
+    vertical-align: middle;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    transition: 0.2s;
+}
+
+.mention-counter:active {
+    background: #FFD700;
+    color: #000;
+    transform: scale(0.95);
 }
 
 
@@ -2418,6 +2456,498 @@ video.is-landscape {
     cursor: pointer;
 }
 
+/* تنسيق اليوزر نيم تحت الاسم */
+.pro-user-handle {
+    font-size: 13px;
+    color: var(--secondary-text); /* لون رمادي */
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px 12px;
+    border-radius: 15px;
+    margin: 5px auto 10px auto; /* مسافات من فوق وتحت */
+    width: fit-content;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    direction: ltr; /* عشان اليوزر يظهر بالانجليزي صح من الشمال */
+    border: 1px solid transparent;
+    transition: 0.2s;
+}
+
+.pro-user-handle:active {
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(0.95);
+}
+
+.pro-user-handle i {
+    font-size: 11px;
+    opacity: 0.7;
+}
+
+/* --- تنسيقات قائمة الأشخاص في المشاركة --- */
+.share-contact-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    min-width: 65px;
+    cursor: pointer;
+    position: relative;
+    transition: 0.2s;
+}
+
+.share-contact-item:active {
+    transform: scale(0.9);
+}
+
+.share-contact-img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid transparent;
+    transition: 0.3s;
+    background: #333;
+}
+
+.share-contact-item.selected .share-contact-img {
+    border-color: #4cd964; /* لون أخضر عند الإرسال */
+    filter: brightness(0.5); /* تغميق الصورة */
+}
+
+/* علامة صح بتظهر لما تبعت */
+.share-sent-badge {
+    position: absolute;
+    top: 15px;
+    left: 50%;
+    transform: translateX(-50%) scale(0);
+    color: #4cd964;
+    font-size: 20px;
+    transition: 0.3s;
+    z-index: 555;
+}
+
+.share-contact-item.selected .share-sent-badge {
+    transform: translateX(-50%) scale(1);
+}
+
+.share-contact-name {
+    font-size: 11px;
+    color: #ddd;
+    max-width: 60px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+}
+
+/* حاوية الصورة عشان اللمبة تثبت عليها */
+.header-avatar-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+}
+
+/* اللمبة الخضراء في الفيديوهات */
+.online-dot-feed {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 11px;
+    height: 11px;
+    background-color: #4cd964; /* لون أخضر */
+    border: 2px solid #000; /* حدود سوداء عشان تفصلها عن الصورة */
+    border-radius: 50%;
+    z-index: 5;
+    display: none; /* مخفية افتراضياً */
+}
+
+.online-dot-feed.visible {
+    display: block; /* تظهر لما نضيف الكلاس ده */
+}
+
+/* اللمبة الخضراء في البروفايل الكبير */
+.pro-avatar-wrapper-overlay {
+    position: relative;
+    display: inline-block;
+}
+
+.online-dot-profile-large {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 18px;
+    height: 18px;
+    background-color: #4cd964;
+    border: 3px solid #000;
+    border-radius: 50%;
+    z-index: 10;
+    display: none;
+}
+.online-dot-profile-large.visible {
+    display: block;
+}
+
+/* --- 1. تنسيق الصف اللي بيجمع النص والأسطوانة --- */
+.music-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* يفرد العناصر (النص يمين والاسطوانة يسار) */
+    width: 100%;
+    margin-top: 10px;
+    padding-left: 5px; /* مسافة عشان الأسطوانة متلزقش في الحافة */
+}
+
+/* --- 2. حاوية النص المتحرك (الماركيو) --- */
+.music-marquee-container {
+    flex: 1; /* ياخد باقي المساحة */
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #fff;
+    font-size: 13px;
+    opacity: 0.9;
+    /* مسافة عشان يبعد عن الأسطوانة شوية */
+    margin-left: 10px; 
+}
+
+/* --- 3. تنسيق الأسطوانة الجديد (عشان تيجي جنب الكلام) --- */
+.music-disc-area {
+    position: relative;
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0; /* يمنع انكماش الأسطوانة */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* الخلفية الدوارة */
+.music-disc-bg {
+    width: 100%;
+    height: 100%;
+    background: #111; /* خلفية سوداء */
+    border-radius: 50%;
+    border: 2px solid #222;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: discSpin 5s linear infinite; /* الدوران */
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    overflow: hidden; /* عشان الصورة متخرجش بره الدائرة */
+}
+
+/* --- 4. إصلاح الصورة المختفية --- */
+.music-disc-bg img {
+    width: 100%;       /* تملأ الدائرة بالكامل */
+    height: 100%;      /* تملأ الدائرة بالكامل */
+    border-radius: 50%;
+    object-fit: cover; /* تحافظ على أبعاد الصورة */
+    display: block;    /* تأكيد الظهور */
+}
+
+/* إيقاف الدوران عند توقف الفيديو */
+.video-slide.is-paused .music-disc-bg {
+    animation-play-state: paused;
+}
+
+/* النوتات الموسيقية الطائرة */
+.music-notes {
+    position: absolute;
+    bottom: 0;
+    right: 0; /* تخرج من عند الأسطوانة */
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.music-notes i {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+    opacity: 0;
+    animation: noteFloat 3s linear infinite;
+}
+.music-notes i:nth-child(2) { animation-delay: 1.5s; right: 15px; font-size: 10px; }
+
+/* أنيميشن النوتات */
+@keyframes noteFloat {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-40px) rotate(-20deg); opacity: 0; }
+}
+@keyframes discSpin { 100% { transform: rotate(360deg); } }
+
+/* --- حاوية شريط الموسيقى والأسطوانة --- */
+.music-row {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* المحاذاة لليمين */
+    width: 100%;
+    margin-top: 8px;
+    gap: 10px; /* مسافة بين النص والأسطوانة */
+    position: relative;
+    z-index: 10;
+}
+
+/* --- النص المتحرك --- */
+.music-marquee-container {
+    flex: 1; 
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* النص يبدأ من اليمين */
+    gap: 8px;
+    color: #fff;
+    font-size: 13px;
+    opacity: 0.9;
+    max-width: 60%; /* عشان مياخدش المساحة كلها */
+}
+
+/* --- منطقة الأسطوانة (الحاوية الثابتة) --- */
+.music-disc-area {
+    position: relative;
+    width: 48px; /* حجم ثابت */
+    height: 48px; /* حجم ثابت */
+    flex-shrink: 0; /* ممنوع الانكماش */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* --- الخلفية السوداء (جسم الأسطوانة) --- */
+.music-disc-bg {
+    width: 100%;
+    height: 100%;
+    background: #181818; /* لون فينيل غامق */
+    border-radius: 50%;
+    border: 8px solid #111; /* حافة الأسطوانة العريضة */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    animation: discSpin 4s linear infinite; /* دوران */
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+}
+
+/* --- 🔥🔥 إصلاح الصورة (Label) 🔥🔥 --- */
+.music-disc-bg img {
+    width: 100% !important;  /* إجباري */
+    height: 100% !important; /* إجباري */
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    position: absolute; /* عشان تملأ المساحة */
+    top: 0;
+    left: 0;
+}
+
+/* --- النوتات الموسيقية --- */
+.music-notes {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+/* تنسيق حاوية الصورة في التعليقات */
+.cm-avatar { 
+    width: 38px; 
+    height: 38px; 
+    border-radius: 50%; 
+    background: #333; 
+    flex-shrink: 0; 
+    background-size: cover; 
+    border: 1px solid var(--border-color); 
+    display: grid; 
+    place-items: center; 
+    position: relative; /* ضروري عشان اللمبة تثبت عليه */
+    overflow: visible !important; /* 🔥 أهم سطر: عشان اللمبة تظهر بره الدائرة */
+}
+
+/* شكل اللمبة الخضراء */
+.cm-avatar.online::after {
+    content: ''; 
+    position: absolute; 
+    bottom: -2px; 
+    right: -2px; /* مكان اللمبة */
+    width: 13px; 
+    height: 13px; 
+    background-color: #4cd964; /* لون أخضر فاقع */
+    border: 2px solid #1a1a1a; /* حدود سوداء عشان تفصلها عن الصورة */
+    border-radius: 50%; 
+    z-index: 100; /* طبقة عالية جداً عشان تظهر فوق أي حاجة */
+    box-shadow: 0 0 5px rgba(76, 217, 100, 0.6); /* توهج بسيط */
+    display: block;
+}
+
+/* تنسيق النص الأساسي */
+.video-desc {
+    font-size: 13px;
+    color: #eee;
+    line-height: 1.5;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    margin-bottom: 5px;
+    width: 90%;
+    
+    /* إعدادات الحركة الناعمة */
+    transition: all 0.3s ease;
+}
+
+/* الكلاس اللي بيخفي الكلام الزيادة */
+.video-desc.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* يظهر سطرين بس */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* تنسيق زرار عرض المزيد */
+.read-more-toggle {
+    font-size: 12px;
+    font-weight: bold;
+    color: #ccc; /* لون رمادي فاتح */
+    cursor: pointer;
+    margin-bottom: 10px;
+    display: inline-block;
+    text-shadow: 0 1px 2px #000;
+}
+
+.read-more-toggle:active {
+    opacity: 0.7;
+}
+
+/* --- تنسيق زر عرض الردود (مستوحى من الكود الثاني) --- */
+.replies-trigger {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    margin-right: 50px; /* مسافة عشان يبعد عن الصورة ويجي تحت الكلام */
+    cursor: pointer;
+    color: #999;
+    font-size: 12px;
+    font-weight: bold;
+    width: fit-content;
+    transition: 0.2s;
+    padding: 5px 0;
+}
+
+.replies-trigger:hover {
+    color: var(--primary-color);
+}
+
+.replies-trigger:hover .reply-line {
+    background-color: var(--primary-color);
+}
+
+/* الخط الأفقي الصغير */
+.reply-line {
+    width: 30px;
+    height: 1px;
+    background-color: #555;
+    transition: 0.2s;
+}
+
+/* السهم الصغير */
+.reply-arrow {
+    font-size: 10px;
+}
+
+.grid-item {
+    position: relative;
+    aspect-ratio: 9/16; /* يخلي المربعات طويلة زي الموبايل */
+    background: #222;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+/* =========================================
+   تعديلات لتصغير الهيدر والأقسام
+   ========================================= */
+
+/* 1. الشريط العلوي (الذي يحتوي على الأيقونات والبحث) */
+.top-nav-bar {
+    padding: 8px 12px; /* تقليل المسافة الداخلية */
+    /* background: linear-gradient(...)  <-- اترك الخلفية كما هي */
+}
+
+/* تصغير الأزرار الدائرية (بحث، إشعارات، بروفايل) */
+.nav-icon-btn {
+    width: 32px;  /* كان 40px */
+    height: 32px; /* كان 40px */
+    font-size: 18px; /* تصغير الأيقونة نفسها */
+}
+
+/* تصغير زر الإضافة (+) ليتناسب مع الباقي */
+.nav-create-btn {
+    width: 38px;
+    height: 28px;
+}
+.nav-create-btn i {
+    font-size: 14px;
+}
+
+/* 2. حاوية الأقسام (التابات: العالم، شائع، الأصدقاء...) */
+.nav-tabs {
+    /* رفع الأقسام للأعلى لتكون أقرب للأيقونات */
+    top: 50px; /* كانت 65px */
+    gap: 6px;  /* تقليل المسافة بين كل قسم وآخر */
+}
+
+/* 3. تصميم الكبسولة (الزر نفسه) */
+.nav-tab {
+    padding: 4px 10px; /* تقليل الحشو الداخلي للزر */
+    font-size: 11px;   /* تصغير الخط (كان 14px) */
+    border-radius: 12px; /* تدوير الحواف ليناسب الحجم الصغير */
+    font-weight: 700;
+}
+
+/* حالة النشاط (Active) للزر الصغير */
+.nav-tab.active {
+    font-size: 11px; /* الحفاظ على الحجم */
+    transform: translateY(0); /* إلغاء الرفعة الكبيرة */
+}
+
+/* 4. الشرطة المضيئة تحت القسم النشط */
+.nav-tab.active::after {
+    bottom: -4px; /* رفعها للأعلى */
+    width: 15px;  /* تصغير عرض الشرطة */
+    height: 2px;  /* تصغير سمك الشرطة */
+}
+
+/* تأثير اللمس للقصص */
+.story-card:active {
+    transform: scale(0.95) !important;
+    opacity: 0.8;
+}
+
+/* تنسيق إضافي لعارض القصص للتأكد من ظ#archiveFullViewer {
+    display: none; /* مخفي افتراضياً */
+    position: fixed !important;
+    inset: 0 !important; /* يغطي الشاشة كلها */
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 2000 !important; /* رقم خيالي عشان يطلع فوق أي حاجة */
+    background-color: #000 !important; /* خلفية سوداء صريحة */
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+#archiveFullViewer[style*="display: flex"] {
+    display: flex !important; /* تأكيد الظهور لما الجافاسكريبت يغيره */
+}
+
+
     </style>
 </head>
 <body>
@@ -2653,6 +3183,7 @@ video.is-landscape {
         </div>
     </div>
 
+
     <div id="toast"><i class="fa-solid fa-check-circle" style="color:var(--success-color)"></i> <span id="toastMsg"></span></div>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -2716,7 +3247,7 @@ let tempCommentMentions = [];
 function updateBalanceDisplay() {
     // قراءة الرصيد المحفوظ من الذاكرة (اللي صفحة المحفظة حفظته)
     let savedBalance = localStorage.getItem('nabd_balance') || '0';
-    
+ 
     // تحديث المتغير العام
     if(typeof myBalance !== 'undefined') {
         myBalance = parseInt(savedBalance);
@@ -2751,28 +3282,44 @@ function escapeHTML(str) {
         // --- 3. تشغيل التطبيق ---
         // استبدل الكود القديم الخاص بـ auth بهذا الترتيب
 auth.onAuthStateChanged(async user => {
-    if(user) {
+    if (user) {
         currentUser = user;
         
-        // 1. نجيب بيانات المستخدم
+        // 1. جلب بيانات المستخدم
         const uDoc = await db.collection('users').doc(user.uid).get();
         if(uDoc.exists) {
             currentUserData = uDoc.data();
             if(currentUserData.isGhost) isGhost = true;
         }
         
-        // 2. 🔥 نجيب قائمة المحظورين الأول (مهم جداً)
+        // 2. التحضيرات الأساسية
         await fetchBlockedUsersList();
-listenToUnreadNotifications();
-
-        // 3. بعدها نحمل الفيديوهات
-        loadVideos(true);
+        listenToUnreadNotifications();
         startPresenceSystem();
+
+        // 3. 🔥🔥 فحص الرابط (هل جاي من مشاركة؟) 🔥🔥
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetVideoId = urlParams.get('openVideo'); // دي الكلمة اللي بعتناها من الشات
+
+        if (targetVideoId) {
+            console.log("Opening shared video:", targetVideoId);
+            // ✅ استدعاء دالة فتح الفيديو المباشر
+            openSingleVideo(targetVideoId); 
+        } else {
+            // ✅ فتح عادي
+            loadVideos(true);
+        }
+
     } else {
-        console.log("User not logged in");
-        // لو مش مسجل، حمل فيديوهات عادي (مفيش حظر لسه)
-        
-        loadVideos(true);
+        // لو زائر
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetVideoId = urlParams.get('openVideo');
+
+        if (targetVideoId) {
+            openSingleVideo(targetVideoId);
+        } else {
+            loadVideos(true);
+        }
     }
 });
 
@@ -2839,23 +3386,27 @@ listenToUnreadNotifications();
             
             if (videoMedia) {
                 let uName = "مستخدم";
-                let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
-                let isVerified = false;
+let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+let isVerified = false;
+let isOnline = false; // 🔥 متغير جديد
 
-                try {
-                    const userSnap = await db.collection('users').doc(data.uid).get();
-                    if (userSnap.exists) {
-                        const userData = userSnap.data();
-                        uName = userData.name || uName;
-                        uPic = userData.profilePic || userData.pic || uPic;
-                        isVerified = userData.isVerified || false;
-                    }
-                } catch (err) { console.log("Error fetching user data", err); }
-                
-                const cardHTML = createVideoCard(doc.id, {...data, isVerified: isVerified}, videoMedia.url, uName, uPic, data.uid);
-                tempDiv.innerHTML = cardHTML;
-                const newSlide = tempDiv.firstElementChild;
+try {
+    const userSnap = await db.collection('users').doc(data.uid).get();
+    if (userSnap.exists) {
+        const userData = userSnap.data();
+        uName = userData.name || uName;
+        uPic = userData.profilePic || userData.pic || uPic;
+        isVerified = userData.isVerified || false;
+        
+        // 🔥 حساب حالة الأونلاين هنا
+        isOnline = checkFriendOnlineStatus(userData, data.uid);
+    }
+} catch (err) { console.log("Error fetching user data", err); }
 
+// 🔥 تمرير isOnline للدالة
+const tempDiv = document.createElement('div');
+tempDiv.innerHTML = cardHTML;
+const newSlide = tempDiv.firstElementChild;
                 if (newSlide) {
                     enableSwipeForProfile(newSlide, data.uid);
                     if (typeof observer !== 'undefined') observer.observe(newSlide);
@@ -2884,14 +3435,29 @@ listenToUnreadNotifications();
     isLoading = false;
 }
 
-        function createVideoCard(id, data, url, uName, uPic, ownerUid) {
-    const isLiked = data.likes && currentUser && data.likes[currentUser.uid];
-    const tagsString = (data.tags || []).join(','); 
+        function createVideoCard(id, data, url, uName, uPic, ownerUid, isOnline) {
+            // --- 1. حساب وقت النشر (الكود الجديد) ---
+let timeAgo = '';
+if (data.createdAt) {
+    // التأكد من تحويل طابع وقت Firebase إلى تاريخ JavaScript
+    const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+    // استخدام moment لحساب الفرق الزمني بالعربي
+    timeAgo = moment(dateObj).fromNow(); 
+    
+    // تصحيح صغير عشان كلمة "منذ بضع ثوان" تظهر "الآن" لو لسه منشور
+    if (timeAgo.includes("ثوان")) timeAgo = "الآن";
+}
 
+    const isLiked = data.likes && currentUser && data.likes[currentUser.uid];
+    const tagsString = (data.tags || []).join(',');
+let isSaved = false;
     let hasSound = false;
     let soundUrl = '';
     let displayMusicName = `الصوت الأصلي - ${formatSmartName(uName)}`;
-    let vinylImage = uPic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    
+    let vinylImage = uPic || "https://cdn-icons-png.flaticon.com/512/847/847969.png"; 
+
+
 
     if (data.hasSound === true && data.soundInfo && data.soundInfo.url) {
         hasSound = true;
@@ -2903,22 +3469,76 @@ listenToUnreadNotifications();
     const muteOriginal = (hasSound && data.soundSettings) ? data.soundSettings.muteOriginal : false;
     const mutedClass = isGlobalMuted ? 'muted-state' : '';
     const displayName = formatSmartName(uName);
-    const verifiedBadgeHTML = getBadge(data.isVerified, false); 
-    
+    const verifiedBadgeHTML = getBadge(data.isVerified, false);
+
     const safeMusicName = displayMusicName.replace(/'/g, "\\'");
     const safeAuthorName = displayName.replace(/'/g, "\\'");
     const safeVinylImage = vinylImage.replace(/'/g, "\\'");
     const finalSoundUrl = hasSound ? soundUrl : url;
+
+    
+  const isMyVideo = (currentUser && currentUser.uid === ownerUid);
+
+    // 🔥🔥🔥 التعديل هنا (إصلاح زر المتابعة) 🔥🔥🔥
+    let followButtonHTML = '';
+    
+    if (!isMyVideo) {
+        // 1. فحص هل أنا بتابع الشخص ده ولا لأ؟
+        // بنشوف لو currentUserData موجودة وفيها مصفوفة following وبتحتوي على ID صاحب الفيديو
+        const amIFollowing = currentUserData && 
+                             currentUserData.following && 
+                             currentUserData.following.includes(ownerUid);
+
+        if (amIFollowing) {
+            // حالة: أنا بتابعه بالفعل -> زر "متابع" شفاف
+            followButtonHTML = `<div class="follow-btn-inline" onclick="toggleFollow('${ownerUid}', this)" style="background:transparent; border:1px solid rgba(255,255,255,0.4); color:#ccc;">متابع</div>`;
+        } else {
+            // حالة: مش بتابعه -> زر "متابعة" عادي
+            followButtonHTML = `<div class="follow-btn-inline" onclick="toggleFollow('${ownerUid}', this)">متابعة</div>`;
+        }
+    }
+    // 🔥🔥🔥 نهاية التعديل 🔥🔥🔥
+
+    const onlineDotHTML = isOnline ? 
+        `<div class="online-dot-feed visible" style="position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background-color: #4cd964; border: 2px solid #000; border-radius: 50%; z-index: 5;"></div>` 
+        : '';
+
+const rawText = data.text || '';
+    
+    // بننسق النص (عشان المنشن والهاشتاج)
+    const formattedText = formatSmartText(rawText, data.mentionsList); 
+    
+    // 2. بنشوف هل النص طويل؟ (أكثر من 60 حرف أو فيه سطور كتير)
+    const isLongText = rawText.length > 60 || (rawText.match(/\n/g) || []).length > 1;
+
+    let descHTML = ''; // متغير هنخزن فيه شكل النص النهائي
+
+    if (isLongText) {
+        // لو طويل: بنحط كلاس collapsed ونضيف زرار "عرض المزيد"
+        descHTML = `
+            <div class="video-desc collapsed" id="desc-${id}" dir="auto">${formattedText}</div>
+            <span class="read-more-toggle" id="btn-more-${id}" onclick="toggleDescription('${id}')">عرض المزيد</span>
+        `;
+    } else {
+        // لو قصير: بنعرضه عادي من غير زرار
+        descHTML = `
+            <div class="video-desc" dir="auto">${formattedText}</div>
+        `;
+    }
 
     return `
     <div class="video-slide ${mutedClass}" id="slide-${id}" 
          data-id="${id}" 
          data-uid="${ownerUid}" 
          data-tags="${tagsString}" 
+         
+         data-video-url="${url}" 
+         data-poster="${data.thumbnail || ''}"
+         style="background-image: url('${data.thumbnail || ''}'); background-size: cover; background-position: center;"
          data-has-sound="${hasSound}" 
          data-sound-url="${soundUrl}"
          data-mute-original="${muteOriginal}">
-    
+         
         <div class="speed-overlay" id="speedOverlay-${id}"><i class="fa-solid fa-forward"></i> 2x سرعة</div>
         <div class="brand-loader" id="loader-${id}"><i class="fa-solid fa-heart-pulse brand-pulse-icon"></i></div>
         <div class="mute-indicator" id="mute-indicator-${id}" style="opacity: ${isGlobalMuted ? 1 : 0}"><i class="fa-solid fa-volume-xmark"></i></div>
@@ -2938,7 +3558,6 @@ listenToUnreadNotifications();
         </div>
 
         <div class="pro-player-ui" id="pro-ui-${id}">
-            
             <div class="pro-header-bar">
                 <i class="fa-solid fa-arrow-right pro-back-btn" onclick="exitProMode('${id}')"></i>
                 <span class="pro-title">${data.text ? data.text.substring(0, 30) : 'فيديو'}</span>
@@ -2946,38 +3565,29 @@ listenToUnreadNotifications();
                     <i class="fa-solid fa-gear" onclick="toggleQualityMenu('${id}')"></i>
                 </div>
             </div>
-
             <div class="pro-lock-btn" id="lock-btn-${id}" onclick="toggleScreenLock('${id}')">
                 <i class="fa-solid fa-unlock"></i>
             </div>
-
             <div class="pro-center-controls">
                 <i class="fa-solid fa-backward-step nav-pro-btn" onclick="switchProVideo('${id}', 'prev')"></i>
-                
                 <i class="fa-solid fa-rotate-right" onclick="skipTime('${id}', -10)"></i>
-                
                 <div class="pro-play-circle" onclick="toggleProPlay('${id}')">
                     <i class="fa-solid fa-pause" id="pro-play-icon-${id}"></i>
                 </div>
-                
                 <i class="fa-solid fa-rotate-left" onclick="skipTime('${id}', 10)"></i>
-                
                 <i class="fa-solid fa-forward-step nav-pro-btn" onclick="switchProVideo('${id}', 'next')"></i>
             </div>
-
             <div class="pro-footer-bar">
                 <div class="pro-time-row">
                     <span id="pro-curr-time-${id}">00:00</span>
                     <input type="range" class="pro-seeker" id="pro-seeker-${id}" min="0" max="100" step="0.1" oninput="seekProVideo(this, '${id}')">
                     <span id="pro-total-time-${id}">00:00</span>
                 </div>
-                
                 <div class="pro-options-row">
                     <div class="pro-opt-btn" onclick="cycleSpeed('${id}', this)">1x</div>
                     <div class="pro-opt-btn" onclick="toggleBrightnessSlider('${id}')"><i class="fa-solid fa-sun"></i></div>
                     <div class="pro-opt-btn" onclick="exitProMode('${id}')"><i class="fa-solid fa-compress"></i></div>
                 </div>
-                
                 <div class="brightness-slider-container" id="bri-slider-box-${id}">
                     <input type="range" min="0" max="0.7" step="0.1" value="0" oninput="setBrightness('${id}', this.value)">
                 </div>
@@ -3011,47 +3621,69 @@ listenToUnreadNotifications();
                     <span class="action-text" id="comment-count-${id}">${data.commentsCount || 0}</span>
                 </div>
 
-                <div class="action-btn" onclick="toggleSave('${id}')">
-                    <div class="icon-circle"><i class="fa-solid fa-bookmark" id="save-icon-${id}"></i></div>
-                    <span class="action-text" id="save-text-${id}">حفظ</span>
-                </div>
+          <div class="action-btn" onclick="toggleSave('${id}')">
+    <div class="icon-circle">
+        <i class="fa-solid fa-bookmark" id="save-icon-${id}" 
+           style="color: ${isSaved ? '#FFD700' : '#fff'}"></i> </div>
+    <span class="action-text" id="save-count-${id}">${formatNumber(data.savesCount || 0)}</span>
+</div>
 
-                <div class="action-btn" onclick="shareVideo('${id}', '${data.text || ''}', '${ownerUid}')">
-                    <div class="icon-circle"><i class="fa-solid fa-share"></i></div>
-                    <span class="action-text">مشاركة</span>
-                </div>
 
+<div class="action-btn" onclick="shareVideo('${id}', '${data.text || ''}', '${ownerUid}')">
+    <div class="icon-circle"><i class="fa-solid fa-share"></i></div>
+    <span class="action-text" id="share-count-${id}">${formatNumber(data.sharesCount || 0)}</span>
+</div>
                 <div class="action-btn" onclick="openVideoOptions('${id}', '${ownerUid}')">
                      <div class="icon-circle" style="background:none; border:none; box-shadow:none;">
                         <i class="fa-solid fa-ellipsis" style="font-size:25px;"></i>
                      </div>
                 </div>
-            </div>
+                </div>
 
             <div class="video-info">
                 <div class="info-inner">
                     <div class="user-header-row">
-                        <img src="${uPic}" class="header-avatar" onclick="openProfileOverlay('${ownerUid}')">
-                        <div class="header-name-block" onclick="openProfileOverlay('${ownerUid}')">
-                            <span class="header-username" dir="auto">${displayName}</span> ${verifiedBadgeHTML}
+                        <div style="position: relative; display: inline-block;" onclick="openProfileOverlay('${ownerUid}')">
+                            <img src="${uPic}" class="header-avatar">
+                            ${onlineDotHTML}
                         </div>
-                        
-                        <div class="follow-btn-inline" onclick="toggleFollow('${ownerUid}', this)">متابعة</div>
+                        <div class="header-name-block" onclick="openProfileOverlay('${ownerUid}')">
+    <div style="display:flex; flex-direction:column; justify-content:center;">
+        <div style="display:flex; align-items:center;">
+            <span class="header-username" dir="auto">${displayName}</span> ${verifiedBadgeHTML}
+        </div>
+        <span style="font-size: 10px; color: rgba(255,255,255,0.7); margin-top: -2px;">
+            ${timeAgo} <i class="fa-solid fa-clock" style="font-size:8px; margin-right:2px;"></i>
+        </span>
+    </div>
+</div>
+
+                        ${followButtonHTML}
                     </div>
                     
-<div class="video-desc" dir="auto">${formatSmartText(data.text || '', data.mentionsList)}</div>
+                    ${descHTML}
+                    
                     <div class="music-row" onclick="event.stopPropagation(); openSoundPage('${safeMusicName}', '${safeAuthorName}', '${safeVinylImage}', '${finalSoundUrl}')">
+                        
                         <div class="music-marquee-container">
+                            <marquee scrollamount="4" style="direction: ltr; width:100%;">${displayMusicName} &nbsp;&nbsp;&nbsp; ${displayMusicName}</marquee>
                             <i class="fa-solid fa-music"></i> 
-                            <marquee scrollamount="4" style="width:150px;">${displayMusicName}</marquee>
                         </div>
-                        <div class="vinyl-wrapper">
-                            <div class="floating-notes"><i class="fa-solid fa-music"></i><i class="fa-solid fa-music"></i></div>
-                            <div class="vinyl-disc">
-                                <img src="${vinylImage}" class="vinyl-img">
+
+                        <div class="music-disc-area">
+                            <div class="music-disc-bg">
+                               <img src="${vinylImage}" 
+                                    onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+                                    class="vinyl-img">
+                            </div>
+                            <div class="music-notes">
+                                <i class="fa-solid fa-music"></i>
+                                <i class="fa-solid fa-music"></i>
                             </div>
                         </div>
+
                     </div>
+
                 </div>
             </div>
             
@@ -3066,33 +3698,40 @@ listenToUnreadNotifications();
 }
 
 
+
         const observerOptions = { root: document.getElementById('feed'), threshold: 0.6 };
 
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         const slide = entry.target;
-        const vid = slide.querySelector('video');
+        // لاحظ: قد لا نجد الفيديو إذا كان محذوفاً، لذا نستخدم slide.id
         const id = slide.dataset.id;
         
         if (entry.isIntersecting) {
-            playVideo(vid, id);
-            
-            // 🔥 تعديل 2: التحميل الذكي (Pre-loading)
-            // بدلاً من الانتظار لآخر عنصر، نتحقق مما إذا كان العنصر الحالي هو
-            // "ثالث" عنصر من النهاية أو "ثاني" عنصر، لنبدأ التحميل مبكراً
+            // 1. إدارة الذاكرة (هنا السحر ✨)
+            // هذه الدالة ستعيد إنشاء الفيديو الحالي إذا كان محذوفاً
+            // وتحذف الفيديوهات البعيدة
+            manageVideoMemory(id);
+
+            // نعطي فرصة صغيرة (50ms) للمتصفح لإنشاء الفيديو قبل محاولة تشغيله
+            setTimeout(() => {
+                const vid = slide.querySelector('video');
+                if (vid) playVideo(vid, id);
+            }, 50);
+
+            // التحميل الذكي (Logic القديم)
             if (slide.nextElementSibling === null || 
                 (slide.nextElementSibling && slide.nextElementSibling.nextElementSibling === null)) {
-                
-                // استدعاء التحميل فوراً إذا لم يكن جارياً
                 loadVideos();
             }
 
         } else {
-            pauseVideo(vid);
+            // إيقاف الفيديو عند الخروج (لو لسه موجود)
+            const vid = slide.querySelector('video');
+            if (vid) pauseVideo(vid);
         }
     });
 }, observerOptions);
-
         // --- 1. دالة التشغيل المحدثة (الذكية) ---
 // --- 1. دالة التشغيل المحدثة (المصححة) ---
 // متغير لتخزين الصوت النشط حالياً (عشان نوقفه لما نقلب الفيديو)
@@ -3639,7 +4278,8 @@ if(blockedMsg) list.appendChild(blockedMsg);
     let displayPic = c.pic;
     let verifiedDisplay = c.isVerified;
     let uidSafe = c.uid || 'user';
-    let clickAction = `location.href='profile.html?uid=${uidSafe}'`;
+    let clickAction = `event.stopPropagation(); openProfileOverlay('${uidSafe}')`;
+    
     let avatarContent = displayPic ? '' : (displayName[0]);
     let avatarStyle = "";
     let nameColorStyle = "";
@@ -3814,7 +4454,8 @@ let rawText = c.text || "";
                 let cleanFormatted = formatSmartText(cleanText, c.mentionsList);
 
                 // نركب اسم الشخص (كرابط) + باقي النص المنسق
-                formattedText = `<span class="reply-mention-link" onclick="event.stopPropagation(); location.href='profile.html?uid=${c.replyToUid}'">${c.replyToName}</span> <span style="color:inherit">${cleanFormatted}</span>`;
+             // ✅ التصحيح: استخدام openProfileOverlay بدلاً من location.href
+formattedText = `<span class="reply-mention-link" onclick="event.stopPropagation(); openProfileOverlay('${c.replyToUid}')">${c.replyToName}</span> <span style="color:inherit">${cleanFormatted}</span>`;
             }
             
             let extraClass = ""; let btnHtml = "";
@@ -3858,7 +4499,9 @@ let rawText = c.text || "";
 
     // تشغيل لمبة الأونلاين (مشترك)
     setTimeout(() => {
-        if(!c.isGhost && typeof checkAndColorAvatar === 'function') checkAndColorAvatar(c.uid, el.querySelector('.cm-avatar'));
+        if(!c.isGhost && typeof checkAndColorAvatar === 'function') // التعديل: بنبعت عنصر التعليق بالكامل (el) عشان نقدر نوصل للاسم والصورة
+checkAndColorAvatar(c.uid, el);
+
     }, 0);
 
     return el;
@@ -4531,7 +5174,7 @@ function triggerReplyComment() {
                     // نمرر الليست هنا كمان
                     let cleanFormatted = formatSmartText(cleanText, r.mentionsList || []);
                     
-                    formattedText = `<span class="reply-mention-link" onclick="event.stopPropagation(); location.href='profile.html?uid=${r.replyToUid}'">${r.replyToName}</span> <span style="color:inherit">${cleanFormatted}</span>`;
+             formattedText = `<span class="reply-mention-link" onclick="event.stopPropagation(); openProfileOverlay('${r.replyToUid}')">${r.replyToName}</span> <span style="color:inherit">${cleanFormatted}</span>`;
                 }
                 
                 contentHtml = `<div class="${r.isSticker ? '' : 'cm-text'}" style="${r.isSticker?'font-size:40px':''}">${formattedText}</div>`;
@@ -4739,18 +5382,18 @@ async function fetchSuggestions(type, term, drop, inp, fullWord) {
                 snapshot.forEach(doc => {
                     const d = doc.data();
                     
-                    // 🔥 1. تجهيز الصورة والاسم بشكل آمن جداً
-                    // بنشيل أي علامات تنصيص عشان الكود ميبوظش
-                    const safeName = d.name.replace(/'/g, "\\'"); 
-                    // لو ملوش صورة بروفايل، حط الافتراضي
+                    // 🔥🔥 حماية قصوى: لو مفيش ID للمستند، متظهرش الشخص ده أصلاً 🔥🔥
+                    if (!doc.id) return;
+
+                    // تنظيف الاسم والصورة من أي علامات تنصيص قد تكسر الكود
+                    const safeName = (d.name || "مستخدم").replace(/'/g, "\\'").replace(/"/g, '&quot;'); 
                     const rawPic = d.profilePic || d.avatarUrl || defaultAvatar;
                     const safePic = rawPic.replace(/'/g, "\\'"); 
 
-                    // تحديد الدالة المناسبة (هل إحنا في نشر ولا تعليقات؟)
-                    // في صفحة النشر بنستخدم insertMentionTag عشان بتلون وتحفظ الصورة
+                    // تحديد الدالة: سواء إحنا في نشر فيديو أو تعليقات
                     const onclickFunction = (typeof insertMentionTag === 'function') 
-    ? `insertMentionTag('${d.id}', '${safeName}', '${safePic}')`
-    : `insertSuggestion('${inp.id}', '${fullWord}', '@${safeName}', '${d.id}', '${safePic}')`;
+                        ? `insertMentionTag('${doc.id}', '${safeName}', '${safePic}')`
+                        : `insertSuggestion('${inp.id}', '${fullWord}', '@${safeName}', '${doc.id}', '${safePic}')`;
     
                     html += `
                     <div class="suggest-item" onclick="${onclickFunction}">
@@ -4763,10 +5406,9 @@ async function fetchSuggestions(type, term, drop, inp, fullWord) {
                 });
             }
         } 
-        
-        // ... (باقي كود الهاشتاج زي ما هو) ...
+        // ... (باقي كود الهاشتاج كما هو) ...
         else if (type === '#') {
-             // (نفس كود الهاشتاج السابق بدون تغيير)
+             // (نفس كود الهاشتاج السابق)
              let hashtagQuery = db.collection('hashtags');
              if (term.length === 0) hashtagQuery = hashtagQuery.orderBy('count', 'desc').limit(10); 
              else hashtagQuery = hashtagQuery.where('tag', '>=', term).where('tag', '<=', term + '\uf8ff').limit(5);
@@ -4788,6 +5430,7 @@ async function fetchSuggestions(type, term, drop, inp, fullWord) {
         drop.classList.remove('active');
     }
 }
+
 
 
 // ضيف الدالة دي في ملف Javascript واستدعيها وقت النشر
@@ -4819,43 +5462,62 @@ async function saveHashtagsToGlobalDB(text) {
 
 // دالة إدراج الاختيار في النص
 // دالة إدراج الاختيار في النص (تم التعديل لدمج الأسماء المركبة)
+// دالة إدراج الاختيار في النص (مؤمنة بالكامل)
 function insertSuggestion(inputId, oldWord, newWord, uid, pic) {
     const inp = document.getElementById(inputId);
     if (!inp) return;
 
+    // 🔥 فحص الأمان: لو الـ UID وصل بايظ (undefined/null)، ارفض العملية
+    if (uid === 'undefined' || uid === 'null' || !uid) {
+        console.error("خطأ: محاولة اختيار مستخدم بدون معرف صالح");
+        // ممكن تظهر توست هنا لو حابب للتجربة
+        // showToast("خطأ في بيانات المستخدم"); 
+        return; 
+    }
+
     // 1. إضافة البيانات للمخزن المؤقت
     if (uid && pic) {
-        // 🔥 التعديل: نستبدل أي مسافة بشرطة سفلية عشان الكود يفهم إنه اسم واحد
-        // cleanName هي الاسم اللي هيتكتب في التيكست بوكس
+        // تنظيف الاسم من الـ @ والمسافات
         const rawName = newWord.replace('@', '').trim();
         const safeNameForSystem = rawName.replace(/\s+/g, '_'); // Ahmed Ali -> Ahmed_Ali
 
-        // نضيفه للقائمة بالاسم المعدل
+        // التأكد من تعريف المصفوفة لو مش موجودة
+        if (typeof tempCommentMentions === 'undefined') {
+            window.tempCommentMentions = [];
+        }
+
+        // إضافة المستخدم للقائمة المؤقتة
         tempCommentMentions.push({
             uid: uid,
             name: safeNameForSystem, // نخزن الاسم بالشرطة
             pic: pic
         });
 
-        // نغير الكلمة الجديدة لتكون بالشرطة السفلية أيضاً
+        // 💡 للتجربة فقط: اطبع في الكونسول عشان تتأكد إن الـ UID سليم
+        console.log("تم اختيار المستخدم بنجاح:", uid, safeNameForSystem);
+
+        // تعديل الكلمة الجديدة لتكون بالشرطة السفلية أيضاً
         newWord = '@' + safeNameForSystem;
     }
 
     // 2. استبدال النص في المربع
     const val = inp.value;
     const cursorPos = inp.selectionStart;
-    const before = val.substring(0, cursorPos);
-    const after = val.substring(cursorPos);
     
-    // استبدال الكلمة القديمة بالجديدة (اللي فيها شرطة)
-    const newBefore = before.replace(new RegExp(oldWord + "$"), newWord + " ");
+    // بنجيب موقع الكلمة القديمة (مثلاً @ahm) ونبدلها بالجديدة (@ahmed_ali)
+    const beforeCursor = val.substring(0, cursorPos);
+    const afterCursor = val.substring(cursorPos);
     
-    inp.value = newBefore + after;
+    // استبدال آخر ظهور للكلمة القديمة قبل المؤشر
+    const newBefore = beforeCursor.replace(new RegExp(oldWord + "$"), newWord + " ");
+    
+    inp.value = newBefore + afterCursor;
     
     // إخفاء القائمة
     const activeDropdown = document.querySelector('.mention-dropdown.active');
     if (activeDropdown) activeDropdown.classList.remove('active');
     
+    // إعادة التركيز للمربع وتحديث الزرار
     inp.focus();
     if(typeof handleInputTyping === 'function') handleInputTyping(inp);
 }
@@ -5218,27 +5880,69 @@ function toggleReadMore(btn) {
 /* --- نظام الأونلاين (Presence System) --- */
 
 // 1. دالة لتلوين الصورة لو المستخدم فاتح
-function checkAndColorAvatar(uid, avatarElement) {
-    if (!uid || !avatarElement) return;
+// ==========================================
+// 🟢 نظام الأونلاين المخصص للأصدقاء فقط
+// ==========================================
 
-    // بنجيب بيانات المستخدم صاحب التعليق
+function checkAndColorAvatar(uid, commentElement) {
+    // 1. حماية: لو العنصر مش موجود أو انت مش مسجل دخول، اخرج
+    if (!uid || !commentElement || !currentUser || !currentUserData) return;
+
+    // تحديد عنصر الصورة داخل التعليق
+    const avatarEl = commentElement.querySelector('.cm-avatar');
+    if (!avatarEl) return;
+
+    // جلب بيانات صاحب التعليق
     db.collection('users').doc(uid).get().then(doc => {
-        if (doc.exists) {
-            const data = doc.data();
-            if (data.lastSeen) {
-                const lastSeen = data.lastSeen.toDate();
-                const now = new Date();
-                // حساب الفرق بالدقائق
-                const diff = (now - lastSeen) / 1000 / 60;
-                
-                // لو كان فاتح في آخر 5 دقايق، نعتبره أونلاين
-                if (diff < 5) {
-                    avatarElement.classList.add('online');
-                }
+        if (!doc.exists) return;
+        const targetData = doc.data();
+
+        // ============================================================
+        // 🔒 شرط الصداقة المتبادلة (Mutual Friends Logic)
+        // ============================================================
+        
+        // 1. هل أنا أتابعه؟ (موجود في قائمة following بتاعتي)
+        const iFollowHim = currentUserData.following && currentUserData.following.includes(uid);
+        
+        // 2. هل هو يتابعني؟ (موجود في قائمة following بتاعته)
+        const heFollowsMe = targetData.following && targetData.following.includes(currentUser.uid);
+
+        // 🔥 الشرط الحاسم:
+        // إذا لم نكن أصدقاء (أنا أتابعه وهو يتابعني)، اخرج فوراً ولا تظهر اللمبة
+        if (!iFollowHim || !heFollowsMe) {
+            // (اختياري) يمكنك إزالة السطر التالي إذا كنت تريد رؤية حالتك أنت
+            if (uid !== currentUser.uid) return; 
+        }
+
+        // ============================================================
+        // ⏰ فحص التوقيت (هل هو نشط الآن؟)
+        // ============================================================
+        
+        // التحقق من أن المستخدم لم يخفِ ظهوره من الإعدادات
+        if (targetData.privacy && targetData.privacy.hideLastSeen) return;
+
+        if (targetData.lastSeen) {
+            // تحويل التوقيت
+            const lastSeenDate = targetData.lastSeen.toDate ? targetData.lastSeen.toDate() : new Date(targetData.lastSeen);
+            const now = new Date();
+            
+            // حساب الفرق بالدقائق
+            const diffMinutes = Math.floor((now - lastSeenDate) / 1000 / 60);
+
+            // ✅ إذا كان نشطاً خلال آخر 5 دقائق -> أظهر اللمبة الخضراء
+            if (diffMinutes <= 5) {
+                avatarEl.classList.add('online');
+            } 
+            // إذا كان غير نشط -> تأكد من إزالة الكلاس
+            else {
+                avatarEl.classList.remove('online');
             }
         }
+    }).catch(err => {
+        console.log("Error checking online status:", err);
     });
 }
+
 
 // 2. تحديث تواجدك أنت (عشان تظهر أونلاين للناس)
 function startPresenceSystem() {
@@ -5247,15 +5951,16 @@ function startPresenceSystem() {
     const updateStatus = () => {
         db.collection('users').doc(currentUser.uid).update({
             lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-        }).catch(e => console.log("Presence update ignored")); // تجاهل الأخطاء الصامتة
+        }).catch(e => console.log("Updating presence..."));
     };
 
-    // تحديث فوراً عند الدخول
+    // تحديث فوراً
     updateStatus();
 
-    // تحديث كل دقيقتين طول ما أنت فاتح الموقع
+    // تحديث كل دقيقتين (عشان تفضل أونلاين طول ما أنت فاتح)
     setInterval(updateStatus, 2 * 60 * 1000);
 }
+
 
 // تشغيل النظام عند تسجيل الدخول (ضيف السطر ده جوه auth observer لو مش موجود)
 // أو خليه هنا وهو هيشتغل لما المستخدم يسجل
@@ -5575,6 +6280,11 @@ function handleSmartOverlayClick() {
         return;
     }
 
+if (createMenuSheet && createMenuSheet.classList.contains('active')) {
+        closeCreateMenu();
+        return;
+    }
+
     // 3. لو مفيش غير التعليقات، اقفل كله
     closeAllSheets();
 }
@@ -5716,66 +6426,92 @@ function shareVideo(id, text, ownerUid) {
         shareSheet.classList.add('active');
         overlay.style.display = 'block';
         
-        // 🔥 استدعاء دالة تحديث الزر هنا
-        updateRepostButtonStatus();
+        // 🔥🔥 السطر الجديد والمهم جداً 🔥🔥
+        loadRecentChatsForShare(); 
+        
+        // استدعاء دالة تحديث زر إعادة النشر (لو موجودة عندك)
+        if(typeof updateRepostButtonStatus === 'function') updateRepostButtonStatus();
     }
 }
+
 
 // دالة التعامل مع أزرار الصف الأول (التطبيقات)
 function shareTo(platform) {
-    // تجهيز الرابط والنص
+    // 1. تجهيز الروابط والنصوص
     const videoUrl = `${window.location.origin}${window.location.pathname}?video=${currentOpenVideoId}`;
     const shareText = "شاهد هذا الفيديو الرائع على نبض! 🔥";
     
+    // ترميز النصوص عشان الروابط تشتغل صح
+    const encodedUrl = encodeURIComponent(videoUrl);
+    const encodedText = encodeURIComponent(shareText);
+
     let targetUrl = "";
+
+    // ============================================================
+    // 🔥 إضافة جديدة: زيادة عداد المشاركة عند الضغط (UI + DB)
+    // ============================================================
+    
+    // 1. تحديث الرقم في الشاشة فوراً (للمظهر الجمالي)
+    const countSpan = document.getElementById(`share-count-${currentOpenVideoId}`);
+    if (countSpan) {
+        // استخراج الرقم الحالي وزيادته
+        let currentCount = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+        // نستخدم formatNumber عشان لو الرقم كبر (مثلاً 1K)
+        // تأكد أن دالة formatNumber موجودة في كودك، أو استخدم currentCount + 1 مباشرة
+        countSpan.innerText = typeof formatNumber === 'function' ? formatNumber(currentCount + 1) : (currentCount + 1);
+    }
+
+    // 2. تحديث قاعدة البيانات (Firebase)
+    if (currentOpenVideoId) {
+        db.collection('posts').doc(currentOpenVideoId).update({
+            sharesCount: firebase.firestore.FieldValue.increment(1)
+        }).catch(err => console.error("Error updating share count:", err));
+    }
+    // ============================================================
 
     switch (platform) {
         case 'whatsapp':
-            // فتح واتساب
-            targetUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText + " " + videoUrl)}`;
+            targetUrl = `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`;
+            window.open(targetUrl, '_blank');
+            closeAllSheets();
             break;
             
         case 'facebook':
-            // فتح فيسبوك
-            targetUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(videoUrl)}`;
+            targetUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+            window.open(targetUrl, '_blank');
+            closeAllSheets();
+            break;
+
+        // 🔥 كود تليجرام (سريع ومباشر)
+        case 'telegram':
+            targetUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
+            window.open(targetUrl, '_blank');
+            closeAllSheets();
+            break;
+
+        // 🔥 كود إنستجرام (ذكي للأندرويد)
+        case 'instagram':
+            if (/android/i.test(navigator.userAgent)) {
+                // للأندرويد: بنوجهه لتطبيق إنستجرام مباشرة للمشاركة
+                window.location.href = `intent://share/#Intent;package=com.instagram.android;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodedUrl};end`;
+            } else {
+                // للأيفون والكمبيوتر: بننسخ الرابط ونفتح إنستجرام عشان المستخدم يعمل لصق
+                navigator.clipboard.writeText(videoUrl);
+                showToast("تم نسخ الرابط، قم بلصقه في إنستجرام 📋");
+                setTimeout(() => {
+                    window.open('https://www.instagram.com/direct/inbox/', '_blank');
+                }, 1000);
+            }
+            closeAllSheets();
             break;
             
-    case 'messenger': {
-    const msgUrl = encodeURIComponent(videoUrl);
-
-    if (/android/i.test(navigator.userAgent)) {
-        // نستخدم share intent العام
-        window.location.href = `intent://send?text=${msgUrl}#Intent;action=android.intent.action.SEND;type=text/plain;end`;
-    }
-
-    else if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        window.location.href = `fb-messenger://share/?link=${msgUrl}`;
-
-        setTimeout(() => {
-            window.location.href =
-                `https://www.facebook.com/dialog/send?link=${msgUrl}&redirect_uri=${msgUrl}`;
-        }, 2000);
-    }
-
-    else {
-        window.open(
-            `https://www.facebook.com/dialog/send?link=${msgUrl}&redirect_uri=${msgUrl}`,
-            '_blank'
-        );
-    }
-
-    closeAllSheets();
-    break;
-}
         case 'copy':
-            // نسخ الرابط
             navigator.clipboard.writeText(videoUrl);
             showToast("تم نسخ الرابط بنجاح 📋");
-            closeAllSheets(); // إغلاق القائمة
-            return; // خروج
+            closeAllSheets();
+            break;
             
         case 'native':
-            // زر "المزيد" لفتح مشاركة النظام الأصلية
             if (navigator.share) {
                 navigator.share({
                     title: 'NABD Pro',
@@ -5783,24 +6519,13 @@ function shareTo(platform) {
                     url: videoUrl
                 }).catch(console.error);
             } else {
-                showToast("المشاركة غير مدعومة في هذا المتصفح");
+                showToast("المشاركة غير مدعومة");
             }
-            return;
+            closeAllSheets();
+            break;
     }
-
-    // فتح الرابط في نافذة جديدة
-    if (targetUrl) {
-        window.open(targetUrl, '_blank');
-    }
-    
-    // (اختياري) إرسال إشعار لصاحب الفيديو إنه تم المشاركة
-    if (currentPostOwnerUid && currentPostOwnerUid !== currentUser.uid) {
-        sendNotification(currentPostOwnerUid, 'share', 'قام بمشاركة الفيديو الخاص بك 🔗', currentOpenVideoId);
-    }
-    
-    // إغلاق القائمة بعد الضغط
-    closeAllSheets();
 }
+
 
 
 function toggleFollow(uid, btn) {
@@ -5831,21 +6556,64 @@ function getBadge(isVerified, isGhost) {
 
 // دالة ذكية لاختصار الاسم
 // دالة ذكية لاختصار الاسم
+// دالة ذكية لتنسيق الاسم (تظهر حتى 3 أسماء + الرموز الملحقة)
 function formatSmartName(name) {
-    if (!name) return "مستخدم"; // حماية في حالة عدم وجود اسم
+    if (!name) return "مستخدم";
     
-    // تنظيف الاسم
+    // تنظيف الاسم من المسافات الزائدة في البداية والنهاية
     const cleanName = name.trim();
     
-    // تقسيم الاسم
+    // تقسيم الاسم بناءً على المسافات
     const words = cleanName.split(/\s+/);
+    
+    // مصفوفة لتخزين الأسماء "الحقيقية" (بدون الرموز المنفصلة)
+    let realNames = [];
+    // مصفوفة لتخزين الرموز أو الزيادات التي لا تعتبر أسماء
+    let extras = [];
+    
+    // نمط للتحقق هل الكلمة عبارة عن رموز فقط (إيموجي، علامات ترقيم، رموز خاصة)
+    // هذا النمط يستبعد الحروف العربية والإنجليزية والأرقام، ويعتبر الباقي رموزاً
+    const symbolRegex = /^[^a-zA-Z0-9\u0600-\u06FF]+$/;
 
-    // لو الاسم طويل نرجع أول اسمين فقط عشان التصميم ميبوظش
-    if (words.length > 2) {
-        return words.slice(0, 2).join(' ');
+    for (let word of words) {
+        // لو الكلمة عبارة عن رموز فقط، أو حرف واحد (زي "و" العطف المنفصلة)، نعتبرها extra
+        if (symbolRegex.test(word)) {
+            extras.push(word);
+        } else {
+            // لو كلمة عادية (اسم)، نعتبرها اسم حقيقي
+            realNames.push(word);
+        }
+    }
+
+    // الآن نأخذ أول 3 أسماء حقيقية فقط
+    const limit = 3;
+    const finalNames = realNames.slice(0, limit);
+    
+    // نعيد تجميع الاسم (الأسماء المختارة + الرموز الأصلية اللي كانت موجودة)
+    // هنا سنعيد بناء الاسم من النص الأصلي لكن نتوقف عند نهاية الاسم الثالث
+    
+    // طريقة أذكى: نستخدم الكلمات الأصلية ونعد الأسماء الحقيقية
+    let resultWords = [];
+    let nameCounter = 0;
+    
+    for (let word of words) {
+        if (!symbolRegex.test(word)) {
+            nameCounter++;
+        }
+        
+        // نضيف الكلمة للنتيجة (سواء كانت اسم أو رمز) طالما لم نتجاوز حد الـ 3 أسماء
+        if (nameCounter <= limit) {
+            resultWords.push(word);
+        } else if (symbolRegex.test(word)) {
+            // لو تجاوزنا الحد، نسمح بإضافة الرموز فقط (زي القلوب بعد الاسم الثالث)
+            resultWords.push(word);
+        } else {
+            // لو تجاوزنا الحد وكانت الكلمة اسماً، نتوقف أو نتجاهلها
+            // (في هذا المنطق سنتجاهلها فقط ونكمل عشان لو فيه رموز بعدها)
+        }
     }
     
-    return cleanName;
+    return resultWords.join(' ');
 }
 
 function createSafeCommentElement(c) {
@@ -5884,21 +6652,41 @@ function createSafeCommentElement(c) {
     return container;
 }
 
+// ==========================================
+// 🔥 دالة التبديل الموحدة (شاملة القصص والبث) 🔥
+// ==========================================
 function switchFeedTab(tabName) {
+    // 1. منع التكرار إذا كان التحميل جارياً أو نفس التبويب مفتوح
     if (isLoading || currentFeedTab === tabName) return;
 
-    // 1. تحديث الشكل (UI)
+    // 2. تحديث شكل الأزرار (إزالة النشاط من الكل وإضافته للزر المختار)
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById(`tab-${tabName}`).classList.add('active');
+    const activeTab = document.getElementById(`tab-${tabName}`);
+    if(activeTab) activeTab.classList.add('active');
 
-    // 2. تحديث المتغيرات
+    // 3. تحديث المتغيرات وتنظيف الشاشة
     currentFeedTab = tabName;
-    lastDoc = null; // تصفير عشان نبدأ من الأول
-    document.getElementById('feed').innerHTML = ''; // مسح الفيديوهات القديمة
+    lastDoc = null; 
+    const feed = document.getElementById('feed');
+    feed.innerHTML = ''; // مسح المحتوى القديم تماماً
 
-    // 3. تحميل الفيديوهات الجديدة
-    loadVideos(true);
+    // 4. التوجيه الصحيح بناءً على القسم المختار
+    console.log("Switching to tab:", tabName); // للتأكد من أن الزر يعمل
+
+    if (tabName === 'live') {
+        // حالة البث المباشر
+        loadLiveStreams(); 
+    } 
+    else if (tabName === 'stories') {
+        // حالة القصص (هنا كان العطل)
+        loadGlobalStoriesAsGrid(); 
+    } 
+    else {
+        // الحالات الأخرى (العالم، الأصدقاء، شائع)
+        loadVideos(true);
+    }
 }
+
 // متغير لتذكر الفيديو الذي تم إيقافه
 let videoPausedBySearch = null;
 
@@ -5996,7 +6784,7 @@ async function doSearch(queryText) {
 
                 // الضغط هنا يوديك البروفايل
                 html += `
-                <div class="user-result-card" onclick="location.href='profile.html?uid=${doc.id}'">
+<div class="user-result-card" onclick="closeSearchScreen(); openProfileOverlay('${doc.id}')">
                     <img src="${userImg}" class="user-result-img">
                     <div>
                         <div style="font-weight:bold; color:#fff; display:flex; align-items:center; gap:5px;">
@@ -6108,18 +6896,29 @@ function getBadge(isVerified, isGhost) {
     return isVerified ? `<i class="fa-solid fa-heart-circle-check nabd-badge" style="color:#20D5EC; margin-right:3px; font-size:14px;"></i>` : '';
 }
 async function openSingleVideo(pid) {
-    // 1. الوصول للـ Feed وتفريغه
+    // 1. تنظيف الشاشة
     const feed = document.getElementById('feed');
-    // بنخلي الصفحة تطلع لفوق أول ما الفيديو يفتح
+    feed.innerHTML = ''; 
     feed.scrollTop = 0;
     
+    // إظهار لودر
+    feed.innerHTML = `
+    <div style="height:100vh; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000;">
+        <i class="fa-solid fa-heart-pulse brand-pulse-icon" style="font-size: 100px; color: #F72585;"></i>
+        <p style="color: #fff; margin-top: 20px; font-weight: bold;">جاري جلب الفيديو...</p>
+    </div>`;
+
     try {
-        // 2. جلب بيانات البوست
+        // 2. جلب الفيديو من السيرفر مباشرة
         const doc = await db.collection('posts').doc(pid).get();
         
         if (!doc.exists) {
-            showToast("⚠️ الفيديو غير موجود أو تم حذفه");
-            loadVideos(true); // نرجع نحمل الفيديوهات العادية
+            showToast("⚠️ هذا الفيديو تم حذفه أو غير متاح");
+            setTimeout(() => { 
+                // مسح الرابط من المتصفح عشان ميفضلش معلق
+                window.history.replaceState({}, document.title, "videos.html");
+                loadVideos(true); 
+            }, 2000);
             return;
         }
 
@@ -6127,51 +6926,66 @@ async function openSingleVideo(pid) {
         const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
 
         if (videoMedia) {
-            // 3. جلب بيانات صاحب الفيديو (الاسم والصورة والتوثيق)
+            // 3. جلب بيانات صاحب الفيديو + حالة الأونلاين
             let uName = "مستخدم";
-            let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png"; // صورة افتراضية
+            let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
             let isVerified = false;
+            let isOnline = false; // 🔥 الجديد
 
             try {
                 const uSnap = await db.collection('users').doc(data.uid).get();
                 if(uSnap.exists) {
                     const uData = uSnap.data();
-                    uName = uData.name || "مستخدم";
-                    uPic = uData.profilePic || uData.avatarUrl || uPic;
+                    uName = uData.name || uName;
+                    uPic = uData.profilePic || uData.pic || uPic;
                     isVerified = uData.isVerified || false;
+                    
+                    // حساب الأونلاين
+                    isOnline = checkFriendOnlineStatus(uData, data.uid);
                 }
-            } catch(e) { console.error("Error fetching user:", e); }
+            } catch(e) { console.error(e); }
 
-            // 4. مسح الـ Feed وإنشاء الكارت الجديد
-            feed.innerHTML = ''; // فضي المكان
+            // 4. رسم الفيديو
+            feed.innerHTML = ''; // مسح اللودر
             
-            // استخدام دالة createVideoCard الموجودة عندك أصلاً
-            const cardHTML = createVideoCard(doc.id, { ...data, isVerified }, videoMedia.url, uName, uPic, data.uid);
+            const cardHTML = createVideoCard(
+                doc.id, 
+                { ...data, isVerified }, 
+                videoMedia.url, 
+                uName, 
+                uPic, 
+                data.uid, 
+                isOnline // ✅ تمرير حالة الأونلاين
+            );
             
             feed.innerHTML = cardHTML; 
+            
+            // إضافة زر "عرض المزيد من الفيديوهات" في الأسفل
+            feed.insertAdjacentHTML('beforeend', `
+                <div onclick="window.history.replaceState({}, document.title, 'videos.html'); loadVideos(true);" 
+                     style="padding: 20px; text-align: center; color: #aaa; cursor: pointer; background: #111;">
+                    <i class="fa-solid fa-arrow-down"></i> اضغط للعودة للفيديوهات العامة
+                </div>
+            `);
 
             // 5. تشغيل الفيديو
             const newCard = document.getElementById(`slide-${doc.id}`);
             if (newCard) {
-                // تفعيل المراقبة عشان الفيديو يشتغل
                 observer.observe(newCard);
-                
                 const vid = newCard.querySelector('video');
                 
-                // إلغاء الكتم (اختياري، لو عايزه يشتغل بصوت علطول)
+                // تشغيل الصوت
                 isGlobalMuted = false; 
                 vid.muted = false;
-                
                 playVideo(vid, doc.id);
             }
         }
     } catch (e) {
-        console.error("Error opening single video:", e);
-        showToast("حدث خطأ أثناء فتح الفيديو");
-        loadVideos(true); // لو حصل خطأ رجعه للصفحة الرئيسية
+        console.error("Error opening video:", e);
+        showToast("حدث خطأ");
+        loadVideos(true);
     }
 }
-
 
 // --- دالة للتحكم في ظهور زر التشغيل المركزي ---
 function updatePlayButtonState(vid, id) {
@@ -6187,6 +7001,9 @@ function updatePlayButtonState(vid, id) {
     }
 }
 
+// ==========================================
+// 2. دالة الحفظ المحدثة (مع العداد)
+// ==========================================
 async function toggleSave(id) {
     if (!currentUser) {
         showToast("يرجى تسجيل الدخول للحفظ 🔒");
@@ -6194,32 +7011,54 @@ async function toggleSave(id) {
     }
 
     const icon = document.getElementById(`save-icon-${id}`);
-    const text = document.getElementById(`save-text-${id}`);
+    const countSpan = document.getElementById(`save-count-${id}`); // العنصر الذي يحمل الرقم
     const isSaved = icon.classList.contains('active-save');
     
-    // المرجع في الداتابيز: users -> uid -> saved_posts -> videoId
-    const savedRef = db.collection('users').doc(currentUser.uid).collection('saved_posts').doc(id);
+    // مراجع قاعدة البيانات
+    const userSavedRef = db.collection('users').doc(currentUser.uid).collection('saved_posts').doc(id);
+    const postRef = db.collection('posts').doc(id);
 
-    // تأثير بصري فوري (Optimistic UI)
+    // قراءة الرقم الحالي
+    let currentCount = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+
     if (isSaved) {
+        // === إزالة الحفظ ===
         icon.classList.remove('active-save');
         icon.style.color = "#fff";
-        text.innerText = "حفظ";
+        
+        // تنقيص العداد في الواجهة فوراً
+        if(currentCount > 0) countSpan.innerText = formatNumber(currentCount - 1);
+        
         showToast("تمت الإزالة من المحفوظات 🗑️");
         
-        // الحذف من الداتابيز
-        savedRef.delete().catch(err => console.error(err));
+        // 1. حذف من قائمة المستخدم
+        userSavedRef.delete().catch(console.error);
+        
+        // 2. تنقيص العداد في البوست الأصلي (-1)
+        postRef.update({
+            savesCount: firebase.firestore.FieldValue.increment(-1)
+        }).catch(console.error);
+
     } else {
+        // === إضافة الحفظ ===
         icon.classList.add('active-save');
         icon.style.color = "#FFD700";
-        text.innerText = "محفوظ";
+        
+        // زيادة العداد في الواجهة فوراً
+        countSpan.innerText = formatNumber(currentCount + 1);
+        
         showToast("تم الحفظ في المجموعة ✅");
         
-        // الإضافة للداتابيز (نخزن تاريخ الحفظ عشان نرتبهم)
-        savedRef.set({
+        // 1. إضافة لقائمة المستخدم
+        userSavedRef.set({
             savedAt: firebase.firestore.FieldValue.serverTimestamp(),
-            postId: id // نخزن الـ ID احتياطي
-        }).catch(err => console.error(err));
+            postId: id
+        }).catch(console.error);
+
+        // 2. زيادة العداد في البوست الأصلي (+1)
+        postRef.update({
+            savesCount: firebase.firestore.FieldValue.increment(1)
+        }).catch(console.error);
     }
     
     if(navigator.vibrate) navigator.vibrate(50);
@@ -6713,6 +7552,8 @@ function deleteVideoAction() {
 
 // دالة وهمية للتحميل (مؤقتاً)
 function downloadVideoAction() {
+    incrementShareCount(currentOpenVideoId);
+
     closeAllSheets();
     // هنا ممكن تجيب رابط الفيديو وتعمله download
     const vid = document.getElementById(`vid-${currentOpenVideoId}`);
@@ -7476,9 +8317,9 @@ async function loadVideos(isInitial = false) {
 
     const feed = document.getElementById('feed');
     
-    // إظهار لودر صغير عند التحميل الأولي
+    // إظهار لودر صغير عند التحميل الأولي فقط
     if(isInitial) {
-        feed.innerHTML = '<div style="color:#fff; text-align:center; padding:50px; font-size:20px;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
+        feed.innerHTML = '<div style="height:100vh; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000;"><i class="fa-solid fa-heart-pulse brand-pulse-icon" style="font-size: 100px; color: #F72585;"></i><p style="color: #fff; margin-top: 20px; font-weight: bold;">جاري التحميل...</p></div>';
     }
 
     let query = db.collection('posts');
@@ -7489,10 +8330,12 @@ async function loadVideos(isInitial = false) {
     } 
     else if (currentFeedTab === 'friends') {
         if (!currentUser) {
-            feed.innerHTML = '<div style="text-align:center; margin-top:50%; color:#aaa;">يجب تسجيل الدخول لرؤية منشورات الأصدقاء</div>';
+            feed.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#aaa;">يجب تسجيل الدخول لرؤية منشورات الأصدقاء</div>';
             isLoading = false; 
             return;
         }
+        // ملاحظة: لجلب منشورات الأصدقاء بدقة تحتاج لمنطق "where uid in following"
+        // لكن حالياً سنبقيها كما هي في كودك (الأحدث)
         query = query.orderBy('createdAt', 'desc'); 
     } 
     else {
@@ -7500,8 +8343,10 @@ async function loadVideos(isInitial = false) {
         query = query.orderBy('createdAt', 'desc');
     }
 
-    // 🔥 تعديل 1: خلينا العدد 15 عشان يحمل كمية ويخلي التقليب سريع وميقطعش
-    query = query.limit(15);
+    // 🔥 تعديل للسرعة: نحمل 5 فيديوهات فقط في البداية لتظهر فوراً، ثم 15 عند التمرير
+    // هذا يجعل فتح التطبيق أسرع بـ 3 أضعاف
+    const limitCount = isInitial ? 5 : 15;
+    query = query.limit(limitCount);
     
     if (!isInitial && lastDoc) {
         query = query.startAfter(lastDoc);
@@ -7514,7 +8359,7 @@ async function loadVideos(isInitial = false) {
         if(isInitial) feed.innerHTML = '';
 
         if (snapshot.empty) {
-            if(isInitial) feed.innerHTML = '<div style="text-align:center; margin-top:50%; color:#aaa;">لا توجد فيديوهات في هذا القسم</div>';
+            if(isInitial) feed.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#aaa;">لا توجد فيديوهات</div>';
             isLoading = false;
             return;
         }
@@ -7522,79 +8367,100 @@ async function loadVideos(isInitial = false) {
         // تحديث آخر مستند تم تحميله
         lastDoc = snapshot.docs[snapshot.docs.length - 1];
 
-        // 🔥 تعديل 2: استخدام الـ Fragment عشان يرسمهم مرة واحدة وميهنجش الموبايل
+        // استخدام Fragment لتحسين أداء الرسم على الشاشة
         const fragment = document.createDocumentFragment();
-        const tempDiv = document.createElement('div'); // عنصر مساعد
-
-        // --- حلقة التكرار لرسم الفيديوهات ---
-        for (const doc of snapshot.docs) {
+        
+        // 🔥 تحسين: نستخدم forEach بدلاً من for..of مع await لتجنب الانتظار
+        snapshot.docs.forEach((doc, index) => {
             const data = doc.data();
             
-            // تخطي المحظورين (موجودة زي ما هي)
-            if (blockedUsersSet.has(data.uid)) {
-                console.log("تم إخفاء فيديو لمستخدم محظور:", data.uid);
-                continue; 
+            // تخطي المحظورين
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(data.uid)) {
+                return; 
             }
 
             const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
             
             if (videoMedia) {
-                // ✅ الجزء اللي أنت خايف عليه (جلب بيانات المستخدم الحقيقية) موجود أهو
-                let uName = "مستخدم";
-                let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
-                let isVerified = false;
-
-                try {
-                    // نجلب بيانات الشخص صاحب البوست من كولكشن users
-                    const userSnap = await db.collection('users').doc(data.uid).get();
-                    if (userSnap.exists) {
-                        const userData = userSnap.data();
-                        // نستخدم الاسم والصورة من البروفايل، ولو مش موجودين نستخدم الافتراضي
-                        uName = userData.name || uName;
-                        uPic = userData.profilePic || userData.pic || uPic;
-                        isVerified = userData.isVerified || false;
-                    }
-                } catch (err) {
-                    console.log("Error fetching user data", err);
-                }
+                // 🔥 السرعة: نضع بيانات افتراضية فوراً ولا ننتظر تحميل بيانات المستخدم
+                const placeholderName = "جاري التحميل...";
+                const placeholderPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
                 
-                // إنشاء كارت الفيديو (HTML)
-                const cardHTML = createVideoCard(doc.id, {...data, isVerified: isVerified}, videoMedia.url, uName, uPic, data.uid);
+                // إنشاء الكارت
+                // ملاحظة: مررنا false للأونلاين والتوثيق مؤقتاً وسيتم تحديثهم لاحقاً
+                const cardHTML = createVideoCard(
+                    doc.id, 
+                    {...data, isVerified: false}, 
+                    videoMedia.url, 
+                    placeholderName, 
+                    placeholderPic, 
+                    data.uid, 
+                    false // isOnline مبدئياً
+                );
                 
-                // تحويل النص لعنصر حقيقي عشان نضيفه للذاكرة (أسرع)
+                // تحويل النص لعنصر DOM
+                const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = cardHTML;
                 const newSlide = tempDiv.firstElementChild;
 
-                // ✅ تفعيل السحب للبروفايل (موجودة وتم تحسين مكانها لتعمل فوراً)
                 if (newSlide) {
+                    // 1. تحسين التحميل المسبق (Preload Strategy)
+                    const vidElement = newSlide.querySelector('video');
+                    if (vidElement) {
+                        if (index === 0 && isInitial) {
+                            // أول فيديو يحمل فوراً
+                            vidElement.preload = "auto";
+                            vidElement.setAttribute('autoplay', 'true');
+                        } else if (index === 1) {
+                            // الثاني يحمل البيانات فقط
+                            vidElement.preload = "metadata";
+                        } else {
+                            // الباقي لا يحمل لتوفير النت
+                            vidElement.preload = "none";
+                        }
+                    }
+
+                    // 2. تفعيل السحب للبروفايل
                     enableSwipeForProfile(newSlide, data.uid);
+
+                    // 3. مراقبة التشغيل التلقائي
+                    if (typeof observer !== 'undefined') observer.observe(newSlide);
+
+                    // 4. 🔥 جلب بيانات المستخدم الحقيقية في الخلفية (بدون تعطيل الفيديو)
+                    fetchUserDataAndUpdateUI(data.uid, doc.id);
+
+                    // إضافة للذاكرة
+                    fragment.appendChild(newSlide);
                 }
-
-                // مراقبة الفيديو للتشغيل التلقائي (موجودة)
-                if (newSlide && typeof observer !== 'undefined') observer.observe(newSlide);
-
-                // إضافة العنصر للذاكرة المؤقتة
-                fragment.appendChild(newSlide);
             }
-        }
+        });
 
-        // 🔥 ضخ كل الفيديوهات مرة واحدة في الشاشة (ده اللي بيخلي السكرول ناعم)
+        // رسم كل شيء مرة واحدة
         feed.appendChild(fragment);
 
-        // --- تحديث أيقونات المفضلة (موجودة زي ما هي) ---
+        // --- تحديث أيقونات المفضلة ---
         if (currentUser) {
-            const favSnapshot = await db.collection('users').doc(currentUser.uid).collection('favorites').get();
-            favSnapshot.forEach(favDoc => {
-                const icon = document.getElementById(`save-icon-${favDoc.id}`);
-                const text = document.getElementById(`save-text-${favDoc.id}`);
-                if (icon) {
-                    icon.classList.add('active-save');
-                    icon.style.color = "#FFD700";
-                }
-                if (text) {
-                    text.innerText = "محفوظ";
-                }
+            db.collection('users').doc(currentUser.uid).collection('favorites').get().then(favSnapshot => {
+                favSnapshot.forEach(favDoc => {
+                    const icon = document.getElementById(`save-icon-${favDoc.id}`);
+                    const text = document.getElementById(`save-text-${favDoc.id}`);
+                    if (icon) {
+                        icon.classList.add('active-save');
+                        icon.style.color = "#FFD700";
+                    }
+                    if (text) {
+                        text.innerText = "محفوظ";
+                    }
+                });
             });
+        }
+        
+        // محاولة تشغيل أول فيديو يدوياً إذا كانت هذه أول مرة
+        if(isInitial) {
+            setTimeout(() => {
+                const firstVideo = document.querySelector('#feed video');
+                if(firstVideo) playVideo(firstVideo, firstVideo.id.split('-')[1]);
+            }, 100);
         }
 
     } catch (e) {
@@ -7603,6 +8469,66 @@ async function loadVideos(isInitial = false) {
     }
 
     isLoading = false;
+}
+// دالة لجلب بيانات المستخدم وتحديث الواجهة دون تعطيل الفيديو
+// دالة لجلب بيانات المستخدم وتحديث الواجهة دون تعطيل الفيديو
+function fetchUserDataAndUpdateUI(uid, postId) {
+    db.collection('users').doc(uid).get().then(uSnap => {
+        if(uSnap.exists) {
+            const uData = uSnap.data();
+            const slide = document.getElementById(`slide-${postId}`);
+            
+            // لو المستخدم قلب بسرعة والفيديو اختفى، لا نفعل شيئاً
+            if(!slide) return;
+
+            const finalPic = uData.profilePic || uData.pic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+            // 1. تحديث الاسم
+            const nameEl = slide.querySelector('.header-username');
+            if(nameEl) nameEl.innerText = formatSmartName(uData.name || "مستخدم");
+
+            // 2. تحديث صورة الهيدر (الصغيرة)
+            const imgEl = slide.querySelector('.header-avatar');
+            if(imgEl) imgEl.src = finalPic;
+
+            // 🔥 3. (الإصلاح) تحديث صورة الأسطوانة الدوارة
+            // بنجيب عنصر الصورة اللي جوه الاسطوانة
+            const discImg = slide.querySelector('.music-disc-bg img');
+            
+            // نتأكد إن الفيديو ده مش عليه "صوت مخصص" (عشان منلغيش صورة الأغنية لو موجودة)
+            // بنعرف ده من خاصية data-has-sound اللي انت حاططها في الـ slide
+            const hasCustomSound = slide.getAttribute('data-has-sound') === 'true';
+
+            if (discImg && !hasCustomSound) {
+                // لو مفيش صوت مخصص، يبقى نحط صورة صاحب البروفايل
+                discImg.src = finalPic;
+            }
+
+            // 4. تحديث التوثيق
+            const nameBlock = slide.querySelector('.header-name-block');
+            if(uData.isVerified && nameBlock) {
+                if(!nameBlock.querySelector('.nabd-badge')) {
+                    const badge = document.createElement('i');
+                    badge.className = 'fa-solid fa-heart-circle-check nabd-badge';
+                    nameBlock.appendChild(badge);
+                }
+            }
+
+            // 5. تحديث حالة الأونلاين
+            if (typeof checkFriendOnlineStatus === 'function') {
+                const isOnline = checkFriendOnlineStatus(uData, uid);
+                if (isOnline) {
+                    const avatarContainer = slide.querySelector('.user-header-row > div');
+                    if (avatarContainer && !avatarContainer.querySelector('.online-dot-feed')) {
+                        const dot = document.createElement('div');
+                        dot.className = 'online-dot-feed visible';
+                        dot.style.cssText = "position: absolute; bottom: 0; right: 0; width: 12px; height: 12px; background-color: #4cd964; border: 2px solid #000; border-radius: 50%; z-index: 5;";
+                        avatarContainer.appendChild(dot);
+                    }
+                }
+            }
+        }
+    }).catch(err => console.log("Silent error fetching user data"));
 }
 
 
@@ -7822,80 +8748,230 @@ function formatNumber(num) {
     if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; // أو "ألف" لو عايزها بالعربي
     return num;
 }
+// متغير عشان نخزن فيه الـ ID بتاع البروفايل المفتوح حالياً
+let currentOverlayProfileUid = null; 
 
-// ==========================================
-// 1. فتح البروفايل (مع حساب المتابعين بدقة مثل الملف السليم)
-// ==========================================
-// ==========================================
-// 1. فتح البروفايل (تصحيح الـ ID والهيكل)
-// ==========================================
-// ==========================================
-// 1. فتح البروفايل (تم توحيد الـ ID)
-// ==========================================
+// دالة فتح البروفايل (محدثة: صورة قابلة للفتح + نسخ اليوزر)
+// دالة فتح البروفايل (المعدلة للتعرف على المالك)
+// دالة فتح البروفايل (مع إضافة عدد اللايكات)
 async function openProfileOverlay(uid) {
+    // 1. التحقق من وجود المعرف
+    if (!uid || uid === 'undefined' || uid === 'null') {
+        showToast("⚠️ تعذر العثور على المستخدم");
+        return;
+    }
+
+    closeAllSheets();
+    currentOverlayProfileUid = uid;
+
+    // 2. تجهيز عناصر الواجهة
     const overlay = document.getElementById('profileOverlay');
     const content = document.getElementById('profileContent');
     const headerTitle = document.getElementById('profileOverlayTitle');
+    
+    const menuBtn = document.getElementById('profileHeaderMenuBtn');
+    if (menuBtn) {
+        menuBtn.innerHTML = `<i class="fa-solid fa-ellipsis-vertical" style="font-size:20px; color:#fff;" onclick="openProfileOptionsMenu()"></i>`;
+    }
 
+    // إيقاف أي فيديو يعمل في الخلفية
     document.querySelectorAll('video').forEach(vid => vid.pause());
 
+    // إظهار الشاشة الجانبية
     overlay.classList.add('active');
     overlay.style.transform = "translateX(0)";
     
-    // 🔥 رجعنا القلب هنا كمان
+    if(headerTitle) headerTitle.innerText = "جاري التحميل...";
+
+    // وضع علامة التحميل
     content.innerHTML = `
     <div class="loading-state" style="padding:100px 0; display:flex; flex-direction:column; align-items:center;">
         <i class="fa-solid fa-heart-pulse brand-pulse-icon" style="font-size: 60px; color: #F72585;"></i>
     </div>`;
 
     try {
+        // 3. جلب بيانات المستخدم من فايربيس
         const doc = await db.collection('users').doc(uid).get();
-        if (!doc.exists) return;
+        
+        if (!doc.exists) {
+            showToast("⚠️ هذا المستخدم لم يعد متاحاً");
+            closeProfileOverlay();
+            return;
+        }
         
         const u = doc.data();
-        headerTitle.innerText = u.name;
 
-        let totalFollowers = (u.followers ? u.followers.length : 0) + (u.fakeFollowersCount || 0);
+        // 4. تعريف المتغيرات (هنا كان الخطأ، قمنا بتقديم هذه الخطوة للأعلى)
+        const userImg = u.profilePic || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
         const isVerifiedHTML = u.isVerified ? `<i class="fa-solid fa-circle-check" style="color:#20D5EC; font-size:18px;"></i>` : '';
+        const userHandle = u.username ? `@${u.username}` : `@${uid.substring(0,8)}`;
+        const textToCopy = u.username || uid;
+        
+        // حساب المتابعين بأمان
+        let totalFollowers = (u.followers ? u.followers.length : 0) + (u.fakeFollowersCount || 0);
+        
+        // التحقق مما إذا كنت أنا المتابع
         const amIFollowing = u.followers && u.followers.includes(currentUser.uid);
+        const isOwner = (currentUser.uid === uid);
 
+        // فحص حالة الأونلاين
+        const isProfileOnline = typeof checkFriendOnlineStatus === 'function' ? checkFriendOnlineStatus(u, uid) : false;
+        const profileDotHTML = isProfileOnline ? 
+            `<div style="position: absolute; bottom: 5px; right: 5px; width: 20px; height: 20px; background-color: #4cd964; border: 3px solid #000; border-radius: 50%; z-index: 10;"></div>` 
+            : '';
+
+        // 5. تحديد الأزرار (تعديل أو متابعة)
+        let actionButtonsHTML = '';
+        if (isOwner) {
+            actionButtonsHTML = `
+                <button class="pro-btn btn-gray" onclick="window.location.href='edit.html'" style="width:100%; border:1px solid #333;">
+                    <i class="fa-solid fa-pen-to-square"></i> تعديل الملف الشخصي
+                </button>
+            `;
+        } else {
+            actionButtonsHTML = `
+                <button class="pro-btn ${amIFollowing ? 'btn-gray' : 'btn-blue'}" onclick="handleFollowAction('${uid}', this)">
+                    ${amIFollowing ? 'تتابع' : 'متابعة'}
+                </button>
+                <button class="pro-btn btn-gray" onclick="goToChat('${uid}')">مراسلة</button>
+            `;
+        }
+
+        // تحديث العنوان بالاسم الحقيقي
+        if(headerTitle) headerTitle.innerText = u.name;
+
+        // 6. بناء الـ HTML النهائي (الآن كل المتغيرات معرفة وجاهزة)
         content.innerHTML = `
             <div class="pro-header">
-                <div class="pro-avatar-container">
-                    <img src="${u.profilePic || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'}" class="pro-avatar">
+                <div class="pro-avatar-container" style="position: relative; display: inline-block;">
+                    <img src="${userImg}" class="pro-avatar" onclick="viewImageWithSave('${userImg}')">
+                    ${profileDotHTML}
                 </div>
                 
                 <div class="pro-info">
                     <div class="pro-name-row">${u.name} ${isVerifiedHTML}</div>
+                    <div class="pro-user-handle" onclick="copyTextToClipboard('${textToCopy}')">
+                        <span>${userHandle}</span> <i class="fa-regular fa-copy"></i>
+                    </div>
+
                     <div class="pro-bio-stats">
-                        ${formatNumber(totalFollowers)} متابع • ${u.following ? u.following.length : 0} يتابع
+                        ${formatNumber(totalFollowers)} متابع • ${u.following ? u.following.length : 0} يتابع • <span id="overlay-likes-count" style="font-weight:bold; color:#fff;">0</span> إعجاب
                         <br><span style="opacity:0.7">${u.bio || 'لا يوجد نبذة شخصية'}</span>
                     </div>
                 </div>
 
                 <div class="pro-actions">
-                    <button class="pro-btn ${amIFollowing ? 'btn-gray' : 'btn-blue'}" onclick="handleFollowAction('${uid}', this)">
-                        ${amIFollowing ? 'تتابع' : 'متابعة'}
-                    </button>
-                    <button class="pro-btn btn-gray" onclick="window.location.href='chat.html?uid=${uid}'">مراسلة</button>
+                    ${actionButtonsHTML}
                 </div>
-            </div>
+            </div> 
 
             <div class="pro-tabs-container">
                 <div class="pro-tab-item active" onclick="switchProfileSection('videos')"><i class="fa-solid fa-bars"></i></div>
                 <div class="pro-tab-item" onclick="switchProfileSection('reposts')"><i class="fa-solid fa-retweet"></i></div>
             </div>
-
+            
             <div id="finalProfileGrid" class="pro-grid active-grid"></div>
             <div id="repostProfileGrid" class="pro-grid"></div>
         `;
 
+        // 7. استدعاء دوال تحميل الفيديوهات
         loadUserVideosInProfile(uid, u);
         loadUserReposts(uid, u);
+        fetchUserTotalLikes(uid, 'overlay-likes-count');
 
     } catch (e) {
         console.error(e);
-        content.innerHTML = '<div style="color:red; text-align:center; padding:20px">حدث خطأ</div>';
+        showToast("حدث خطأ في تحميل البروفايل");
+        closeProfileOverlay();
+    }
+}
+
+
+function copyTextToClipboard(text) {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("تم نسخ المعرف بنجاح 📋");
+        if(navigator.vibrate) navigator.vibrate(50);
+    }).catch(err => {
+        console.error('فشل النسخ', err);
+        showToast("فشل النسخ");
+    });
+}
+
+// فتح قائمة خيارات البروفايل
+// دالة فتح القائمة مع التحقق من الهوية
+function openProfileOptionsMenu() {
+    const sheet = document.getElementById('profileOptionsSheet');
+    const overlay = document.getElementById('overlay');
+    const strangerOptions = document.getElementById('strangerOptions');
+
+    if (sheet && overlay) {
+        // 🔥 فحص الهوية: هل أنا المالك؟
+        if (currentUser && currentOverlayProfileUid === currentUser.uid) {
+            // لو أنا المالك -> اخفي خيارات الغرباء (حظر وابلاغ)
+            if(strangerOptions) strangerOptions.style.display = 'none';
+        } else {
+            // لو زائر -> اظهرها
+            if(strangerOptions) strangerOptions.style.display = 'block';
+        }
+
+        sheet.classList.add('active');
+        overlay.style.display = 'block';
+        overlay.style.zIndex = "5500"; 
+        sheet.style.zIndex = "6000";   
+    }
+}
+
+// دالة لحساب مجموع لايكات المستخدم وعرضها
+async function fetchUserTotalLikes(uid, elementId) {
+    try {
+        // بنجيب كل بوستات المستخدم ده
+        const snapshot = await db.collection('posts').where('uid', '==', uid).get();
+        let totalLikes = 0;
+
+        // بنجمع عدد اللايكات في كل بوست
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.likes) {
+                totalLikes += Object.keys(data.likes).length;
+            }
+        });
+
+        // تحديث الرقم في الشاشة (بنستخدم formatNumber عشان لو الرقم كبير يبقى 1K)
+        const el = document.getElementById(elementId);
+        if (el) {
+            el.innerText = formatNumber(totalLikes);
+        }
+    } catch (e) {
+        console.error("خطأ في حساب اللايكات:", e);
+    }
+}
+
+// 🔥 الدالة المطلوبة: الذهاب لصفحة profile.html
+function goToFullProfilePage() {
+    if (currentOverlayProfileUid) {
+        // بننقل المستخدم للصفحة مع الـ ID في الرابط
+        window.location.href = `profile.html?uid=${currentOverlayProfileUid}`;
+    } else {
+        showToast("خطأ في معرف المستخدم");
+    }
+}
+
+// نسخ رابط البروفايل (إضافي)
+function copyProfileLink() {
+    if (currentOverlayProfileUid) {
+        const url = `${window.location.origin}/profile.html?uid=${currentOverlayProfileUid}`;
+        navigator.clipboard.writeText(url);
+        showToast("تم نسخ رابط الملف الشخصي 📋");
+        closeAllSheets();
+    }
+}
+
+// إبلاغ عن المستخدم (إضافي)
+function reportUserFromProfile() {
+    if(currentOverlayProfileUid) {
+        // نستخدم نفس دالة الإبلاغ اللي عندك بس بنوع 'user'
+        openReportMenu('user', currentOverlayProfileUid, currentOverlayProfileUid, 'الملف الشخصي');
     }
 }
 
@@ -8030,9 +9106,46 @@ function openProfileVideoFeed(uid, postsList, startIndex, userInfo) {
 }
 
 // دالة الانتقال للشات
-function goToChat(targetUid) {
-    // بنبعت الـ UID في الرابط عشان صفحة الشات تعرف هتكلم مين
-    window.location.href = `chat.html?uid=${targetUid}`;
+// استبدل دالة goToChat القديمة بهذه الدالة المحسنة بالكامل
+// استبدل دالة goToChat القديمة بهذه الدالة بالكامل
+async function goToChat(targetUid) {
+    // 1. حماية: لو الزرار مضغوط عليه بالغلط أو مفيش مستخدم مسجل
+    if (!currentUser) {
+        showToast("يرجى تسجيل الدخول أولاً");
+        return;
+    }
+    
+    if (!targetUid || targetUid === 'undefined' || targetUid === 'null') {
+        // لو الـ ID مش جاي في الباراميتر، نحاول نجيبه من المتغير العام لو احنا في بروفايل
+        if (typeof currentOverlayProfileUid !== 'undefined') {
+            targetUid = currentOverlayProfileUid;
+        } else {
+            console.error("خطأ: لا يوجد معرف للمستخدم");
+            return;
+        }
+    }
+
+    // 2. المعادلة السحرية: تكوين Chat ID موحد
+    // بنرتب الآيديهات أبجدياً ونحط بينهم شرطة، فدائماً النتيجة واحدة للطرفين
+    const chatID = [currentUser.uid, targetUid].sort().join("_");
+
+    try {
+        // 3. ضمان وجود المحادثة في الداتابيز قبل فتح الصفحة
+        // نستخدم set مع merge:true عشان لو الشات موجود ميمسحش الرسائل القديمة
+        await db.collection("chats").doc(chatID).set({
+            users: [currentUser.uid, targetUid],
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp() // تحديث وقت آخر نشاط
+        }, { merge: true });
+
+        // 4. التوجيه السليم: بنبعت الـ chatId والـ uid في الرابط
+        console.log("Going to chat:", chatID);
+        window.location.href = `chat.html?chatId=${chatID}&uid=${targetUid}`;
+
+    } catch (e) {
+        console.error("Error creating chat:", e);
+        // لو حصل خطأ في الداتابيز، وجّه المستخدم برضه كحل احتياطي
+        window.location.href = `chat.html?uid=${targetUid}`;
+    }
 }
 
 // دالة المتابعة (تحديث وهمي سريع + تحديث الداتابيز)
@@ -8305,6 +9418,7 @@ async function performRepost() {
             });
 
             showToast("تمت إعادة النشر بنجاح 🎉");
+incrementShareCount(currentOpenVideoId);
 
             // إرسال إشعار
             if (currentPostOwnerUid && currentPostOwnerUid !== currentUser.uid) {
@@ -8413,6 +9527,7 @@ async function updateRepostButtonStatus() {
 }
 
 function shareTo(platform) {
+    // 1. تجهيز الروابط والنصوص
     const videoUrl = `${window.location.origin}${window.location.pathname}?video=${currentOpenVideoId}`;
     const shareText = "شاهد هذا الفيديو الرائع على نبض! 🔥";
     
@@ -8422,6 +9537,28 @@ function shareTo(platform) {
 
     let targetUrl = "";
 
+    // ============================================================
+    // 🔥 إضافة: زيادة عداد المشاركة عند الضغط (UI + Database)
+    // ============================================================
+    
+    // أ) تحديث الرقم في الشاشة فوراً (للمظهر الجمالي)
+    const countSpan = document.getElementById(`share-count-${currentOpenVideoId}`);
+    if (countSpan) {
+        // استخراج الرقم الحالي وزيادته
+        let currentCount = parseInt(countSpan.innerText.replace(/[^0-9]/g, '')) || 0;
+        // استخدام دالة تنسيق الأرقام لو موجودة، أو الزيادة المباشرة
+        countSpan.innerText = typeof formatNumber === 'function' ? formatNumber(currentCount + 1) : (currentCount + 1);
+    }
+
+    // ب) تحديث قاعدة البيانات (Firebase)
+    if (currentOpenVideoId) {
+        db.collection('posts').doc(currentOpenVideoId).update({
+            sharesCount: firebase.firestore.FieldValue.increment(1)
+        }).catch(err => console.error("Error updating share count:", err));
+    }
+    // ============================================================
+
+    // 2. تنفيذ المشاركة حسب المنصة
     switch (platform) {
         case 'whatsapp':
             targetUrl = `https://api.whatsapp.com/send?text=${encodedText}%20${encodedUrl}`;
@@ -8435,20 +9572,20 @@ function shareTo(platform) {
             closeAllSheets();
             break;
 
-        // 🔥 كود تليجرام (سريع ومباشر)
+        // 🔥 كود تليجرام
         case 'telegram':
             targetUrl = `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`;
             window.open(targetUrl, '_blank');
             closeAllSheets();
             break;
 
-        // 🔥 كود إنستجرام (ذكي للأندرويد)
+        // 🔥 كود إنستجرام
         case 'instagram':
             if (/android/i.test(navigator.userAgent)) {
                 // للأندرويد: بنوجهه لتطبيق إنستجرام مباشرة للمشاركة
                 window.location.href = `intent://share/#Intent;package=com.instagram.android;action=android.intent.action.SEND;type=text/plain;S.android.intent.extra.TEXT=${encodedUrl};end`;
             } else {
-                // للأيفون والكمبيوتر: بننسخ الرابط ونفتح إنستجرام عشان المستخدم يعمل لصق
+                // للأيفون والكمبيوتر: بننسخ الرابط ونفتح إنستجرام
                 navigator.clipboard.writeText(videoUrl);
                 showToast("تم نسخ الرابط، قم بلصقه في إنستجرام 📋");
                 setTimeout(() => {
@@ -8920,54 +10057,86 @@ function updateFloatingSeeker(vid, id) {
         }
     }
 }
-
-// دالة تحويل النص إلى هاشتاجات ومنشن ملون
-// تقبل الآن معامل ثاني: قائمة المنشنات المخزنة في البوست
-// دالة تحويل النص إلى هاشتاجات ومنشن ملون مع الصورة الصحيحة
-// دالة تنسيق النص والمنشن (تم التعديل للبحث عن الأسماء بالشرطة السفلية)
-// دالة تنسيق النص والمنشن (تم التعديل لتقبل الإيموجي والرموز)
 function formatSmartText(text, mentionsList = []) {
     if (!text) return "";
 
-    // 1. حماية النص
     let safeText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    // تلوين الهاشتاج (كما هو)
+    // 1. معالجة الهاشتاج (كما هي)
     safeText = safeText.replace(/(^|\s)#([\u0600-\u06FFa-zA-Z0-9_]+)/g, 
         '$1<span class="styled-hashtag" onclick="event.stopPropagation(); handleHashtagClick(\'$2\')">#$2</span>');
 
     const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+    const matches = safeText.match(/(^|\s)@([^\s]+)/g);
+    const totalMentions = matches ? matches.length : 0;
+    let mentionIndex = 0; 
 
-    // 2. تلوين المنشن (التعديل الجذري هنا 🔥)
-    // بدلاً من تحديد حروف معينة، سنقول له: خذ أي شيء بعد @ طالما ليس مسافة
-    // [^\s]+ تعني: أي حرف أو رمز أو إيموجي ما عدا المسافة
-    safeText = safeText.replace(/(^|\s)@([^\s]+)/g, function(match, space, name) {
+    // 2. معالجة المنشن
+    safeText = safeText.replace(/(^|\s)@([^\s]+)/g, function(match, space, rawName) {
+        mentionIndex++;
+        let cleanName = rawName.trim(); 
         
         let userPic = defaultAvatar;
+        let uid = null;
         
-        // البحث عن المستخدم في القائمة
+        // محاولة العثور على المستخدم في القائمة الممررة
         if (mentionsList && Array.isArray(mentionsList) && mentionsList.length > 0) {
-            // بنبحث عن الاسم بالظبط زي ما هو مكتوب (بالإيموجي بكل حاجة)
-            const foundUser = mentionsList.find(u => u.name === name);
-            if (foundUser && foundUser.pic) {
-                userPic = foundUser.pic; 
+            const nameWithSpace = cleanName.replace(/_/g, ' ');      
+            const nameWithUnderscore = cleanName.replace(/ /g, '_'); 
+
+            const foundUser = mentionsList.find(u => 
+                u.name === cleanName || 
+                u.name === nameWithSpace || 
+                u.name === nameWithUnderscore
+            );
+            
+            if (foundUser) {
+                userPic = foundUser.pic || defaultAvatar;
+                uid = foundUser.uid;
             }
         }
 
-        // تحسين العرض: نشيل الشرطة السفلية ونرجعها مسافة (اختياري)
-        // لو الاسم أصلاً فيه شرطة سفلية كجزء منه، ممكن تشيل السطر ده لو حابب يظهر زي ما هو
-        const displayName = name.replace(/_/g, ' ');
+        const displayName = cleanName.replace(/_/g, ' ');
+        
+        let clickAction = "";
+        let chipStyle = "cursor: pointer;";
+        
+        // 🔥🔥 التعديل هنا: التعامل الذكي مع الرابط 🔥🔥
+        if (uid && uid !== 'undefined' && uid !== 'null') {
+            // الحالة 1: البيانات موجودة (تفتح البروفايل مباشرة)
+            clickAction = `onclick="event.stopPropagation(); openProfileOverlay('${uid}')"`;
+        } else {
+            // الحالة 2: البيانات مفقودة (نبحث عن الاسم بدلاً من الخطأ)
+            // هذا سيصلح مشكلة "لم يتم العثور على المستخدم"
+            clickAction = `onclick="event.stopPropagation(); handleMentionClick('${displayName}')"`;
+        }
 
-        // إرجاع كبسولة المنشن
-        return `${space}<div class="mention-chip" onclick="event.stopPropagation(); handleMentionClick('${name}')">
-                    <img src="${userPic}" class="mention-chip-img" onerror="this.src='${defaultAvatar}'">
-                    <span class="mention-chip-name">${displayName}</span>
-               </div>`;
+        if (mentionIndex === 1) {
+            let counterHTML = "";
+            if (totalMentions > 1) {
+                // تصفية المنشنات المخفية
+                let hiddenUsersData = (mentionsList || []).filter(u => u.uid !== uid);
+                // حماية الترميز
+                let safeDataString = "";
+                try {
+                    safeDataString = btoa(unescape(encodeURIComponent(JSON.stringify(hiddenUsersData))));
+                } catch(e) { safeDataString = ""; }
+                
+                counterHTML = `<span class="mention-counter" onclick="event.stopPropagation(); openHiddenMentionsList('${safeDataString}')">+${totalMentions - 1}</span>`;
+            }
+
+            return `${space}<div class="mention-chip" style="${chipStyle}" ${clickAction}>
+                        <img src="${userPic}" class="mention-chip-img" onerror="this.src='${defaultAvatar}'">
+                        <span class="mention-chip-name">${displayName}</span>
+                   </div>${counterHTML}`;
+        }
+        else {
+            return ""; 
+        }
     });
 
     return safeText;
 }
-
 
 // عند الضغط على الهاشتاج
 function handleHashtagClick(tag) {
@@ -9387,6 +10556,1087 @@ function goToLiveRoom(channelId) {
     window.location.href = `live_viewer.html?channel=${channelId}`;
 }
 
+/* --- دوال قائمة الإنشاء الجديدة --- */
+
+// فتح القائمة
+function openCreateMenu() {
+    // إغلاق أي قوائم أخرى لضمان عدم التداخل
+    closeAllSheets(); 
+    
+    const sheet = document.getElementById('createMenuSheet');
+    const overlay = document.getElementById('overlay');
+    
+    if(sheet && overlay) {
+        sheet.classList.add('active');
+        overlay.style.display = 'block';
+    }
+}
+
+// إغلاق القائمة
+function closeCreateMenu() {
+    const sheet = document.getElementById('createMenuSheet');
+    const overlay = document.getElementById('overlay');
+    
+    if(sheet) sheet.classList.remove('active');
+    if(overlay) overlay.style.display = 'none';
+}
+
+// دالة بدء البث (توجيه لصفحة البث)
+function startLiveStreamAction() {
+    // التحقق من تسجيل الدخول أولاً
+    if (!currentUser) {
+        closeCreateMenu();
+        showToast("⚠️ يجب عليك تسجيل الدخول لبدء بث مباشر");
+        return;
+    }
+    
+    // توجيه لصفحة إعداد البث (تأكد أن لديك ملف اسمه go_live.html أو غير الاسم هنا)
+    window.location.href = 'live.html';
+}
+
+// دالة فتح قائمة المنشنات المخفية
+// 1. فتح قائمة المنشنات المخفية (تحديث فك التشفير)
+function openHiddenMentionsList(encodedData) {
+    const sheet = document.getElementById('mentionsListSheet');
+    const container = document.getElementById('hiddenMentionsContainer');
+    const overlay = document.getElementById('overlay'); 
+
+    try {
+        const jsonString = decodeURIComponent(escape(atob(encodedData)));
+        const users = JSON.parse(jsonString);
+        
+        container.innerHTML = ''; 
+
+        if (!users || users.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#777; padding:20px;">لا توجد بيانات إضافية</div>';
+        } else {
+            users.forEach(u => {
+                const defaultPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+                const badge = u.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#20D5EC; font-size:12px; margin-right:5px;"></i>' : '';
+                const pic = u.pic || defaultPic;
+                
+                // 🔥 تأكدنا هنا إن الـ UID موجود قبل ما نعمل الرابط
+                const clickAttr = u.uid ? `onclick="openProfileOverlay('${u.uid}'); closeMentionsSheet();"` : "";
+                const userHandle = u.uid ? `@${u.uid.substring(0,8)}...` : '';
+
+                const userHTML = `
+                <div class="user-result-card" ${clickAttr} style="cursor:pointer; display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <img src="${pic}" class="user-result-img" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #333;">
+                    <div>
+                        <div style="font-weight:bold; color:#fff; display:flex; align-items:center; font-size:14px;">
+                            ${u.name} ${badge}
+                        </div>
+                        <div style="font-size:11px; color:#aaa;">${userHandle}</div>
+                    </div>
+                </div>`;
+                
+                container.insertAdjacentHTML('beforeend', userHTML);
+            });
+        }
+
+        sheet.classList.add('active');
+        if(overlay) overlay.style.display = 'block';
+
+    } catch (e) {
+        console.error("Error parsing mentions list:", e);
+    }
+}
+
+// دالة إغلاق القائمة
+function closeMentionsSheet() {
+    const sheet = document.getElementById('mentionsListSheet');
+    const overlay = document.getElementById('overlay');
+    
+    if(sheet) sheet.classList.remove('active');
+    // لو مفيش قوائم تانية مفتوحة، اقفل الـ Overlay
+    // (ممكن تحتاج تعديل الشرط ده حسب نظام القوائم عندك)
+    if(overlay && !document.querySelector('.bottom-sheet.active:not(#mentionsListSheet)')) {
+        overlay.style.display = 'none';
+    }
+}
+
+function copyProfileLink() {
+    // 1. التحقق من وجود الآيدي
+    if (!currentOverlayProfileUid) return;
+
+    // 2. تكوين الرابط
+    const baseUrl = window.location.origin; // بيجيب رابط الموقع الرئيسي
+    const fullUrl = `${baseUrl}/profile.html?uid=${currentOverlayProfileUid}`;
+
+    // 3. النسخ للحافظة
+    navigator.clipboard.writeText(fullUrl).then(() => {
+        showToast("تم نسخ رابط البروفايل 📋");
+        closeAllSheets(); // قفل القائمة
+    }).catch(err => {
+        console.error('فشل النسخ', err);
+        showToast("فشل النسخ");
+    });
+}
+
+async function blockUserFromProfile() {
+    // 1. إغلاق القائمة أولاً
+    closeAllSheets();
+
+    // 2. التحقق من البيانات
+    if (!currentUser || !currentOverlayProfileUid) {
+        showToast("خطأ: لا يمكن تنفيذ الإجراء");
+        return;
+    }
+
+    // 3. رسالة تأكيد (احترافية أو عادية حسب رغبتك، هنا العادية للأمان)
+    if (!confirm("هل أنت متأكد من حظر هذا المستخدم؟ لن تظهر فيديوهاته لك مجدداً.")) {
+        return;
+    }
+
+    showToast("جاري حظر المستخدم... 🚫");
+
+    try {
+        // --- نفس منطق الحظر التقليدي ---
+        
+        // أ) تكوين آيدي الشات
+        const ids = [currentUser.uid, currentOverlayProfileUid].sort();
+        const chatId = ids.join("_");
+
+        const chatRef = db.collection('chats').doc(chatId);
+        
+        // ب) إضافة الحظر في وثيقة الشات (نستخدم set مع merge عشان لو الشات مش موجود ينشئه ويحط الحظر)
+        await chatRef.set({
+            users: ids,
+            blockedBy: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp() // تحديث بسيط
+        }, { merge: true });
+
+        // ج) إضافة الشخص لقائمة المحظورين المحلية فوراً (عشان لو قابلنا فيديوهاته تختفي)
+        if (typeof blockedUsersSet !== 'undefined') {
+            blockedUsersSet.add(currentOverlayProfileUid);
+        }
+
+        // د) إغلاق البروفايل وإظهار رسالة نجاح
+        closeProfileOverlay();
+        showToast("تم حظر المستخدم بنجاح ✅");
+
+        // هـ) إعادة تحميل الفيديوهات عشان نشيل فيديوهاته من القائمة (اختياري)
+        setTimeout(() => {
+            const feed = document.getElementById('feed');
+            if(feed) feed.innerHTML = ''; // تفريغ
+            lastDoc = null;
+            loadVideos(true); // إعادة تحميل نظيفة
+        }, 1000);
+
+    } catch (e) {
+        console.error("Block Error:", e);
+        showToast("حدث خطأ أثناء الحظر");
+    }
+}
+
+// 1. دالة تحميل المحادثات الأخيرة وعرضها في قائمة المشاركة
+async function loadRecentChatsForShare() {
+    const container = document.getElementById('directShareList');
+    
+    if (!currentUser) {
+        container.innerHTML = '<div style="padding:20px;text-align:center;color:#777;font-size:12px;width:100%">سجل دخولك لتشارك مع الأصدقاء</div>';
+        return;
+    }
+
+    try {
+        // بنجيب آخر 10 محادثات للمستخدم
+        const snapshot = await db.collection('chats')
+            .where('users', 'array-contains', currentUser.uid)
+            .orderBy('lastMessageTime', 'desc')
+            .limit(10)
+            .get();
+
+        if (snapshot.empty) {
+            container.innerHTML = '<div style="padding:20px;text-align:center;color:#777;font-size:12px;width:100%">لا توجد محادثات حديثة</div>';
+            return;
+        }
+
+        container.innerHTML = ''; // تفريغ اللودر
+
+        // لوب على المحادثات
+        for (const doc of snapshot.docs) {
+            const chatData = doc.data();
+            
+            // نجيب الآيدي بتاع الطرف التاني
+            const otherUid = chatData.users.find(u => u !== currentUser.uid);
+            if(!otherUid) continue;
+
+            // نجيب بيانات الشخص (صورة واسم)
+            // ملاحظة: للأداء الأفضل ممكن تخزن الاسم والصورة جوه وثيقة الشات نفسها، بس هنا هنجيبها من اليوزرز
+            const userDoc = await db.collection('users').doc(otherUid).get();
+            if (!userDoc.exists) continue;
+            
+            const userData = userDoc.data();
+            const uName = userData.name || "مستخدم";
+            const uPic = userData.profilePic || userData.pic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+            // إنشاء العنصر
+            const item = document.createElement('div');
+            item.className = 'share-contact-item';
+            item.onclick = function() { sendVideoToUser(otherUid, this); }; // عند الضغط
+
+            item.innerHTML = `
+                <img src="${uPic}" class="share-contact-img">
+                <i class="fa-solid fa-circle-check share-sent-badge"></i>
+                <span class="share-contact-name">${uName}</span>
+            `;
+            
+            container.appendChild(item);
+        }
+
+    } catch (e) {
+        console.error("Error loading share chats:", e);
+        // لو حصل خطأ (غالباً بسبب الـ Index)، نعرض رسالة بسيطة
+        if(e.message.includes('index')) {
+             console.warn("Please create Firestore Index for chats: users + lastMessageTime");
+        }
+        container.innerHTML = ''; // إخفاء القسم لو فيه مشكلة
+    }
+}
+
+// 2. دالة إرسال الفيديو للشخص المحدد
+// 2. دالة إرسال الفيديو للشخص المحدد (المصححة)
+// 2. دالة إرسال الفيديو للشخص المحدد (المعدلة لإضافة علامة المشاركة)
+// 2. دالة إرسال الفيديو للشخص المحدد (مع إضافة رابط العودة)
+async function sendVideoToUser(targetUid, element) {
+    if (element.classList.contains('selected')) return;
+
+    const nameSpan = element.querySelector('.share-contact-name');
+    const originalName = nameSpan.innerText;
+    
+    try {
+        const currentVideoEl = document.getElementById(`vid-${currentOpenVideoId}`);
+        let directVideoUrl = "";
+        
+        if (currentVideoEl) {
+            directVideoUrl = currentVideoEl.src || currentVideoEl.querySelector('source').src;
+        }
+
+        if (!directVideoUrl) {
+            alert("لا يمكن الوصول لرابط الفيديو");
+            return;
+        }
+
+        const chatId = [currentUser.uid, targetUid].sort().join("_");
+        const chatRef = db.collection('chats').doc(chatId);
+        
+        incrementShareCount(currentOpenVideoId);
+
+        // إنشاء الشات
+        await chatRef.set({
+            users: [currentUser.uid, targetUid],
+            lastMessage: "🎥 مشاركة فيديو",
+            lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+            senderId: currentUser.uid,
+            read: false
+        }, { merge: true });
+
+        // 🔥 الإرسال الفعلي 🔥
+        await chatRef.collection('messages').add({
+            uid: currentUser.uid,
+            type: 'video',
+            text: directVideoUrl,
+            seen: false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            isGhost: false,
+            
+            isShared: true,
+            // 👇👇 هذا هو السطر الجديد المهم جداً 👇👇
+            postId: currentOpenVideoId // بنحفظ رقم البوست عشان نعرف نرجعله
+        });
+
+        element.classList.add('selected');
+        nameSpan.innerText = "تم الإرسال";
+        nameSpan.style.color = "#4cd964";
+        
+        // إظهار توست
+        const toast = document.getElementById('toast');
+        if(toast) {
+            toast.classList.add('show');
+            document.getElementById('toastMsg').innerText = "تمت المشاركة ✅";
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+    } catch (e) {
+        console.error("❌ ERROR SHARING VIDEO:", e);
+        element.classList.remove('selected');
+        nameSpan.innerText = originalName;
+        nameSpan.style.color = "#ddd";
+        alert("فشل الإرسال: " + e.message);
+    }
+}
+
+    
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. قراءة المعرف من الرابط
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetVideoId = urlParams.get('openVideo');
+
+        if (targetVideoId) {
+            console.log("Looking for video ID:", targetVideoId);
+
+            // 2. محاولة العثور على الفيديو (نحاول كل نصف ثانية لمدة 5 ثواني)
+            let attempts = 0;
+            const checkInterval = setInterval(() => {
+                attempts++;
+                
+                // 🔥🔥🔥 التصحيح هنا: البحث عن slide- بدلاً من post- 🔥🔥🔥
+                const targetElement = document.getElementById(`slide-${targetVideoId}`);
+
+                if (targetElement) {
+                    // وجدنا الفيديو! نوقف البحث
+                    clearInterval(checkInterval);
+                    console.log("Video found! Scrolling...");
+
+                    // 3. النزول إليه وتشغيله
+                    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
+                    
+                    // تمييزه بوميض عشان المستخدم يشوفه
+                    targetElement.style.transition = "0.5s";
+                    targetElement.style.border = "2px solid #00e5ff";
+                    targetElement.style.boxShadow = "0 0 30px rgba(0, 229, 255, 0.6)";
+                    
+                    // محاولة تشغيل الفيديو
+                    const vid = targetElement.querySelector('video');
+                    if(vid) {
+                        // إلغاء الكتم وتشغيل الفيديو
+                        vid.muted = false;
+                        vid.play().catch(()=>{});
+                    }
+
+                    setTimeout(() => {
+                        targetElement.style.border = "none";
+                        targetElement.style.boxShadow = "none";
+                    }, 3000);
+
+                } else if (attempts > 20) {
+                    // بعد 10 ثواني (20 محاولة) نوقف البحث عشان الجهاز ميهنجش
+                    clearInterval(checkInterval);
+                    console.log("Video not found inside the loaded feed.");
+                    
+                    // 🔥 حل إضافي ذكي: لو ملقاش الفيديو في القائمة (لأنه قديم)، نقوم بجلبه يدوياً
+                    if(typeof openSingleVideo === 'function') {
+                        console.log("Trying to force load single video...");
+                        openSingleVideo(targetVideoId);
+                    }
+                }
+            }, 500); // كل نصف ثانية
+        }
+    });
+
+// دالة لحساب هل الشخص أونلاين وصديق في نفس الوقت
+// استبدل الدالة القديمة بهذه الدالة
+// استبدل الدالة القديمة بهذه النسخة المعدلة للصداقة المتبادلة
+function checkFriendOnlineStatus(targetUserData, targetUid) {
+    // 1. حماية البيانات: لازم نكون مسجلين دخول وفيه بيانات للطرفين
+    // currentUserData هي بياناتي أنا اللي بحملها أول ما بفتح التطبيق
+    if (!currentUser || !targetUserData || !currentUserData) return false;
+    
+    // (اختياري) لو عايز تشوف اللمبة على نفسك شيل السطر ده، بس الطبيعي متشوفهاش على نفسك
+    if (targetUid === currentUser.uid) return true; 
+
+    // 2. فحص الوقت (هل كان فاتح في آخر 5 دقايق؟)
+    if (!targetUserData.lastSeen) return false;
+    
+    // تحويل التوقيت من Firestore Timestamp لـ Date
+    const lastSeenDate = targetUserData.lastSeen.toDate ? targetUserData.lastSeen.toDate() : new Date(targetUserData.lastSeen);
+    const now = new Date();
+    
+    // حساب الفرق بالدقائق
+    const diffMinutes = (now - lastSeenDate) / 1000 / 60;
+    
+    // لو فات أكتر من 5 دقايق يبقى أوفلاين
+    if (diffMinutes > 5) return false; 
+
+    // 3. فحص الخصوصية (لو المستخدم خافي ظهوره من الإعدادات)
+    if (targetUserData.privacy && targetUserData.privacy.hideLastSeen) return false;
+
+    // ============================================================
+    // 🔥🔥 التعديل: شرط الصداقة المتبادلة (Mutual Friends) 🔥🔥
+    // ============================================================
+
+    // أ) هل أنا بتابعه؟ (التحقق من قائمة following الخاصة بي)
+    const iFollowHim = currentUserData.following && currentUserData.following.includes(targetUid);
+
+    // ب) هل هو بيتابعني؟ (التحقق من قائمة following الخاصة به)
+    const heFollowsMe = targetUserData.following && targetUserData.following.includes(currentUser.uid);
+
+    // النتيجة: لازم الشرطين يتحققوا (أنا بتابعه + هو بيتابعني)
+    return iFollowHim && heFollowsMe;
+}
+
+// دالة إدارة الذاكرة: تبقي فقط على الفيديو الحالي وجيرانه
+function manageVideoMemory(currentId) {
+    const allSlides = document.querySelectorAll('.video-slide');
+    const currentIndex = Array.from(allSlides).findIndex(slide => slide.id === `slide-${currentId}`);
+
+    if (currentIndex === -1) return;
+
+    allSlides.forEach((slide, index) => {
+        const videoElement = slide.querySelector('video');
+        const dist = Math.abs(index - currentIndex);
+
+        // النطاق الآمن: الفيديو الحالي (0) + السابق (1) + التالي (1)
+        // يعني المجموع 3 فيديوهات نشطة
+        if (dist <= 1) {
+            // === داخل النطاق (نشط) ===
+            // إذا كان الفيديو محذوفاً، نعيد إنشاؤه
+            if (!videoElement) {
+                restoreVideoElement(slide);
+            }
+        } else {
+            // === خارج النطاق (بعيد) ===
+            // نحذف الفيديو لتوفير الذاكرة، ونبقي الحاوية فقط
+            if (videoElement) {
+                // نوقف الفيديو أولاً
+                videoElement.pause();
+                videoElement.removeAttribute('src'); // تفريغ المصدر
+                videoElement.load(); // إجبار المتصفح على التنظيف
+                videoElement.remove(); // حذف العنصر من الصفحة
+                
+                // (اختياري) نضع علامة أن الفيديو تم تفريغه
+                slide.classList.add('unloaded');
+            }
+        }
+    });
+}
+
+// دالة مساعدة لإعادة بناء الفيديو المحذوف
+function restoreVideoElement(slide) {
+    // نتأكد أنه لا يوجد فيديو بالفعل
+    if (slide.querySelector('video')) return;
+
+    // نجلب البيانات المخزنة في الـ dataset التي وضعناها عند الإنشاء
+    const url = slide.getAttribute('data-video-url'); // ⚠️ ستحتاج لإضافة هذا السطر في createVideoCard
+    const poster = slide.getAttribute('data-poster'); // ⚠️ وهذا أيضاً
+    const id = slide.getAttribute('data-id');
+
+    if (!url) return;
+
+    // إنشاء عنصر الفيديو من جديد
+    const newVid = document.createElement('video');
+    newVid.id = `vid-${id}`;
+    newVid.loop = true;
+    newVid.playsInline = true;
+    newVid.muted = isGlobalMuted; // نحترم وضع الصامت العام
+    newVid.preload = "metadata";
+    newVid.poster = poster || "";
+    
+    // إعادة ربط الأحداث (Events)
+    newVid.setAttribute('onpause', `updatePlayButtonState(this, '${id}')`);
+    newVid.setAttribute('onplay', `updatePlayButtonState(this, '${id}')`);
+    newVid.setAttribute('ontimeupdate', `handleMainUpdate(this, '${id}')`);
+    newVid.setAttribute('onloadedmetadata', `checkLandscapeMode(this, '${id}')`);
+
+    // إضافة المصدر
+    newVid.src = url;
+
+    // إضافته في المكان الصحيح (قبل طبقة التفاعل interaction-layer)
+    const interactionLayer = slide.querySelector('.tiktok-ui-layer'); // أو interaction-layer حسب الكود
+    slide.insertBefore(newVid, interactionLayer); // نضعه خلف الواجهة
+    
+    slide.classList.remove('unloaded');
+}
+
+// --- دالة تحميل الفيديوهات المرتبطة بصوت معين ---
+async function loadVideosBySound(soundName) {
+    const grid = document.getElementById('soundVideosGrid');
+    if (!grid) return;
+
+    // إظهار لودر التحميل
+    grid.innerHTML = '<div class="loading-state" style="padding:20px; text-align:center;"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
+
+    try {
+        // البحث في الفيديوهات التي تستخدم نفس اسم الموسيقى
+        const snapshot = await db.collection('posts')
+            .where('musicName', '==', soundName)
+            .limit(20) // نكتفي بـ 20 فيديو للعرض
+            .get();
+
+        grid.innerHTML = ''; // مسح اللودر
+
+        if (snapshot.empty) {
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px; color:#777;">لا توجد فيديوهات تستخدم هذا الصوت</div>';
+            return;
+        }
+
+        // تجهيز الشبكة (Grid)
+        grid.style.display = 'grid';
+        grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+        grid.style.gap = '2px';
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            // البحث عن رابط الفيديو داخل مصفوفة الميديا
+            const vid = data.media ? data.media.find(m => m.type === 'video') : null;
+
+            if (vid) {
+                const item = document.createElement('div');
+                // تنسيق العنصر ليكون مربعاً (شبيه بإنستجرام وتيك توك)
+                item.style.position = 'relative';
+                item.style.aspectRatio = '3/4';
+                item.style.background = '#222';
+                item.style.cursor = 'pointer';
+                item.style.overflow = 'hidden';
+
+                // عند الضغط، نفتح الفيديو
+                item.onclick = () => {
+                    closeSoundPage(); // نقفل صفحة الصوت الأول
+                    
+                    // نظهر لودر في الخلفية
+                    document.getElementById('feed').innerHTML = 
+                        '<div style="height:100vh; display:flex; align-items:center; justify-content:center;"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>';
+                    
+                    openSingleVideo(doc.id); // نفتح الفيديو المختار
+                };
+
+                // محتوى المربع (فيديو صامت + عدد المشاهدات)
+                item.innerHTML = `
+                    <video src="${vid.url}#t=1.0" preload="metadata" muted style="pointer-events:none; width:100%; height:100%; object-fit:cover;"></video>
+                    <div style="position:absolute; bottom:5px; left:5px; color:#fff; font-size:12px; font-weight:bold; text-shadow:0 1px 2px #000; display:flex; align-items:center; gap:3px;">
+                        <i class="fa-solid fa-play"></i> ${data.views || 0}
+                    </div>
+                `;
+                grid.appendChild(item);
+            }
+        });
+
+    } catch (e) {
+        console.error("Error loading sound videos:", e);
+        // لو الخطأ بسبب الـ Index الناقص
+        if (e.message.includes('index')) {
+            console.warn("⚠️ محتاج تعمل Index في الفايربيس للحقل musicName");
+        }
+        grid.innerHTML = '<div style="text-align:center; color:red; padding:20px;">حدث خطأ في التحميل</div>';
+    }
+}
+
+// ==========================================
+// 🛠️ دالة مساعدة لزيادة عداد المشاركة
+// ==========================================
+function incrementShareCount(postId) {
+    if (!postId) return;
+
+    // 1. تحديث الرقم في الشاشة فوراً (UI)
+    const countSpan = document.getElementById(`share-count-${postId}`);
+    if (countSpan) {
+        // قراءة الرقم الحالي وتنظيفه من أي حروف (مثل K أو M)
+        // ملاحظة: لو الرقم كان K أو M التحديث اللحظي قد يكون غير دقيق، لكنه مقبول كـ UX سريع
+        // الأفضل الاعتماد على الرقم الخام لو مخزن، لكن هنا سنزيد 1 وخلاص
+        let currentText = countSpan.innerText;
+        let currentCount = parseInt(currentText.replace(/[^0-9]/g, '')) || 0;
+        
+        // لو الرقم فيه K أو M (مثلاً 1.5K) لا نغيره يدوياً ونعتمد على الداتابيز
+        if (!currentText.includes('K') && !currentText.includes('M')) {
+             countSpan.innerText = currentCount + 1;
+        }
+    }
+
+    // 2. تحديث قاعدة البيانات (Database)
+    db.collection('posts').doc(postId).update({
+        sharesCount: firebase.firestore.FieldValue.increment(1)
+    }).catch(err => console.log("Share increment error:", err));
+}
+
+function toggleDescription(id) {
+    const descDiv = document.getElementById(`desc-${id}`);
+    const btn = document.getElementById(`btn-more-${id}`);
+
+    if (!descDiv || !btn) return;
+
+    // لو هو حالياً "مطوي" (فيه كلاس collapsed)
+    if (descDiv.classList.contains('collapsed')) {
+        // افتحه
+        descDiv.classList.remove('collapsed');
+        btn.innerText = "عرض أقل";
+    } else {
+        // اقفله تاني
+        descDiv.classList.add('collapsed');
+        btn.innerText = "عرض المزيد";
+    }
+}
+
+// دالة فتح صفحة قصص العامة
+function openGlobalStoriesPage() {
+    // 1. قفل القائمة الجانبية
+    toggleSidebar(); 
+    
+    const page = document.getElementById('globalStoriesPage');
+    const grid = document.getElementById('globalStoriesGrid');
+    
+    // 2. إظهار الصفحة واللودر
+    page.style.display = 'flex';
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px; color:#38bdf8;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:30px;"></i></div>';
+
+    // 3. حساب وقت 24 ساعة فاتوا
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // 4. جلب القصص من الداتابيز
+    db.collection('stories')
+        .where('timestamp', '>', twentyFourHoursAgo) // القصص الجديدة بس
+        .orderBy('timestamp', 'desc')
+        .get()
+        .then(snapshot => {
+            grid.innerHTML = '';
+            
+            if (snapshot.empty) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#777; padding:50px;">لا توجد قصص عامة حالياً</div>';
+                return;
+            }
+
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                
+                // استبعاد القصص المؤرشفة
+                if (data.isArchived) return;
+
+                // إنشاء عنصر الشبكة
+                const item = document.createElement('div');
+                item.style.cssText = `
+                    position: relative; 
+                    aspect-ratio: 9/16; 
+                    border-radius: 8px; 
+                    overflow: hidden; 
+                    background: #222; 
+                    border: 1px solid rgba(255,255,255,0.1);
+                    cursor: pointer;
+                `;
+
+                // تحديد المحتوى (فيديو أو صورة)
+                let mediaContent = '';
+                if (data.type === 'video') {
+                    // #t=0.1 عشان يظهر لقطة من الفيديو كصورة مصغرة
+                    mediaContent = `<video src="${data.url}#t=0.1" style="width:100%; height:100%; object-fit:cover;" preload="metadata" muted></video>`;
+                } else {
+                    mediaContent = `<img src="${data.url}" style="width:100%; height:100%; object-fit:cover;" loading="lazy">`;
+                }
+
+                item.innerHTML = `
+                    ${mediaContent}
+                    <div style="position:absolute; bottom:0; left:0; width:100%; padding:20px 5px 5px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                        <i class="fa-solid fa-user-circle" style="color:#fff; font-size:12px;"></i>
+                    </div>
+                `;
+
+                // عند الضغط: نفتح القصة في العارض (باستخدام دالة الأرشيف لأنها بتقبل URL مباشر)
+                // أو ممكن تستخدم دالة openStoryViewer لو حابب تعرضها بالكامل
+                item.onclick = () => {
+                    // هنا بنستخدم دالة العرض الموجودة عندك
+                    // الجديد (استخدمنا دالة العرض الذكي الموجودة في كودك)
+// ملاحظة: بما أن هذه الدالة تفتح أرشيفاً منفصلاً، يفضل استخدام منطق بسيط للفتح:
+const viewer = document.getElementById('archiveFullViewer');
+const container = document.getElementById('archiveViewerContainer');
+viewer.style.display = 'flex';
+
+let mediaHtml = '';
+if(data.type === 'video') {
+    mediaHtml = `<video src="${data.url}" autoplay loop playsinline style="max-width:100%; max-height:100%;"></video>`;
+} else {
+    mediaHtml = `<img src="${data.url}" style="max-width:100%; max-height:100%;">`;
+}
+container.innerHTML = mediaHtml;
+ 
+                };
+
+                grid.appendChild(item);
+            });
+        })
+        .catch(error => {
+            console.error(error);
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:red; padding:20px;">حدث خطأ في التحميل</div>';
+        });
+}
+
+function switchFeedTab(tabName) {
+    if (isLoading || currentFeedTab === tabName) return;
+
+    // تحديث شكل التابات (الزر النشط)
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`tab-${tabName}`).classList.add('active');
+
+    // تحديث المتغيرات
+    currentFeedTab = tabName;
+    lastDoc = null; 
+    const feed = document.getElementById('feed');
+    feed.innerHTML = ''; // مسح المحتوى القديم
+
+    // 🔥 التوجيه الصحيح لكل قسم 🔥
+    if (tabName === 'live') {
+        loadLiveStreams(); 
+    } else if (tabName === 'stories') {
+        loadGlobalStoriesAsGrid(); // <-- دي الدالة الجديدة اللي هتعرض القصص
+    } else {
+        // للأقسام: world, popular, friends
+        loadVideos(true);
+    }
+}
+
+// ==========================================
+// 🚀 نظام القصص الذكي (Smart Stories System)
+// ==========================================
+
+// 1. متغيرات عامة لتخزين القصص والتحكم فيها
+let globalStoriesList = []; // مصفوفة لتخزين كل القصص
+let currentStoryIndex = 0;  // لمعرفة القصة الحالية
+let storyTimer = null;      // المؤقت للصور
+// ==========================================
+// 🚀 نظام القصص الذكي (نسخة مصححة لجلب الاسم)
+// ==========================================
+
+// ==========================================
+// 🚀 نظام القصص الذكي (النسخة المصححة)
+// ==========================================
+
+// تأكد أن هذا المتغير معرف في أعلى ملف السكربت العام
+// let usersCache = {}; 
+
+async function loadGlobalStoriesAsGrid() {
+    const feed = document.getElementById('feed');
+    
+    // لودر التحميل
+    feed.innerHTML = '<div style="text-align:center; padding-top:150px; color:#F72585;"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:30px;"></i><br><span style="font-size:12px; margin-top:10px; display:block; color:#fff;">جاري جلب القصص...</span></div>';
+
+    // تحديد قصص آخر 24 ساعة
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    try {
+        // جلب القصص من فايربيس
+        const snapshot = await db.collection('stories')
+            .where('timestamp', '>', twentyFourHoursAgo)
+            .orderBy('timestamp', 'desc')
+            .get();
+
+        feed.innerHTML = ''; 
+        globalStoriesList = []; // تفريغ القائمة
+
+        if (snapshot.empty) {
+            feed.innerHTML = `
+                <div style="height:100vh; padding-top:100px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#777;">
+                    <i class="fa-solid fa-layer-group" style="font-size:50px; margin-bottom:15px; opacity:0.5;"></i>
+                    <p>لا توجد قصص متاحة الآن</p>
+                    <button onclick="window.location.href='add_story.html'" style="margin-top:10px; background:var(--primary); border:none; padding:8px 20px; border-radius:20px; color:#fff; cursor:pointer;">أضف قصتك</button>
+                </div>`;
+            return;
+        }
+
+        // إنشاء حاوية الشبكة
+        const gridDiv = document.createElement('div');
+        gridDiv.style.cssText = `
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 4px; 
+            padding: 5px;
+            padding-top: 130px; 
+            padding-bottom: 80px;
+        `;
+
+        // 🔥🔥🔥 التعديل الجوهري هنا: استخدام Promise.all لجلب بيانات المستخدمين 🔥🔥🔥
+        // حولنا الدوكس لمصفوفة وعملنا map عشان نجيب بيانات كل يوزر
+        const storiesPromises = snapshot.docs.map(async (doc) => {
+            const data = doc.data();
+            
+            // تخطي القصص المؤرشفة
+            if (data.isArchived) return null;
+
+            let displayName = "مستخدم";
+            let displayPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+
+            // محاولة جلب بيانات المستخدم الحقيقية من كولكشن users
+            try {
+                if (data.uid) {
+                    const userSnap = await db.collection('users').doc(data.uid).get();
+                    if (userSnap.exists) {
+                        const userData = userSnap.data();
+                        displayName = userData.name || "مستخدم";
+                        displayPic = userData.profilePic || userData.pic || displayPic;
+                    }
+                }
+            } catch (err) {
+                console.log("Error fetching user for story:", err);
+            }
+
+            // إرجاع كائن القصة مع البيانات الكاملة
+            return { 
+                id: doc.id, 
+                ...data,
+                finalName: displayName, // الاسم الحقيقي
+                finalPic: displayPic    // الصورة الحقيقية
+            };
+        });
+
+        // ننتظر حتى تكتمل جميع طلبات جلب بيانات المستخدمين
+        const resolvedStories = await Promise.all(storiesPromises);
+
+        // تصفية النتائج (عشان نشيل القصص المؤرشفة اللي رجعت null)
+        globalStoriesList = resolvedStories.filter(s => s !== null);
+
+        // رسم العناصر على الشاشة
+        globalStoriesList.forEach((story, index) => {
+            
+            let mediaContent = '';
+            if (story.type === 'video') {
+                mediaContent = `<video src="${story.url}#t=0.1" style="width:100%; height:100%; object-fit:cover; pointer-events:none;" preload="metadata" muted></video>`;
+            } else {
+                mediaContent = `<img src="${story.url}" style="width:100%; height:100%; object-fit:cover; pointer-events:none;" loading="lazy">`;
+            }
+
+            const item = document.createElement('div');
+            item.className = 'grid-item story-card-touch';
+            
+            item.style.cssText = `
+                position: relative; 
+                aspect-ratio: 9/16; 
+                background: #222; 
+                cursor: pointer; 
+                overflow: hidden; 
+                border-radius: 10px;
+                transition: transform 0.1s;
+            `;
+
+            item.innerHTML = `
+                ${mediaContent}
+                
+                <div style="position:absolute; bottom:0; left:0; width:100%; height:50%; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); pointer-events:none;"></div>
+
+                <div style="position:absolute; bottom:5px; left:0; width:100%; display:flex; flex-direction:column; align-items:center; text-align:center; pointer-events:none;">
+                    
+                    <div style="width:26px; height:26px; border-radius:50%; border:2px solid #F72585; padding:1px; background:#000; margin-bottom:2px;">
+                        <img src="${story.finalPic}" style="width:100%; height:100%; border-radius:50%; object-fit:cover;">
+                    </div>
+                    
+                    <span style="color:#fff; font-size:10px; font-weight:700; text-shadow:0 1px 2px #000; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:90%;">
+                        ${story.finalName}
+                    </span>
+
+                </div>
+                
+                ${story.type === 'video' ? '<div style="position:absolute; top:5px; right:5px; color:rgba(255,255,255,0.8); font-size:12px;"><i class="fa-solid fa-video"></i></div>' : ''}
+            `;
+
+            item.onclick = (e) => {
+                e.stopPropagation();
+                openSmartStoryViewer(index);
+            };
+
+            item.addEventListener('touchstart', () => { item.style.transform = 'scale(0.95)'; }, {passive: true});
+            item.addEventListener('touchend', () => { item.style.transform = 'scale(1)'; }, {passive: true});
+
+            gridDiv.appendChild(item);
+        });
+
+        feed.appendChild(gridDiv);
+
+    } catch (error) {
+        console.error("Error fetching stories:", error);
+        feed.innerHTML = '<div style="text-align:center; color:#ff3b30; padding-top:150px;">حدث خطأ أثناء التحميل<br><span style="font-size:10px; color:#aaa">' + error.message + '</span></div>';
+    }
+}
+
+// 3. دالة فتح العارض وتشغيل القصة
+function openSmartStoryViewer(index) {
+    if (!globalStoriesList || globalStoriesList.length === 0) return;
+
+    currentStoryIndex = index;
+    const viewer = document.getElementById('archiveFullViewer');
+    
+    if(!viewer) {
+        console.error("عنصر العارض غير موجود!");
+        return;
+    }
+
+    // 1. إجبار الخصائص مباشرة (Inline Styles Force)
+    // ده بيضمن إن العنصر يظهر غصباً عن أي ملف CSS خارجي
+    viewer.style.cssText = `
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background-color: #000 !important;
+        z-index: 2147483647 !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+    `;
+    
+    // 2. تشغيل القصة
+    renderStory();
+}
+
+// 4. دالة رسم القصة والتحكم في التقليب
+function renderStory() {
+    const container = document.getElementById('archiveViewerContainer');
+    const story = globalStoriesList[currentStoryIndex];
+    
+    // تنظيف الحاوية والمؤقتات السابقة
+    container.innerHTML = '';
+    if (storyTimer) clearTimeout(storyTimer);
+
+    if (!story) {
+        closeArchiveViewer();
+        return;
+    }
+
+    // إنشاء عنصر الميديا
+    let mediaEl;
+    if (story.type === 'video') {
+        mediaEl = document.createElement('video');
+        mediaEl.src = story.url;
+        mediaEl.autoplay = true;
+        mediaEl.playsInline = true; // مهم للأيفون
+        
+        // عندما ينتهي الفيديو، اذهب للتالي تلقائياً
+        mediaEl.onended = () => nextStory();
+        
+    } else {
+        mediaEl = document.createElement('img');
+        mediaEl.src = story.url;
+        
+        // للصورة: انتظر 5 ثواني ثم اذهب للتالي
+        storyTimer = setTimeout(() => nextStory(), 5000);
+    }
+
+    mediaEl.style.cssText = "max-width:100%; max-height:100%; width:100%; height:100%; object-fit:contain;";
+    
+    // إنشاء طبقة شفافة للمس (يمين وشمال)
+    const touchLayer = document.createElement('div');
+    touchLayer.style.cssText = "position:absolute; inset:0; z-index:5; display:flex;";
+    
+    // المنطقة اليسرى (رجوع)
+    const leftTap = document.createElement('div');
+    leftTap.style.cssText = "flex:1; height:100%;";
+    leftTap.onclick = (e) => { e.stopPropagation(); prevStory(); };
+    
+    // المنطقة اليمنى (التالي) - مساحتها أكبر قليلاً
+    const rightTap = document.createElement('div');
+    rightTap.style.cssText = "flex:2; height:100%;"; 
+    rightTap.onclick = (e) => { e.stopPropagation(); nextStory(); };
+
+    touchLayer.appendChild(leftTap);
+    touchLayer.appendChild(rightTap);
+
+    container.appendChild(mediaEl);
+    container.appendChild(touchLayer);
+    
+    // فحص زر القلب (تحديث اللون لو معمولة لايك)
+    updateHeartButtonState(story);
+}
+
+// دالة القصة التالية
+function nextStory() {
+    if (currentStoryIndex < globalStoriesList.length - 1) {
+        currentStoryIndex++; // زيادة الرقم
+        renderStory();       // عرض القصة الجديدة
+    } else {
+        closeArchiveViewer(); // لو دي آخر قصة، اقفل العارض
+    }
+}
+
+// دالة القصة السابقة
+function prevStory() {
+    if (currentStoryIndex > 0) {
+        currentStoryIndex--; // تنقيص الرقم
+        renderStory();       // عرض القصة السابقة
+    }
+}
+
+// دالة تحديث شكل زر القلب
+function updateHeartButtonState(story) {
+    const heartBtn = document.getElementById('storyHeartBtn');
+    if (!heartBtn) return;
+    
+    // إعادة تعيين الشكل
+    heartBtn.style.color = "#fff";
+    heartBtn.classList.remove('liked');
+
+    // فحص هل أنا عملت لايك؟ (يتطلب أن تكون اللايكات محفوظة في المصفوفة)
+    if (story.likes && currentUser && story.likes[currentUser.uid]) {
+        heartBtn.style.color = "#ff3b30";
+        heartBtn.classList.add('liked');
+    }
+}
+
+// دالة عمل لايك للقصة الحالية
+function likeCurrentStory() {
+    const story = globalStoriesList[currentStoryIndex];
+    if (!story || !currentUser) return;
+
+    const heartBtn = document.getElementById('storyHeartBtn');
+    const isLiked = heartBtn.classList.contains('liked');
+    const storyRef = db.collection('stories').doc(story.id);
+
+    // تأثير بصري فوري
+    if (isLiked) {
+        // إزالة اللايك
+        heartBtn.style.color = "#fff";
+        heartBtn.classList.remove('liked');
+        // تحديث المصفوفة محلياً
+        if(story.likes) delete story.likes[currentUser.uid];
+        
+        // تحديث الداتابيز
+        storyRef.update({
+            [`likes.${currentUser.uid}`]: firebase.firestore.FieldValue.delete()
+        });
+
+    } else {
+        // إضافة اللايك
+        heartBtn.style.color = "#ff3b30";
+        heartBtn.classList.add('liked');
+        
+        // أنيميشن قلب كبير في المنتصف
+        showBigStoryHeart();
+        
+        // تحديث المصفوفة محلياً
+        if(!story.likes) story.likes = {};
+        story.likes[currentUser.uid] = true;
+
+        // تحديث الداتابيز
+        storyRef.update({
+            [`likes.${currentUser.uid}`]: true
+        });
+    }
+}
+
+// دالة إظهار قلب كبير في المنتصف (Effect)
+function showBigStoryHeart() {
+    const container = document.getElementById('archiveViewerContainer');
+    const heart = document.createElement('i');
+    heart.className = 'fa-solid fa-heart';
+    heart.style.cssText = "position:absolute; top:50%; left:50%; transform:translate(-50%,-50%) scale(0); color:#ff3b30; font-size:100px; z-index:20; transition:0.3s cubic-bezier(0.17, 0.89, 0.32, 1.49); pointer-events:none; filter:drop-shadow(0 0 20px rgba(0,0,0,0.5));";
+    
+    container.appendChild(heart);
+    
+    // تشغيل الحركة
+    requestAnimationFrame(() => {
+        heart.style.transform = "translate(-50%,-50%) scale(1.5)";
+        setTimeout(() => {
+            heart.style.opacity = "0";
+            setTimeout(() => heart.remove(), 300);
+        }, 600);
+    });
+}
+
+// دالة إغلاق العارض
+function closeArchiveViewer() {
+    const viewer = document.getElementById('archiveFullViewer');
+    const container = document.getElementById('archiveViewerContainer');
+    
+    // إيقاف أي فيديو يعمل حالياً
+    const vid = container.querySelector('video');
+    if(vid) vid.pause();
+    
+    // إيقاف مؤقت الصور
+    if (storyTimer) clearTimeout(storyTimer);
+    
+    viewer.style.display = 'none';
+    container.innerHTML = '';
+}
+
+
+
     </script>
     
     <div class="lightbox" id="imgLightbox" onclick="closeLightbox()">
@@ -9472,15 +11722,19 @@ function goToLiveRoom(channelId) {
 </div>
 
  <div class="nav-tabs" style="font-size: 13px; gap: 10px;">
+    <span class="nav-tab" onclick="switchFeedTab('stories')" id="tab-stories">القصص</span>
+
     <span class="nav-tab" onclick="switchFeedTab('friends')" id="tab-friends">الأصدقاء</span>
     <span class="nav-tab" onclick="switchFeedTab('popular')" id="tab-popular">شائع</span>
     <span class="nav-tab active" onclick="switchFeedTab('world')" id="tab-world">العالم</span>
     <span class="nav-tab" onclick="switchFeedTab('live')" id="tab-live" style="color:#ff3b30; text-shadow:0 0 5px rgba(255,59,48,0.5);">LIVE</span>
 </div>
 
-    <div class="nav-create-btn center-btn" onclick="window.location.href='create_media.html'">
-        <i class="fa-solid fa-plus"></i>
-    </div>
+
+  <div class="nav-create-btn center-btn" onclick="openCreateMenu()">
+    <i class="fa-solid fa-plus"></i>
+</div>
+
     
     <div style="display: flex; align-items: center; gap: 10px;">
         <div class="nav-icon-btn" onclick="openSearchScreen()">
@@ -9514,17 +11768,23 @@ function goToLiveRoom(channelId) {
     </div>
 </div>
 
-
-<div class="bottom-sheet" id="shareSheet" style="height: auto; max-height: 70vh; background: #161616;">
+<div class="bottom-sheet" id="shareSheet" style="height: auto; max-height: 85vh; background: #161616;">
     <div class="sheet-handle"></div>
     <div style="text-align: center; padding: 10px 0; font-weight: bold; border-bottom: 1px solid #333;">إرسال إلى</div>
     
-  <div class="share-row-container">
-    <div class="share-action-item" onclick="shareTo('whatsapp')">
-        <div class="share-circle" style="background: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
-        <span>واتساب</span>
+    <div class="share-row-container" id="directShareList" style="padding-bottom: 5px; min-height: 90px;">
+        <div style="padding: 20px; color: #777; font-size: 12px; text-align: center; width: 100%;">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل المحادثات...
+        </div>
     </div>
+    
+    <div style="height: 1px; background: #333; margin: 0 15px;"></div>
 
+    <div class="share-row-container">
+        <div class="share-action-item" onclick="shareTo('whatsapp')">
+            <div class="share-circle" style="background: #25D366;"><i class="fa-brands fa-whatsapp"></i></div>
+            <span>واتساب</span>
+        </div>
     <div class="share-action-item" onclick="shareTo('facebook')">
         <div class="share-circle" style="background: #1877F2;"><i class="fa-brands fa-facebook-f"></i></div>
         <span>فيسبوك</span>
@@ -9916,13 +12176,14 @@ function goToLiveRoom(channelId) {
 
 <div id="profileOverlay" class="full-screen-page" style="z-index: 5000; background: #000; transition: transform 0.3s ease; transform: translateX(100%);">
     
-    <div class="fs-header" style="background: rgba(0,0,0,0.8);">
-        <div class="fs-back-btn" onclick="closeProfileOverlay()">
-            <i class="fa-solid fa-chevron-right"></i>
-        </div>
-        <div class="fs-title" id="profileOverlayTitle">اسم المستخدم</div>
-        <div style="width: 40px;"></div>
+ <div class="fs-header" style="background: rgba(0,0,0,0.8);">
+    <div class="fs-back-btn" onclick="closeProfileOverlay()">
+        <i class="fa-solid fa-chevron-right"></i>
     </div>
+    <div class="fs-title" id="profileOverlayTitle">اسم المستخدم</div>
+    
+    <div id="profileHeaderMenuBtn" style="width: 40px; display:flex; justify-content:center; align-items:center; cursor:pointer;"></div>
+</div>
 
     <div id="profileContent" style="padding-top: 20px; text-align: center;">
         <div class="loading-state"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
@@ -9993,6 +12254,130 @@ function goToLiveRoom(channelId) {
 
     <div id="flyingHeartsContainer" style="position:absolute; bottom:80px; right:20px; width:50px; height:300px; pointer-events:none; z-index:5;"></div>
 </div>
+
+<div class="bottom-sheet" id="createMenuSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="flex:1; text-align:center;">إضافة جديد</span>
+        <i class="fa-solid fa-xmark" onclick="closeCreateMenu()" style="cursor:pointer; padding:5px"></i>
+    </div>
+    
+   <div class="menu-list" style="padding: 20px;">
+    
+    <div class="menu-item" onclick="window.location.href='add_story.html'" style="padding: 15px; background: rgba(255,255,255,0.05); margin-bottom: 10px; border-radius: 15px;">
+        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #bf5af2, #d946ef); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">
+            <i class="fa-solid fa-circle-plus"></i>
+        </div>
+        <div style="flex: 1; margin-right: 15px;">
+            <div style="font-weight: bold; font-size: 16px; color: #fff;">إضافة قصة</div>
+            <div style="font-size: 12px; color: #aaa;">شارك لحظاتك اليومية (24 ساعة)</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color: #555;"></i>
+    </div>
+
+    <div class="menu-item" onclick="window.location.href='create_media.html'" style="padding: 15px; background: rgba(255,255,255,0.05); margin-bottom: 10px; border-radius: 15px;">
+        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #4CC9F0, #4361ee); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">
+            <i class="fa-solid fa-video"></i>
+        </div>
+        <div style="flex: 1; margin-right: 15px;">
+            <div style="font-weight: bold; font-size: 16px; color: #fff;">نشر فيديو</div>
+            <div style="font-size: 12px; color: #aaa;">سجّل أو ارفع فيديو من المعرض</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color: #555;"></i>
+    </div>
+
+    <div class="menu-item" onclick="startLiveStreamAction()" style="padding: 15px; background: rgba(255,255,255,0.05); border-radius: 15px;">
+        <div style="width: 45px; height: 45px; background: linear-gradient(135deg, #ff3b30, #ff0055); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white;">
+            <i class="fa-solid fa-tower-broadcast"></i>
+        </div>
+        <div style="flex: 1; margin-right: 15px;">
+            <div style="font-weight: bold; font-size: 16px; color: #fff;">بث مباشر</div>
+            <div style="font-size: 12px; color: #aaa;">ابدأ البث وتفاعل مع المتابعين</div>
+        </div>
+        <i class="fa-solid fa-chevron-left" style="color: #555;"></i>
+    </div>
+
+</div>
+
+
+<div class="bottom-sheet" id="mentionsListSheet" style="height: auto; max-height: 60vh;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="font-weight: 800;">الإشارات</span>
+        <i class="fa-solid fa-xmark" onclick="closeMentionsSheet()" style="cursor:pointer; padding:5px;"></i>
+    </div>
+    <div class="menu-list" id="hiddenMentionsContainer" style="padding: 10px; overflow-y: auto;"></div>
+</div>
+
+<div class="bottom-sheet" id="profileOptionsSheet" style="height: auto;">
+    <div class="sheet-handle"></div>
+    <div class="menu-list">
+        
+        <div class="menu-item" onclick="goToFullProfilePage()">
+            <i class="fa-regular fa-id-card" style="color:#4CC9F0"></i>
+            <span class="menu-text">عرض الملف الشخصي الأساسي</span>
+            <i class="fa-solid fa-chevron-left" style="color:#555; font-size:12px;"></i>
+        </div>
+
+        <div class="menu-item" onclick="copyProfileLink()">
+            <i class="fa-solid fa-link" style="color:#fff"></i>
+            <span class="menu-text">نسخ رابط الملف الشخصي</span>
+        </div>
+
+        <div id="strangerOptions">
+            <div class="menu-divider"></div>
+
+            <div class="menu-item danger" onclick="reportUserFromProfile()">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span class="menu-text">إبلاغ عن المستخدم</span>
+            </div>
+
+            <div class="menu-item danger" onclick="blockUserFromProfile()">
+                <i class="fa-solid fa-ban"></i>
+                <span class="menu-text">حظر المستخدم</span>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="globalStoriesPage" class="profile-page" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index: 10000; background-color: #0b1121; flex-direction:column;">
+    
+    <div class="pp-header" style="background: rgba(15, 25, 38, 0.95); border-bottom: 1px solid rgba(255,255,255,0.1); height: 60px; display: flex; align-items: center; padding: 0 15px;">
+        <div class="icon-btn" onclick="document.getElementById('globalStoriesPage').style.display='none'" style="background:transparent; border:none; cursor:pointer;">
+            <i class="fa-solid fa-arrow-right" style="font-size: 20px; color: #fff;"></i>
+        </div>
+        <h3 style="margin:0; font-size:16px; color: #fff; flex:1; text-align:center; font-weight:bold;">
+            قصص من العالم
+        </h3>
+        <div style="width: 40px;"></div> 
+    </div>
+    
+    <div id="globalStoriesGrid" style="padding: 10px; overflow-y:auto; flex:1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
+        </div>
+</div>
+<div id="archiveFullViewer" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; z-index: 2000; background: #000; flex-direction:column; align-items:center; justify-content:center;">
+    
+    <div onclick="closeArchiveViewer()" style="position:absolute; top:40px; right:20px; z-index:50; cursor:pointer; background:rgba(0,0,0,0.3); width:35px; height:35px; border-radius:50%; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+        <i class="fa-solid fa-xmark" style="color:#fff; font-size:18px;"></i>
+    </div>
+
+    <div id="archiveViewerContainer" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; position:relative;">
+        </div>
+
+    <div style="position:absolute; bottom:20px; left:0; width:100%; padding:0 15px; display:flex; align-items:center; gap:10px; z-index:50;">
+        
+        <div style="flex:1; height:45px; border:1px solid rgba(255,255,255,0.5); border-radius:25px; display:flex; align-items:center; padding:0 15px;">
+            <input type="text" placeholder="إرسال رسالة..." style="background:transparent; border:none; color:#fff; width:100%; outline:none;" readonly onclick="alert('ميزة الرد قريباً')">
+        </div>
+
+        <div onclick="likeCurrentStory()" style="width:45px; height:45px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+            <i id="storyHeartBtn" class="fa-solid fa-heart" style="font-size:30px; color:#fff; transition:0.2s;"></i>
+        </div>
+
+    </div>
+</div>
+
 
 </body>
 </html>

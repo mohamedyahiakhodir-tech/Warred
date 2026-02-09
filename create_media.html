@@ -312,6 +312,56 @@
 }
 .remove-sound-btn:hover { background: rgba(255, 59, 48, 0.1); }
 
+/* === ستايل كبسولة المنشن داخل المحرر (Editor) === */
+.mention-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(93, 95, 239, 0.2); /* خلفية شفافة زرقاء */
+    border: 1px solid rgba(93, 95, 239, 0.4);
+    border-radius: 50px;
+    padding: 2px 8px 2px 2px; /* مسافات مظبوطة */
+    margin: 0 3px;
+    vertical-align: middle;
+    cursor: default;
+    direction: ltr; /* عشان الصورة تفضل شمال والاسم يمين */
+    user-select: none; /* عشان يتم التعامل معاه ككتلة واحدة */
+}
+
+.mention-chip img {
+    width: 20px; 
+    height: 20px; 
+    border-radius: 50%; 
+    margin-right: 6px; 
+    object-fit: cover;
+    background: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.mention-chip span {
+    font-size: 12px;
+    font-weight: 800;
+    color: #fff;
+    pointer-events: none;
+}
+
+/* ستايل الشخص المختار في القائمة */
+.list-opt.selected-user {
+    background: rgba(93, 95, 239, 0.2) !important; /* خلفية زرقاء خفيفة */
+    border: 1px solid #5D5FEF !important; /* برواز أزرق */
+}
+
+/* علامة الصح اللي هتظهر جنب الاسم */
+.check-mark {
+    display: none;
+    color: #5D5FEF;
+    font-size: 18px;
+    margin-right: auto; /* عشان تروح أقصى اليسار */
+}
+
+.list-opt.selected-user .check-mark {
+    display: block; /* تظهر لما نختار الشخص */
+}
+
     </style>
 </head>
 
@@ -353,16 +403,28 @@
         </div>
     </div>
 
-    <div class="bottom-modal" id="mentionsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>الإشارة إلى صديق</span>
-                <i class="fa-solid fa-xmark" onclick="closeModal('mentionsModal')" style="cursor:pointer"></i>
-            </div>
-            <input type="text" id="mentionInput" placeholder="ابحث عن اسم المستخدم..." style="width:100%; padding:14px; background:#222; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;" oninput="searchUsers(this.value)">
-            <div id="mentionsResultsList" style="overflow-y:auto; max-height:300px; display:flex; flex-direction:column; gap:5px;"></div>
+<div class="bottom-modal" id="mentionsModal">
+    <div class="modal-content" style="max-height: 90vh;">
+        <div class="modal-header">
+            <span>الإشارة إلى أصدقاء</span>
+            <i class="fa-solid fa-xmark" onclick="closeModal('mentionsModal')" style="cursor:pointer"></i>
+        </div>
+        
+        <input type="text" id="mentionInput" placeholder="ابحث عن اسم المستخدم..." 
+               style="width:100%; padding:14px; background:#222; border:1px solid #333; color:#fff; border-radius:12px; margin-bottom:15px; outline:none;" 
+               oninput="searchUsers(this.value)">
+        
+        <div id="mentionsResultsList" style="overflow-y:auto; flex:1; min-height:200px; display:flex; flex-direction:column; gap:5px;"></div>
+
+        <div style="padding-top:15px; border-top:1px solid #333; margin-top:10px;">
+            <button onclick="confirmBatchMentions()" 
+                    style="width:100%; background:#5D5FEF; color:#fff; border:none; padding:12px; border-radius:10px; font-weight:bold; font-size:16px;">
+                تأكيد (<span id="selectedCount">0</span>)
+            </button>
         </div>
     </div>
+</div>
+
 
     <div class="cover-modal" id="coverModal">
         <div class="cm-header">
@@ -471,6 +533,8 @@
 // ... المتغيرات الموجودة ...
 let attachedSound = null; 
 let backgroundAudio = null; // <-- هذا المتغير الجديد
+// مخزن مؤقت للأشخاص اللي اخترتهم (عشان نظام الـ Batch)
+let tempSelectedUsersMap = new Map(); 
 
       // --- إعداد قاعدة بيانات المسودات ---
         const dbRequest = indexedDB.open("NabdDraftsDB", 1);
@@ -523,13 +587,20 @@ let backgroundAudio = null; // <-- هذا المتغير الجديد
         }
 
         function openMentionsModal() {
-            saveSelection();
-            document.getElementById('mentionsModal').style.display = 'flex';
-            const input = document.getElementById('mentionInput');
-            input.value = '';
-            input.focus();
-            searchUsers('');
-        }
+    saveSelection();
+    document.getElementById('mentionsModal').style.display = 'flex';
+    
+    const input = document.getElementById('mentionInput');
+    input.value = '';
+    input.focus();
+    
+    // تصفير المخزن المؤقت عند الفتح (عشان نبدأ اختيار جديد)
+    tempSelectedUsersMap.clear();
+    document.getElementById('selectedCount').innerText = '0';
+
+    // بحث (عشان يعرض النتائج)
+    searchUsers('');
+}
 
         function saveSelection() {
             const sel = window.getSelection();
@@ -543,36 +614,134 @@ let backgroundAudio = null; // <-- هذا المتغير الجديد
         }
 
         async function searchUsers(query) {
-            const list = document.getElementById('mentionsResultsList');
-            list.innerHTML = '';
-            const cleanQuery = query.trim();
-            try {
-                let usersRef = db.collection('users');
-                let snap;
-                if(cleanQuery.length > 0) {
-                    snap = await usersRef.where('name', '>=', cleanQuery).where('name', '<=', cleanQuery + '\uf8ff').limit(5).get();
-                } else {
-                    snap = await usersRef.limit(5).get();
-                }
-                if (snap.empty) { list.innerHTML = '<div style="text-align:center; color:#777; padding:10px;">لا يوجد نتائج</div>'; return; }
-                snap.forEach(doc => {
-                    const userData = doc.data();
-                    const uid = doc.id;
-                    if(uid !== currentUser.uid) {
-                        const avatar = userData.profilePic || 'https://via.placeholder.com/40';
-                        const safeName = userData.name.replace(/'/g, "\\'"); 
-                        list.innerHTML += `
-                      <div class="list-opt" onclick="insertMentionTag('${uid}', '${safeName}', '${userData.profilePic || ''}')">
-                            <div style="width:35px; height:35px; border-radius:50%; background:url('${avatar}') center/cover;"></div>
-                            <div>
-                                <div style="font-weight:bold">${userData.name}</div>
-                                <div style="font-size:11px; color:#777">@${userData.username || 'user'}</div>
-                            </div>
-                        </div>`;
-                    }
-                });
-            } catch(e) { console.log(e); }
+    const list = document.getElementById('mentionsResultsList');
+    list.innerHTML = '';
+    const cleanQuery = query.trim();
+    
+    try {
+        let usersRef = db.collection('users');
+        let snap;
+        
+        if(cleanQuery.length > 0) {
+            snap = await usersRef.where('name', '>=', cleanQuery).where('name', '<=', cleanQuery + '\uf8ff').limit(10).get();
+        } else {
+            snap = await usersRef.limit(10).get();
         }
+        
+        if (snap.empty) { 
+            list.innerHTML = '<div style="text-align:center; color:#777; padding:10px;">لا يوجد نتائج</div>'; 
+            return; 
+        }
+        
+        snap.forEach(doc => {
+            const userData = doc.data();
+            const uid = doc.id;
+            
+            if(uid !== currentUser.uid) {
+                const avatar = userData.profilePic || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                
+                // تنظيف الاسم والمسافات
+                let rawName = userData.name.replace(/'/g, "\\'"); 
+                const safeNameForTag = rawName.replace(/\s+/g, '_'); 
+
+                // 🔥 فحص هل الشخص ده تم اختياره قبل كده؟
+                // بنشوف هل هو موجود في المخزن المؤقت (tempSelectedUsersMap)
+                // أو هل هو موجود بالفعل في المحرر (mentionedUsersMap)
+                const isSelected = tempSelectedUsersMap.has(uid) || mentionedUsersMap.has(uid);
+                const selectedClass = isSelected ? 'selected-user' : '';
+
+                // تمرير الاسم والصورة كـ string للدالة
+                const userObjString = JSON.stringify({uid: uid, name: safeNameForTag, pic: avatar}).replace(/"/g, "&quot;");
+
+                list.innerHTML += `
+              <div class="list-opt ${selectedClass}" id="user-opt-${uid}" onclick="toggleUserSelection('${uid}', this, ${userObjString})">
+                    <div style="width:35px; height:35px; border-radius:50%; background:url('${avatar}') center/cover;"></div>
+                    <div>
+                        <div style="font-weight:bold">${userData.name}</div>
+                        <div style="font-size:11px; color:#777">@${userData.username || 'user'}</div>
+                    </div>
+                    <i class="fa-solid fa-circle-check check-mark"></i> </div>`;
+            }
+        });
+    } catch(e) { console.log(e); }
+}
+
+function confirmBatchMentions() {
+    closeModal('mentionsModal'); 
+    const editor = document.getElementById('editor');
+    editor.focus();
+
+    // استرجاع مكان المؤشر
+    if (savedRange) {
+        const sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(savedRange);
+    }
+
+    // 🔄 لوب على كل الأشخاص المختارين
+    tempSelectedUsersMap.forEach((user) => {
+        // التحقق إننا مأضفناش الشخص ده قبل كده في المحرر عشان التكرار
+        if (!document.querySelector(`.mention-node[data-uid="${user.uid}"]`)) {
+            
+            // إنشاء الكبسولة
+            const chip = document.createElement('span');
+            chip.className = 'mention-chip mention-node';
+            chip.contentEditable = "false";
+            chip.setAttribute('data-uid', user.uid);
+            chip.setAttribute('data-pic', user.pic);
+
+            const img = document.createElement('img');
+            img.src = user.pic;
+
+            const textSpan = document.createElement('span');
+            textSpan.innerText = user.name.replace(/_/g, ' ');
+
+            chip.appendChild(img);
+            chip.appendChild(textSpan);
+
+            // إدخال في المحرر
+            const space = document.createTextNode('\u00A0'); // مسافة صغيرة
+            
+            // إضافة الكبسولة والمسافة
+            // (هنا بنستخدم appendChild للنطاق الحالي أو في آخر المحرر)
+            const sel = window.getSelection();
+            if (sel.rangeCount) {
+                const range = sel.getRangeAt(0);
+                range.insertNode(chip);
+                range.collapse(false); // تحريك المؤشر بعد العنصر
+                range.insertNode(space);
+                range.collapse(false);
+            } else {
+                editor.appendChild(chip);
+                editor.appendChild(space);
+            }
+
+            // إضافته للخريطة الدائمة
+            mentionedUsersMap.set(user.uid, true);
+        }
+    });
+
+    // تفريغ المخزن المؤقت وتحديث الزرار
+    tempSelectedUsersMap.clear();
+    document.getElementById('selectedCount').innerText = '0';
+    
+    checkPostButton();
+}
+
+function toggleUserSelection(uid, element, userObj) {
+    if (tempSelectedUsersMap.has(uid)) {
+        // لو كان مختار -> احذفه (إلغاء التحديد)
+        tempSelectedUsersMap.delete(uid);
+        element.classList.remove('selected-user');
+    } else {
+        // لو مش مختار -> ضيفه (تحديد)
+        tempSelectedUsersMap.set(uid, userObj);
+        element.classList.add('selected-user');
+    }
+    
+    // تحديث الرقم في الزرار (تأكيد 3)
+    document.getElementById('selectedCount').innerText = tempSelectedUsersMap.size;
+}
 
         // دالة الإدراج المعدلة
         // تعديل لاستقبال الصورة (pic) وحفظها
@@ -581,46 +750,67 @@ function insertMentionTag(uid, name, pic) {
     const editor = document.getElementById('editor');
     editor.focus();
     
+    // استعادة مكان المؤشر عشان المنشن ينزل مكان ما كنت واقف
     if (savedRange) {
         const sel = window.getSelection();
         sel.removeAllRanges();
         sel.addRange(savedRange);
     }
 
-    const mentionNode = document.createElement('span');
-    mentionNode.className = 'mention-node';
-    mentionNode.textContent = '@' + name; 
-    mentionNode.contentEditable = "false"; 
-    mentionNode.setAttribute('data-uid', uid);
+    // 1. إنشاء عنصر الكبسولة (الكونتينر)
+    const chip = document.createElement('span');
+    chip.className = 'mention-chip mention-node'; // كلاس الشكل + كلاس التعرف عليه
+    chip.contentEditable = "false"; // ⛔ مهم جداً: عشان المستخدم يمسحه كله مرة واحدة مش حرف حرف
+    chip.setAttribute('data-uid', uid);
     
-    // 🔥 التعديل هنا: حفظنا الصورة في العنصر
+    // تجهيز الصورة الافتراضية لو مفيش صورة
     const safePic = pic || "https://cdn-icons-png.flaticon.com/512/847/847969.png";
-    mentionNode.setAttribute('data-pic', safePic); 
-    
-    mentionNode.style.color = '#5D5FEF';
-    mentionNode.style.fontWeight = 'bold';
-    mentionNode.style.marginRight = '4px';
+    chip.setAttribute('data-pic', safePic); // حفظ الصورة للبيانات
 
-    const space = document.createTextNode('\u00A0'); 
+    // 2. إنشاء الصورة داخل الكبسولة
+    const img = document.createElement('img');
+    img.src = safePic;
+    
+    // 3. إنشاء الاسم داخل الكبسولة
+    const textSpan = document.createElement('span');
+    textSpan.innerText = name.replace(/_/g, ' '); // نعرض الاسم بمسافات عشان الشكل الجمالي
+
+    // تجميع الكبسولة
+    chip.appendChild(img);
+    chip.appendChild(textSpan);
+
+    // 4. إدراج الكبسولة في المحرر
+    const space = document.createTextNode('\u00A0'); // مسافة بعد المنشن
     const sel = window.getSelection();
+    
     if (sel.getRangeAt && sel.rangeCount) {
         const range = sel.getRangeAt(0);
-        range.deleteContents(); 
-        range.insertNode(mentionNode);
-        range.setStartAfter(mentionNode);
-        range.setEndAfter(mentionNode);
+        range.deleteContents(); // حذف أي نص محدد (أو الـ @ اللي كنت بتكتبها)
+        
+        range.insertNode(chip); // وضع الكبسولة
+        
+        // وضع المؤشر بعد الكبسولة
+        range.setStartAfter(chip);
+        range.setEndAfter(chip);
+        
+        // إضافة مسافة صغيرة بعدها للكتابة
         range.insertNode(space);
         range.setStartAfter(space);
         range.setEndAfter(space);
+        
         sel.removeAllRanges();
         sel.addRange(range);
     } else {
-        editor.appendChild(mentionNode);
+        // لو مفيش تحديد، حطه في الآخر
+        editor.appendChild(chip);
         editor.appendChild(space);
     }
+
+    // إضافة لليستة المنشنات عشان الإشعارات
     mentionedUsersMap.set(uid, true);
     checkPostButton();
 }
+
 
         // --- وظائف المسودات ---
         function startAutoSave() { autoSaveInterval = setInterval(() => { saveDraft(true); }, 5000); }
@@ -878,41 +1068,49 @@ function insertMentionTag(uid, name, pic) {
         }
 
         // 1. تحضير النص والروابط
+                // 1. تحضير النص ومعالجة المنشن (النظام الجديد)
         const editor = document.getElementById('editor');
-        let plainText = editor.innerText.trim();
         
+        // نعمل نسخة في الذاكرة عشان نعدل عليها من غير ما نغير شكل المحرر قدام المستخدم
         let tempDiv = document.createElement('div');
         tempDiv.innerHTML = editor.innerHTML;
         
         let finalMentions = []; // لتخزين الـ UID للإشعارات
         let mentionsData = [];  // 🔥 لتخزين البيانات للعرض (الاسم + الصورة)
 
-        tempDiv.querySelectorAll('.mention-node').forEach(span => {
-            const uid = span.getAttribute('data-uid');
-            const pic = span.getAttribute('data-pic'); // بنجيب الصورة اللي خزناها
-            const name = span.innerText.replace('@', ''); // الاسم بدون @
+        // نلف على كل الكبسولات الموجودة في النسخة المؤقتة
+        tempDiv.querySelectorAll('.mention-node').forEach(chip => {
+            const uid = chip.getAttribute('data-uid');
+            const pic = chip.getAttribute('data-pic'); // بنجيب الصورة اللي خزناها
+            
+            // ناخد الاسم وننظفه
+            let rawName = chip.innerText.trim(); 
+            rawName = rawName.replace(/^@/, ''); // نشيل الـ @ لو موجودة
+            
+            // 🔥 أهم خطوة: تحويل المسافات لشرطة سفلية (عشان الفيد يقدر يقراها كرابط واحد)
+            const safeNameForSystem = rawName.replace(/\s+/g, '_'); 
 
             if(uid) {
                 if(!finalMentions.includes(uid)) finalMentions.push(uid);
                 
-                // إضافة بيانات المنشن للقائمة
+                // حفظ بيانات المنشن (صورة + اسم) للقائمة الجانبية
                 mentionsData.push({
-                    name: name,
+                    name: safeNameForSystem, // بنحفظ الاسم اللي فيه شرطة
                     pic: pic || "https://cdn-icons-png.flaticon.com/512/847/847969.png",
                     uid: uid
                 });
 
-                // تحويل لرابط عادي في الـ HTML النهائي
-                const link = document.createElement('a');
-                link.href = `profile.html?uid=${uid}`; 
-                link.innerText = span.innerText; 
-                link.style.color = '#5D5FEF';
-                link.style.fontWeight = '800';
-                link.style.textDecoration = 'none';
-                span.parentNode.replaceChild(link, span);
+                // 🔥 استبدال الكبسولة بالنص الخام (@Name_Lastname) داخل النص اللي هيتبعت للسيرفر
+                // ده اللي بيخلي الرابط يشتغل في الصفحة الرئيسية
+                const textNode = document.createTextNode(` @${safeNameForSystem} `);
+                chip.parentNode.replaceChild(textNode, chip);
             }
         });
-        let finalHtml = tempDiv.innerHTML;
+
+        // دلوقتى ناخد النص الصافي من النسخة المعدلة (اللي فيها @User_Name بدل الكبسولة)
+        let plainText = tempDiv.innerText.trim();
+        let finalHtml = editor.innerHTML; // النسخة الأصلية (لو حبيت تستخدمها مستقبلاً)
+
         // 2. رفع الميديا (صور وفيديو)
         let uploadedMedia = [];
         for(let i=0; i<mediaItems.length; i++) {
@@ -937,7 +1135,7 @@ function insertMentionTag(uid, name, pic) {
                 mediaObj.thumbnail = await tRef.getDownloadURL();
             }
             uploadedMedia.push(mediaObj);
-            progressTxt.innerText = Math.round(((i+1)/mediaItems.length)*100) + '%';
+            if(progressTxt) progressTxt.innerText = Math.round(((i+1)/mediaItems.length)*100) + '%';
         }
 
         // 3. تحديث الهاشتاجات
@@ -967,12 +1165,12 @@ function insertMentionTag(uid, name, pic) {
         // 4. الحفظ في فايربيس (جدول posts)
         const newPostRef = await db.collection('posts').add({
             uid: currentUser.uid,
-            text: plainText,
+            text: plainText, // ده النص اللي بقى فيه @Ahmed_Ali
             html: finalHtml, 
             media: uploadedMedia,
             hashtags: selectedTags,
             mentions: finalMentions,
-            mentionsList: mentionsData,
+            mentionsList: mentionsData, // دي القائمة اللي فيها الصور والبيانات
             privacy: currentPrivacy,
             
             // === بيانات الصوت ===
@@ -980,9 +1178,8 @@ function insertMentionTag(uid, name, pic) {
             soundInfo: attachedSound || null, 
             musicName: attachedSound ? attachedSound.name : null, 
 
-            // 🔥🔥🔥 الجزئية المضافة: إعدادات الصوت (كتم الأصلي أم لا) 🔥🔥🔥
+            // إعدادات الصوت
             soundSettings: {
-                // المتغير isOriginalMuted معرف في السكربت العام (تأكد أنك نسخت دالة toggleMuteOriginal)
                 muteOriginal: (typeof isOriginalMuted !== 'undefined') ? isOriginalMuted : false, 
                 volume: 1.0 
             },
@@ -993,6 +1190,7 @@ function insertMentionTag(uid, name, pic) {
             likes: {}, 
             commentsCount: 0
         });
+
 
         // 5. إرسال الإشعارات
         if (finalMentions.length > 0) {
