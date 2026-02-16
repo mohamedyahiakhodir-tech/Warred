@@ -564,6 +564,293 @@ button { border: none; outline: none; background: none; cursor: pointer; }
     cursor: pointer; z-index: 20;
 }
 
+/* --- ستايل المنشن المطور (كبسولة + عداد) --- */
+.mention-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(93, 95, 239, 0.2); /* خلفية شفافة موف */
+    border: 1px solid rgba(93, 95, 239, 0.4);
+    border-radius: 50px;
+    padding: 2px 8px 2px 2px;
+    margin: 0 3px;
+    cursor: pointer;
+    vertical-align: middle;
+    text-decoration: none;
+    direction: ltr;
+    max-width: 140px;
+    height: 26px;
+}
+
+.mention-chip-img {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    margin-right: 6px;
+    object-fit: cover;
+    background: #fff;
+    flex-shrink: 0;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.mention-chip-name {
+    font-size: 11px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 90px;
+}
+
+.mention-counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--primary-solid); /* لون الثيم */
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 2px 8px;
+    height: 24px;
+    border-radius: 12px;
+    margin-left: 2px;
+    vertical-align: middle;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* 1. ضبط النص ليظهر بشكل مرتب */
+.post-text {
+    text-align: right !important;
+    direction: rtl !important;
+    line-height: 1.8 !important; /* تباعد مريح بين السطور */
+    white-space: pre-wrap !important; /* الحفاظ على المسافات والأسطر */
+    display: block !important;
+    unicode-bidi: embed; /* تحسين التعامل مع النصوص المختلطة */
+    margin-bottom: 5px !important;
+}
+
+/* 2. حاوية المنشن الجديدة (تظهر أسفل النص) */
+.post-mentions-footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* مسافة بين الكبسولات */
+    padding: 5px 15px 10px; /* مسافات داخلية */
+    border-top: 1px solid rgba(255,255,255,0.05); /* خط فاصل خفيف اختياري */
+    margin-top: 5px;
+    direction: rtl; /* اتجاه العناصر من اليمين */
+    justify-content: flex-start; /* البداية من اليمين */
+}
+
+/* 3. تحسين شكل كبسولة المنشن */
+.mention-chip {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(93, 95, 239, 0.15); 
+    border: 1px solid rgba(93, 95, 239, 0.3);
+    border-radius: 50px;
+    padding: 4px 10px;
+    cursor: pointer;
+    transition: 0.2s;
+    max-width: 100%;
+}
+
+.mention-chip:active {
+    transform: scale(0.95);
+    background: rgba(93, 95, 239, 0.3);
+}
+
+/* --- تنسيقات زر المايك والتبديل --- */
+.cm-send-btn, .cm-mic-btn {
+    padding: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.2s ease;
+    display: flex; /* لضمان التمركز */
+    align-items: center;
+    justify-content: center;
+}
+
+.cm-send-btn {
+    color: var(--primary-solid);
+    display: none; /* مخفي افتراضياً */
+}
+
+.cm-mic-btn {
+    color: var(--text-color);
+}
+
+.cm-mic-btn:active {
+    transform: scale(1.2);
+    color: var(--danger-color);
+}
+
+/* --- واجهة التسجيل (اللي بتظهر وأنت دايس تسجيل) --- */
+.recording-ui {
+    position: absolute;
+    inset: 0;
+    background: var(--input-bg);
+    border-radius: 25px;
+    display: none; /* مخفي */
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    z-index: 10;
+    animation: fadeIn 0.2s;
+}
+
+.rec-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--danger-color);
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.rec-dot {
+    width: 10px;
+    height: 10px;
+    background: var(--danger-color);
+    border-radius: 50%;
+    animation: pulse-red 1s infinite;
+}
+
+@keyframes pulse-red { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+/* --- شكل الريكورد داخل التعليق (Audio Bubble) --- */
+.audio-msg-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 200px;
+    padding: 5px 0;
+}
+
+.audio-play-btn {
+    width: 35px;
+    height: 35px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+.audio-play-btn:active { transform: scale(0.9); background: rgba(255, 255, 255, 0.2); }
+
+.audio-progress-bar {
+    flex: 1;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.audio-progress-fill {
+    height: 100%;
+    background: var(--primary-solid);
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.audio-duration {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    min-width: 35px;
+    text-align: left;
+}
+
+.audio-msg-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 12px;
+    border-radius: 50px;
+    width: fit-content;
+    margin-top: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.audio-play-btn {
+    width: 30px;
+    height: 30px;
+    background: var(--primary-solid);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.audio-progress-bar {
+    width: 100px; /* عرض الشريط */
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.audio-progress-fill {
+    width: 0%;
+    height: 100%;
+    background: var(--primary-solid);
+    transition: width 0.1s linear;
+}
+
+/* ========================================= */
+/* تنسيقات عرض المزيد / أقل (المعدلة)      */
+/* ========================================= */
+
+/* 1. تنسيق النص نفسه - نخليه يمين إجباري */
+.post-text {
+    line-height: 1.7 !important; /* مسافة مريحة بين السطور */
+    text-align: right !important; /* يمين عشان العربي */
+    direction: rtl !important; /* اتجاه عربي */
+    margin-bottom: 5px !important;
+    white-space: pre-wrap; /* يحافظ على التنسيق */
+}
+
+/* 2. الكلاس المسؤول عن إخفاء النص الزائد (يظهر 3 سطور بس) */
+.post-text.collapsed {
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* يظهر 3 سطور فقط */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-height: 5.4em; /* ارتفاع مناسب لـ 3 سطور */
+    transition: max-height 0.3s ease;
+    cursor: pointer; /* عشان يعرف إنه يقدر يضغط يقفل */
+}
+
+/* 3. تنسيق زرار عرض المزيد (على الشمال) */
+.read-more-trigger {
+    display: block; 
+    width: 100%;
+    text-align: left; /* السر هنا: يجيب الكلمة على الشمال */
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--secondary-text); 
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+    padding-left: 10px;
+}
+
+.read-more-trigger:hover {
+    color: var(--primary-solid);
+    text-decoration: underline;
+}
+
+
 </style>
 
 
@@ -865,12 +1152,26 @@ button { border: none; outline: none; background: none; cursor: pointer; }
         <div class="cm-body" id="cmList"></div>
         <div class="cm-footer">
             
-            <div class="cm-input-wrapper">
+    <div class="cm-input-wrapper" style="position: relative; overflow: hidden;">
     <i class="fa-solid fa-face-laugh-beam sticker-trigger-btn" onclick="toggleStickerSheet('main')"></i>
     
-    <input type="text" class="cm-input" id="cmInput" placeholder="اكتب تعليقاً..." autocomplete="off">
+    <div class="recording-ui" id="cmRecordingUI">
+        <div class="rec-indicator">
+            <div class="rec-dot"></div>
+            <span id="cmRecTimer">00:00</span>
+        </div>
+        <div style="font-size:13px; color:var(--text-color);">جاري تسجيل تعليق...</div>
+        <i class="fa-solid fa-xmark" style="color:var(--secondary-text); padding:10px; cursor:pointer;" onclick="cancelCommentRecording()"></i>
+        <i class="fa-solid fa-paper-plane" style="color:var(--primary-solid); padding:10px; cursor:pointer;" onclick="finishCommentRecording()"></i>
+    </div>
+
+    <input type="text" class="cm-input" id="cmInput" placeholder="اكتب تعليقاً..." autocomplete="off" oninput="toggleCmInputButtons()">
+    
     <i class="fa-solid fa-paper-plane cm-send-btn" id="cmSendBtn" onclick="handleCommentAction()"></i>
+    
+    <i class="fa-solid fa-microphone cm-mic-btn" id="cmMicBtn" onclick="startCommentRecording()"></i>
 </div>
+
 
         </div>
     </div>
@@ -1511,144 +1812,179 @@ listeners.push(db.collection("users").doc(profileUid).collection("followers").on
                     /* ========================================= */
     /* دالة عرض المنشورات (تم إصلاح رابط الفيديو) */
     /* ========================================= */
-    function renderPost(p) {
-        const isLiked = p.likes && p.likes[currentUser.uid];
-        
-        // تحديد أيقونة الخصوصية
-        let privacyIcon = '<i class="fa-solid fa-earth-americas" title="العامة"></i>';
-        if(p.visibility === 'friends') privacyIcon = '<i class="fa-solid fa-user-group" title="الأصدقاء"></i>';
-        if(p.visibility === 'private') privacyIcon = '<i class="fa-solid fa-lock" title="أنا فقط"></i>';
+    async function renderPost(p) {
+    const isLiked = p.likes && p.likes[currentUser.uid];
 
-        let mediaHtml = "";
+    // تحديد أيقونة الخصوصية
+    let privacyIcon = '<i class="fa-solid fa-earth-americas" title="العامة"></i>';
+    if (p.visibility === 'friends') privacyIcon = '<i class="fa-solid fa-user-group" title="الأصدقاء"></i>';
+    if (p.visibility === 'private') privacyIcon = '<i class="fa-solid fa-lock" title="أنا فقط"></i>';
+
+    // متغير لتخزين محتوى المنشور (سواء كان إعادة نشر، خلفية ملونة، أو عادي)
+    let contentHtml = "";
+
+    // ============================================================
+    // 1. حالة إعادة النشر (Repost) - الجزء المضاف
+    // ============================================================
+    if (p.type === 'repost' && p.originalContent) {
+        const org = p.originalContent;
+        const orgPic = org.pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
         
-        // التحقق من وجود وسائط
-        if(p.media && p.media.length) {
-            // تحديد كلاس الشبكة (فردي ولا زوجي)
-            const gridClass = p.media.length > 1 ? 'double' : 'single';
-            mediaHtml = `<div class="media-grid ${gridClass}">`;
+        contentHtml = `
+        <div class="post-text" style="margin-bottom:10px;">${processPostText(p.text, p.mentionsList)}</div>
+        
+        <div class="repost-card" onclick="location.href='profile.html?uid=${p.originalOwnerUid}&post=${p.originalPostId}'" 
+             style="border:1px solid var(--border-color); border-radius:12px; margin:0 5px; overflow:hidden; background:rgba(255,255,255,0.03);">
             
-            // التعديل هنا: ضيفنا (idx) عشان نعرف ترتيب الفيديو
-            p.media.forEach((m, idx) => {
-                if(m.type === 'video') {
-                    // إنشاء معرف فريد للفيديو
-                    const uniqueVideoId = `vid-${p.id}-${idx}`;
-                    
-                    // رابط الفيديو: ضيفنا index عشان يحدد الفيديو بالظبط
-                    // وضيفنا post عشان لو الصفحة بتستخدم الاسم ده
-                    const videoLink = `videos.html?id=${p.id}&post=${p.id}&index=${idx}&src=${encodeURIComponent(m.url)}`;
+            <div style="padding:12px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.05);">
+                <img src="${orgPic}" style="width:30px; height:30px; border-radius:50%; object-fit:cover;">
+                <div style="font-weight:bold; font-size:13px; color:var(--text-color);">${org.name}</div>
+            </div>
+            
+            <div style="padding:12px;">
+                ${org.text ? `<div style="font-size:13px; margin-bottom:8px; color:#ddd;">${processPostText(org.text)}</div>` : ''}
+                ${org.media && org.media.length > 0 ? `<div style="height:200px; background:url('${org.media[0].url}') center/cover; border-radius:8px;"></div>` : ''}
+            </div>
+        </div>`;
+    } 
+    // ============================================================
+    // 2. حالة خلفية ملونة (Colored Background) - الجزء المضاف
+    // ============================================================
+    else if (p.background) {
+        contentHtml = `
+        <div class="post-text has-bg" style="background:${p.background}; min-height:200px; display:flex; align-items:center; justify-content:center; text-align:center; padding:30px; font-weight:800; font-size:22px; color:#fff; text-shadow:0 2px 5px rgba(0,0,0,0.3);">
+            ${processPostText(p.text, p.mentionsList)}
+        </div>`;
+    } 
 
-                    mediaHtml += `
-                    <div style="position:relative; overflow:hidden; border-radius:4px;">
-                        <video 
-                            src="${m.url}" 
-                            id="${uniqueVideoId}" 
-                            class="media-item" 
-                            loop 
-                            playsinline 
-                            muted 
-                            loading="lazy" 
-                            onplay="incrementViewCount('${p.id}'); startLiveViews('${p.id}')" 
-                            onpause="stopLiveViews()"
-                            onclick="location.href='${videoLink}'"
-                        ></video>
-                        
-                        <div style="position:absolute; bottom:10px; left:10px; color:#fff; font-size:12px; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:10px; pointer-events:none; display:flex; align-items:center; gap:4px; z-index:5;">
-                            <i class="fa-regular fa-eye"></i> <span id="vid-views-${p.id}">${formatNumber(p.views || 0)}</span>
-                        </div>
-
-                        <div class="video-mute-btn" onclick="toggleMute(event, '${uniqueVideoId}', this)">
-                            <i class="fa-solid fa-volume-xmark"></i>
-                        </div>
-                    </div>`;
-                
-                } else {
-                    // لو صورة
-                    mediaHtml += `<img src="${m.url}" class="media-item" loading="lazy" onclick="openLightbox('${m.url}')">`;
-                }
-            });
-            mediaHtml += `</div>`;
-        } 
-        else if(p.imageUrl) {
-            mediaHtml = `<div class="media-grid single"><img src="${p.imageUrl}" class="media-item" loading="lazy" onclick="openLightbox('${p.imageUrl}')"></div>`;
-        } 
-        else if(p.background) {
-            mediaHtml = `<div class="post-text has-bg" style="background:${p.background}">${p.text}</div>`;
-            p.text = ""; 
-        }
-
-        const div = document.createElement('div');
-        div.className = 'post';
-        div.id = `post-${p.id}`;
-        div.innerHTML = `
-            <div class="post-header">
-                <div class="user-info" onclick="location.href='profile.html?uid=${p.uid}'" style="cursor:pointer;">
-                    <div class="post-avatar" style="${profileData.profilePic?`background-image:url('${profileData.profilePic}')`: `background-color:${generateColor(p.uid)}`}">${profileData.profilePic?'':(profileData.name||'U')[0]}</div>
-                    <div class="user-details">
-                        <h4>${profileData.name || 'مستخدم'} ${profileData.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#3897f0;font-size:14px;"></i>' : ''}</h4>
-                        <span>${p.createdAt ? moment(p.createdAt.toDate()).fromNow() : 'الآن'} &bull; <span style="font-size:10px; margin-right:3px;">${privacyIcon}</span></span>
+    // ============================================================
+    // 3. الوضع الطبيعي (نص + ميديا) - التعديل الجديد
+    // ============================================================
+    else {
+        // أ) إضافة النص (مع منطق عرض المزيد/أقل)
+        if (p.text) {
+            const processedText = processPostText(p.text, p.mentionsList);
+            
+            // شرط الطول: لو النص أطول من 150 حرف، نطبق عليه النظام
+            // الرقم 150 ده تقديري، ممكن تزوده أو تقلله براحتك
+            if (p.text.length > 150) {
+                contentHtml += `
+                <div class="post-text-wrapper">
+                    <div id="txt-${p.id}" class="post-text collapsed" onclick="handleTextClick('${p.id}')">
+                        ${processedText}
                     </div>
-                </div>
-                <i class="fa-solid fa-ellipsis" onclick="openOptions('${p.id}', '${p.uid}', \`${p.text || ''}\`, '${profileData.name || 'مستخدم'}')" style="cursor:pointer; padding:5px; color:var(--secondary-text)"></i>
-            </div>
-            ${p.text ? `<div class="post-text">${p.text}</div>` : ''}
-            ${mediaHtml}
-            <div class="post-actions">
-                <div class="action-btn ${isLiked?'liked':''}" id="like-${p.id}" onclick="toggleLike('${p.id}', '${p.uid}')">
-                    <i class="${isLiked?'fa-solid':'fa-regular'} fa-heart"></i> <span id="cnt-${p.id}">${Object.keys(p.likes||{}).length}</span>
-                </div>
-                
-                <div class="action-btn" onclick="openComments('${p.id}', '${p.uid}')">
-                    <i class="fa-regular fa-comment"></i> <span>${Math.max(0, p.commentsCount || 0)}</span>
-                </div>
-
-                <div class="action-btn" onclick="sharePost('${p.id}')">
-                    <i class="fa-solid fa-share-nodes"></i>
-                </div>
-            </div>
-        `;
-
-        // كود الوصول للمنشور (Deep Linking)
-        // كود الوصول للمنشور والتعليق (Deep Linking)
-const urlParams = new URLSearchParams(window.location.search);
-const targetPostId = urlParams.get('post');
-const targetCommentId = urlParams.get('comment');
-
-if (targetPostId) {
-    setTimeout(() => {
-        const element = document.getElementById(`post-${targetPostId}`);
-        if (element) {
-            // 1. التوجه للمنشور
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            element.style.border = "2px solid var(--primary-solid)";
-            element.style.boxShadow = "0 0 20px var(--primary-solid)";
-            
-            // 2. إذا كان هناك تعليق محدد، افتح قائمة التعليقات
-            if (targetCommentId) {
-                // جلب بيانات صاحب المنشور لفتح التعليقات (يمكنك تعديل ownerUid حسب كودك)
-                const postData = document.querySelector(`#post-${targetPostId} .user-info`).getAttribute('onclick');
-                // استخلاص الـ UID من النص (مثال: location.href='profile.html?uid=XXX')
-                const ownerUid = postData.match(/uid=([^']+)/)[1];
-                
-                openComments(targetPostId, ownerUid);
-                
-                // 3. تمييز التعليق داخل القائمة بعد تحميلها
-                setTimeout(() => {
-                    const commentEl = document.getElementById(`comment-${targetCommentId}`);
-                    if (commentEl) {
-                        commentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        commentEl.querySelector('.cm-bubble').classList.add('highlight');
-                    }
-                }, 1000);
+                    
+                    <div class="read-more-trigger" id="btn-${p.id}" onclick="togglePostText('${p.id}')">
+                        عرض المزيد...
+                    </div>
+                </div>`;
+            } else {
+                // لو النص قصير، اعرضه عادي من غير زرار
+                contentHtml += `<div class="post-text">${processedText}</div>`;
             }
         }
-    }, 1500); 
-}
 
-        document.getElementById('postsList').appendChild(div);
-        
-        // تشغيل المراقب للفيديوهات
-        div.querySelectorAll('video').forEach(v => videoObserver.observe(v));
+        // ب) إضافة الميديا (كودك الأصلي كما هو)
+        if (p.media && p.media.length) {
+             const gridClass = p.media.length > 1 ? 'double' : 'single';
+             contentHtml += `<div class="media-grid ${gridClass}">`;
+             p.media.forEach((m, idx) => {
+                 if (m.type === 'video') {
+                     const uniqueVideoId = `vid-${p.id}-${idx}`;
+                     const videoLink = `videos.html?id=${p.id}&post=${p.id}&index=${idx}&src=${encodeURIComponent(m.url)}`;
+                     contentHtml += `
+                     <div style="position:relative; overflow:hidden; border-radius:4px;">
+                         <video src="${m.url}" id="${uniqueVideoId}" class="media-item" loop playsinline muted loading="lazy" 
+                             onplay="incrementViewCount('${p.id}'); startLiveViews('${p.id}')" 
+                             onpause="stopLiveViews()" onclick="location.href='${videoLink}'">
+                         </video>
+                         <div style="position:absolute; bottom:10px; left:10px; color:#fff; font-size:12px; background:rgba(0,0,0,0.5); padding:2px 8px; border-radius:10px; pointer-events:none; display:flex; align-items:center; gap:4px; z-index:5;">
+                             <i class="fa-regular fa-eye"></i> <span id="vid-views-${p.id}">${formatNumber(p.views || 0)}</span>
+                         </div>
+                         <div class="video-mute-btn" onclick="toggleMute(event, '${uniqueVideoId}', this)">
+                             <i class="fa-solid fa-volume-xmark"></i>
+                         </div>
+                     </div>`;
+                 } else {
+                     contentHtml += `<img src="${m.url}" class="media-item" loading="lazy" onclick="openLightbox('${m.url}')">`;
+                 }
+             });
+             contentHtml += `</div>`;
+        } 
+        else if (p.imageUrl) {
+            contentHtml += `<div class="media-grid single"><img src="${p.imageUrl}" class="media-item" loading="lazy" onclick="openLightbox('${p.imageUrl}')"></div>`;
+        }
     }
+
+    // بناء الكارت النهائي
+    const div = document.createElement('div');
+    div.className = 'post';
+    div.id = `post-${p.id}`;
+    div.innerHTML = `
+        <div class="post-header">
+            <div class="user-info" onclick="location.href='profile.html?uid=${p.uid}'" style="cursor:pointer;">
+                <div class="post-avatar" style="${profileData.profilePic ? `background-image:url('${profileData.profilePic}')` : `background-color:${generateColor(p.uid)}`}">${profileData.profilePic ? '' : (profileData.name || 'U')[0]}</div>
+                <div class="user-details">
+                    <h4>${profileData.name || 'مستخدم'} ${profileData.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#3897f0;font-size:14px;"></i>' : ''}</h4>
+                    <span>${p.createdAt ? moment(p.createdAt.toDate()).fromNow() : 'الآن'} &bull; <span style="font-size:10px; margin-right:3px;">${privacyIcon}</span></span>
+                </div>
+            </div>
+            <i class="fa-solid fa-ellipsis" onclick="openOptions('${p.id}', '${p.uid}', \`${p.text || ''}\`, '${profileData.name || 'مستخدم'}')" style="cursor:pointer; padding:5px; color:var(--secondary-text)"></i>
+        </div>
+        
+        ${contentHtml}
+        
+        <div class="post-actions">
+            <div class="action-btn ${isLiked ? 'liked' : ''}" id="like-${p.id}" onclick="toggleLike('${p.id}', '${p.uid}')">
+                <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart"></i> <span id="cnt-${p.id}">${Object.keys(p.likes || {}).length}</span>
+            </div>
+            
+            <div class="action-btn" onclick="openComments('${p.id}', '${p.uid}')">
+                <i class="fa-regular fa-comment"></i> <span>${Math.max(0, p.commentsCount || 0)}</span>
+            </div>
+
+            <div class="action-btn" onclick="sharePost('${p.id}')">
+                <i class="fa-solid fa-share-nodes"></i>
+            </div>
+        </div>
+    `;
+
+    // كود الوصول للمنشور (Deep Linking) كما هو
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetPostId = urlParams.get('post');
+    const targetCommentId = urlParams.get('comment');
+
+    if (targetPostId) {
+        setTimeout(() => {
+            const element = document.getElementById(`post-${targetPostId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                element.style.border = "2px solid var(--primary-solid)";
+                element.style.boxShadow = "0 0 20px var(--primary-solid)";
+
+                if (targetCommentId) {
+                    const postData = document.querySelector(`#post-${targetPostId} .user-info`).getAttribute('onclick');
+                    const ownerUid = postData.match(/uid=([^']+)/)[1];
+
+                    openComments(targetPostId, ownerUid);
+
+                    setTimeout(() => {
+                        const commentEl = document.getElementById(`comment-${targetCommentId}`);
+                        if (commentEl) {
+                            commentEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            commentEl.querySelector('.cm-bubble').classList.add('highlight');
+                        }
+                    }, 1000);
+                }
+            }
+        }, 1500);
+    }
+
+    document.getElementById('postsList').appendChild(div);
+
+    // تشغيل المراقب للفيديوهات
+    div.querySelectorAll('video').forEach(v => videoObserver.observe(v));
+}
 
     
         function checkRelationship() {
@@ -2008,8 +2344,44 @@ logActivity('like', 'أعجبت بمنشور', pid, postOwnerUid);
                     let textClass = c.isSticker ? "" : "cm-text";
 
                     // معالجة المنشن
-                    let displayContent = c.text || "";
-                    if (!c.isSticker && c.replyToUid && c.replyToName && displayContent.startsWith(c.replyToName)) {
+                    // ==========================================
+// استبدل السطر القديم بالكود ده
+// ==========================================
+
+let displayContent = "";
+
+if (c.audioUrl) {
+    // لو الكومنت فيه ريكورد، اعرض مشغل الصوت
+    displayContent = `
+    <div class="audio-msg-container" style="direction: ltr;">
+        <div class="audio-play-btn" onclick="toggleAudioPlay(this.parentElement, '${c.audioUrl}')">
+            <i class="fa-solid fa-play"></i>
+        </div>
+        <div class="audio-progress-bar">
+            <div class="audio-progress-fill"></div>
+        </div>
+        <div class="audio-duration" style="font-size:10px; margin-left:5px;">Voice</div> 
+    </div>`;
+} else {
+    // لو مفيش ريكورد، اعرض النص عادي
+    displayContent = c.text || "";
+}
+
+// ==========================================
+  // داخل دالة openComments
+if (c.audioUrl) {
+    // كود عرض مشغل الصوت
+    displayContent = `
+        <div class="audio-msg-container">
+            <div class="audio-play-btn" onclick="toggleAudioPlay(this.parentElement, '${c.audioUrl}')">
+                <i class="fa-solid fa-play"></i>
+            </div>
+            <div class="audio-progress-bar"><div class="audio-progress-fill"></div></div>
+        </div>`;
+} else {
+    displayContent = c.text;
+}
+       if (!c.isSticker && c.replyToUid && c.replyToName && displayContent.startsWith(c.replyToName)) {
                         const cleanText = displayContent.substring(c.replyToName.length);
                         const mentionBadge = `<span class="reply-mention-link" onclick="event.stopPropagation(); location.href='profile.html?uid=${c.replyToUid}'">${c.replyToName}</span>`;
                         displayContent = `${mentionBadge} <span style="color:inherit">${cleanText}</span>`;
@@ -4442,6 +4814,351 @@ function editProfileDetails() {
     location.href = 'edit.html'; // أو تفتح مودال تعديل سريع
 }
 
+// دالة معالجة النصوص (روابط + هاشتاج + منشن متطور مع العداد الشامل)
+// دالة معالجة النصوص المتطورة (منشن كبسولة + عداد)
+function processPostText(text, mentionsList = []) {
+    if (!text) return "";
+    
+    // 1. تنظيف النص وحمايته
+    let processed = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+    // 2. تحويل الروابط
+    processed = processed.replace(/((https?:\/\/|www\.)[^\s]+)/g, (url) => {
+        let href = url.startsWith('www.') ? 'http://' + url : url;
+        return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
+    });
+
+    // 3. تحويل الهاشتاج
+    processed = processed.replace(/(^|\s)(#[^\s<]+)/g, '$1<span class="text-link" style="color:var(--primary-solid); font-weight:bold;" onclick="searchForHashtag(event, \'$2\')">$2</span>');
+
+    // 4. نظام المنشن الذكي
+    // بنشوف كام واحد معموله منشن
+    const mentionRegex = /(^|\s)@([^\s<]+)/g;
+    const matches = processed.match(mentionRegex);
+    const totalMentions = matches ? matches.length : 0;
+    let mentionIndex = 0; 
+
+    processed = processed.replace(mentionRegex, function(match, space, rawName) {
+        mentionIndex++;
+        
+        let userPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; 
+        let uid = null;
+        let displayName = rawName.replace(/_/g, ' ');
+
+        // محاولة جلب الصورة والـ ID من القائمة المحفوظة
+        if (mentionsList && Array.isArray(mentionsList) && mentionsList.length > 0) {
+            // تنظيف الاسم للمقارنة
+            const cleanNameTarget = rawName.replace(/_/g, ' ').trim();
+            const foundUser = mentionsList.find(u => u.name === cleanNameTarget || u.name === rawName);
+            if (foundUser) {
+                userPic = foundUser.pic || userPic;
+                uid = foundUser.uid;
+            }
+        }
+
+        // --- المنطق: عرض الأول فقط + العداد ---
+        if (mentionIndex === 1) {
+            let counterHTML = "";
+            
+            // لو فيه أكتر من واحد، نضيف زر العداد
+            if (totalMentions > 1) {
+                const remainingCount = totalMentions - 1;
+                
+                // تشفير البيانات عشان نبعتها للدالة لما يضغط
+                let safeDataString = "";
+                try {
+                    safeDataString = btoa(unescape(encodeURIComponent(JSON.stringify(mentionsList || []))));
+                } catch(e) { safeDataString = ""; }
+
+                counterHTML = `<span class="mention-counter" onclick="event.stopPropagation(); openHiddenMentionsList('${safeDataString}')">+${remainingCount}</span>`;
+            }
+
+            // رابط البروفايل (لو الـ UID موجود)
+            const clickAction = uid ? `onclick="event.stopPropagation(); location.href='profile.html?uid=${uid}'"` : "";
+
+            return `${space}<div class="mention-chip" ${clickAction}>
+                        <img src="${userPic}" class="mention-chip-img">
+                        <span class="mention-chip-name">${displayName}</span>
+                   </div>${counterHTML}`;
+        } 
+        // باقي المنشنات تختفي (لأنها جوه العداد)
+        else {
+            return ""; 
+        }
+    });
+
+    return processed;
+}
+
+function openHiddenMentionsList(encodedData) {
+    const sheet = document.getElementById('mentionsListSheet');
+    const container = document.getElementById('hiddenMentionsContainer');
+    
+    sheet.classList.add('active');
+    document.getElementById('overlay').style.display = 'block'; // الخلفية السوداء
+    
+    try {
+        // فك تشفير البيانات
+        const jsonString = decodeURIComponent(escape(atob(encodedData)));
+        const users = JSON.parse(jsonString);
+
+        container.innerHTML = "";
+        
+        users.forEach(u => {
+            const pic = u.pic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            
+            container.innerHTML += `
+            <div style="display:flex; align-items:center; gap:10px; padding:10px; border-bottom:1px solid var(--border-color); cursor:pointer;" 
+                 onclick="location.href='profile.html?uid=${u.uid}'">
+                <div style="width:40px; height:40px; border-radius:50%; background-image:url('${pic}'); background-size:cover;"></div>
+                <div style="font-weight:bold; color:var(--text-color);">${u.name}</div>
+            </div>`;
+        });
+        
+    } catch(e) {
+        console.error(e);
+        container.innerHTML = "<div style='padding:20px; text-align:center;'>حدث خطأ في عرض البيانات</div>";
+    }
+}
+
+// 5. رفع الصوت لفايربيس (باستخدام المسار الصحيح)
+async function uploadCommentVoiceToFirebase(blob) {
+    showToast("جاري إرسال الريكورد... 🎤");
+
+    // ✅ استخدام مسار voice_notes المسموح به في القواعد
+    const filename = `voice_notes/${currentUser.uid}/${Date.now()}.webm`;
+    const storageRef = firebase.storage().ref().child(filename);
+
+    try {
+        const snapshot = await storageRef.put(blob);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+
+        // التأكد من وجود ID المنشور
+        if (!currentPostId) {
+            console.error("No Post ID Found");
+            return;
+        }
+
+        // الحفظ في Firestore
+        await db.collection("posts").doc(currentPostId).collection("comments").add({
+            uid: currentUser.uid,
+            name: currentUserName,
+            pic: currentUserPic || "",
+            isVerified: currentUserVerified || false,
+            text: "", 
+            audioUrl: downloadURL, // الرابط الصوتي
+            type: "audio",
+            isGhost: (typeof isGhost !== 'undefined') ? isGhost : false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // تحديث العداد
+        db.collection("posts").doc(currentPostId).update({
+            commentsCount: firebase.firestore.FieldValue.increment(1)
+        });
+
+        playSound('sent');
+        // استدعاء دالة التحديث لو الصفحة ما بتحدثش لوحدها
+        // loadComments(currentPostId); 
+
+    } catch (error) {
+        console.error("Upload Error:", error);
+        showToast("فشل الإرسال: " + error.message);
+    }
+}
+
+
+// // ==========================================
+// 🎙️ نظام تسجيل التعليقات (المعزول عن الشات)
+// ==========================================
+
+// متغيرات خاصة بالتعليقات فقط (عشان متضربش مع الشات)
+let cmMediaRecorder = null;
+let cmAudioChunks = [];
+let cmRecInterval = null;
+
+// 1. تبديل الأزرار (نص / مايك)
+function toggleCmInputButtons() {
+    const inp = document.getElementById('cmInput');
+    const sendBtn = document.getElementById('cmSendBtn');
+    const micBtn = document.getElementById('cmMicBtn');
+
+    if (inp && sendBtn && micBtn) {
+        if (inp.value.trim().length > 0) {
+            sendBtn.style.display = 'flex';
+            micBtn.style.display = 'none';
+        } else {
+            sendBtn.style.display = 'none';
+            micBtn.style.display = 'flex';
+        }
+    }
+}
+
+// 2. بدء تسجيل التعليق
+async function startCommentRecording() {
+    // التأكد من دعم المتصفح
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast("المتصفح لا يدعم التسجيل");
+        return;
+    }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // استخدام متغير خاص بالكومنتات
+        cmMediaRecorder = new MediaRecorder(stream);
+        cmAudioChunks = [];
+
+        cmMediaRecorder.ondataavailable = event => {
+            if (event.data.size > 0) {
+                cmAudioChunks.push(event.data);
+            }
+        };
+
+        cmMediaRecorder.start();
+        
+        // إظهار واجهة التسجيل الخاصة بالكومنت
+        const ui = document.getElementById('cmRecordingUI');
+        if(ui) ui.style.display = 'flex';
+        
+        playSound('click'); // صوت بدء التسجيل
+        
+        // عداد الوقت الخاص بالكومنت
+        let startTime = Date.now();
+        const timerEl = document.getElementById('cmRecTimer');
+        
+        if (cmRecInterval) clearInterval(cmRecInterval);
+        
+        cmRecInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const s = Math.floor((elapsed / 1000) % 60).toString().padStart(2, '0');
+            const m = Math.floor((elapsed / 1000 / 60)).toString().padStart(2, '0');
+            if(timerEl) timerEl.innerText = `${m}:${s}`;
+        }, 1000);
+
+    } catch (err) {
+        console.error("خطأ في المايك:", err);
+        showToast("يرجى السماح بصلاحية المايكروفون");
+    }
+}
+
+// 3. إلغاء تسجيل التعليق
+function cancelCommentRecording() {
+    if (cmMediaRecorder && cmMediaRecorder.state !== 'inactive') {
+        cmMediaRecorder.stop();
+        // إيقاف استخدام المايك (إطفاء اللمبة الحمراء)
+        cmMediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+    
+    if (cmRecInterval) clearInterval(cmRecInterval);
+    
+    document.getElementById('cmRecordingUI').style.display = 'none';
+    document.getElementById('cmRecTimer').innerText = "00:00";
+    cmAudioChunks = []; // تفريغ البيانات
+}
+
+// 4. إنهاء وإرسال التعليق الصوتي
+function finishCommentRecording() {
+    if (!cmMediaRecorder || cmMediaRecorder.state === 'inactive') return;
+
+    cmMediaRecorder.stop();
+    cmMediaRecorder.stream.getTracks().forEach(track => track.stop());
+    
+    if (cmRecInterval) clearInterval(cmRecInterval);
+    document.getElementById('cmRecordingUI').style.display = 'none';
+    document.getElementById('cmRecTimer').innerText = "00:00";
+
+    // عند توقف التسجيل، نجهز الملف للرفع
+    cmMediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(cmAudioChunks, { type: 'audio/webm' });
+        
+        // فحص حجم الملف (عشان لو داس بالغلط بسرعة)
+        if (audioBlob.size < 1000) { 
+            showToast("التسجيل قصير جداً"); 
+            return; 
+        }
+
+        uploadCommentVoiceToFirebase(audioBlob);
+    };
+}
+
+// 5. رفع الصوت لفايربيس (باستخدام المسار الصحيح)
+async function uploadCommentVoiceToFirebase(blob) {
+    showToast("جاري إرسال الريكورد... 🎤");
+
+    // ✅ استخدام مسار voice_notes المسموح به في القواعد
+    const filename = `voice_notes/${currentUser.uid}/${Date.now()}.webm`;
+    const storageRef = firebase.storage().ref().child(filename);
+
+    try {
+        const snapshot = await storageRef.put(blob);
+        const downloadURL = await snapshot.ref.getDownloadURL();
+
+        // التأكد من وجود ID المنشور
+        if (!currentPostId) {
+            console.error("No Post ID Found");
+            return;
+        }
+
+        // الحفظ في Firestore
+        await db.collection("posts").doc(currentPostId).collection("comments").add({
+            uid: currentUser.uid,
+            name: currentUserName,
+            pic: currentUserPic || "",
+            isVerified: currentUserVerified || false,
+            text: "", 
+            audioUrl: downloadURL, // الرابط الصوتي
+            type: "audio",
+            isGhost: (typeof isGhost !== 'undefined') ? isGhost : false,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        // تحديث العداد
+        db.collection("posts").doc(currentPostId).update({
+            commentsCount: firebase.firestore.FieldValue.increment(1)
+        });
+
+        playSound('sent');
+        // استدعاء دالة التحديث لو الصفحة ما بتحدثش لوحدها
+        // loadComments(currentPostId); 
+
+    } catch (error) {
+        console.error("Upload Error:", error);
+        showToast("فشل الإرسال: " + error.message);
+    }
+}
+
+
+// دالة لتبديل الحالة (لما تضغط على الزرار)
+function togglePostText(id) {
+    const txtDiv = document.getElementById(`txt-${id}`);
+    const btn = document.getElementById(`btn-${id}`);
+    
+    if (!txtDiv || !btn) return;
+
+    if (txtDiv.classList.contains('collapsed')) {
+        // فتح النص
+        txtDiv.classList.remove('collapsed');
+        txtDiv.style.maxHeight = 'none'; // إلغاء الحد الأقصى
+        btn.innerText = 'عرض أقل';
+    } else {
+        // غلق النص
+        txtDiv.classList.add('collapsed');
+        txtDiv.style.maxHeight = '4.8em'; // إرجاع الحد الأقصى
+        btn.innerText = 'عرض المزيد...';
+    }
+}
+
+// دالة لما تضغط على جسم النص نفسه
+function handleTextClick(id) {
+    const txtDiv = document.getElementById(`txt-${id}`);
+    
+    // الشرط: لو النص مفتوح (مش collapsed)، اقفله لما تضغط عليه
+    if (txtDiv && !txtDiv.classList.contains('collapsed')) {
+        togglePostText(id); // استدعاء دالة القفل
+    }
+}
+
 
 </script> 
     <div class="bottom-sheet" id="repliesSheet" style="height: 85vh; border-radius: 24px 24px 0 0;">
@@ -4721,6 +5438,16 @@ function editProfileDetails() {
     <div id="storyDeleteBtn" class="story-delete-btn" onclick="deleteCurrentHighlight()">
         <i class="fa-solid fa-trash"></i>
     </div>
+</div>
+
+
+<div class="bottom-sheet" id="mentionsListSheet" style="height: auto; max-height: 60vh; z-index: 20000;">
+    <div class="sheet-handle"></div>
+    <div class="cm-header">
+        <span style="font-weight: 800;">الإشارات</span>
+        <i class="fa-solid fa-xmark" onclick="document.getElementById('mentionsListSheet').classList.remove('active')" style="cursor:pointer; padding:5px;"></i>
+    </div>
+    <div id="hiddenMentionsContainer" style="padding: 10px; overflow-y: auto;"></div>
 </div>
 
 </body>

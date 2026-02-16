@@ -5177,6 +5177,148 @@ z-index: 2147483647 !important;
     border-color: transparent;
 }
 
+/* ================= تصميم أيقونة السين العائمة (Messenger Style) ================= */
+
+/* حاوية الحالة الخارجية (توضع خارج الفقاعة) */
+.msg-row {
+    position: relative; /* ضروري عشان نقدر نتحكم في مكان الأيقونة بالنسبة للصف */
+    margin-bottom: 20px; /* مسافة إضافية تحت كل رسالة عشان الأيقونة لما تنزل متبقاش لازقة في اللي تحتها */
+}
+
+/* تنسيق الحاوية اللي شايلة الأيقونة */
+.outside-status {
+    position: absolute;
+    bottom: -12px; /* تنزل تحت الرسالة */
+    left: 5px;    /* تثبت على الشمال */
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* حركة ناعمة */
+}
+
+/* تصميم صورة الشخص (الكرة الصغيرة) */
+.seen-avatar-icon {
+    width: 16px; 
+    height: 16px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #fff; /* برواز أبيض صغير */
+    box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    
+    /* أنيميشن الظهور (كأنها بتنط) */
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* إخفاء علامات الصح العادية لو الرسالة اتشافت (اختياري) */
+/* لو عايز الصح تختفي لما الصورة تظهر */
+.msg-status.seen {
+    display: none !important;
+}
+
+/* تنسيق الحاوية الخارجية */
+.outside-status {
+    position: absolute;
+    bottom: -15px; /* نزلناها شوية عشان الكلام يبان */
+    left: 2px;
+    z-index: 5;
+    display: flex;
+    align-items: center; /* محاذاة في النص */
+    gap: 4px; /* مسافة بين الكلام والصورة */
+    transition: all 0.3s ease;
+}
+
+/* تنسيق نص الوقت (منذ دقيقة...) */
+.seen-time-text {
+    font-size: 9px;
+    color: #94a3b8; /* لون رمادي فاتح */
+    font-weight: bold;
+    opacity: 0;
+    animation: fadeInText 0.5s 0.2s forwards; /* يظهر بعد الصورة بشوية */
+    white-space: nowrap;
+}
+
+/* انيميشن ظهور النص */
+@keyframes fadeInText {
+    from { opacity: 0; transform: translateX(5px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* تعديل بسيط للصورة عشان تتماشى مع النص */
+.seen-avatar-icon {
+    width: 14px; 
+    height: 14px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    border: 1px solid #fff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+/* تنسيق كارت الرابط (Link Card) */
+.link-preview-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #1e293b; /* لون كحلي غامق */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    min-width: 240px;
+    max-width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.link-preview-card:active {
+    transform: scale(0.98);
+    background: #253045;
+}
+
+/* الشريط الملون الجانبي */
+.link-preview-card::before {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 4px;
+    background: #00e5ff; /* سيان */
+}
+
+.lp-icon {
+    width: 40px; height: 40px;
+    background: rgba(0, 229, 255, 0.1);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #00e5ff;
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.lp-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex; 
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lp-title {
+    font-size: 13px; font-weight: bold; color: #fff;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.lp-desc {
+    font-size: 11px; color: #94a3b8;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    direction: ltr; text-align: right;
+}
+
+.lp-domain {
+    font-size: 10px; color: #00e5ff; font-weight: bold; margin-top: 2px;
+}
 
     </style>
 </head>
@@ -5714,7 +5856,10 @@ let amIBlocked = false;    // هل هو حظرني؟
 let blockCooldown = 0;     // وقت الانتظار
 
 let remoteCandidatesQueue = []; // 🔥 هذا هو المتغير الناقص
+let isRecipientOnline = false; // متغير لتخزين هل الطرف الآخر فاتح ولا لأ
 
+let lastSeenTimestamp = 0; // سنخزن فيه التوقيت بالمللي ثانية
+let presenceInterval = null; // متغير للعداد عشان نتحكم فيه
 
 // الاستماع لحالة الحظر بشكل فوري (Real-time)
 // تعريف المتغيرات عالمياً
@@ -6292,6 +6437,7 @@ function getShortName(fullName) {
 // 1. استبدل دالة updateHeader القديمة بالكود ده (ده اللي بيظهر الحلقة)
 // ================================================================
 async function updateHeader(uid) {
+    updateAllMessageTicks();
     if (!uid) return;
     
     // إلغاء أي استماع قديم عشان ميعملش تداخل
@@ -6489,7 +6635,10 @@ const verifyEl = document.getElementById("headerVerify");
                     if(onlineIndicator) { onlineIndicator.style.backgroundColor = "#94a3b8"; onlineIndicator.style.boxShadow = "none"; }
                 }
             }
-        } else {
+        }
+        
+        
+        else {
             if(statusElement) statusElement.innerText = "";
             if(onlineIndicator) onlineIndicator.style.backgroundColor = "transparent";
         }
@@ -6796,7 +6945,8 @@ function loadMessages() {
       .orderBy("createdAt", "asc")
       .limitToLast(20) // تحميل آخر 50 رسالة
       .onSnapshot(async snap => {
-          
+          markMessagesAsSeen(snap);
+
                   // --- 1. كود جديد: جلب تاريخ الحذف ---
         let myClearTime = 0;
         try {
@@ -9817,283 +9967,180 @@ function playUiSound(type) {
     // 1. دالة تحديد لون العين (ضعها في آخر الملف)
 // دالة تحديد حالة الرسالة (نظام الماسنجر الدقيق)
 function getEyeStatusHTML(msg, isMe, isLastSeenMessage) {
-    // 1. لو الرسالة مش بتاعتي أو محذوفة -> ولا حاجة
+    // لو الرسالة مش بتاعتي أو ممسوحة -> ولا حاجة
     if (!isMe || msg.type === 'deleted') return '';
 
-    // 2. حالة المشاهدة (Seen)
+    // حالة المشاهدة (Seen: true)
     if (msg.seen) {
-        // الشرط: لازم تكون هي آخر رسالة اتشافت (عشان منكررش الصورة)
         if (isLastSeenMessage) {
-            
-            // نجيب صورة الطرف الآخر من الكاش
-            let otherPic = 'https://i.ibb.co/tZ5tPqB/default-avatar.png'; // صورة احتياطية
-            
-            // نحاول نجيب الصورة الحقيقية
+            // جلب صورة الطرف الآخر من الكاش
+            let otherPic = 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
             if (cachedOtherUserId && userCache[cachedOtherUserId]) {
                 otherPic = userCache[cachedOtherUserId].profilePic || otherPic;
             }
-
-            // إرجاع كود الصورة
+            // إرجاع أيقونة الصورة
             return `<div class="seen-avatar-icon" style="background-image: url('${otherPic}');" title="شوهد"></div>`;
         } else {
-            // لو اتشافت بس فيه رسالة بعدها اتشافت -> نخليها فاضية (نضيف كلاس الماسنجر)
+            // إذا كانت مقروءة ولكن ليست الأخيرة، نخفي الأيقونة (لأن الأيقونة نزلت للرسالة الأحدث)
             return ''; 
         }
     }
 
-    // 3. حالة الوصول (Delivered) - لم تشاهد بعد
-    // (نظهر علامة الصح عادي)
+    // حالة الوصول (Delivered) - لم تُشاهد بعد
     const headerStatus = document.getElementById('headerStatus');
-    const isOnline = headerStatus && (headerStatus.innerText.includes('نشط') || headerStatus.innerText.includes('متصل'));
+    // نفحص هل الطرف الثاني فاتح الشات (Online)
+    const isOnline = headerStatus && (headerStatus.innerText.includes('نشط') || headerStatus.innerText.includes('متصل') || headerStatus.innerText.includes('يكتب'));
     
     if (isOnline) {
-        return '<i class="fa-solid fa-circle-check" style="color:#3b82f6; font-size:12px;"></i>'; // أزرق مصمت
+        // واصلة وهو فاتح (صح زرقاء مصمتة)
+        return '<i class="fa-solid fa-circle-check" style="color:#3b82f6; font-size:12px;"></i>'; 
     } else {
-        return '<i class="fa-regular fa-circle-check" style="color:rgba(255,255,255,0.3); font-size:12px;"></i>'; // مفرغ
+        // واصلة وهو قافل (صح مفرغة باهتة)
+        return '<i class="fa-regular fa-circle-check" style="color:rgba(255,255,255,0.3); font-size:12px;"></i>';
     }
 }
 
 
 // 2. دالة بناء شكل الرسالة (ضعها في آخر الملف)
-function buildMessageHTML(msg, id, u) {
-    const isMe = msg.uid === currentUserId;
+function buildMessageHTML(msg, id, u, isMe) {
     let content = "";
-    
-    // تحديد نوع المحتوى
-    if (msg.type === 'deleted') content = `<span style="font-style:italic;color:#94a3b8;"><i class="fa-solid fa-ban"></i> تم حذف الرسالة</span>`;
-    else if (msg.type === 'text') content = linkify(escapeHtml(msg.text));
-    else if (msg.type === 'image') content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`;
-                            else if (msg.type === 'video') {
-        const vidId = `vid_inline_${doc.id}`; 
-        const videoUrl = msg.text; 
+    let bubbleClass = "msg-bubble target-bubble";
+    let rowStyle = "";
 
-        // 1. متغيرات للتحكم في التوجيه
-        let wrapperClick = ""; // أمر الضغط للصندوق كله
-        let cursorStyle = "";  // شكل الماوس
-        let sharedBadgeHTML = "";
+    // --- تحديد كلاس الفقاعة ---
+    if (msg.type === 'image' || msg.type === 'video') {
+        bubbleClass += " media-bubble";
+    } else if (['sticker', 'gift', 'video_share', 'post_share', 'location', 'contact', 'poll'].includes(msg.type)) {
+        bubbleClass += " transparent-bubble"; // لجعل الكروت تظهر بدون خلفية الفقاعة التقليدية
+    } else if (msg.type === 'deleted') {
+        bubbleClass += " deleted";
+    }
 
-        // 2. لو الفيديو مشاركة وفيه رقم البوست -> نجهز الرابط
-        if (msg.isShared === true && msg.postId) {
-            
-            // 🔥 هنا الحل: حطينا الأمر على الصندوق الكبير 🔥
-            wrapperClick = `onclick="goToOriginalVideo('${msg.postId}')"`;
-            cursorStyle = "cursor: pointer;"; 
-            
-            // العلامة مجرد شكل (شيلنا من عليها الـ onclick)
-            sharedBadgeHTML = `
-                <div class="shared-badge">
-                    <i class="fa-solid fa-share"></i> من الفيديوهات
-                </div>
-            `;
-        }
+    // ================= بناء المحتوى حسب النوع =================
 
-        // 3. بناء الفيديو (لاحظ wrapperClick في أول سطر)
+    // 1. مشاركة فيديو (التصميم الجديد) 🎥
+    if (msg.type === 'video_share') {
         content = `
-        <div class="video-msg-wrapper" ${wrapperClick} style="position: relative; border-radius: 16px; overflow: hidden; background: #000; width: 260px; aspect-ratio: 4/5; ${cursorStyle}">
+        <div class="video-msg-wrapper" onclick="window.location.href='${msg.redirectUrl || 'videos.html?openVideo=' + msg.postId}'" style="cursor: pointer; width: 220px; background: #000; border-radius: 16px; overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1);">
+            <div style="height: 280px; width: 100%; background: linear-gradient(45deg, #1e293b, #0f172a); display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                <i class="fa-solid fa-clapperboard" style="font-size: 40px; color: rgba(255,255,255,0.2); margin-bottom: 10px;"></i>
+                <div style="color: #fff; font-size: 12px; font-weight: bold;">فيديو مشارك</div>
+            </div>
             
-            <video id="${vidId}" src="${videoUrl}#t=0.1" preload="metadata" playsinline style="width: 100%; height: 100%; object-fit: contain;"></video>
-            
-            <div class="video-overlay" style="position: absolute; inset: 0; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;">
-                
-                <div class="center-play-btn" onclick="event.stopPropagation(); toggleInlinePlay('${vidId}', event)" style="width: 50px; height: 50px; background: rgba(255,255,255,0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">
+            <div class="video-overlay" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.3);">
+                <div class="center-play-btn" style="width: 50px; height: 50px; background: rgba(0, 229, 255, 0.2); backdrop-filter: blur(5px); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid #00e5ff;">
                     <i class="fa-solid fa-play" style="color: #fff; font-size: 20px;"></i>
                 </div>
+            </div>
 
-                <div class="expand-icon" 
-                     onclick="event.stopPropagation(); window.openProPlayer('${videoUrl}');" 
-                     style="position: absolute; bottom: 10px; right: 10px; width: 35px; height: 35px; background: rgba(0, 0, 0, 0.7); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 50;">
-                    <i class="fa-solid fa-expand" style="color: #fff; font-size: 16px;"></i>
-                </div>
-                
-                ${sharedBadgeHTML}
-                
+            <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 10px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; gap: 5px;">
+                <i class="fa-solid fa-share" style="color: #00e5ff; font-size: 12px;"></i>
+                <span style="color: #fff; font-size: 11px;">اضغط للمشاهدة</span>
             </div>
         </div>`;
-        
-        bubbleClass += " media-bubble";
     }
 
-// ... الشروط السابقة (image, video, etc.)
-
-    // ================= كود كارت البروفايل (Add inside buildMessageHTML) =================
-    // ================= كود كارت البروفايل (الجزء الناقص) =================
-else if (msg.type === 'profile_card') {
-    // صورة افتراضية لو مفيش صورة
-    const pImage = msg.profileImage || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
-    
-    content = `
-    <div class="profile-share-card">
-        <div class="psc-header">
-            <div class="psc-avatar" style="background-image: url('${pImage}')"></div>
-            <div class="psc-info">
-                <div class="psc-name">${msg.profileName}</div>
-                <div class="psc-subtitle">ملف شخصي 👤</div>
-            </div>
-        </div>
-        <div class="psc-actions">
-            <button class="psc-btn psc-btn-primary" onclick="window.location.href='profile.html?uid=${msg.profileUid}'">
-                عرض الملف الشخصي
-            </button>
-            <button class="psc-btn psc-btn-secondary" onclick="window.location.href='chat.html?chatId=new&uid=${msg.profileUid}'">
-                <i class="fa-regular fa-comment-dots"></i> مراسلة
-            </button>
-        </div>
-    </div>`;
-    
-    // نخلي الفقاعة شفافة عشان الكارت يبان بحدوده هو
-    bubbleClass += " transparent-bubble";
-}
-// =====================================================================
-
- // ================= كود التصويت (Poll) =================
-else if (msg.type === 'poll') {
-    let totalVotes = 0;
-    const votesObj = msg.votes || {};
-    Object.values(votesObj).forEach(v => totalVotes += v);
-
-    let optionsHtml = '';
-    msg.options.forEach((opt) => {
-        const count = votesObj[opt] || 0;
-        let percent = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
-        
-        optionsHtml += `
-        <div class="poll-option-modern" onclick="handleVote('${doc.id}', '${opt}')">
-            <div class="poll-progress-bar" style="width: ${percent}%;"></div>
-            <div class="poll-option-content">
-                <div style="display:flex; align-items:center;">
-                    <div class="poll-radio"></div> <span>${opt}</span>
-                </div>
-                <span class="poll-percent">${percent}%</span>
-            </div>
-        </div>`;
-    });
-
-    content = `
-    <div class="poll-card-modern ${totalVotes > 0 ? 'voted' : ''}">
-        <div class="poll-question-modern">${msg.question}</div>
-        <div class="poll-options-list">${optionsHtml}</div>
-        <div class="poll-footer-modern">
-            <span>إجمالي الأصوات: ${totalVotes}</span>
-            <span>${formatTime(msg.createdAt)}</span>
-        </div>
-    </div>`;
-    
-    // 🔥🔥🔥 التعديل هنا: إضافة كلاس الشفافية لإلغاء الفقاعة الخارجية 🔥🔥🔥
-    bubbleClass += " transparent-bubble"; 
-}
-
-// ================= كود جهات الاتصال (Contact) =================
-else if (msg.type === 'contact') {
-    content = `
-    <div class="msg-contact-card" onclick="window.location.href='tel:${msg.contactNumber}'">
-        <div class="contact-icon-box"><i class="fa-solid fa-user"></i></div>
-        <div class="contact-info-box">
-            <div class="contact-name-text">${msg.contactName}</div>
-            <div class="contact-number-text" dir="ltr">${msg.contactNumber}</div>
-        </div>
-        <div class="contact-action-btn"><i class="fa-solid fa-phone"></i></div>
-    </div>`;
-    
-    // 🔥🔥🔥 التعديل هنا: إضافة كلاس الشفافية لإلغاء الفقاعة الخارجية 🔥🔥🔥
-    bubbleClass += " transparent-bubble";
-}
-
-    // ... باقي الكود ...
-
-
-// ... باقي الشروط
-
-    else if (msg.type === 'audio') content = generateAudioPlayer(msg.text, id);
-    else if (msg.type === 'file') content = `<div class="file-card" onclick="window.open('${msg.text}')"><i class="fa-solid fa-file"></i> ملف</div>`;
-    else if (msg.type === 'call_log') content = `<div class="call-card-inner">📞 ${msg.text==='no_answer'?'مكالمة فائتة':'مكالمة انتهت'}</div>`;
-    else if (msg.type === 'story_reply') {
-        let mediaTag = msg.storyType === 'video' 
-            ? `<video src="${msg.storyUrl}" class="story-reply-media" muted></video>`
-            : `<img src="${msg.storyUrl}" class="story-reply-media">`;
-            
+    // 2. مشاركة منشور عادي 🔗
+    else if (msg.type === 'post_share') {
+        const pLink = `home.html?post=${msg.postId}`;
         content = `
-        <div class="story-reply-container" onclick="window.open('${msg.storyUrl}', '_blank')">
-            <div class="story-media-wrapper">${mediaTag}</div>
-            <div class="story-reply-content">
-                <div class="reply-label">رد على قصتك</div>
-                <div class="reply-text-body">${linkify(escapeHtml(msg.text))}</div>
+        <div class="link-preview-card" onclick="window.location.href='${pLink}'">
+            <div class="lp-icon" style="background: rgba(255, 215, 0, 0.1); color: #FFD700;">
+                <i class="fa-solid fa-newspaper"></i>
+            </div>
+            <div class="lp-content">
+                <div class="lp-title">منشور مشارك</div>
+                <div class="lp-desc">اضغط لعرض المنشور</div>
+                <div class="lp-domain" style="color: #FFD700;">Wareed Post</div>
             </div>
         </div>`;
     }
-let reactionHtml = "";
-    if (msg.reaction) {
-        reactionHtml = `<div class="msg-reaction">${msg.reaction}</div>`;
+
+    // --- باقي الأنواع (كما هي في كودك) ---
+    else if (msg.type === 'text') {
+        const isLink = /^(https?:\/\/[^\s]+)$/.test(msg.text);
+        if (isLink) {
+            // كارت الرابط العادي
+            const url = msg.text;
+            let displayUrl = url;
+            try { displayUrl = new URL(url).hostname; } catch(e){}
+            content = `
+            <div class="link-preview-card" onclick="window.open('${url}', '_blank')">
+                <div class="lp-icon"><i class="fa-solid fa-link"></i></div>
+                <div class="lp-content">
+                    <div class="lp-title">رابط خارجي</div>
+                    <div class="lp-desc">${displayUrl}</div>
+                    <div class="lp-domain">اضغط للفتح 🔗</div>
+                </div>
+            </div>`;
+            bubbleClass += " transparent-bubble";
+        } else {
+            content = formatText(msg.text);
+        }
     }
+    else if (msg.type === 'image') content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`;
+    else if (msg.type === 'video') content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video><div class="video-play-overlay"><i class="fa-solid fa-play"></i></div></div>`;
+    else if (msg.type === 'audio') content = generateAudioPlayer(msg.text, id);
+    else if (msg.type === 'file') {
+        let fileName = "ملف مرفق";
+        try { fileName = decodeURIComponent(msg.text.split('/').pop().split('?')[0].split('_').pop()); } catch(e){}
+        content = `<div class="file-card" onclick="openDocViewer('${msg.text}', '${fileName}')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">${fileName}</span><span class="file-size">تحميل</span></div></div>`;
+    }
+    else if (msg.type === 'gift') {
+        content = `<div class="msg-gift-container" style="text-align:center; padding:10px; min-width:120px;"><div style="font-size:50px; animation:bounce 2s infinite;">${msg.giftIcon}</div><div style="color:#FFD700; font-weight:bold; font-size:14px; margin-top:5px;">${msg.giftName}</div><div style="color:#aaa; font-size:10px;">${msg.giftPrice} <i class="fa-solid fa-coins"></i></div></div>`;
+    }
+    else if (msg.type === 'sticker') {
+        content = `<span class="sticker-content">${msg.text}</span>`;
+    }
+    else if (msg.type === 'deleted') {
+        content = `<span style="font-style: italic; color: #94a3b8; font-size: 13px;"><i class="fa-solid fa-ban"></i> ${isMe ? "أنت حذفت هذه الرسالة" : "تم حذف هذه الرسالة"}</span>`;
+    }
+    else if (msg.type === 'call_log') {
+        content = `<div class="call-card-inner">📞 ${msg.text==='no_answer'?'مكالمة فائتة':'مكالمة انتهت'}</div>`;
+    }
+    else if (msg.type === 'location') {
+        const mapLink = `http://maps.google.com/maps?q=${msg.lat},${msg.lng}`;
+        content = `<div class="location-msg-card" onclick="window.open('${mapLink}', '_blank')"><div class="map-pin-container"><i class="fa-solid fa-location-dot map-pin-icon"></i></div><div class="location-footer"><div class="loc-icon-box"><i class="fa-solid fa-map-location-dot"></i></div><div class="loc-text-info"><span class="loc-title">موقع حالي</span><span class="loc-sub">اضغط للفتح</span></div></div></div>`;
+    }
+    else if (msg.type === 'contact') {
+        content = `<div class="msg-contact-card" onclick="window.location.href='tel:${msg.contactNumber}'"><div class="contact-icon-box"><i class="fa-solid fa-user"></i></div><div class="contact-info-box"><div class="contact-name-text">${msg.contactName}</div><div class="contact-number-text" dir="ltr">${msg.contactNumber}</div></div><div class="contact-action-btn"><i class="fa-solid fa-phone"></i></div></div>`;
+    }
+    else if (msg.type === 'profile_card') {
+        const pImage = msg.profileImage || 'https://i.ibb.co/tZ5tPqB/default-avatar.png';
+        content = `<div class="profile-share-card"><div class="psc-header"><div class="psc-avatar" style="background-image: url('${pImage}')"></div><div class="psc-info"><div class="psc-name">${msg.profileName}</div><div class="psc-subtitle">ملف شخصي 👤</div></div></div><div class="psc-actions"><button class="psc-btn psc-btn-primary" onclick="window.location.href='profile.html?uid=${msg.profileUid}'">عرض الملف</button></div></div>`;
+    }
+    
+    // --- منطق الرد والتفاعل ---
+    let replyHtml = "";
+    if (msg.replyTo && msg.type !== 'deleted') {
+         replyHtml = `<div class="replied-msg-context" style="padding:5px; background:rgba(0,0,0,0.2); margin-bottom:5px; border-radius:5px; font-size:11px; cursor:pointer;" onclick="handleSearchResultClick('${msg.replyTo.id}')"><div style="color:var(--accent-color); font-weight:bold;">${msg.replyTo.sender}</div><div style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:#ccc;">${msg.replyTo.text}</div></div>`;
+    }
+
+    let reactionHtml = "";
+    if (msg.reaction && msg.type !== 'deleted') {
+        reactionHtml = `<div class="msg-reaction" onclick="event.stopPropagation(); toggleReaction('${msg.reaction}')">${msg.reaction}</div>`;
+        rowStyle = 'margin-bottom: 25px;';
+    }
+
+    const timeText = msg.createdAt ? formatTime(msg.createdAt) : "";
+    const isLastSeen = (typeof lastSeenMsgId !== 'undefined' && id === lastSeenMsgId); 
+    const eyeHtml = getEyeStatusHTML(msg, isMe, isLastSeen);
+    const miniAvatar = `<div class="msg-user-avatar" onclick="openUserPopup('${msg.uid}')" style="background-image: url('${u.profilePic}'); background-color:${u.color}; cursor: pointer;">${u.profilePic?'':u.char}</div>`;
 
     return `
-    <div class="msg-row ${isMe ? 'sender' : 'receiver'}" id="msg_${id}">
+    <div class="msg-row ${isMe ? 'sender' : 'receiver'}" id="msg_${id}" style="${rowStyle}">
         ${!isMe ? miniAvatar : ''}
         <div class="${bubbleClass}" style="position: relative;">
             ${!isMe ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
-            
             ${replyHtml}
             <div>${content}</div>
-            
             ${reactionHtml}
-
-            <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
-                <span class="msg-time">${timeText}</span>
-            </div>
-        </div>
-    </div>`;
-
-
-    // مؤشر القنبلة
-    let bombHtml = "";
-    if (msg.selfDestruct && msg.type !== 'deleted') {
-         bombHtml = `<div id="bomb_${id}" class="bomb-info"><i class="fa-solid fa-bomb"></i></div>`;
-    }
-    
-    
-    // 2. إضافة replyHtml داخل الـ HTML النهائي
-    return `
-    <div class="msg-row ${isMe ? 'sender' : 'receiver'}" id="msg_${id}">
-        ${!isMe ? miniAvatar : ''}
-        <div class="${bubbleClass}">
-            ${!isMe ? `
-    <div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px; display:flex; align-items:center; gap:4px;">
-        ${u.name}
-        ${u.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#00e5ff; font-size:10px;"></i>' : ''}
-    </div>
-` : ''}
-            
-            ${replyHtml}
-            
-            <div>${content}</div>
-            <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
-                <span class="msg-time">${timeText}</span>
-            </div>
-        </div>
-    </div>`;
-
-
-    // العين والوقت
-    // 3. بنبعت المتغير الثالث للدالة
-// نمرر الـ ID اللي لقطناه فوق للدالة
-const eyeHtml = getEyeStatusHTML(msg, isMe, (doc.id === lastSeenMsgId));
-
-    const timeText = msg.createdAt ? formatTime(msg.createdAt) : "";
-    const avatar = `<div class="msg-user-avatar" style="background-image:url('${u.profilePic}');">${u.char}</div>`;
-
-    return `
-    <div class="msg-row ${isMe ? 'sender' : 'receiver'}" id="msg_${id}">
-        ${!isMe ? avatar : ''}
-        <div class="msg-bubble target-bubble ${msg.type==='deleted'?'deleted':''}">
-            ${!isMe ? `<div style="color:${u.color};font-size:11px;font-weight:bold;">${u.name}</div>` : ''}
-            <div>${content}</div>
-            ${bombHtml}
-            <div class="msg-meta-row" style="display:flex;justify-content:flex-end;gap:5px;">
-                <span class="msg-time">${timeText}</span>
-                <span id="status_${id}">${eyeHtml}</span>
-            </div>
+            ${msg.type !== 'deleted' ? `<div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;"><span class="msg-time">${timeText}</span>${eyeHtml}</div>` : ''}
         </div>
     </div>`;
 }
+
+
     // قاموس المشاعر
 const moodDictionary = {
     // 😄 الفرح والضحك والروقان
@@ -10463,12 +10510,6 @@ snapshot.forEach(doc => {
     // ✅ التصحيح: عرفنا isMe في البداية خالص
     const isMe = msg.uid === currentUserId; 
 
-    // الآن الشرط سيعمل ولن يوقف الكود
-    if (!isMe && !msg.seen && document.visibilityState === 'visible') {
-        db.collection("chats").doc(chatId).collection("messages").doc(doc.id).update({
-            seen: true
-        }).catch(()=>{});
-    }
                 // نتجاهل الرسائل المحذوفة ورسائل النظام
                 if (msg.type === 'deleted' || msg.type === 'system') return;
                 
@@ -10781,127 +10822,6 @@ if (!isMe && !msg.seen && document.visibilityState === 'visible') {
 function exitArchiveMode() {
     isArchiveMode = false;
     location.reload(); // ريفرش سريع يرجعك للوضع الطبيعي
-}
-
-// استبدل الدالة القديمة buildMessageHTML بهذه:
-function buildMessageHTML(msg, id, u, isMe) {
-    let content = "";
-  let bubbleClass = "msg-bubble target-bubble";
-
-// الشرط الجديد: لو الرسالة صورة أو فيديو، ضيف كلاس الشفافية
-if (msg.type === 'image' || msg.type === 'video') {
-    bubbleClass += " media-bubble"; // تفعيل الشفافية للصور والفيديو
-
-
-} else if (msg.type === 'deleted') {
-    bubbleClass += " deleted";
-} else if (msg.type === 'sticker') {
-    // الكود القديم بتاعك للملصقات
-    bubbleClass += " sticker-bubble transparent-bubble"; 
-} else if (msg.type === 'gift') {
-    bubbleClass += " gift-bubble";
-}
-// ==========================================================   // ... (نفس كود تحديد المحتوى السابق) ...
-    if (msg.type === 'deleted') { content = `<span style="font-style: italic; color: #94a3b8; font-size: 13px;">🚫 تم حذف الرسالة</span>`; bubbleClass += " deleted"; }
-    else if (msg.type === 'text') { content = linkify(escapeHtml(msg.text)); }
-    else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; }
-    else if (msg.type === 'video') { content = `<div class="media-container" onclick="toggleVideo(this)"><video src="${msg.text}" class="msg-video" playsinline loop></video></div>`; }
-    else if (msg.type === 'audio') { content = generateAudioPlayer(msg.text, id); }
-    else if (msg.type === 'file') { content = `<div class="file-card" onclick="window.open('${msg.text}', '_blank')"><div class="file-icon"><i class="fa-solid fa-file-lines"></i></div><div class="file-info"><span class="file-name">ملف مرفق</span><span class="file-size">تحميل</span></div></div>`; }
-        // ... داخل دالة buildMessageHTML ...
-
-    // 1. عرض الهدية المدفوعة (شكل فخم)
-    else if (msg.type === 'gift') {
-        content = `
-        <div class="msg-gift-container" style="text-align:center; padding:10px; min-width:120px;">
-            <div style="font-size:50px; animation:bounce 2s infinite;">${msg.giftIcon}</div>
-            <div style="color:#FFD700; font-weight:bold; font-size:14px; margin-top:5px;">${msg.giftName}</div>
-            <div style="color:#aaa; font-size:10px;">${msg.giftPrice} <i class="fa-solid fa-coins"></i></div>
-        </div>`;
-        bubbleClass += " gift-bubble"; // ستايل ذهبي (اللي ضفناه قبل كده)
-    }
-    // ================= أضف هذا الجزء داخل دالة buildMessageHTML =================
-
-    // عرض كارت الموقع (Map Card)
-        // ================= كود الموقع (Location) - النسخة المعدلة =================
-    else if (msg.type === 'location') {
-        
-        // 1. رابط ديناميكي يجيب صورة الشارع الحقيقي من Yandex (مجاني)
-        // بنبعتله الإحداثيات (lng, lat) وبيرجع صورة
-        const mapPlaceholder = `https://static-maps.yandex.ru/1.x/?lang=en_US&ll=${msg.lng},${msg.lat}&z=16&l=map&size=600,300`;
-
-        // 2. رابط جوجل مابس عشان لما يضغط يفتح التطبيق (تم إصلاح الرابط)
-        const googleMapsLink = `https://www.google.com/maps/search/?api=1&query=${msg.lat},${msg.lng}`;
-
-        content = `
-        <div class="location-msg-card" onclick="window.open('${googleMapsLink}', '_blank')">
-            
-            <img src="${mapPlaceholder}" class="location-bg-image" alt="Location" 
-                 onerror="this.src='https://i.ibb.co/vz0wJqR/map-placeholder.png'"> <div class="map-pin-container">
-                <i class="fa-solid fa-location-dot map-pin-icon"></i>
-                <div class="map-pin-shadow"></div>
-            </div>
-
-            <div class="location-footer">
-                <div class="loc-icon-box">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                </div>
-                <div class="loc-text-info">
-                    <span class="loc-title">موقع حالي 📍</span>
-                    <span class="loc-sub">اضغط لفتح الخريطة</span>
-                </div>
-            </div>
-        </div>`;
-        
-        // جعل الفقاعة شفافة لأن الكارت له تصميمه الخاص
-        bubbleClass += " transparent-bubble";
-    }
-
-
-// =========================================================================
-
-    // 2. عرض الملصق المجاني (كبير وبدون خلفية)
-    else if (msg.type === 'sticker') {
-    // عرض الملصق (Sticker) - إزالة الستايل المباشر
-    content = `<span class="sticker-content">${msg.text}</span>`;
-    bubbleClass = "msg-bubble sticker-bubble transparent-bubble"; 
-} 
-
-
-    // ... باقي الكود ...
-
-    // 🔥 إضافة منطق الرد هنا أيضاً
-    let replyHtml = "";
-    if (msg.replyTo && msg.type !== 'deleted') {
-         replyHtml = `<div class="replied-msg-context" style="padding:5px; background:rgba(0,0,0,0.2); margin-bottom:5px; border-radius:5px; font-size:11px;"><div style="color:var(--accent-color);">${msg.replyTo.sender}</div><div>${msg.replyTo.text}</div></div>`;
-    }
-
-    // 🔥 إضافة منطق التفاعل هنا أيضاً
-    let reactionHtml = "";
-    if (msg.reaction) {
-        reactionHtml = `<div class="msg-reaction" onclick="event.stopPropagation(); toggleReaction('${msg.reaction}')">${msg.reaction}</div>`;
-    }
-
-    const timeText = msg.createdAt ? formatTime(msg.createdAt) : "";
-    const miniAvatar = `<div class="msg-user-avatar" onclick="openUserPopup('${msg.uid}')" style="background-image: url('${u.profilePic}'); background-color:${u.color}; cursor: pointer;">${u.profilePic?'':u.char}</div>`;
-
-    // إضافة ستايل margin-bottom للرسالة لو فيها تفاعل
-    return `
-    <div class="msg-row ${isMe ? 'sender' : 'receiver'}" id="msg_${id}" style="${msg.reaction ? 'margin-bottom: 20px;' : ''}">
-        ${!isMe ? miniAvatar : ''}
-        <div class="${bubbleClass}" style="position: relative;">
-            ${!isMe ? `<div class="sender-name" style="color:${u.color}; font-size:11px; margin-bottom:2px;">${u.name}</div>` : ''}
-            
-            ${replyHtml}
-            <div>${content}</div>
-            
-            ${reactionHtml}
-
-            <div class="msg-meta-row" style="display:flex; justify-content:flex-end; gap:5px; align-items:center; margin-top:3px;">
-                <span class="msg-time">${timeText}</span>
-            </div>
-        </div>
-    </div>`;
 }
 
 
@@ -14667,6 +14587,132 @@ function goToOriginalVideo(postId) {
     window.location.href = `videos.html?openVideo=${postId}`;
 }
 
+// ✅ دالة ذكية لتحديث الرسائل غير المقروءة دفعة واحدة
+async function markMessagesAsSeen(snapshot) {
+    if (!chatId || !currentUserId || document.visibilityState !== 'visible') return;
+
+    const batch = db.batch();
+    let hasUpdates = false;
+
+    snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        // الشرط: الرسالة ليست لي + ليست مقروءة
+        if (data.uid !== currentUserId && !data.seen && data.type !== 'deleted') {
+            const ref = db.collection("chats").doc(chatId).collection("messages").doc(doc.id);
+            batch.update(ref, { 
+                seen: true,
+                seenAt: firebase.firestore.FieldValue.serverTimestamp() // 🔥 إضافة وقت الرؤية
+            });
+            hasUpdates = true;
+        }
+    });
+
+    if (hasUpdates) {
+        try {
+            await batch.commit();
+            // تصفير العداد
+            db.collection("chats").doc(chatId).update({ unreadCount: 0 }).catch(()=>{});
+        } catch (e) { console.error(e); }
+    }
+}
+
+async function markMessagesAsSeen(snapshot) {
+    if (!chatId || !currentUserId || document.visibilityState !== 'visible') return;
+
+    const batch = db.batch();
+    let hasUpdates = false;
+
+    snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        // الشرط: الرسالة ليست لي + ليست مقروءة
+        if (data.uid !== currentUserId && !data.seen && data.type !== 'deleted') {
+            const ref = db.collection("chats").doc(chatId).collection("messages").doc(doc.id);
+            batch.update(ref, { 
+                seen: true,
+                seenAt: firebase.firestore.FieldValue.serverTimestamp() // 🔥 إضافة وقت الرؤية
+            });
+            hasUpdates = true;
+        }
+    });
+
+    if (hasUpdates) {
+        try {
+            await batch.commit();
+            // تصفير العداد
+            db.collection("chats").doc(chatId).update({ unreadCount: 0 }).catch(()=>{});
+        } catch (e) { console.error(e); }
+    }
+}
+
+function updateAllMessageTicks() {
+    const ticks = document.querySelectorAll('.status-tick');
+    
+    ticks.forEach(icon => {
+        if (isRecipientOnline) {
+            // الشخص فاتح (والوقت لم يتجاوز 60 ثانية) -> أزرق
+            icon.style.color = "#3b82f6"; 
+            icon.classList.remove('fa-regular');
+            icon.classList.add('fa-solid');
+        } else {
+            // الشخص قفل (أو مر الوقت) -> رمادي
+            icon.style.color = "rgba(255, 255, 255, 0.3)"; 
+            icon.classList.remove('fa-solid');
+            icon.classList.add('fa-regular');
+        }
+    });
+}
+
+
+function startPresenceHeartbeat() {
+    // تنظيف أي عداد قديم
+    if (presenceInterval) clearInterval(presenceInterval);
+
+    presenceInterval = setInterval(() => {
+        const now = Date.now();
+        const diffSeconds = (now - lastSeenTimestamp) / 1000;
+        
+        // المتغير العام الذي يعتمد عليه رسم الأيقونات
+        // إذا كان الفرق أقل من 60 ثانية -> هو أونلاين
+        // إذا زاد عن 60 ثانية (حتى لو بـ ثانية واحدة) -> يتحول لأوفلاين فوراً
+        const wasOnline = isRecipientOnline; // نحفظ الحالة القديمة للمقارنة
+        isRecipientOnline = (diffSeconds < 60 && lastSeenTimestamp !== 0);
+
+        // تحديث واجهة الهيدر (النص واللون)
+        const statusElement = document.getElementById("headerStatus");
+        const onlineIndicator = document.querySelector(".online-status");
+
+        if (statusElement) {
+            if (isRecipientOnline) {
+                statusElement.innerText = 'نشط الآن';
+                statusElement.style.color = "#10b981";
+                if(onlineIndicator) {
+                    onlineIndicator.style.backgroundColor = "#10b981";
+                    onlineIndicator.style.boxShadow = "0 0 8px #10b981";
+                }
+            } else {
+                // حساب الوقت المنقضي للعرض
+                let timeAgoText = "";
+                if (diffSeconds < 60) timeAgoText = "نشط الآن";
+                else if (diffSeconds < 3600) timeAgoText = `منذ ${Math.floor(diffSeconds / 60)} دقيقة`;
+                else if (diffSeconds < 86400) timeAgoText = `منذ ${Math.floor(diffSeconds / 3600)} ساعة`;
+                else timeAgoText = "منذ فترة";
+
+                statusElement.innerText = timeAgoText;
+                statusElement.style.color = "#94a3b8";
+                if(onlineIndicator) {
+                    onlineIndicator.style.backgroundColor = "#94a3b8";
+                    onlineIndicator.style.boxShadow = "none";
+                }
+            }
+        }
+
+        // 🔥 الأهم: تحديث أيقونات الرسائل (الأزرق/الرمادي)
+        // نقوم بالتحديث فقط لو الحالة تغيرت (عشان الأداء)
+        // أو نقوم بالتحديث دائماً لضمان الدقة
+        updateAllMessageTicks(); 
+
+    }, 5000); // يفحص كل 5 ثواني
+}
 
     </script>
     

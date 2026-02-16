@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المدير العام</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background: #f1f5f9; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; }
+        .login-box { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 350px; text-align: center; }
+        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #0f172a; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button:hover { background: #334155; }
+        .error { color: red; font-size: 13px; margin-top: 10px; display: none; }
+        
+        /* Dashboard Styles (مخفية في البداية) */
+        #dashboard { display: none; width: 100%; height: 100%; position: absolute; top: 0; background: #f8fafc; flex-direction: column; }
+        .nav { background: #0f172a; color: white; padding: 20px; display: flex; justify-content: space-between; }
+        .content { padding: 50px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="login-box">
+        <h2 style="margin-bottom: 5px;">دخول الإدارة 🔒</h2>
+        <p style="color: #64748b; font-size: 14px; margin-bottom: 20px;">المدير العام فقط</p>
+        
+        <input type="email" id="email" placeholder="البريد الإلكتروني" value="yahiakhodir114@gmail.com">
+        <input type="password" id="password" placeholder="كلمة المرور" value="359264">
+        
+        <button onclick="checkLogin()" id="login-btn">تسجيل الدخول</button>
+        <div id="error-msg" class="error"></div>
+    </div>
+
+    <div id="dashboard">
+        <div class="nav">
+            <h3>لوحة التحكم العليا</h3>
+            <button onclick="logout()" style="width: auto; background: red;">خروج</button>
+        </div>
+        <div class="content">
+            <h1>أهلاً بك يا مدير 👋</h1>
+            <p>تم تسجيل دخولك بنجاح ببياناتك الخاصة.</p>
+            
+            <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <h3>إضافة أدمن جديد للموقع</h3>
+                <input type="email" id="new-admin-email" placeholder="بريد الأدمن الجديد">
+                <input type="text" id="new-admin-pass" placeholder="كلمة المرور">
+                <button onclick="createNewAdmin()" style="background: #10b981;">إضافة الآن</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAVPlaJ1mY_h0ZwKG_FJh8Kphx2Bzn0IN8",
+            authDomain: "news-927f1.firebaseapp.com",
+            projectId: "news-927f1",
+            storageBucket: "news-927f1.firebasestorage.app",
+            messagingSenderId: "130738511243",
+            appId: "1:130738511243:web:eabfbe8fbe9712c2ebe38e",
+            measurementId: "G-HN8D0NNZSK"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = app.auth();
+        const db = app.firestore();
+
+        // --- البيانات الوحيدة المسموح لها بالدخول ---
+        const ALLOWED_EMAIL = "yahiakhodir114@gmail.com";
+        const ALLOWED_PASS = "359264";
+
+        function checkLogin() {
+            const email = document.getElementById('email').value.trim();
+            const pass = document.getElementById('password').value.trim();
+            const btn = document.getElementById('login-btn');
+            const errorMsg = document.getElementById('error-msg');
+
+            errorMsg.style.display = 'none';
+
+            // 1. فحص مبدئي: هل البيانات مطابقة للي أنت عايزه؟
+            if (email !== ALLOWED_EMAIL || pass !== ALLOWED_PASS) {
+                errorMsg.innerText = "⛔ غير مسموح بالدخول إلا للمدير العام!";
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            btn.innerText = "جاري التحقق...";
+
+            // 2. محاولة الدخول بفايربيز
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    // نجاح الدخول
+                    showDashboard();
+                })
+                .catch((error) => {
+                    // لو الحساب مش موجود أصلاً في فايربيز، ننشئه أوتوماتيك بنفس البيانات دي
+                    if (error.code === 'auth/user-not-found') {
+                        auth.createUserWithEmailAndPassword(email, pass)
+                            .then(() => {
+                                showDashboard(); // تم الإنشاء والدخول
+                            });
+                    } else if (error.code === 'auth/wrong-password') {
+                        errorMsg.innerText = "كلمة المرور خطأ (ربما تم تغييرها سابقاً في قاعدة البيانات)";
+                        errorMsg.style.display = 'block';
+                        btn.innerText = "تسجيل الدخول";
+                    } else {
+                        errorMsg.innerText = "خطأ: " + error.message;
+                        errorMsg.style.display = 'block';
+                        btn.innerText = "تسجيل الدخول";
+                    }
+                });
+        }
+
+        function showDashboard() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'flex';
+            document.body.style.background = '#f8fafc';
+        }
+
+        function logout() {
+            auth.signOut().then(() => {
+                location.reload();
+            });
+        }
+        
+        // دالة إنشاء أدمن جديد (تستخدم تطبيق ثانوي عشان ما تخرجكش)
+        function createNewAdmin() {
+            const secondaryApp = firebase.initializeApp(firebaseConfig, "Secondary");
+            const email = document.getElementById('new-admin-email').value;
+            const pass = document.getElementById('new-admin-pass').value;
+            
+            if(!email || !pass) return alert("أدخل البيانات كاملة");
+
+            secondaryApp.auth().createUserWithEmailAndPassword(email, pass)
+                .then((userCred) => {
+                    // إضافة للداتابيز عشان يظهر في لوحة الأخبار
+                    db.collection('admins_list').doc(userCred.user.uid).set({
+                        email: email,
+                        role: 'Admin',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+                    secondaryApp.auth().signOut();
+                    alert("تم إضافة الأدمن بنجاح ✅");
+                    document.getElementById('new-admin-email').value = '';
+                    document.getElementById('new-admin-pass').value = '';
+                })
+                .catch(err => alert("خطأ: " + err.message));
+        }
+
+        // لو المستخدم مسجل دخول أصلاً، دخله علطول
+        auth.onAuthStateChanged(user => {
+            if(user && user.email === ALLOWED_EMAIL) {
+                showDashboard();
+            }
+        });
+    </script>
+</body>
+</html>

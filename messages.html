@@ -5472,7 +5472,155 @@ async function unrestrictFromPage(targetUid) {
     </div>
 </div>
 
+<div id="chatLockModal" class="custom-modal" style="z-index: 60000;">
+    <div class="modal-box" style="text-align: center;">
+        <h3 style="color:#fff; margin-bottom:15px;">🔒 الدردشة مقفلة</h3>
+        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">هذه المحادثة محمية بكلمة مرور.</p>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="chatPassInput" class="pro-input" placeholder="أدخل كلمة المرور (6 أرقام)" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 18px;">
+        </div>
 
+        <div class="modal-actions">
+            <button onclick="verifyChatPassword()" class="btn-purple">فتح الدردشة</button>
+            <button onclick="closeChatLockModal()" class="btn-dark">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="setChatPassModal" class="custom-modal" style="z-index: 60000;">
+    <div class="modal-box" style="text-align: center;">
+        <h3 style="color:#fff; margin-bottom:15px;">🔐 تعيين قفل للدردشة</h3>
+        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">اختر كلمة مرور من 6 أرقام.</p>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="newChatPassInput" class="pro-input" placeholder="كلمة المرور الجديدة" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 18px;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="saveChatPassword()" class="btn-purple">حفظ القفل</button>
+            <button onclick="document.getElementById('setChatPassModal').style.display='none'" class="btn-dark">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+<div id="unlockChatModal" class="custom-modal" style="z-index: 70000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 0 30px rgba(0,0,0,0.8);">
+        
+        <div style="width:70px; height:70px; background:linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.3)); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255, 215, 0, 0.3);">
+            <i class="fa-solid fa-unlock-keyhole" style="font-size:30px; color:#FFD700;"></i>
+        </div>
+
+        <h3 style="color:#fff; margin-bottom:10px;">إلغاء قفل المحادثة</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:25px;">أدخل كلمة المرور الحالية لإزالة الحماية.</p>
+        
+        <div class="input-group" style="margin-bottom: 25px;">
+            <input type="password" id="unlockPassInput" class="pro-input" 
+                   placeholder="● ● ● ● ● ●" maxlength="6" 
+                   style="text-align: center; letter-spacing: 8px; font-size: 20px; border-color: rgba(255, 215, 0, 0.3); font-weight:bold; color:#FFD700;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="confirmUnlockAction()" class="btn-purple" style="background:linear-gradient(135deg, #FFD700, #d4af37); color:#000;">تأكيد الإلغاء</button>
+            <button onclick="closeUnlockModal()" class="btn-dark" style="margin-top:0;">تراجع</button>
+        </div>
+    </div>
+</div>
+
+<div id="setupSecretModal" class="custom-modal" style="z-index: 70000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #ff3b30;">
+        <div style="width:60px; height:60px; background:rgba(255, 59, 48, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-user-secret" style="font-size:30px; color:#ff3b30;"></i>
+        </div>
+        <h3 style="color:#fff; margin-bottom:10px;">إنشاء الخزنة السرية</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">قم بتعيين رمز مرور موحد لجميع محادثاتك السرية.</p>
+        
+        <input type="password" id="createSecretPass" class="pro-input" placeholder="رمز جديد (4-6 أرقام)" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
+        
+        <button onclick="saveNewSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ وإنشاء</button>
+        <button onclick="document.getElementById('setupSecretModal').style.display='none'" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+    </div>
+</div>
+
+<div id="verifySecretModal" class="custom-modal" style="z-index: 70000;">
+    <div class="modal-box" style="text-align: center;">
+        <h3 style="color:#fff; margin-bottom:15px;">🔒 منطقة محظورة</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">أدخل الرمز السري للمتابعة.</p>
+        
+        <input type="password" id="inputSecretPass" class="pro-input" placeholder="الرمز السري" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
+        
+        <button onclick="checkSecretPass()" class="btn-purple" style="background:linear-gradient(135deg, #ff3b30, #991b1b);">فتح الخزنة</button>
+        <button onclick="closeVerifySecret()" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+    </div>
+</div>
+
+<div id="secretChatsPage" class="profile-page" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; background:#000; z-index: 60000;">
+    <div class="pp-header" style="background:rgba(20,0,0,0.95); border-bottom:1px solid rgba(255,59,48,0.2); display: flex; align-items: center; justify-content: space-between; padding: 15px;">
+        
+        <div class="icon-btn" onclick="document.getElementById('secretChatsPage').style.display='none'" style="background:rgba(255,255,255,0.1); color:#fff;">
+            <i class="fa-solid fa-arrow-right"></i>
+        </div>
+        
+        <h3 style="color:#ff3b30; margin:0;"><i class="fa-solid fa-user-secret"></i> الخزنة</h3>
+        
+        <div class="icon-btn" onclick="openChangeSecretPassModal()" style="background:rgba(255, 59, 48, 0.15); color:#ff3b30; border:1px solid rgba(255, 59, 48, 0.3);">
+            <i class="fa-solid fa-key"></i>
+        </div>
+    </div>
+    
+    <div id="secretList" style="padding:10px; overflow-y:auto; flex:1;"></div>
+</div>
+<div id="changeSecretPassModal" class="custom-modal" style="z-index: 75000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #ff3b30;">
+        <h3 style="color:#fff; margin-bottom:15px;">تغيير رمز الخزنة 🔐</h3>
+        
+        <div class="input-group" style="margin-bottom: 15px;">
+            <input type="password" id="oldSecretPass" class="pro-input" placeholder="الرمز الحالي" maxlength="6" style="text-align:center; letter-spacing:3px;">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 10px;">
+            <input type="password" id="newSecretPass" class="pro-input" placeholder="الرمز الجديد" maxlength="6" style="text-align:center; letter-spacing:3px; border-color:#ff3b30;">
+        </div>
+
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="confirmSecretPass" class="pro-input" placeholder="تأكيد الرمز الجديد" maxlength="6" style="text-align:center; letter-spacing:3px; border-color:#ff3b30;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="confirmChangeSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ التغيير</button>
+            <button onclick="document.getElementById('changeSecretPassModal').style.display='none'" class="btn-dark">إلغاء</button>
+            
+            
+            <div onclick="initResetProcess('CHAT')" style="margin-top:15px; color:#8b5cf6; cursor:pointer; font-size:12px; text-decoration:underline;">نسيت كلمة المرور؟</div>
+
+<div onclick="initResetProcess('VAULT')" style="margin-top:15px; color:#ff3b30; cursor:pointer; font-size:12px; text-decoration:underline;">نسيت رمز الخزنة؟</div>
+
+
+<div id="masterResetModal" class="custom-modal" style="z-index: 80000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #FFD700;">
+        <div style="width:60px; height:60px; background:rgba(255, 215, 0, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
+            <i class="fa-solid fa-key" style="font-size:24px; color:#FFD700;"></i>
+        </div>
+        
+        <h3 style="color:#fff; margin-bottom:10px;">إثبات الملكية</h3>
+        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">
+            لإعادة التعيين، يرجى إدخال <b>كلمة مرور حسابك الأساسية</b> (الخاصة بتسجيل الدخول).
+        </p>
+        
+        <div class="input-group" style="margin-bottom: 20px;">
+            <input type="password" id="masterPassInput" class="pro-input" placeholder="كلمة مرور الحساب" style="text-align: center;">
+        </div>
+
+        <div class="modal-actions">
+            <button onclick="confirmMasterReset()" class="btn-purple" style="background:linear-gradient(135deg, #FFD700, #b45309); color:#000;">تأكيد وإلغاء القفل</button>
+            <button onclick="closeMasterResetModal()" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+        </div>
+    </div>
+</div>
+
+        </div>
+    </div>
+</div>
 
 <div id="searchResultsModal" class="search-results-popup">
     <div id="searchResultsList"></div>
@@ -5677,6 +5825,111 @@ async function toggleRestrictStatus(chatId, shouldRestrict) {
     }
 }
 
+// إضافة دعم زر Enter للخزنة السرية
+const secretInput = document.getElementById('inputSecretPass');
+if (secretInput) {
+    secretInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            checkSecretPass();
+        }
+    });
+}
+
+// متغير لتحديد نوع العملية (هل هي استعادة شات أم خزنة؟)
+let resetTargetType = null;
+
+// 1. فتح نافذة إعادة التعيين
+function initResetProcess(type) {
+    // إخفاء النوافذ الأخرى المفتوحة
+    document.getElementById('chatLockModal').style.display = 'none';
+    document.getElementById('verifySecretModal').style.display = 'none';
+    
+    // إعداد النافذة الجديدة
+    resetTargetType = type; // CHAT or VAULT
+    const modal = document.getElementById('masterResetModal');
+    const input = document.getElementById('masterPassInput');
+    
+    modal.style.display = 'flex';
+    input.value = '';
+    setTimeout(() => input.focus(), 100);
+}
+
+// 2. إغلاق النافذة
+function closeMasterResetModal() {
+    document.getElementById('masterResetModal').style.display = 'none';
+    resetTargetType = null;
+}
+
+// 3. التنفيذ والتحقق
+async function confirmMasterReset() {
+    const password = document.getElementById('masterPassInput').value;
+    
+    if (!password) {
+        showToast("أدخل كلمة مرور الحساب");
+        return;
+    }
+
+    showToast("جاري التحقق من هويتك...");
+
+    try {
+        // إنشاء بيانات اعتماد (Credential) باستخدام الإيميل والباسورد المدخل
+        const cred = firebase.auth.EmailAuthProvider.credential(currentUser.email, password);
+        
+        // محاولة إعادة المصادقة (Re-authenticate)
+        // هذه الخطوة هي الأهم أمنياً
+        await currentUser.reauthenticateWithCredential(cred);
+
+        // --- إذا نجح الكود ووصل هنا، يعني الباسورد صح ---
+        
+        if (resetTargetType === 'CHAT') {
+            // حالة إلغاء قفل شات معين
+            if (pendingChatId) {
+                await db.collection('chats').doc(pendingChatId).update({
+                    lockPass: firebase.firestore.FieldValue.delete()
+                });
+                showToast("تمت إزالة القفل بنجاح 🔓");
+                // فتح الشات مباشرة
+                openChat(pendingChatId, pendingChatName, pendingChatUid, pendingChatRequest);
+            } else if (selectedChatId) {
+                 // لو كان بيحاول يفتح من القائمة الخارجية
+                 await db.collection('chats').doc(selectedChatId).update({
+                    lockPass: firebase.firestore.FieldValue.delete()
+                });
+                showToast("تمت إزالة القفل 🔓");
+                renderList(); // تحديث القائمة لإزالة القفل
+            }
+
+        } else if (resetTargetType === 'VAULT') {
+            // حالة نسيان رمز الخزنة (نقوم بحذفه لتتمكن من إنشاء واحد جديد)
+            await db.collection('users').doc(currentUser.uid).update({
+                secretPass: firebase.firestore.FieldValue.delete()
+            });
+            
+            showToast("تم تصفير الخزنة. يمكنك إنشاء رمز جديد الآن 🆕");
+            // فتح نافذة الإنشاء
+            document.getElementById('setupSecretModal').style.display = 'flex';
+        }
+
+        closeMasterResetModal();
+
+    } catch (error) {
+        console.error("Reset Error:", error);
+        if (error.code === 'auth/wrong-password') {
+            showToast("كلمة مرور الحساب غير صحيحة! ❌");
+            triggerErrorEffect(document.getElementById('masterPassInput'));
+        } else {
+            showToast("حدث خطأ، حاول مرة أخرى");
+        }
+    }
+}
+
+// تشغيل زر Enter في حقل إعادة التعيين
+const masterInput = document.getElementById('masterPassInput');
+if (masterInput) {
+    masterInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') confirmMasterReset();
+    });
+}
 
 
 </script>
@@ -5709,126 +5962,7 @@ async function toggleRestrictStatus(chatId, shouldRestrict) {
     </div>
 
     <div class="chat-body" id="chatContainer">
-<div id="chatLockModal" class="custom-modal" style="z-index: 60000;">
-    <div class="modal-box" style="text-align: center;">
-        <h3 style="color:#fff; margin-bottom:15px;">🔒 الدردشة مقفلة</h3>
-        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">هذه المحادثة محمية بكلمة مرور.</p>
-        
-        <div class="input-group" style="margin-bottom: 20px;">
-            <input type="password" id="chatPassInput" class="pro-input" placeholder="أدخل كلمة المرور (6 أرقام)" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 18px;">
-        </div>
 
-        <div class="modal-actions">
-            <button onclick="verifyChatPassword()" class="btn-purple">فتح الدردشة</button>
-            <button onclick="closeChatLockModal()" class="btn-dark">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<div id="setChatPassModal" class="custom-modal" style="z-index: 60000;">
-    <div class="modal-box" style="text-align: center;">
-        <h3 style="color:#fff; margin-bottom:15px;">🔐 تعيين قفل للدردشة</h3>
-        <p style="color:#aaa; font-size:14px; margin-bottom:20px;">اختر كلمة مرور من 6 أرقام.</p>
-        
-        <div class="input-group" style="margin-bottom: 20px;">
-            <input type="password" id="newChatPassInput" class="pro-input" placeholder="كلمة المرور الجديدة" maxlength="6" style="text-align: center; letter-spacing: 5px; font-size: 18px;">
-        </div>
-
-        <div class="modal-actions">
-            <button onclick="saveChatPassword()" class="btn-purple">حفظ القفل</button>
-            <button onclick="document.getElementById('setChatPassModal').style.display='none'" class="btn-dark">إلغاء</button>
-        </div>
-    </div>
-</div>
-
-<div id="unlockChatModal" class="custom-modal" style="z-index: 70000;">
-    <div class="modal-box" style="text-align: center; border: 1px solid rgba(255, 215, 0, 0.2); box-shadow: 0 0 30px rgba(0,0,0,0.8);">
-        
-        <div style="width:70px; height:70px; background:linear-gradient(135deg, rgba(255, 215, 0, 0.1), rgba(0,0,0,0.3)); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border:1px solid rgba(255, 215, 0, 0.3);">
-            <i class="fa-solid fa-unlock-keyhole" style="font-size:30px; color:#FFD700;"></i>
-        </div>
-
-        <h3 style="color:#fff; margin-bottom:10px;">إلغاء قفل المحادثة</h3>
-        <p style="color:#aaa; font-size:13px; margin-bottom:25px;">أدخل كلمة المرور الحالية لإزالة الحماية.</p>
-        
-        <div class="input-group" style="margin-bottom: 25px;">
-            <input type="password" id="unlockPassInput" class="pro-input" 
-                   placeholder="● ● ● ● ● ●" maxlength="6" 
-                   style="text-align: center; letter-spacing: 8px; font-size: 20px; border-color: rgba(255, 215, 0, 0.3); font-weight:bold; color:#FFD700;">
-        </div>
-
-        <div class="modal-actions">
-            <button onclick="confirmUnlockAction()" class="btn-purple" style="background:linear-gradient(135deg, #FFD700, #d4af37); color:#000;">تأكيد الإلغاء</button>
-            <button onclick="closeUnlockModal()" class="btn-dark" style="margin-top:0;">تراجع</button>
-        </div>
-    </div>
-</div>
-
-<div id="setupSecretModal" class="custom-modal" style="z-index: 70000;">
-    <div class="modal-box" style="text-align: center; border: 1px solid #ff3b30;">
-        <div style="width:60px; height:60px; background:rgba(255, 59, 48, 0.1); border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center;">
-            <i class="fa-solid fa-user-secret" style="font-size:30px; color:#ff3b30;"></i>
-        </div>
-        <h3 style="color:#fff; margin-bottom:10px;">إنشاء الخزنة السرية</h3>
-        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">قم بتعيين رمز مرور موحد لجميع محادثاتك السرية.</p>
-        
-        <input type="password" id="createSecretPass" class="pro-input" placeholder="رمز جديد (4-6 أرقام)" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
-        
-        <button onclick="saveNewSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ وإنشاء</button>
-        <button onclick="document.getElementById('setupSecretModal').style.display='none'" class="btn-dark" style="margin-top:10px;">إلغاء</button>
-    </div>
-</div>
-
-<div id="verifySecretModal" class="custom-modal" style="z-index: 70000;">
-    <div class="modal-box" style="text-align: center;">
-        <h3 style="color:#fff; margin-bottom:15px;">🔒 منطقة محظورة</h3>
-        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">أدخل الرمز السري للمتابعة.</p>
-        
-        <input type="password" id="inputSecretPass" class="pro-input" placeholder="الرمز السري" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
-        
-        <button onclick="checkSecretPass()" class="btn-purple" style="background:linear-gradient(135deg, #ff3b30, #991b1b);">فتح الخزنة</button>
-        <button onclick="closeVerifySecret()" class="btn-dark" style="margin-top:10px;">إلغاء</button>
-    </div>
-</div>
-
-<div id="secretChatsPage" class="profile-page" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; background:#000; z-index: 60000;">
-    <div class="pp-header" style="background:rgba(20,0,0,0.95); border-bottom:1px solid rgba(255,59,48,0.2); display: flex; align-items: center; justify-content: space-between; padding: 15px;">
-        
-        <div class="icon-btn" onclick="document.getElementById('secretChatsPage').style.display='none'" style="background:rgba(255,255,255,0.1); color:#fff;">
-            <i class="fa-solid fa-arrow-right"></i>
-        </div>
-        
-        <h3 style="color:#ff3b30; margin:0;"><i class="fa-solid fa-user-secret"></i> الخزنة</h3>
-        
-        <div class="icon-btn" onclick="openChangeSecretPassModal()" style="background:rgba(255, 59, 48, 0.15); color:#ff3b30; border:1px solid rgba(255, 59, 48, 0.3);">
-            <i class="fa-solid fa-key"></i>
-        </div>
-    </div>
-    
-    <div id="secretList" style="padding:10px; overflow-y:auto; flex:1;"></div>
-</div>
-<div id="changeSecretPassModal" class="custom-modal" style="z-index: 75000;">
-    <div class="modal-box" style="text-align: center; border: 1px solid #ff3b30;">
-        <h3 style="color:#fff; margin-bottom:15px;">تغيير رمز الخزنة 🔐</h3>
-        
-        <div class="input-group" style="margin-bottom: 15px;">
-            <input type="password" id="oldSecretPass" class="pro-input" placeholder="الرمز الحالي" maxlength="6" style="text-align:center; letter-spacing:3px;">
-        </div>
-
-        <div class="input-group" style="margin-bottom: 10px;">
-            <input type="password" id="newSecretPass" class="pro-input" placeholder="الرمز الجديد" maxlength="6" style="text-align:center; letter-spacing:3px; border-color:#ff3b30;">
-        </div>
-
-        <div class="input-group" style="margin-bottom: 20px;">
-            <input type="password" id="confirmSecretPass" class="pro-input" placeholder="تأكيد الرمز الجديد" maxlength="6" style="text-align:center; letter-spacing:3px; border-color:#ff3b30;">
-        </div>
-
-        <div class="modal-actions">
-            <button onclick="confirmChangeSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ التغيير</button>
-            <button onclick="document.getElementById('changeSecretPassModal').style.display='none'" class="btn-dark">إلغاء</button>
-        </div>
-    </div>
-</div>
 <div class="bottom-sheet-overlay" id="activeUserOptionsModal" onclick="closeActiveUserOptions()">
     <div class="bottom-sheet" onclick="event.stopPropagation()">
         <div class="sheet-handle"></div>
