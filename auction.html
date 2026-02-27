@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>صالة المزاد - Wareed</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-deep: #0a0a0a;
+            --accent: #ff4757; /* لون أحمر حماسي */
+            --gold: #fbbf24;
+            --card-bg: #18181b;
+            --text: #fff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-deep); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* الهيدر */
+        .auction-header {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.8); border-bottom: 1px solid rgba(255,255,255,0.1);
+            position: absolute; top: 0; width: 100%; z-index: 50;
+        }
+        .live-badge {
+            background: var(--accent); color: #fff; padding: 2px 8px; border-radius: 4px;
+            font-size: 10px; font-weight: bold; display: flex; align-items: center; gap: 4px;
+            box-shadow: 0 0 10px var(--accent); animation: pulseLive 1.5s infinite;
+        }
+        @keyframes pulseLive { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        .balance-pill {
+            background: rgba(251, 191, 36, 0.1); border: 1px solid var(--gold);
+            color: var(--gold); padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold;
+        }
+
+        /* المسرح (المنتج) */
+        .stage-area {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; background: radial-gradient(circle at 50% 30%, #2a1b1b 0%, #000 70%);
+        }
+
+        /* الضوء المسلط */
+        .spotlight {
+            position: absolute; top: -100px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 600px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.1), transparent);
+            filter: blur(20px); pointer-events: none; z-index: 1;
+        }
+
+        /* المنتج */
+        .product-display {
+            z-index: 10; text-align: center; margin-top: 20px;
+            animation: floatItem 3s ease-in-out infinite;
+        }
+        .product-icon {
+            font-size: 100px; color: var(--gold);
+            filter: drop-shadow(0 0 30px rgba(251, 191, 36, 0.4));
+            margin-bottom: 15px;
+        }
+        .product-name { font-size: 24px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; }
+        .product-desc { font-size: 12px; color: #aaa; max-width: 250px; margin: 0 auto; }
+
+        @keyframes floatItem { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px); } }
+
+        /* منطقة المعلومات */
+        .auction-info {
+            width: 90%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 15px; margin-bottom: 20px; z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer-row { text-align: center; margin-bottom: 15px; }
+        .timer-val { font-size: 32px; font-weight: 900; font-family: monospace; color: var(--accent); letter-spacing: 2px; }
+        .timer-lbl { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 2px; }
+
+        .price-row {
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px;
+        }
+        .current-price { font-size: 20px; font-weight: 900; color: #fff; }
+        .last-bidder { font-size: 12px; color: #aaa; display: flex; align-items: center; gap: 5px; }
+        .last-bidder img { width: 20px; height: 20px; border-radius: 50%; }
+
+        /* شريط المزايدة المباشر */
+        .live-feed {
+            height: 30px; width: 90%; overflow: hidden; margin-bottom: 10px; z-index: 10;
+            position: relative; mask-image: linear-gradient(to right, transparent, black 20%, black 80%, transparent);
+        }
+        .feed-track { display: flex; gap: 20px; position: absolute; white-space: nowrap; animation: scrollFeed 10s linear infinite; }
+        .feed-item { font-size: 11px; color: #ccc; }
+        .feed-item span { color: var(--gold); font-weight: bold; }
+
+        @keyframes scrollFeed { 0% { left: 100%; } 100% { left: -100%; } }
+
+        /* أزرار التحكم */
+        .controls {
+            width: 100%; padding: 20px; background: #111;
+            border-top: 1px solid #333; z-index: 20; display: flex; gap: 10px;
+        }
+
+        .bid-btn {
+            flex: 1; padding: 15px; border-radius: 16px; border: none;
+            font-weight: 800; font-size: 16px; cursor: pointer; color: #fff;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: 0.1s; position: relative; overflow: hidden;
+        }
+        .bid-btn small { font-size: 10px; opacity: 0.8; font-weight: normal; margin-top: 2px; }
+        
+        .btn-100 { background: linear-gradient(135deg, #333, #444); border: 1px solid #555; }
+        .btn-500 { 
+            background: linear-gradient(135deg, #e11d48, #be123c); 
+            box-shadow: 0 0 20px rgba(225, 29, 72, 0.4);
+            border: 1px solid #fb7185; 
+            flex: 1.5; /* أكبر شوية */
+        }
+
+        .bid-btn:active { transform: scale(0.95); }
+        .bid-btn:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(1); }
+
+        /* تأثير المطرقة */
+        .hammer-effect {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            font-size: 100px; color: #fff; z-index: 100; pointer-events: none;
+            text-shadow: 0 0 20px var(--gold);
+        }
+        .hammer-effect.hit { animation: hammerHit 0.5s ease-out; }
+
+        @keyframes hammerHit {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.5) rotate(0deg); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0; }
+        }
+
+        /* التوست */
+        #toast {
+            position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: rgba(255, 71, 87, 0.9); padding: 8px 20px; border-radius: 20px;
+            color: #fff; font-size: 12px; font-weight: bold; opacity: 0; transition: 0.3s; z-index: 200;
+            backdrop-filter: blur(5px); pointer-events: none;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    </style>
+</head>
+<body>
+
+    <div class="auction-header">
+        <i class="fa-solid fa-arrow-right" onclick="window.history.back()" style="font-size: 20px; color:#fff; cursor: pointer;"></i>
+        <div class="live-badge">
+            <div style="width:6px; height:6px; background:#fff; border-radius:50%;"></div> مباشر
+        </div>
+        <div class="balance-pill">
+            <i class="fa-solid fa-coins"></i> <span id="myBalance">0</span>
+        </div>
+    </div>
+
+    <div class="stage-area">
+        <div class="spotlight"></div>
+        
+        <div class="product-display">
+            <i class="fa-solid fa-crown product-icon"></i>
+            <div class="product-name">لقب "العراب"</div>
+            <div class="product-desc">لقب مميز يظهر بجوار اسمك لمدة أسبوع كامل.</div>
+        </div>
+
+        <div class="auction-info">
+            <div class="timer-row">
+                <div class="timer-lbl">ينتهي خلال</div>
+                <div class="timer-val" id="timer">00:05:00</div>
+            </div>
+            
+            <div class="price-row">
+                <div>
+                    <div style="font-size:10px; color:#aaa;">السعر الحالي</div>
+                    <div class="current-price"><span id="currentBid">5000</span> عملة</div>
+                </div>
+                <div class="last-bidder" id="lastBidderInfo">
+                    <span>لا يوجد مزايدات</span>
+                    <i class="fa-solid fa-user-slash"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="live-feed">
+            <div class="feed-track" id="feedTrack">
+                <div class="feed-item">المزاد بدأ للتو...</div>
+            </div>
+        </div>
+        
+        <div id="hammerIcon" class="hammer-effect"><i class="fa-solid fa-gavel"></i></div>
+    </div>
+
+    <div class="controls">
+        <button class="bid-btn btn-100" onclick="placeBid(100)">
+            زايد +100
+            <small>عادي</small>
+        </button>
+        <button class="bid-btn btn-500" onclick="placeBid(500)">
+            زايد +500
+            <small>حرق أسعار 🔥</small>
+        </button>
+    </div>
+
+    <div id="toast">رصيدك لا يكفي!</div>
+
+    <audio id="hammerSound" src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"></audio> <audio id="winSound" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+
+    <script>
+        // إعدادات المزاد (وهمية حالياً للمحاكاة)
+        let auctionEndTime = moment().add(5, 'minutes'); // يخلص بعد 5 دقايق
+        let currentPrice = 5000;
+        let myBalance = parseInt(localStorage.getItem('nabd_balance') || '0');
+        let lastBidder = "لا أحد";
+        let isAuctionActive = true;
+
+        // تحديث الرصيد عند الفتح
+        document.getElementById('myBalance').innerText = myBalance.toLocaleString();
+
+        // 1. عداد الوقت
+        const timerInterval = setInterval(() => {
+            const now = moment();
+            const diff = auctionEndTime.diff(now);
+            
+            if (diff <= 0) {
+                clearInterval(timerInterval);
+                endAuction();
+                return;
+            }
+            
+            const duration = moment.duration(diff);
+            const formatted = 
+                String(duration.hours()).padStart(2,'0') + ":" +
+                String(duration.minutes()).padStart(2,'0') + ":" +
+                String(duration.seconds()).padStart(2,'0');
+            
+            document.getElementById('timer').innerText = formatted;
+
+            // لو الوقت أقل من 10 ثواني، خليه يلون أحمر
+            if(duration.asSeconds() < 10) {
+                document.getElementById('timer').style.color = '#ff3b30';
+                if(navigator.vibrate) navigator.vibrate(50);
+            }
+
+        }, 1000);
+
+        // 2. دالة المزايدة
+        function placeBid(amount) {
+            if (!isAuctionActive) return;
+
+            if (myBalance < (currentPrice + amount)) {
+                showToast("رصيدك لا يكفي للمزايدة!");
+                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+                return;
+            }
+
+            // تنفيذ المزايدة
+            currentPrice += amount;
+            lastBidder = "أنت"; // مبدئياً
+            
+            // تحديث الواجهة
+            updateUI(amount);
+            
+            // تشغيل المؤثرات
+            triggerHammerEffect();
+
+            // محاكاة خصم (اختياري: ممكن نخصم في الآخر بس)
+            // حالياً مش هنخصم غير لما المزاد يخلص، بس بنعمل Check
+        }
+
+        function updateUI(addedAmount) {
+            document.getElementById('currentBid').innerText = currentPrice.toLocaleString();
+            
+            // تحديث آخر مزايد
+            document.getElementById('lastBidderInfo').innerHTML = `
+                <span>أنت مسيطر</span> <i class="fa-solid fa-circle-check" style="color:#4ade80"></i>
+            `;
+            document.getElementById('lastBidderInfo').style.color = "#4ade80"; // أخضر
+
+            // إضافة للشريط المتحرك
+            const feed = document.getElementById('feedTrack');
+            const item = document.createElement('div');
+            item.className = 'feed-item';
+            item.innerHTML = `أنت رفعت السعر بـ <span>${addedAmount}</span>`;
+            feed.prepend(item); // إضافة في الأول
+        }
+
+        function triggerHammerEffect() {
+            const hammer = document.getElementById('hammerIcon');
+            const sound = document.getElementById('hammerSound');
+            
+            hammer.classList.remove('hit');
+            void hammer.offsetWidth; // Reflow
+            hammer.classList.add('hit');
+            
+            if(sound) {
+                sound.currentTime = 0;
+                sound.volume = 0.5;
+                sound.play().catch(e=>{});
+            }
+            if(navigator.vibrate) navigator.vibrate(50);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        async function endAuction() {
+    isAuctionActive = false;
+    document.getElementById('timer').innerText = "انتهى المزاد";
+    
+    // تعطيل الأزرار
+    document.querySelectorAll('.bid-btn').forEach(b => b.disabled = true);
+    
+    if (lastBidder === "أنت") {
+        try {
+            // 1. خصم المبلغ
+            myBalance -= currentPrice;
+            localStorage.setItem('nabd_balance', myBalance);
+            document.getElementById('myBalance').innerText = myBalance.toLocaleString();
+            
+            // 2. تحديث المحفظة في الداتابيز
+            await db.collection('wallets').doc(currentUser.uid).update({
+                balance: myBalance
+            });
+
+            // 3. 🔥🔥🔥 حفظ اللقب في بيانات المستخدم 🔥🔥🔥
+            await db.collection('users').doc(currentUser.uid).update({
+                specialBadge: {
+                    text: "العراب",       // اسم اللقب
+                    icon: "fa-crown",     // أيقونة التاج
+                    color: "#FFD700",     // لون ذهبي
+                    effect: "glow",       // تأثير لمعان
+                    expiresAt: moment().add(7, 'days').toDate() // يخلص بعد أسبوع
+                }
+            });
+
+            // تشغيل صوت الفوز
+            document.getElementById('winSound').play();
+            
+            // رسالة الفوز
+            alert("مبروك! أنت الآن 'العراب' 👑 سيظهر اللقب في ملفك فوراً.");
+
+        } catch (e) {
+            console.error(e);
+            showToast("حدث خطأ أثناء استلام الجائزة");
+        }
+    } else {
+        showToast("للأسف.. انتهى المزاد ولم تفز.");
+    }
+}
+
+        // محاكاة منافسين (Bots) - عشان الجو يسخن
+        setInterval(() => {
+            if (!isAuctionActive || Math.random() > 0.3) return; // احتمال 30% حد يزايد
+            
+            if (lastBidder === "أنت") {
+                const randomInc = [100, 200, 500][Math.floor(Math.random()*3)];
+                currentPrice += randomInc;
+                lastBidder = "مستخدم مجهول";
+                
+                document.getElementById('currentBid').innerText = currentPrice.toLocaleString();
+                document.getElementById('lastBidderInfo').innerHTML = `
+                    <span>منافس</span> <i class="fa-solid fa-user-secret" style="color:#ff4757"></i>
+                `;
+                document.getElementById('lastBidderInfo').style.color = "#ff4757"; // أحمر
+
+                const feed = document.getElementById('feedTrack');
+                const item = document.createElement('div');
+                item.className = 'feed-item';
+                item.innerHTML = `مستخدم رفع السعر بـ <span style="color:#ff4757">${randomInc}</span>`;
+                feed.prepend(item);
+                
+                showToast("⚠️ هناك من زايد عليك!");
+                if(navigator.vibrate) navigator.vibrate(100);
+            }
+        }, 5000); // كل 5 ثواني شيك
+
+    </script>
+</body>
+</html>

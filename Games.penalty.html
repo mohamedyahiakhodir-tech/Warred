@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ضربات الجزاء - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #051005; /* لون ملعب ليلي */
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --field-color: #0a200a;
+            --line-color: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; filter: drop-shadow(0 0 5px #000); }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; backdrop-filter: blur(5px); }
+
+        /* --- لوحة المعلومات --- */
+        .dashboard {
+            position: absolute; top: 65px; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: space-between; padding: 0 20px;
+            pointer-events: none;
+        }
+        .score-board { font-size: 24px; font-weight: 900; color: #fff; text-shadow: 0 0 10px #34c759; }
+        .miss-board { font-size: 18px; color: var(--danger); text-shadow: 0 0 10px var(--danger); font-weight: bold;}
+
+        /* --- الكانفاس --- */
+        #gameCanvas {
+            display: block; width: 100%; height: 100%; 
+            background: linear-gradient(to top, #0f380f, #051005); /* تدرج لون العشب */
+        }
+
+        /* --- نافذة نهاية اللعبة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--primary-color); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; color: var(--danger); margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 5px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* رسائل تفاعلية عائمة (Goal / Miss) */
+        .floating-text {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            font-size: 50px; font-weight: 900; text-transform: uppercase; pointer-events: none;
+            opacity: 0; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 500;
+        }
+        .floating-text.show { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        .text-goal { color: #34c759; text-shadow: 0 0 20px #34c759; }
+        .text-miss { color: #ff0055; text-shadow: 0 0 20px #ff0055; }
+
+        .start-hint {
+            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.6); font-weight: bold; font-size: 16px; text-align: center;
+            pointer-events: none; animation: blink 1.5s infinite; z-index: 100; width: 100%;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body onmousedown="shoot(event)" ontouchstart="shoot(event)">
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="stats-box"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="score-board">⚽ الأهداف: <span id="scoreDisplay">0</span></div>
+        <div class="miss-board">❌ ضياع: <span id="missDisplay">0</span>/3</div>
+    </div>
+    
+    <div class="start-hint" id="startHint">اضغط على المرمى للتسديد<br><i class="fa-solid fa-hand-pointer" style="margin-top:10px; font-size:24px;"></i></div>
+
+    <div id="floatText" class="floating-text">هدف!</div>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box" style="border-color: var(--danger);">
+            <div class="result-icon"><i class="fa-solid fa-whistle"></i></div>
+            <div class="result-title">انتهت المباراة!</div>
+            <div class="score-text">سجلت: <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> أهداف</div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" style="background: linear-gradient(45deg, var(--danger), #ff5e62);" onclick="restartGame()">إعادة المباراة <i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚽ إعدادات الكانفاس واللعبة
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            setupField();
+        }
+        window.addEventListener('resize', resize);
+        
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        let score = 0;
+        let misses = 0;
+        const maxMisses = 3;
+        let gameActive = true;
+        let hasStarted = false;
+        
+        // إحداثيات المرمى (سيتم حسابها في resize)
+        let goalX, goalY, goalW, goalH;
+
+        function setupField() {
+            goalW = canvas.width * 0.7; // عرض المرمى 70% من الشاشة
+            goalH = 120;
+            goalX = (canvas.width - goalW) / 2;
+            goalY = canvas.height * 0.25; // مكان المرمى في الربع العلوي
+            
+            // إعادة ضبط الكرة
+            ball.reset();
+        }
+
+        // ==========================================
+        // 🥅 المرمى والملعب
+        // ==========================================
+        function drawField() {
+            // رسم منطقة الجزاء
+            ctx.strokeStyle = "rgba(255,255,255,0.4)";
+            ctx.lineWidth = 3;
+            
+            // خط المرمى
+            ctx.beginPath();
+            ctx.moveTo(0, goalY + goalH);
+            ctx.lineTo(canvas.width, goalY + goalH);
+            ctx.stroke();
+
+            // المرمى (شباك نيون)
+            ctx.strokeStyle = "#fff";
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#00C6FF";
+            ctx.strokeRect(goalX, goalY, goalW, goalH);
+            
+            // خطوط الشباك
+            ctx.lineWidth = 1;
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = "rgba(0, 198, 255, 0.3)";
+            for(let i = goalX + 20; i < goalX + goalW; i+=20) {
+                ctx.beginPath(); ctx.moveTo(i, goalY); ctx.lineTo(i, goalY + goalH); ctx.stroke();
+            }
+            for(let i = goalY + 20; i < goalY + goalH; i+=20) {
+                ctx.beginPath(); ctx.moveTo(goalX, i); ctx.lineTo(goalX + goalW, i); ctx.stroke();
+            }
+        }
+
+        // ==========================================
+        // 🧤 حارس المرمى (Goalkeeper)
+        // ==========================================
+        const keeper = {
+            width: 50,
+            height: 60,
+            x: 0,
+            y: 0,
+            speed: 4,
+            dir: 1, // 1 يمين، -1 يسار
+            color: '#ff0055',
+            
+            update() {
+                this.y = goalY + goalH - this.height; // واقف على خط المرمى
+                
+                // الحركة
+                this.x += this.speed * this.dir;
+                
+                // الارتداد من العارضتين
+                if (this.x <= goalX) {
+                    this.x = goalX;
+                    this.dir = 1;
+                } else if (this.x + this.width >= goalX + goalW) {
+                    this.x = goalX + goalW - this.width;
+                    this.dir = -1;
+                }
+            },
+            
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                
+                // رسم جسم الحارس
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, 10);
+                ctx.fill();
+                
+                // يد الحارس
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.x - 10, this.y + 10, this.width + 20, 10);
+                ctx.restore();
+            }
+        };
+
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            return this;
+        }
+
+        // ==========================================
+        // ⚽ الكرة (Ball) - بنظام 3D وهمي
+        // ==========================================
+        const ball = {
+            x: 0, y: 0, 
+            baseRadius: 20, 
+            radius: 20,
+            isShot: false,
+            targetX: 0, targetY: 0,
+            speedX: 0, speedY: 0,
+            
+            reset() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height - 80;
+                this.radius = this.baseRadius;
+                this.isShot = false;
+            },
+            
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = "#FFD700";
+                ctx.fillStyle = "#FFD700"; // كرة ذهبية مشعة
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // رسم زخرفة للكرة
+                ctx.fillStyle = "#fff";
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            },
+            
+            update() {
+                if (this.isShot) {
+                    this.x += this.speedX;
+                    this.y += this.speedY;
+                    
+                    // تأثير الـ 3D (الكرة تصغر كلما ابتعدت)
+                    if (this.radius > 8) this.radius -= 0.3;
+
+                    // وصول الكرة لخط المرمى (العمق)
+                    if (this.y <= goalY + goalH) {
+                        checkResult();
+                    }
+                }
+            }
+        };
+
+        // ==========================================
+        // 🎯 التسديد والنتائج
+        // ==========================================
+        function shoot(e) {
+            if (!gameActive || ball.isShot) return;
+
+            let clientX, clientY;
+            if (e.type === 'touchstart') {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            // منع التسديد إذا ضغط المستخدم على الهيدر
+            if (clientY < 80) return;
+
+            if (!hasStarted) {
+                hasStarted = true;
+                document.getElementById('startHint').style.display = 'none';
+            }
+
+            ball.targetX = clientX;
+            // لنجعل الكرة تذهب دائماً لخط المرمى كعمق
+            ball.targetY = goalY + (goalH / 2); 
+            
+            // حساب سرعة المتجهات (Vector Speed)
+            let dx = ball.targetX - ball.x;
+            let dy = ball.targetY - ball.y;
+            let distance = Math.sqrt(dx*dx + dy*dy);
+            
+            // سرعة الكرة ثابتة، نقسم المسافة عليها
+            let speed = 20; 
+            ball.speedX = (dx / distance) * speed;
+            ball.erspeedY = (dy / distance) * speed;
+            ball.speedY = ball.erspeedY; // استخدمنا المتغير الصحيح
+
+            ball.isShot = true;
+            
+            if(navigator.vibrate) navigator.vibrate(20); // هزة ركلة
+        }
+
+        function checkResult() {
+            ball.isShot = false; // نوقف الكرة
+
+            // 1. هل الكرة داخل إطار المرمى؟
+            let insideGoal = (ball.x >= goalX && ball.x <= goalX + goalW);
+            
+            // 2. هل صدها الحارس؟ (تصادم بين الكرة ومستطيل الحارس)
+            let savedByKeeper = (
+                ball.x + ball.radius > keeper.x && 
+                ball.x - ball.radius < keeper.x + keeper.width
+            );
+
+            if (insideGoal && !savedByKeeper) {
+                // هدف!
+                score++;
+                document.getElementById('scoreDisplay').innerText = score;
+                showFloatingText("هدف! ⚽", "text-goal");
+                
+                // زيادة صعوبة الحارس كل 3 أهداف
+                if(score % 3 === 0) keeper.speed += 1;
+                
+            } else {
+                // ضاعت!
+                misses++;
+                document.getElementById('missDisplay').innerText = misses;
+                showFloatingText(savedByKeeper ? "تصدى لها!" : "خارج المرمى!", "text-miss");
+                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+                if (misses >= maxMisses) {
+                    setTimeout(endGame, 1000);
+                    return;
+                }
+            }
+
+            // تجهيز الكرة للركلة القادمة بعد ثانية
+            setTimeout(() => {
+                if (gameActive) ball.reset();
+            }, 1000);
+        }
+
+        function showFloatingText(msg, className) {
+            const el = document.getElementById('floatText');
+            el.innerText = msg;
+            el.className = `floating-text show ${className}`;
+            setTimeout(() => { el.classList.remove('show'); }, 800);
+        }
+
+        // ==========================================
+        // 🔄 الحلقة الرئيسية ونهاية اللعبة
+        // ==========================================
+        function animate() {
+            if (!gameActive) return;
+            requestAnimationFrame(animate);
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawField();
+            keeper.update();
+            keeper.draw();
+            
+            ball.update();
+            ball.draw();
+        }
+
+        function endGame() {
+            gameActive = false;
+            
+            // الأرباح: كل 3 أهداف = 1 عملة
+            let earned = Math.floor(score / 3);
+            if (score > 0 && earned === 0) earned = 1;
+            
+            totalCoins += earned;
+            localStorage.setItem('wareed_coins', totalCoins);
+            document.getElementById('walletCoins').innerText = totalCoins;
+
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('coinsEarned').innerText = earned;
+            document.getElementById('gameOverModal').style.display = 'flex';
+        }
+
+        function restartGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            score = 0;
+            misses = 0;
+            keeper.speed = 4; // إرجاع سرعة الحارس للطبيعي
+            hasStarted = false;
+            
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('missDisplay').innerText = misses;
+            document.getElementById('startHint').style.display = 'block';
+            
+            ball.reset();
+            gameActive = true;
+            animate();
+        }
+
+        // البدء
+        resize();
+        keeper.x = canvas.width / 2 - keeper.width / 2;
+        animate();
+
+    </script>
+</body>
+</html>

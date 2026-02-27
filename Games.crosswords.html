@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تحدي الكلمات - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --success: #34c759;
+            --key-bg: #1a1a2e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; transition: 0.3s; }
+        .pulse-wallet { transform: scale(1.2); color: #fff; box-shadow: 0 0 15px var(--gold); }
+
+        /* --- لوحة المعلومات --- */
+        .dashboard {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .score-display { font-size: 18px; font-weight: 900; color: var(--primary-color); }
+        .lives-display { color: var(--danger); font-size: 16px; display: flex; gap: 5px; }
+
+        /* --- منطقة التلميح والكلمة --- */
+        .game-area {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
+        }
+        .hint-box {
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px 20px; border-radius: 15px; margin-bottom: 30px; width: 100%; max-width: 400px;
+            font-size: 16px; color: #fff; font-weight: bold; line-height: 1.5;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative;
+        }
+        .hint-box::before {
+            content: '💡 تلميح'; position: absolute; top: -12px; right: 20px;
+            background: var(--primary-color); color: #000; padding: 2px 10px;
+            border-radius: 10px; font-size: 10px; font-weight: 900;
+        }
+
+        .word-grid {
+            display: flex; gap: 8px; flex-direction: row-reverse; /* لعرض الحروف من اليمين لليسار */
+            flex-wrap: wrap; justify-content: center; margin-bottom: 20px;
+        }
+        .letter-box {
+            width: 40px; height: 50px; background: rgba(0, 198, 255, 0.1);
+            border: 2px solid var(--primary-color); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--primary-color);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .letter-box.empty { background: transparent; border: 2px dashed rgba(255,255,255,0.3); box-shadow: none; }
+        .letter-box.revealed { background: var(--primary-color); color: #000; transform: scale(1.1); text-shadow: none; }
+
+        /* --- الكيبورد --- */
+        .keyboard {
+            padding: 10px; background: #0a0a14; border-top: 1px solid #222;
+            display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; padding-bottom: 30px;
+        }
+        .keyboard-row { display: flex; justify-content: center; gap: 6px; }
+        .key {
+            background: var(--key-bg); color: #fff; border: 1px solid #333;
+            border-radius: 8px; padding: 12px 0; min-width: 30px; flex: 1; max-width: 40px;
+            text-align: center; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .key:active { transform: scale(0.9); }
+        .key.correct { background: var(--success); border-color: var(--success); color: #000; pointer-events: none; }
+        .key.wrong { background: #222; color: #555; border-color: #111; pointer-events: none; }
+
+        /* --- نافذة النتيجة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--primary-color); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 15px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;"><i class="fa-solid fa-font" style="color:var(--primary-color)"></i> تحدي الكلمات</div>
+        <div class="stats-box" id="walletBox"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="score-display">الكلمات: <span id="scoreDisplay">0</span></div>
+        <div class="lives-display" id="livesDisplay">
+            <i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="hint-box" id="hintDisplay">جاري التحميل...</div>
+        <div class="word-grid" id="wordGrid"></div>
+    </div>
+
+    <div class="keyboard" id="keyboard"></div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box" id="resultBox">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-title" id="resultTitle">رائع!</div>
+            <div class="score-text">لقد خمنت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> كلمات</div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" id="restartBtn" onclick="initGame()">العب مجدداً</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 📚 قاعدة البيانات (الكلمات والتلميحات)
+        // ==========================================
+        const wordDatabase = [
+            { word: "انترنت", hint: "شبكة عالمية نستخدمها يومياً للتواصل" },
+            { word: "فايربيس", hint: "قاعدة بيانات شهيرة من جوجل نستخدمها في تطبيقنا" },
+            { word: "مبرمج", hint: "شخص يكتب الأكواد ليصنع التطبيقات" },
+            { word: "خوارزمية", hint: "خطوات منطقية متسلسلة لحل مشكلة برمجية" },
+            { word: "تطبيق", hint: "برنامج يعمل على الهاتف الذكي" },
+            { word: "مصر", hint: "دولة عربية بها الأهرامات" },
+            { word: "نيون", hint: "غاز يستخدم في الإضاءة الساطعة والملونة" },
+            { word: "تفاحة", hint: "فاكهة سقطت على رأس نيوتن" },
+            { word: "ذهب", hint: "معدن نفيس أصفر اللون" },
+            { word: "القاهرة", hint: "عاصمة أم الدنيا" },
+            { word: "جافاسكريبت", hint: "لغة برمجة أساسية في الويب" },
+            { word: "كيبورد", hint: "لوحة نستخدمها للكتابة" },
+            { word: "الجمل", hint: "حيوان يلقب بسفينة الصحراء" },
+            { word: "الفضاء", hint: "المكان الذي تسبح فيه الكواكب والنجوم" },
+            { word: "وريد", hint: "اسم تطبيقنا الرائع!" }
+        ];
+
+        const arabicLetters = [
+            ['ض', 'ص', 'ث', 'ق', 'ف', 'غ', 'ع', 'ه', 'خ', 'ح'],
+            ['ش', 'س', 'ي', 'ب', 'ل', 'ا', 'ت', 'ن', 'م', 'ك'],
+            ['ظ', 'ط', 'ذ', 'د', 'ز', 'ر', 'و', 'ة', 'ى', 'لا']
+        ];
+
+        // ==========================================
+        // ⚙️ إعدادات اللعبة والمحفظة
+        // ==========================================
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        let currentWordObj = null;
+        let currentWordArray = [];
+        let guessedLetters = [];
+        let score = 0;
+        let lives = 3;
+        let coinsEarnedThisMatch = 0;
+
+        // ==========================================
+        // 🎮 تهيئة اللعبة
+        // ==========================================
+        function initGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            score = 0;
+            lives = 3;
+            coinsEarnedThisMatch = 0;
+            document.getElementById('scoreDisplay').innerText = score;
+            updateLivesDisplay();
+            buildKeyboard();
+            loadNextWord();
+        }
+
+        function loadNextWord() {
+            // اختيار كلمة عشوائية
+            const randomIndex = Math.floor(Math.random() * wordDatabase.length);
+            currentWordObj = wordDatabase[randomIndex];
+            
+            // تحويل الكلمة لمصفوفة حروف (بدون مسافات)
+            currentWordArray = currentWordObj.word.split('').filter(char => char !== ' ');
+            guessedLetters = [];
+
+            // تحديث التلميح
+            document.getElementById('hintDisplay').innerText = currentWordObj.hint;
+
+            // إعادة ضبط الكيبورد
+            document.querySelectorAll('.key').forEach(btn => {
+                btn.classList.remove('correct', 'wrong');
+            });
+
+            drawWordGrid();
+        }
+
+        function drawWordGrid() {
+            const grid = document.getElementById('wordGrid');
+            grid.innerHTML = '';
+            
+            // رسم المربعات (يتم عرضها من اليمين لليسار بفضل flex-direction: row-reverse)
+            currentWordArray.forEach(letter => {
+                const box = document.createElement('div');
+                
+                if (guessedLetters.includes(letter)) {
+                    box.className = 'letter-box revealed';
+                    box.innerText = letter;
+                } else {
+                    box.className = 'letter-box empty';
+                }
+                
+                grid.appendChild(box);
+            });
+        }
+
+        function buildKeyboard() {
+            const kb = document.getElementById('keyboard');
+            kb.innerHTML = '';
+
+            arabicLetters.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'keyboard-row';
+                
+                row.forEach(letter => {
+                    const btn = document.createElement('div');
+                    btn.className = 'key';
+                    btn.innerText = letter;
+                    btn.onclick = () => handleGuess(letter, btn);
+                    rowDiv.appendChild(btn);
+                });
+                
+                kb.appendChild(rowDiv);
+            });
+        }
+
+        // ==========================================
+        // 🕹️ منطق التخمين واللعب
+        // ==========================================
+        function handleGuess(letter, btn) {
+            // لو الحرف متخمن قبل كدة، متعملش حاجة
+            if (guessedLetters.includes(letter) || btn.classList.contains('wrong')) return;
+
+            // هل الحرف موجود في الكلمة؟
+            // معالجة الألف (ا، أ، إ، آ) للتسهيل على اللاعب
+            let isCorrect = false;
+            let matchLetters = [letter];
+            if(letter === 'ا') matchLetters = ['ا', 'أ', 'إ', 'آ'];
+            if(letter === 'ه') matchLetters = ['ه', 'ة']; // الهاء والتاء المربوطة
+            if(letter === 'ي') matchLetters = ['ي', 'ى'];
+
+            // نراجع الكلمة حرف حرف
+            currentWordArray.forEach(char => {
+                if (matchLetters.includes(char)) {
+                    isCorrect = true;
+                    if(!guessedLetters.includes(char)) guessedLetters.push(char); // ضيف الحرف الأصلي بتاع الكلمة
+                }
+            });
+
+            if (isCorrect) {
+                // إجابة صحيحة
+                btn.classList.add('correct');
+                if(navigator.vibrate) navigator.vibrate(10);
+                drawWordGrid();
+                checkWinWord();
+            } else {
+                // إجابة خاطئة
+                btn.classList.add('wrong');
+                lives--;
+                updateLivesDisplay();
+                if(navigator.vibrate) navigator.vibrate([50, 50]);
+                
+                if (lives <= 0) {
+                    endGame('lose');
+                }
+            }
+        }
+
+        function checkWinWord() {
+            // هل خمن كل الحروف؟
+            const allGuessed = currentWordArray.every(char => guessedLetters.includes(char));
+            
+            if (allGuessed) {
+                score++;
+                document.getElementById('scoreDisplay').innerText = score;
+                addCoins(10); // +10 عملات لكل كلمة صحيحة
+                
+                if(navigator.vibrate) navigator.vibrate([50, 100, 50]);
+
+                // انتقال للكلمة التالية بعد ثانية
+                setTimeout(() => {
+                    loadNextWord();
+                }, 1000);
+            }
+        }
+
+        function updateLivesDisplay() {
+            const container = document.getElementById('livesDisplay');
+            container.innerHTML = '';
+            for(let i=0; i<lives; i++) {
+                container.innerHTML += '<i class="fa-solid fa-heart"></i>';
+            }
+            if(lives === 0) {
+                container.innerHTML = '<i class="fa-solid fa-heart-crack"></i>';
+            }
+        }
+
+        // ==========================================
+        // 💰 المحفظة ونهاية اللعبة
+        // ==========================================
+        function addCoins(amount) {
+            totalCoins += amount;
+            coinsEarnedThisMatch += amount;
+            localStorage.setItem('wareed_coins', totalCoins);
+            
+            const wb = document.getElementById('walletCoins');
+            wb.innerText = totalCoins;
+            const box = document.getElementById('walletBox');
+            box.classList.remove('pulse-wallet');
+            void box.offsetWidth;
+            box.classList.add('pulse-wallet');
+        }
+
+        function endGame(result) {
+            const modal = document.getElementById('gameOverModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const box = document.getElementById('resultBox');
+            const btn = document.getElementById('restartBtn');
+
+            // في هذه اللعبة الخسارة فقط هي ما ينهي الجولة
+            icon.innerHTML = '💀';
+            title.innerText = 'انتهت المحاولات!';
+            box.style.borderColor = 'var(--danger)';
+            box.style.boxShadow = '0 0 40px rgba(255,0,85,0.4)';
+            btn.style.background = 'linear-gradient(45deg, var(--danger), #ff5e62)';
+            
+            // إظهار الكلمة الحقيقية قبل ما يقفل (كأننا بنغيظه شوية 😂)
+            guessedLetters = currentWordArray;
+            drawWordGrid();
+
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('coinsEarned').innerText = coinsEarnedThisMatch;
+            
+            setTimeout(() => {
+                modal.style.display = 'flex';
+            }, 1000); // استنى ثانية عشان يشوف الكلمة الصح
+        }
+
+        // تشغيل اللعبة
+        initGame();
+
+    </script>
+</body>
+</html>

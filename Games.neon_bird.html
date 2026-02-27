@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الطائر المضيء - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --bird-color: #FFD700;
+            --pipe-color: #bf5af2;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; filter: drop-shadow(0 0 5px #000); }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; backdrop-filter: blur(5px); }
+
+        /* --- النتيجة المباشرة --- */
+        .score-board {
+            position: absolute; top: 80px; left: 50%; transform: translateX(-50%); z-index: 100;
+            font-size: 50px; font-weight: 900; color: #fff; text-shadow: 0 0 20px var(--primary-color);
+            pointer-events: none;
+        }
+
+        /* --- الكانفاس --- */
+        #gameCanvas {
+            display: block; width: 100%; height: 100%; 
+            background: linear-gradient(180deg, #050510 0%, #1a1a2e 100%);
+        }
+
+        /* --- نافذة نهاية اللعبة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--danger); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; color: var(--danger); margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 5px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--danger), #ff5e62);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* رسالة مساعدة */
+        .start-hint {
+            position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.6); font-weight: bold; font-size: 18px; text-align: center;
+            pointer-events: none; animation: blink 1.5s infinite; z-index: 100; width: 100%;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* فلاش عند الاصطدام */
+        .flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.1s;
+        }
+    </style>
+</head>
+<body onmousedown="jump()" ontouchstart="jump()">
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="stats-box"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="score-board" id="scoreDisplay">0</div>
+    <div class="start-hint" id="startHint">اضغط للقفز <br><i class="fa-solid fa-hand-pointer" style="margin-top:10px; font-size:24px;"></i></div>
+
+    <canvas id="gameCanvas"></canvas>
+    <div class="flash" id="flashScreen"></div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box">
+            <div class="result-icon"><i class="fa-solid fa-skull-crossbones"></i></div>
+            <div class="result-title">سقوط!</div>
+            <div class="score-text">تجاوزت: <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> أعمدة</div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" onclick="restartGame()">محاولة جديدة <i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🐦 محرك اللعبة (Flappy Engine)
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        // متغيرات الفيزياء
+        let frames = 0;
+        let score = 0;
+        let gameActive = true;
+        let hasStarted = false;
+
+        // ==========================================
+        // 🦅 الطائر (Player)
+        // ==========================================
+        const bird = {
+            x: 50,
+            y: canvas.height / 2,
+            radius: 12,
+            velocity: 0,
+            gravity: 0.25,      // الجاذبية (سحب للأسفل)
+            jumpForce: -6.5,    // قوة القفزة (سحب للأعلى)
+            color: '#FFD700',
+            
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // عين الطائر
+                ctx.fillStyle = "#000";
+                ctx.beginPath();
+                ctx.arc(this.x + 4, this.y - 3, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // ذيل الطائر (حركة بسيطة)
+                ctx.fillStyle = "#ff9900";
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.radius, this.y);
+                ctx.lineTo(this.x - this.radius - 10, this.y - 5);
+                ctx.lineTo(this.x - this.radius - 10, this.y + 5);
+                ctx.fill();
+
+                ctx.restore();
+            },
+            
+            update() {
+                // تطبيق الجاذبية فقط إذا بدأت اللعبة
+                if (hasStarted) {
+                    this.velocity += this.gravity;
+                    this.y += this.velocity;
+                } else {
+                    // حركة طفو قبل البداية
+                    this.y = (canvas.height / 2) + Math.sin(frames * 0.1) * 10;
+                }
+
+                // منع الطائر من الخروج من سقف الشاشة
+                if (this.y - this.radius < 0) {
+                    this.y = this.radius;
+                    this.velocity = 0;
+                }
+
+                // التصادم بالأرض = خسارة
+                if (this.y + this.radius >= canvas.height) {
+                    crash();
+                }
+
+                this.draw();
+            },
+            
+            flap() {
+                this.velocity = this.jumpForce;
+            }
+        };
+
+        // ==========================================
+        // 🚀 الأعمدة (Pipes)
+        // ==========================================
+        const pipes = {
+            items: [],
+            width: 50,
+            gap: 160, // المسافة بين العمود اللي فوق واللي تحت
+            dx: 3,    // سرعة تحرك الأعمدة نحو اللاعب
+            color: '#bf5af2',
+            
+            draw() {
+                for (let i = 0; i < this.items.length; i++) {
+                    let p = this.items[i];
+                    
+                    ctx.save();
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = this.color;
+                    ctx.fillStyle = this.color;
+
+                    // العمود العلوي
+                    ctx.fillRect(p.x, 0, this.width, p.topHeight);
+                    // حافة العمود العلوي
+                    ctx.fillRect(p.x - 5, p.topHeight - 20, this.width + 10, 20);
+
+                    // العمود السفلي
+                    ctx.fillRect(p.x, canvas.height - p.bottomHeight, this.width, p.bottomHeight);
+                    // حافة العمود السفلي
+                    ctx.fillRect(p.x - 5, canvas.height - p.bottomHeight, this.width + 10, 20);
+                    
+                    ctx.restore();
+                }
+            },
+            
+            update() {
+                // إضافة عمود جديد كل فترة
+                if (frames % 100 === 0 && hasStarted) {
+                    // حساب ارتفاعات عشوائية للأعمدة مع الحفاظ على الفجوة
+                    let minHeight = 50;
+                    let maxHeight = canvas.height - this.gap - minHeight;
+                    let topHeight = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
+                    let bottomHeight = canvas.height - this.gap - topHeight;
+                    
+                    this.items.push({
+                        x: canvas.width,
+                        topHeight: topHeight,
+                        bottomHeight: bottomHeight,
+                        passed: false
+                    });
+                }
+
+                for (let i = 0; i < this.items.length; i++) {
+                    let p = this.items[i];
+                    p.x -= this.dx;
+
+                    // زيادة السكور عند تجاوز العمود
+                    if (p.x + this.width < bird.x && !p.passed) {
+                        score++;
+                        document.getElementById('scoreDisplay').innerText = score;
+                        p.passed = true;
+                        
+                        // زيادة صعوبة بسيطة كل 10 نقط
+                        if(score % 10 === 0) this.dx += 0.5;
+                    }
+
+                    // فحص التصادم
+                    if (
+                        bird.x + bird.radius > p.x && 
+                        bird.x - bird.radius < p.x + this.width &&
+                        (bird.y - bird.radius < p.topHeight || bird.y + bird.radius > canvas.height - p.bottomHeight)
+                    ) {
+                        crash();
+                    }
+
+                    // حذف الأعمدة التي خرجت من الشاشة
+                    if (p.x + this.width < 0) {
+                        this.items.shift();
+                        i--;
+                    }
+                }
+                this.draw();
+            }
+        };
+
+        // ==========================================
+        // ✨ الخلفية والمؤثرات (Particles)
+        // ==========================================
+        let bgStars = [];
+        for(let i=0; i<30; i++) {
+            bgStars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2,
+                speed: Math.random() * 0.5 + 0.1
+            });
+        }
+        function drawBg() {
+            ctx.fillStyle = 'rgba(255,255,255,0.5)';
+            bgStars.forEach(s => {
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+                s.x -= s.speed;
+                if(s.x < 0) { s.x = canvas.width; s.y = Math.random() * canvas.height; }
+            });
+        }
+
+        // ==========================================
+        // 🎮 حلقة اللعبة
+        // ==========================================
+        function animate() {
+            if (!gameActive) return;
+            requestAnimationFrame(animate);
+            
+            // مسح الشاشة
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawBg();
+            pipes.update();
+            bird.update();
+            
+            frames++;
+        }
+
+        // ==========================================
+        // 👆 التحكم
+        // ==========================================
+        function jump(e) {
+            // منع تنفيذ القفز لو اللعبة منتهية
+            if (!gameActive) return;
+            if(e) e.preventDefault(); // لمنع السكرول
+
+            if (!hasStarted) {
+                hasStarted = true;
+                document.getElementById('startHint').style.display = 'none';
+            }
+            
+            bird.flap();
+        }
+
+        // ==========================================
+        // 💥 نهاية اللعبة
+        // ==========================================
+        function crash() {
+            gameActive = false;
+            
+            // تأثير الشاشة البيضاء (فلاش)
+            const flash = document.getElementById('flashScreen');
+            flash.style.opacity = '1';
+            setTimeout(() => flash.style.opacity = '0', 100);
+            
+            if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+            // حساب الأرباح: 1 عملة لكل 5 أعمدة
+            let earned = Math.floor(score / 5);
+            
+            totalCoins += earned;
+            localStorage.setItem('wareed_coins', totalCoins);
+            document.getElementById('walletCoins').innerText = totalCoins;
+
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('coinsEarned').innerText = earned;
+            
+            setTimeout(() => {
+                document.getElementById('gameOverModal').style.display = 'flex';
+            }, 300);
+        }
+
+        // ==========================================
+        // 🔄 إعادة اللعب
+        // ==========================================
+        function restartGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            
+            bird.y = canvas.height / 2;
+            bird.velocity = 0;
+            pipes.items = [];
+            pipes.dx = 3;
+            
+            score = 0;
+            frames = 0;
+            hasStarted = false;
+            
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('startHint').style.display = 'block';
+            
+            gameActive = true;
+            animate();
+        }
+
+        // تشغيل اللعبة
+        animate();
+
+    </script>
+</body>
+</html>

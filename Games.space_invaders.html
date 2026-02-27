@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>غزو الفضاء - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #020205;
+            --player-color: #00e676;  
+            --alien-color: #ff3366;
+            --laser-color: #00C6FF;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(2, 2, 5, 0.95);
+            border-bottom: 1px solid rgba(0, 230, 118, 0.2); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--player-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 10px 20px; background: #05050a;
+            border-bottom: 1px solid #111; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        .wave-value { font-size: 20px; font-weight: 900; color: var(--laser-color); }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; position: relative; background: radial-gradient(circle at center, #0a0a1a 0%, #020205 100%);
+            overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .instructions {
+            position: absolute; top: 40%; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.4); font-size: 18px; font-weight: bold; pointer-events: none;
+            animation: fadeOut 3s forwards; animation-delay: 2s;
+        }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0, 230, 118, 0.1);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--alien-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--player-color), #00b359);
+            color: #000; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 230, 118, 0.3); transition: 0.2s;
+        }
+        .btn-restart:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">غزو الفضاء 🛸</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">الموجة</div>
+            <div class="wave-value" id="waveDisplay">1</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+        <div class="instructions" id="instructions">اسحب للتحكم بالسفينة!</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">💥</div>
+            <div class="modal-title">تم تدميرك!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">صمدت حتى الموجة <span id="finalWave" style="color:#fff; font-weight:bold;">1</span></p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">إرسال سفينة جديدة</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const waveDisplay = document.getElementById('waveDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let animationId;
+        let isGameOver = false;
+        let score = 0;
+        let wave = 1;
+
+        // الكيانات
+        let player;
+        let aliens = [];
+        let bullets = [];
+        let particles = [];
+        let stars = [];
+
+        // متغيرات الفضائيين
+        let alienDirection = 1;
+        let alienSpeed = 1;
+        let alienDropAmount = 20;
+        let lastShootTime = 0;
+
+        class Player {
+            constructor() {
+                this.width = 40;
+                this.height = 30;
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - 60;
+                this.color = '#00e676';
+            }
+            draw() {
+                ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                // رسم سفينة فضاء
+                ctx.beginPath();
+                ctx.moveTo(this.x + this.width / 2, this.y);
+                ctx.lineTo(this.x + this.width, this.y + this.height);
+                ctx.lineTo(this.x, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                // قلب السفينة
+                ctx.fillStyle = '#fff';
+                ctx.shadowBlur = 0;
+                ctx.fillRect(this.x + this.width/2 - 3, this.y + 10, 6, 15);
+            }
+        }
+
+        class Alien {
+            constructor(x, y) {
+                this.width = 25;
+                this.height = 20;
+                this.x = x;
+                this.y = y;
+                this.color = '#ff3366';
+            }
+            draw() {
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                // شكل الفضائي
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+                ctx.fillStyle = '#111';
+                ctx.shadowBlur = 0;
+                // عيون
+                ctx.fillRect(this.x + 5, this.y + 5, 4, 4);
+                ctx.fillRect(this.x + 16, this.y + 5, 4, 4);
+                // فم
+                ctx.fillRect(this.x + 8, this.y + 14, 9, 3);
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, dy, color, isPlayer) {
+                this.x = x;
+                this.y = y;
+                this.width = 4;
+                this.height = 15;
+                this.dy = dy;
+                this.color = color;
+                this.isPlayer = isPlayer;
+            }
+            draw() {
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - this.width/2, this.y, this.width, this.height);
+                ctx.shadowBlur = 0;
+            }
+            update() {
+                this.y += this.dy;
+            }
+        }
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            resizeCanvas();
+            score = 0;
+            wave = 1;
+            isGameOver = false;
+            
+            player = new Player();
+            bullets = [];
+            particles = [];
+            stars = [];
+            
+            // توليد النجوم
+            for(let i=0; i<50; i++){
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 2 + 0.5
+                });
+            }
+
+            createWave();
+            updateUI();
+            
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function createWave() {
+            aliens = [];
+            alienDirection = 1;
+            alienSpeed = 1 + (wave * 0.3); // السرعة تزيد مع الموجات
+            
+            let cols = Math.min(8, 4 + Math.floor(wave / 2)); // زيادة الأعمدة
+            let rows = Math.min(5, 2 + Math.floor(wave / 3)); // زيادة الصفوف
+            
+            let startX = 20;
+            let startY = 40;
+            let spacingX = 40;
+            let spacingY = 35;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    aliens.push(new Alien(startX + c * spacingX, startY + r * spacingY));
+                }
+            }
+        }
+
+        function updateUI() {
+            scoreDisplay.innerText = score;
+            waveDisplay.innerText = wave;
+        }
+
+        function createExplosion(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 6, vy: (Math.random() - 0.5) * 6,
+                    life: 1, color: color, size: Math.random() * 3 + 1
+                });
+            }
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            // حركة النجوم
+            stars.forEach(s => {
+                s.y += s.speed;
+                if(s.y > canvas.height) { s.y = 0; s.x = Math.random() * canvas.width; }
+            });
+
+            // إطلاق نار تلقائي للاعب
+            if (Date.now() - lastShootTime > 300) {
+                bullets.push(new Bullet(player.x + player.width/2, player.y, -10, '#00C6FF', true));
+                lastShootTime = Date.now();
+            }
+
+            // تحديث الرصاص
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                b.update();
+                
+                // حذف الرصاص الخارج عن الشاشة
+                if (b.y < -20 || b.y > canvas.height + 20) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                // تصادم الرصاص
+                if (b.isPlayer) {
+                    // تصادم رصاص اللاعب مع الفضائيين
+                    for (let j = aliens.length - 1; j >= 0; j--) {
+                        let a = aliens[j];
+                        if (b.x > a.x && b.x < a.x + a.width && b.y > a.y && b.y < a.y + a.height) {
+                            createExplosion(a.x + a.width/2, a.y + a.height/2, a.color);
+                            aliens.splice(j, 1);
+                            bullets.splice(i, 1);
+                            score += 10;
+                            updateUI();
+                            break;
+                        }
+                    }
+                } else {
+                    // تصادم رصاص الفضائيين مع اللاعب
+                    if (b.x > player.x && b.x < player.x + player.width && b.y > player.y && b.y < player.y + player.height) {
+                        gameOver();
+                    }
+                }
+            }
+
+            // حركة الفضائيين
+            let hitEdge = false;
+            let lowestAlienY = 0;
+
+            aliens.forEach(a => {
+                a.x += alienSpeed * alienDirection;
+                if (a.x + a.width > canvas.width - 10 || a.x < 10) hitEdge = true;
+                if (a.y + a.height > lowestAlienY) lowestAlienY = a.y + a.height;
+                
+                // الفضائيين يطلقون النار عشوائياً
+                if (Math.random() < 0.001 * wave) {
+                    bullets.push(new Bullet(a.x + a.width/2, a.y + a.height, 5, '#FFD700', false));
+                }
+            });
+
+            if (hitEdge) {
+                alienDirection *= -1;
+                aliens.forEach(a => { a.y += alienDropAmount; });
+            }
+
+            // هل وصل الفضائيون للأرض؟
+            if (lowestAlienY >= player.y) {
+                gameOver();
+            }
+
+            // هل انتهت الموجة؟
+            if (aliens.length === 0) {
+                wave++;
+                score += 50; // مكافأة إنهاء الموجة
+                updateUI();
+                createWave();
+            }
+
+            // تحديث الجزيئات
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // رسم النجوم
+            ctx.fillStyle = '#fff';
+            stars.forEach(s => {
+                ctx.globalAlpha = s.size / 2;
+                ctx.beginPath(); ctx.arc(s.x, s.y, s.size, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            if (!isGameOver) player.draw();
+            aliens.forEach(a => a.draw());
+            bullets.forEach(b => b.draw());
+            
+            // رسم الجزيئات
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            createExplosion(player.x + player.width/2, player.y + player.height/2, player.color);
+            
+            // اهتزاز الشاشة
+            canvas.style.transform = "translate(10px, 10px)";
+            setTimeout(() => canvas.style.transform = "translate(-10px, -10px)", 50);
+            setTimeout(() => canvas.style.transform = "translate(0, 0)", 100);
+
+            let reward = wave * 10 + Math.floor(score / 50);
+            
+            document.getElementById('finalWave').innerText = wave;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                document.getElementById('resultModal').classList.add('active');
+            }, 800);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- التحكم بالشاشة للموبايل ---
+        canvas.addEventListener('touchmove', (e) => {
+            if (isGameOver) return;
+            e.preventDefault();
+            let touchX = e.touches[0].clientX;
+            // جعل اللاعب يتمركز عند الأصبع
+            player.x = touchX - player.width / 2;
+            
+            // حدود الشاشة
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        }, {passive: false});
+
+        // دعم الماوس للتجربة على الكمبيوتر
+        canvas.addEventListener('mousemove', (e) => {
+            if (isGameOver || e.buttons !== 1) return;
+            let rect = canvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left;
+            player.x = mouseX - player.width / 2;
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+        });
+
+        // التشغيل
+        window.onload = initGame;
+    </script>
+</body>
+</html>

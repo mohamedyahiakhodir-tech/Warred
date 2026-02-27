@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>صيد السمك - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --success-color: #00e676;
+            --text-color: #eee;
+            --gold: #FFD700;
+            --water-top: #0f2027;
+            --water-bottom: #203a43;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 100;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 15px 30px; background: #111;
+            border-bottom: 1px solid #333; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 24px; font-weight: 900; color: #fff; }
+        .timer-value { color: var(--danger-color); font-size: 24px; font-weight: 900; }
+
+        /* --- منطقة اللعب (البحر) --- */
+        .game-area {
+            flex: 1; position: relative; background: linear-gradient(to bottom, var(--water-top), var(--water-bottom));
+            overflow: hidden; display: flex; justify-content: center; cursor: pointer;
+        }
+        
+        /* الصنارة */
+        .hook-container {
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 50px; background: rgba(255, 255, 255, 0.5);
+            transition: height 0.5s ease-in-out; z-index: 50;
+        }
+        .hook {
+            position: absolute; bottom: -20px; left: -9px; font-size: 24px; color: #fff;
+            transform: rotate(-45deg); text-shadow: 0 0 10px #fff;
+        }
+
+        /* الأسماك */
+        .fish {
+            position: absolute; font-size: 40px; white-space: nowrap;
+            transition: transform 0.1s linear; z-index: 10;
+        }
+        .fish-normal { color: #00e676; filter: drop-shadow(0 0 10px #00e676); }
+        .fish-rare { color: #FFD700; filter: drop-shadow(0 0 10px #FFD700); font-size: 30px; } /* سمكة سريعة وصغيرة */
+        .jellyfish { color: #ff3366; filter: drop-shadow(0 0 10px #ff3366); font-size: 45px; } /* خطر */
+
+        .instructions {
+            position: absolute; top: 30%; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.3); font-size: 18px; font-weight: bold; pointer-events: none; z-index: 1;
+        }
+
+        /* تأثير الصيد */
+        .catch-text {
+            position: absolute; font-size: 24px; font-weight: 900; z-index: 60;
+            opacity: 0; pointer-events: none; transition: 0.5s ease-out;
+        }
+
+        /* --- المودال (النتيجة) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-icon { font-size: 60px; margin-bottom: 10px; }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--primary-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">صيد السمك 🎣</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">الوقت المتبقي</div>
+            <div class="timer-value" id="timerDisplay">60</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea" onmousedown="dropHook()" ontouchstart="dropHook(event)">
+        <div class="instructions" id="instructions">اضغط لرمي الصنارة!</div>
+        
+        <div class="hook-container" id="hookContainer">
+            <i class="fa-solid fa-anchor hook" id="hookIcon"></i>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-icon">🏆</div>
+            <div class="modal-title">انتهى الوقت!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">لقد جمعت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> نقطة</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn" onclick="initGame()">صيد مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('gameArea');
+        const hookContainer = document.getElementById('hookContainer');
+        const hookIcon = document.getElementById('hookIcon');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const walletElement = document.getElementById('walletScore');
+        const instructions = document.getElementById('instructions');
+
+        let score = 0;
+        let timeLeft = 60;
+        let isFishing = false;
+        let isGameOver = false;
+        let fishInterval;
+        let timerInterval;
+        let fishes = []; // لتخزين الأسماك الموجودة في الشاشة
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            score = 0;
+            timeLeft = 60;
+            isFishing = false;
+            isGameOver = false;
+            
+            scoreDisplay.innerText = score;
+            timerDisplay.innerText = timeLeft;
+            instructions.style.display = 'block';
+            
+            // تنظيف الأسماك القديمة
+            document.querySelectorAll('.fish').forEach(f => f.remove());
+            fishes = [];
+
+            // بدء المؤقت ومولد الأسماك
+            clearInterval(timerInterval);
+            clearInterval(fishInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            fishInterval = setInterval(spawnFish, 1200); // توليد سمكة كل 1.2 ثانية
+        }
+
+        function updateTimer() {
+            if (isGameOver) return;
+            timeLeft--;
+            timerDisplay.innerText = timeLeft;
+            if (timeLeft <= 0) {
+                gameOver();
+            }
+        }
+
+        function spawnFish() {
+            if (isGameOver) return;
+            
+            const fish = document.createElement('div');
+            fish.classList.add('fish');
+            
+            // تحديد نوع السمكة عشوائياً
+            const rand = Math.random();
+            let type = 'normal';
+            let icon = '🐟';
+            let points = 10;
+            let speed = Math.random() * 2 + 2; // سرعة بين 2 و 4
+            
+            if (rand > 0.8) {
+                type = 'rare';
+                icon = '🐠';
+                points = 30;
+                speed = Math.random() * 3 + 4; // أسرع
+                fish.classList.add('fish-rare');
+            } else if (rand < 0.2) {
+                type = 'jellyfish';
+                icon = '🦑';
+                points = -20; // ينقص نقط
+                speed = Math.random() * 1.5 + 1; // بطيء
+                fish.classList.add('jellyfish');
+            } else {
+                fish.classList.add('fish-normal');
+            }
+
+            fish.innerText = icon;
+            fish.dataset.points = points;
+            fish.dataset.type = type;
+
+            // تحديد اتجاه الحركة (من اليمين لليسار أو العكس)
+            const fromLeft = Math.random() > 0.5;
+            let currentX = fromLeft ? -50 : gameArea.clientWidth + 50;
+            const targetY = Math.random() * (gameArea.clientHeight - 150) + 100; // مستوى العمق
+
+            fish.style.top = targetY + 'px';
+            fish.style.left = currentX + 'px';
+            if (!fromLeft) fish.style.transform = 'scaleX(-1)'; // عكس اتجاه السمكة
+
+            gameArea.appendChild(fish);
+            
+            let fishObj = { el: fish, x: currentX, speed: fromLeft ? speed : -speed, y: targetY };
+            fishes.push(fishObj);
+
+            // تحريك السمكة
+            function moveFish() {
+                if (isGameOver) return;
+                fishObj.x += fishObj.speed;
+                fish.style.left = fishObj.x + 'px';
+
+                // حذف السمكة لو طلعت بره الشاشة
+                if (fishObj.x > gameArea.clientWidth + 100 || fishObj.x < -100) {
+                    fish.remove();
+                    fishes = fishes.filter(f => f !== fishObj);
+                } else {
+                    requestAnimationFrame(moveFish);
+                }
+            }
+            requestAnimationFrame(moveFish);
+        }
+
+        function dropHook(e) {
+            if (e) e.preventDefault();
+            if (isFishing || isGameOver) return;
+            
+            instructions.style.display = 'none';
+            isFishing = true;
+            
+            // إنزال الصنارة للأسفل
+            const dropDepth = gameArea.clientHeight - 50;
+            hookContainer.style.height = dropDepth + 'px';
+
+            // بعد ما الصنارة توصل للأسفل (500ms)، نتحقق من الصيد ثم نرفعها
+            setTimeout(() => {
+                checkCatch(dropDepth);
+                hookContainer.style.height = '50px'; // رفع الصنارة
+                
+                setTimeout(() => {
+                    isFishing = false;
+                }, 500); // وقت رفع الصنارة
+            }, 500);
+        }
+
+        function checkCatch(hookY) {
+            const hookRect = hookIcon.getBoundingClientRect();
+            let caught = false;
+
+            for (let i = 0; i < fishes.length; i++) {
+                const fishObj = fishes[i];
+                const fishRect = fishObj.el.getBoundingClientRect();
+
+                // التحقق من التصادم بين الصنارة والسمكة
+                if (!(hookRect.right < fishRect.left || 
+                      hookRect.left > fishRect.right || 
+                      hookRect.bottom < fishRect.top || 
+                      hookRect.top > fishRect.bottom)) {
+                    
+                    // تم الصيد!
+                    caught = true;
+                    let pts = parseInt(fishObj.el.dataset.points);
+                    score += pts;
+                    if (score < 0) score = 0;
+                    scoreDisplay.innerText = score;
+
+                    // إظهار نص النقاط مكان الصيد
+                    showFloatingText(pts, fishRect.left, fishRect.top);
+
+                    // إزالة السمكة
+                    fishObj.el.remove();
+                    fishes.splice(i, 1);
+                    break; // صيد سمكة واحدة في الرمية
+                }
+            }
+        }
+
+        function showFloatingText(points, x, y) {
+            const text = document.createElement('div');
+            text.classList.add('catch-text');
+            text.innerText = points > 0 ? `+${points}` : points;
+            text.style.color = points > 0 ? 'var(--success-color)' : 'var(--danger-color)';
+            text.style.left = x + 'px';
+            text.style.top = y + 'px';
+            gameArea.appendChild(text);
+
+            setTimeout(() => {
+                text.style.opacity = '1';
+                text.style.transform = 'translateY(-30px)';
+            }, 10);
+
+            setTimeout(() => {
+                text.remove();
+            }, 1000);
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            clearInterval(timerInterval);
+            clearInterval(fishInterval);
+            
+            // حساب المكافأة (مثلا كل 10 نقطة بـ 1 عملة)
+            let reward = Math.floor(score / 10);
+            if (reward < 0) reward = 0;
+            
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            // تحديث المحفظة
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                document.getElementById('resultModal').classList.add('active');
+            }, 500);
+        }
+
+        // تشغيل اللعبة عند التحميل
+        window.onload = initGame;
+    </script>
+</body>
+</html>

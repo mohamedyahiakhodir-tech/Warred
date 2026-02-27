@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>عجلة الحظ - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff3b30;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 14px; transition: 0.3s; }
+
+        /* --- منطقة العجلة --- */
+        .wheel-container {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; padding: 20px; overflow: hidden;
+        }
+
+        /* المؤشر (السهم) */
+        .pointer {
+            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 50px; z-index: 10;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+        }
+        .pointer::before {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            border-left: 20px solid transparent; border-right: 20px solid transparent;
+            border-top: 35px solid var(--gold); /* لون السهم ذهبي */
+        }
+        .pointer::after {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            border-left: 15px solid transparent; border-right: 15px solid transparent;
+            border-top: 25px solid #fff; /* لمعة السهم */
+        }
+
+        /* حاوية الكانفاس لتطبيق التوهج والحدود */
+        .canvas-wrapper {
+            position: relative; width: 100%; max-width: 320px; aspect-ratio: 1/1;
+            border-radius: 50%; padding: 5px;
+            background: linear-gradient(135deg, var(--gold), #ff8c00);
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.4), inset 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        canvas {
+            width: 100%; height: 100%; border-radius: 50%; display: block;
+            /* حركة الدوران سلسة جداً بفضل هالتأثير */
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            background: #111;
+        }
+
+        /* المركز (النقطة في نص العجلة) */
+        .wheel-center {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 40px; height: 40px; background: #222; border: 4px solid var(--gold);
+            border-radius: 50%; z-index: 5; box-shadow: 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        /* --- أزرار التحكم --- */
+        .controls-area {
+            padding: 20px; text-align: center; background: #111; border-top: 1px solid #222;
+            flex-shrink: 0; z-index: 10;
+        }
+        
+        .cost-text { font-size: 12px; color: var(--secondary-text); margin-bottom: 10px; font-weight: bold; }
+        
+        .spin-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-solid));
+            color: #fff; border: none; padding: 15px 40px; border-radius: 30px;
+            font-size: 20px; font-weight: 900; letter-spacing: 1px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 198, 255, 0.4); transition: 0.2s; width: 80%; max-width: 300px;
+        }
+        .spin-btn:active { transform: scale(0.95); }
+        .spin-btn:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed; }
+
+        /* --- نافذة النتيجة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #161616; border: 1px solid var(--gold); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 60px; margin-bottom: 10px; }
+        .win-text { color: var(--gold); font-size: 24px; font-weight: 900; margin: 10px 0; }
+        .lose-text { color: var(--danger); font-size: 24px; font-weight: 900; margin: 10px 0; }
+        
+        .btn-close {
+            background: #222; color: #fff; border: 1px solid #444; padding: 12px 30px;
+            border-radius: 25px; font-weight: bold; width: 100%; margin-top: 15px; cursor: pointer;
+        }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        /* انيميشن نبض للمحفظة عند الخصم/الزيادة */
+        .pulse-wallet { animation: walletPulse 0.5s ease; }
+        @keyframes walletPulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #fff; } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;"><i class="fa-solid fa-dharmachakra" style="color:var(--gold)"></i> عجلة الحظ</div>
+        <div class="stats-box" id="walletBox"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="wheel-container">
+        <div class="pointer"></div>
+        <div class="canvas-wrapper">
+            <canvas id="wheelCanvas" width="400" height="400"></canvas>
+            <div class="wheel-center"></div>
+        </div>
+    </div>
+
+    <div class="controls-area">
+        <div class="cost-text">تكلفة اللفة: <span style="color:var(--danger)">-20 عملة</span></div>
+        <button class="spin-btn" id="spinBtn" onclick="startSpin()">لـف العجلـة!</button>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="result-box" id="resultBox">
+            <div class="result-icon" id="resultIcon">🎉</div>
+            <h2 id="resultTitle">مبروك!</h2>
+            <div id="resultValue" class="win-text">+100 عملة</div>
+            <button class="btn-close" onclick="closeModal()">متابعة اللعب</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ⚙️ إعدادات وبيانات العجلة
+        // ==========================================
+        
+        const costPerSpin = 20; // تكلفة اللفة
+        let currentRotation = 0; // الدوران الحالي للعجلة
+        let isSpinning = false;
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500'); // جلب الرصيد الوهمي
+
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        // أقسام العجلة (الجوائز)
+        const segments = [
+            { text: "100", value: 100, color: "#1a1a1a", textColor: "#fff" },
+            { text: "حظ أوفر", value: 0, color: "#ff3b30", textColor: "#fff" }, // خسارة
+            { text: "50", value: 50, color: "#222222", textColor: "#fff" },
+            { text: "500", value: 500, color: "#FFD700", textColor: "#000" }, // الجائزة الكبرى ذهبية
+            { text: "10", value: 10, color: "#1a1a1a", textColor: "#fff" },
+            { text: "إعادة", value: "replay", color: "#00C6FF", textColor: "#000" }, // لفة مجانية
+            { text: "200", value: 200, color: "#222222", textColor: "#fff" },
+            { text: "0", value: 0, color: "#ff3b30", textColor: "#fff" } // خسارة
+        ];
+
+        const canvas = document.getElementById("wheelCanvas");
+        const ctx = canvas.getContext("2d");
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = canvas.width / 2;
+
+        // ==========================================
+        // 🎨 رسم العجلة (Canvas Drawing)
+        // ==========================================
+        function drawWheel() {
+            const arcSize = (2 * Math.PI) / segments.length; // حجم كل قسم بالراديان
+
+            for (let i = 0; i < segments.length; i++) {
+                const angle = i * arcSize;
+                
+                // رسم القسم (المثلث)
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, angle, angle + arcSize, false);
+                ctx.lineTo(centerX, centerY);
+                ctx.fillStyle = segments[i].color;
+                ctx.fill();
+
+                // حدود بين الأقسام
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = "#333";
+                ctx.stroke();
+
+                // رسم النص داخل القسم
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                // تدوير النص ليكون في منتصف القسم
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right"; // نكتب من اليمين للشمال عشان يروح لطرف العجلة
+                ctx.fillStyle = segments[i].textColor;
+                ctx.font = "bold 24px Cairo";
+                // كتابة النص (الإحداثيات تعتمد على المركز بسبب الـ translate)
+                ctx.fillText(segments[i].text, radius - 20, 8); 
+                ctx.restore();
+            }
+        }
+
+        drawWheel(); // استدعاء الرسم عند التحميل
+
+        // ==========================================
+        // 🎡 منطق الدوران (Spin Logic)
+        // ==========================================
+        function startSpin() {
+            if (isSpinning) return;
+            
+            // التحقق من الرصيد
+            if (totalCoins < costPerSpin) {
+                alert("رصيدك غير كافٍ! العب ألعاب أخرى لجمع العملات.");
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+
+            // 1. خصم التكلفة فوراً
+            updateWallet(-costPerSpin);
+
+            // 2. حساب الدوران العشوائي
+            // نلف العجلة بين 5 إلى 10 لفات كاملة (360 * عدد) + زاوية عشوائية
+            const extraSpins = Math.floor(Math.random() * 5) + 5; 
+            const randomDegrees = Math.floor(Math.random() * 360);
+            
+            // إضافة الدوران الجديد للقديم عشان تلف من مكان ما وقفت
+            currentRotation += (extraSpins * 360) + randomDegrees;
+
+            // 3. تطبيق الحركة بواسطة CSS
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            // 4. انتظار انتهاء الانيميشن (4 ثواني كما محدد في CSS)
+            setTimeout(() => {
+                calculateResult();
+            }, 4000);
+        }
+
+        // ==========================================
+        // 🏆 حساب النتيجة وإظهارها
+        // ==========================================
+        function calculateResult() {
+            // بما أن العجلة تدور مع عقارب الساعة، المؤشر الثابت في الأعلى يشير للقسم المعاكس
+            // نحتاج لحساب الزاوية الحقيقية بعد إزالة اللفات الكاملة
+            const actualRotation = currentRotation % 360;
+            
+            // المؤشر في الأعلى يعني زاويته الافتراضية هي 270 درجة في الـ Canvas
+            // أو يمكننا عكس الحسبة ببساطة:
+            const segmentAngle = 360 / segments.length;
+            
+            // معادلة رياضية لمعرفة المؤشر واقف على أي قسم
+            // نخصم الدوران من 360، ونقسم على حجم القسم
+            let index = Math.floor((360 - actualRotation + (segmentAngle / 2)) / segmentAngle);
+            if (index >= segments.length) index = 0; // حماية
+
+            const winningSegment = segments[index];
+
+            showResult(winningSegment);
+        }
+
+        function showResult(segment) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const value = document.getElementById('resultValue');
+            const box = document.getElementById('resultBox');
+
+            if (segment.value === 0) {
+                // حالة الخسارة
+                icon.innerHTML = '💸';
+                title.innerText = 'للأسف!';
+                value.innerText = 'لم تربح شيئاً';
+                value.className = 'lose-text';
+                box.style.borderColor = 'var(--danger)';
+                box.style.boxShadow = '0 0 40px rgba(255, 59, 48, 0.2)';
+            } 
+            else if (segment.value === 'replay') {
+                // لفة مجانية
+                icon.innerHTML = '🔄';
+                title.innerText = 'محظوظ!';
+                value.innerText = 'لقد ربحت لفة مجانية';
+                value.className = 'win-text';
+                value.style.color = 'var(--primary-color)';
+                box.style.borderColor = 'var(--primary-color)';
+                box.style.boxShadow = '0 0 40px rgba(0, 198, 255, 0.2)';
+                
+                // نرجعله ثمن اللفة اللي اتخصم
+                updateWallet(costPerSpin);
+            } 
+            else {
+                // حالة الفوز بعملات
+                icon.innerHTML = '🎉';
+                title.innerText = 'مبروك!';
+                value.innerText = `+${segment.value} عملة`;
+                value.className = 'win-text';
+                value.style.color = 'var(--gold)';
+                box.style.borderColor = 'var(--gold)';
+                box.style.boxShadow = '0 0 40px rgba(255, 215, 0, 0.2)';
+                
+                // إضافة الربح للمحفظة
+                updateWallet(segment.value);
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+        }
+
+        // ==========================================
+        // 💰 تحديث المحفظة
+        // ==========================================
+        function updateWallet(amount) {
+            totalCoins += amount;
+            
+            // حماية من الرصيد السالب
+            if(totalCoins < 0) totalCoins = 0; 
+
+            const walletText = document.getElementById('walletCoins');
+            const walletBox = document.getElementById('walletBox');
+            
+            walletText.innerText = totalCoins;
+            
+            // حفظ الرصيد في المتصفح (مؤقتاً لحين ربطه بـ Firebase)
+            localStorage.setItem('wareed_coins', totalCoins);
+
+            // تشغيل انيميشن النبض
+            walletBox.classList.remove('pulse-wallet');
+            void walletBox.offsetWidth; // Trigger reflow
+            walletBox.classList.add('pulse-wallet');
+        }
+
+    </script>
+</body>
+</html>

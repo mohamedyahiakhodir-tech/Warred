@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>2048 - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --grid-bg: #222;
+            --cell-bg: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- معلومات اللعبة --- */
+        .game-info {
+            display: flex; justify-content: space-between; padding: 20px; max-width: 400px; margin: 0 auto; width: 100%;
+        }
+        .score-box {
+            background: var(--card-color); border: 1px solid #333; padding: 10px 20px;
+            border-radius: 15px; text-align: center; flex: 1; margin: 0 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 20px; font-weight: 900; color: #fff; }
+
+        /* --- شبكة اللعب --- */
+        .game-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .grid {
+            background: var(--grid-bg); width: 100%; max-width: 350px; aspect-ratio: 1/1;
+            border-radius: 15px; padding: 10px; display: grid; grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr); gap: 10px; position: relative;
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.1); border: 1px solid #444;
+        }
+        .cell {
+            background: var(--cell-bg); border-radius: 10px; display: flex;
+            align-items: center; justify-content: center; font-size: 28px; font-weight: 900;
+            color: #fff; position: relative; transition: all 0.15s ease-in-out;
+        }
+
+        /* ألوان الأرقام */
+        .cell[data-val="2"] { background: #1a2a3a; color: #00C6FF; box-shadow: 0 0 10px rgba(0, 198, 255, 0.2); }
+        .cell[data-val="4"] { background: #1a3a4a; color: #00d2ff; box-shadow: 0 0 10px rgba(0, 210, 255, 0.3); }
+        .cell[data-val="8"] { background: #2a5a3a; color: #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.4); }
+        .cell[data-val="16"] { background: #4a5a2a; color: #bfff00; box-shadow: 0 0 10px rgba(191, 255, 0, 0.4); }
+        .cell[data-val="32"] { background: #5a4a2a; color: #ffcc00; box-shadow: 0 0 10px rgba(255, 204, 0, 0.4); }
+        .cell[data-val="64"] { background: #6a3a2a; color: #ff8800; box-shadow: 0 0 10px rgba(255, 136, 0, 0.5); }
+        .cell[data-val="128"] { background: #7a2a2a; color: #ff3333; box-shadow: 0 0 15px rgba(255, 51, 51, 0.6); font-size: 24px; }
+        .cell[data-val="256"] { background: #8a1a3a; color: #ff0066; box-shadow: 0 0 15px rgba(255, 0, 102, 0.7); font-size: 24px; }
+        .cell[data-val="512"] { background: #6a1a5a; color: #cc00ff; box-shadow: 0 0 15px rgba(204, 0, 255, 0.8); font-size: 24px; }
+        .cell[data-val="1024"] { background: #4a1a7a; color: #8800ff; box-shadow: 0 0 20px rgba(136, 0, 255, 0.9); font-size: 20px; }
+        .cell[data-val="2048"] { background: #FFD700; color: #000; box-shadow: 0 0 25px rgba(255, 215, 0, 1); font-size: 20px; }
+
+        /* أنيميشن الدمج */
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .pop { animation: pop 0.2s ease; }
+
+        /* --- المودال (النتيجة) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 10px; color: var(--primary-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3); transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">2048 🧩</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-info">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreValue">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">أفضل رقم</div>
+            <div class="score-value" id="bestTileValue">2</div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="grid" id="grid">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-title" id="modalTitle">انتهت اللعبة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">لقد جمعت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> نقطة</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn" onclick="initGame()">العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        const gridElement = document.getElementById('grid');
+        const scoreElement = document.getElementById('scoreValue');
+        const bestTileElement = document.getElementById('bestTileValue');
+        const walletElement = document.getElementById('walletScore');
+        
+        let board = [];
+        let score = 0;
+        let bestTile = 2;
+        let isGameOver = false;
+
+        // تهيئة اللعبة
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            board = [
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0],
+                [0, 0, 0, 0]
+            ];
+            score = 0;
+            bestTile = 2;
+            isGameOver = false;
+            scoreElement.innerText = score;
+            bestTileElement.innerText = bestTile;
+            
+            gridElement.innerHTML = '';
+            for (let i = 0; i < 16; i++) {
+                let cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.id = `cell-${Math.floor(i / 4)}-${i % 4}`;
+                gridElement.appendChild(cell);
+            }
+
+            addNewTile();
+            addNewTile();
+            updateBoard();
+        }
+
+        // إضافة رقم جديد (2 أو 4)
+        function addNewTile() {
+            let emptyCells = [];
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (board[r][c] === 0) emptyCells.push({r, c});
+                }
+            }
+            if (emptyCells.length > 0) {
+                let randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+                board[randomCell.r][randomCell.c] = Math.random() < 0.9 ? 2 : 4;
+            }
+        }
+
+        // تحديث واجهة المستخدم
+        function updateBoard() {
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    let cell = document.getElementById(`cell-${r}-${c}`);
+                    let val = board[r][c];
+                    cell.innerText = val === 0 ? '' : val;
+                    cell.setAttribute('data-val', val);
+                    
+                    if (val > bestTile) {
+                        bestTile = val;
+                        bestTileElement.innerText = bestTile;
+                    }
+                }
+            }
+            scoreElement.innerText = score;
+            checkGameOver();
+        }
+
+        // دوال الحركة
+        function slide(row) {
+            let arr = row.filter(val => val);
+            let missing = 4 - arr.length;
+            let zeros = Array(missing).fill(0);
+            return arr.concat(zeros);
+        }
+
+        function combine(row) {
+            for (let i = 0; i < 3; i++) {
+                if (row[i] !== 0 && row[i] === row[i + 1]) {
+                    row[i] *= 2;
+                    row[i + 1] = 0;
+                    score += row[i];
+                    // تفعيل الأنيميشن
+                    setTimeout(() => {
+                        let cells = document.querySelectorAll(`[data-val="${row[i]}"]`);
+                        cells.forEach(c => { c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop'); });
+                    }, 50);
+                }
+            }
+            return row;
+        }
+
+        function moveLeft() {
+            let moved = false;
+            for (let r = 0; r < 4; r++) {
+                let row = board[r];
+                let originalRow = [...row];
+                row = slide(row);
+                row = combine(row);
+                row = slide(row);
+                board[r] = row;
+                if (originalRow.join(',') !== row.join(',')) moved = true;
+            }
+            return moved;
+        }
+
+        function moveRight() {
+            let moved = false;
+            for (let r = 0; r < 4; r++) {
+                let row = board[r];
+                let originalRow = [...row];
+                row.reverse();
+                row = slide(row);
+                row = combine(row);
+                row = slide(row);
+                row.reverse();
+                board[r] = row;
+                if (originalRow.join(',') !== row.join(',')) moved = true;
+            }
+            return moved;
+        }
+
+        function moveUp() {
+            let moved = false;
+            for (let c = 0; c < 4; c++) {
+                let col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+                let originalCol = [...col];
+                col = slide(col);
+                col = combine(col);
+                col = slide(col);
+                for (let r = 0; r < 4; r++) board[r][c] = col[r];
+                if (originalCol.join(',') !== col.join(',')) moved = true;
+            }
+            return moved;
+        }
+
+        function moveDown() {
+            let moved = false;
+            for (let c = 0; c < 4; c++) {
+                let col = [board[0][c], board[1][c], board[2][c], board[3][c]];
+                let originalCol = [...col];
+                col.reverse();
+                col = slide(col);
+                col = combine(col);
+                col = slide(col);
+                col.reverse();
+                for (let r = 0; r < 4; r++) board[r][c] = col[r];
+                if (originalCol.join(',') !== col.join(',')) moved = true;
+            }
+            return moved;
+        }
+
+        function handleInput(direction) {
+            if (isGameOver) return;
+            let moved = false;
+            if (direction === 'Left') moved = moveLeft();
+            else if (direction === 'Right') moved = moveRight();
+            else if (direction === 'Up') moved = moveUp();
+            else if (direction === 'Down') moved = moveDown();
+
+            if (moved) {
+                addNewTile();
+                updateBoard();
+            }
+        }
+
+        // أحداث الكيبورد
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') handleInput('Left');
+            else if (e.key === 'ArrowRight') handleInput('Right');
+            else if (e.key === 'ArrowUp') handleInput('Up');
+            else if (e.key === 'ArrowDown') handleInput('Down');
+        });
+
+        // أحداث السحب (Touch/Swipe) للموبايل
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        });
+
+        document.addEventListener('touchend', e => {
+            if (isGameOver) return;
+            let touchEndX = e.changedTouches[0].screenX;
+            let touchEndY = e.changedTouches[0].screenY;
+            
+            let dx = touchEndX - touchStartX;
+            let dy = touchEndY - touchStartY;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                // سحب أفقي
+                if (dx > 30) handleInput('Right');
+                else if (dx < -30) handleInput('Left');
+            } else {
+                // سحب رأسي
+                if (dy > 30) handleInput('Down');
+                else if (dy < -30) handleInput('Up');
+            }
+        });
+
+        function checkGameOver() {
+            let hasEmptyCell = false;
+            let canMerge = false;
+
+            for (let r = 0; r < 4; r++) {
+                for (let c = 0; c < 4; c++) {
+                    if (board[r][c] === 0) hasEmptyCell = true;
+                    if (c < 3 && board[r][c] === board[r][c + 1]) canMerge = true;
+                    if (r < 3 && board[r][c] === board[r + 1][c]) canMerge = true;
+                }
+            }
+
+            if (!hasEmptyCell && !canMerge) {
+                isGameOver = true;
+                endGame();
+            }
+        }
+
+        function endGame() {
+            const modal = document.getElementById('resultModal');
+            document.getElementById('finalScore').innerText = score;
+            
+            // حساب المكافأة (مثلا كل 100 نقطة بـ 1 عملة)
+            let reward = Math.floor(score / 100);
+            if (reward < 5) reward = 5; // حد أدنى للمكافأة عشان تعب اللاعب
+            
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            // تحديث المحفظة
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            modal.classList.add('active');
+        }
+
+        // تشغيل اللعبة عند فتح الصفحة
+        window.onload = initGame;
+    </script>
+</body>
+</html>

@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تطابق الصور - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --success: #34c759;
+            --card-back: #111;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0; z-index: 10;
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; transition: 0.3s; }
+        .pulse-wallet { transform: scale(1.2); color: #fff; box-shadow: 0 0 15px var(--gold); }
+
+        /* --- لوحة المعلومات (الحركات والوقت) --- */
+        .dashboard {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .info-pill {
+            background: rgba(0, 198, 255, 0.1); border: 1px solid rgba(0, 198, 255, 0.3);
+            padding: 5px 15px; border-radius: 15px; font-weight: bold; font-size: 14px; color: var(--primary-color);
+        }
+        .timer-pill { color: #fff; border-color: #555; background: #111; }
+
+        /* --- شبكة البطاقات --- */
+        .board-container {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px;
+        }
+        .memory-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            width: 100%; max-width: 400px;
+        }
+
+        /* --- تصميم البطاقة (3D Flip) --- */
+        .memory-card {
+            aspect-ratio: 3/4; perspective: 1000px; cursor: pointer;
+        }
+        .card-inner {
+            width: 100%; height: 100%; position: relative;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+        .memory-card.flipped .card-inner { transform: rotateY(180deg); }
+        .memory-card.matched .card-inner { transform: rotateY(180deg) scale(0.95); opacity: 0.8; }
+
+        .card-front, .card-back {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            backface-visibility: hidden; border-radius: 12px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); border: 2px solid #333;
+        }
+
+        /* الوجه الخلفي (اللي بيظهر في البداية) */
+        .card-back {
+            background: linear-gradient(135deg, var(--card-back), #1a1a2e);
+            border-color: rgba(0, 198, 255, 0.5);
+            font-size: 24px; color: rgba(0, 198, 255, 0.3);
+        }
+        
+        /* الوجه الأمامي (اللي فيه الأيقونة) */
+        .card-front {
+            background: #111;
+            transform: rotateY(180deg);
+            font-size: 35px;
+        }
+
+        /* ألوان الأيقونات النيون */
+        .icon-red { color: var(--danger); text-shadow: 0 0 15px var(--danger); border-color: var(--danger); }
+        .icon-blue { color: var(--primary-color); text-shadow: 0 0 15px var(--primary-color); border-color: var(--primary-color); }
+        .icon-gold { color: var(--gold); text-shadow: 0 0 15px var(--gold); border-color: var(--gold); }
+        .icon-green { color: var(--success); text-shadow: 0 0 15px var(--success); border-color: var(--success); }
+        .icon-purple { color: #bf5af2; text-shadow: 0 0 15px #bf5af2; border-color: #bf5af2; }
+        .icon-orange { color: #ff9f0a; text-shadow: 0 0 15px #ff9f0a; border-color: #ff9f0a; }
+        .icon-white { color: #fff; text-shadow: 0 0 15px #fff; border-color: #fff; }
+        .icon-pink { color: #ff375f; text-shadow: 0 0 15px #ff375f; border-color: #ff375f; }
+
+        /* --- نافذة النتيجة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--success); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(52, 199, 89, 0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; margin-bottom: 10px; color: var(--success); }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 14px; color: #aaa; margin-bottom: 15px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--success), #28a745);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;"><i class="fa-solid fa-brain" style="color:var(--primary-color)"></i> تطابق الصور</div>
+        <div class="stats-box" id="walletBox"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="info-pill">حركات: <span id="movesCount">0</span></div>
+        <div class="info-pill timer-pill"><i class="fa-regular fa-clock"></i> <span id="timerDisplay">00:00</span></div>
+    </div>
+
+    <div class="board-container">
+        <div class="memory-grid" id="memoryGrid">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box" id="resultBox">
+            <div class="result-icon"><i class="fa-solid fa-medal"></i></div>
+            <div class="result-title">ذاكرة حديدية!</div>
+            <div class="score-text">أنهيت اللعبة في <span id="finalMoves" style="color:#fff; font-weight:bold;">0</span> حركة<br>والوقت: <span id="finalTime" style="color:#fff; font-weight:bold;">00:00</span></div>
+            <div class="earned-coins">+<span id="coinsEarned">25</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" onclick="initGame()">لعب مجدداً</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🧩 إعدادات المحفظة وبيانات اللعبة
+        // ==========================================
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        // الأيقونات المستخدمة في اللعبة (8 أزواج = 16 بطاقة)
+        const cardsData = [
+            { id: 1, icon: 'fa-diamond', colorClass: 'icon-blue' },
+            { id: 2, icon: 'fa-fire', colorClass: 'icon-orange' },
+            { id: 3, icon: 'fa-heart', colorClass: 'icon-red' },
+            { id: 4, icon: 'fa-star', colorClass: 'icon-gold' },
+            { id: 5, icon: 'fa-bolt', colorClass: 'icon-purple' },
+            { id: 6, icon: 'fa-leaf', colorClass: 'icon-green' },
+            { id: 7, icon: 'fa-ghost', colorClass: 'icon-white' },
+            { id: 8, icon: 'fa-crown', colorClass: 'icon-pink' }
+        ];
+
+        let cardsArray = [];
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        
+        let moves = 0;
+        let matchesFound = 0;
+        
+        // متغيرات الوقت
+        let timeSeconds = 0;
+        let timerInterval = null;
+        let gameStarted = false;
+
+        // ==========================================
+        // 🎮 تهيئة اللعبة (Shuffle & Render)
+        // ==========================================
+        function initGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            
+            // تصفير المتغيرات
+            hasFlippedCard = false;
+            lockBoard = false;
+            firstCard = null;
+            secondCard = null;
+            moves = 0;
+            matchesFound = 0;
+            timeSeconds = 0;
+            gameStarted = false;
+            
+            document.getElementById('movesCount').innerText = moves;
+            document.getElementById('timerDisplay').innerText = "00:00";
+            clearInterval(timerInterval);
+
+            // تكرار البطاقات لتكوين الأزواج
+            cardsArray = [...cardsData, ...cardsData];
+            
+            // خلط البطاقات (Fisher-Yates Shuffle)
+            for (let i = cardsArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardsArray[i], cardsArray[j]] = [cardsArray[j], cardsArray[i]];
+            }
+
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('memoryGrid');
+            grid.innerHTML = '';
+
+            cardsArray.forEach((card, index) => {
+                const cardEl = document.createElement('div');
+                cardEl.className = 'memory-card';
+                cardEl.dataset.id = card.id;
+                cardEl.onclick = () => flipCard(cardEl);
+
+                cardEl.innerHTML = `
+                    <div class="card-inner">
+                        <div class="card-front ${card.colorClass}">
+                            <i class="fa-solid ${card.icon}"></i>
+                        </div>
+                        <div class="card-back">
+                            <i class="fa-solid fa-question"></i>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(cardEl);
+            });
+        }
+
+        // ==========================================
+        // ⏱️ العداد الزمني (Timer)
+        // ==========================================
+        function startTimer() {
+            if (gameStarted) return;
+            gameStarted = true;
+            timerInterval = setInterval(() => {
+                timeSeconds++;
+                const m = Math.floor(timeSeconds / 60).toString().padStart(2, '0');
+                const s = (timeSeconds % 60).toString().padStart(2, '0');
+                document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        // ==========================================
+        // 🔄 منطق قلب البطاقات (Flip Logic)
+        // ==========================================
+        function flipCard(card) {
+            // منع القلب إذا كانت اللوحة مغلقة، أو البطاقة مقلوبة مسبقاً
+            if (lockBoard || card.classList.contains('flipped')) return;
+
+            // بدء الوقت عند أول نقرة
+            startTimer();
+
+            card.classList.add('flipped');
+            if(navigator.vibrate) navigator.vibrate(10); // هزة خفيفة للمس
+
+            if (!hasFlippedCard) {
+                // البطاقة الأولى
+                hasFlippedCard = true;
+                firstCard = card;
+                return;
+            }
+
+            // البطاقة الثانية
+            secondCard = card;
+            moves++;
+            document.getElementById('movesCount').innerText = moves;
+
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.id === secondCard.dataset.id;
+
+            if (isMatch) {
+                disableCards();
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            firstCard.classList.add('matched');
+            secondCard.classList.add('matched');
+            
+            // إزالة خاصية النقر من البطاقات المتطابقة
+            firstCard.onclick = null;
+            secondCard.onclick = null;
+
+            matchesFound++;
+            if(navigator.vibrate) navigator.vibrate([30, 30]); // هزة التطابق
+
+            resetBoard();
+
+            // فحص الفوز
+            if (matchesFound === cardsData.length) {
+                setTimeout(endGame, 500);
+            }
+        }
+
+        function unflipCards() {
+            lockBoard = true; // قفل اللوحة لمنع فتح بطاقة ثالثة
+
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                if(navigator.vibrate) navigator.vibrate(50); // هزة الخطأ
+                resetBoard();
+            }, 800); // إبقاء البطاقتين مكشوفتين لـ 800 ملي ثانية ليتذكرهما اللاعب
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // ==========================================
+        // 🏆 نهاية اللعبة وإضافة العملات
+        // ==========================================
+        function endGame() {
+            clearInterval(timerInterval);
+            
+            // المكافأة الأساسية = 25 عملة
+            let earned = 25;
+            
+            // إضافة المكافأة للمحفظة
+            totalCoins += earned;
+            localStorage.setItem('wareed_coins', totalCoins);
+            
+            // تحديث الواجهة
+            document.getElementById('walletCoins').innerText = totalCoins;
+            const box = document.getElementById('walletBox');
+            box.classList.remove('pulse-wallet');
+            void box.offsetWidth;
+            box.classList.add('pulse-wallet');
+
+            // إظهار نافذة الفوز
+            document.getElementById('finalMoves').innerText = moves;
+            document.getElementById('finalTime').innerText = document.getElementById('timerDisplay').innerText;
+            document.getElementById('coinsEarned').innerText = earned;
+            
+            document.getElementById('gameOverModal').style.display = 'flex';
+        }
+
+        // تشغيل اللعبة عند فتح الصفحة
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>

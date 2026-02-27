@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حرب الدبابات - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 10px 20px; background: #111;
+            border-bottom: 1px solid #333; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 20px; font-weight: 900; color: #fff; }
+        .health-bar { font-size: 18px; color: var(--danger-color); letter-spacing: 2px; }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: #0a0a0c; position: relative; overflow: hidden;
+            background-image: linear-gradient(rgba(0, 198, 255, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(0, 198, 255, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        canvas {
+            background: transparent; box-shadow: 0 0 20px rgba(0, 198, 255, 0.1);
+            border: 1px solid #222; max-width: 100%; max-height: 100%;
+        }
+
+        /* --- أزرار التحكم للموبايل --- */
+        .controls-container {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: #111; border-top: 1px solid #333; height: 140px;
+        }
+        
+        .d-pad {
+            display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px);
+            gap: 5px;
+        }
+        .btn-dir {
+            background: #1a1a1a; border: 2px solid #333; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px; color: var(--primary-color); cursor: pointer;
+        }
+        .btn-dir:active { background: var(--primary-color); color: #000; }
+        
+        #btn-up { grid-column: 2; grid-row: 1; }
+        #btn-left { grid-column: 1; grid-row: 2; }
+        #btn-down { grid-column: 2; grid-row: 2; }
+        #btn-right { grid-column: 3; grid-row: 2; }
+
+        .btn-shoot {
+            background: radial-gradient(circle, var(--danger-color), #b30000);
+            width: 80px; height: 80px; border-radius: 50%; border: 4px solid #440000;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 30px; color: #fff; cursor: pointer; box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+        }
+        .btn-shoot:active { transform: scale(0.9); box-shadow: 0 0 10px rgba(255, 51, 102, 0.8); }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--danger-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">حرب الدبابات 🛡️</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">الأعداء المدمرة</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">الصحة</div>
+            <div class="health-bar" id="healthDisplay">❤️❤️❤️</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="controls-container">
+        <div class="d-pad">
+            <div class="btn-dir" id="btn-up"><i class="fa-solid fa-arrow-up"></i></div>
+            <div class="btn-dir" id="btn-left"><i class="fa-solid fa-arrow-left"></i></div>
+            <div class="btn-dir" id="btn-down"><i class="fa-solid fa-arrow-down"></i></div>
+            <div class="btn-dir" id="btn-right"><i class="fa-solid fa-arrow-right"></i></div>
+        </div>
+        <div class="btn-shoot" id="btn-shoot"><i class="fa-solid fa-crosshairs"></i></div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-title">تدمرت دبابتك!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">دمرت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> دبابات عدو</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameArea = document.getElementById('gameArea');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const healthDisplay = document.getElementById('healthDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        // ضبط حجم الكانفاس
+        function resizeCanvas() {
+            canvas.width = gameArea.clientWidth - 20;
+            canvas.height = gameArea.clientHeight - 20;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let animationId;
+        let score = 0;
+        let health = 3;
+        let isGameOver = false;
+
+        // كائن اللاعب
+        const player = {
+            x: canvas.width / 2, y: canvas.height / 2,
+            size: 20, speed: 3, dx: 0, dy: 0, dir: 'up', color: '#00C6FF'
+        };
+
+        const bullets = [];
+        const enemies = [];
+        const particles = [];
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            score = 0; health = 3; isGameOver = false;
+            player.x = canvas.width / 2; player.y = canvas.height / 2;
+            player.dx = 0; player.dy = 0; player.dir = 'up';
+            bullets.length = 0; enemies.length = 0; particles.length = 0;
+            updateScoreAndHealth();
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        // رسم الدبابة
+        function drawTank(x, y, size, color, dir) {
+            ctx.save();
+            ctx.translate(x, y);
+            // تحديد زاوية الدوران حسب الاتجاه
+            if(dir === 'right') ctx.rotate(Math.PI / 2);
+            if(dir === 'down') ctx.rotate(Math.PI);
+            if(dir === 'left') ctx.rotate(-Math.PI / 2);
+
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = color;
+            ctx.fillStyle = color;
+            
+            // جسم الدبابة
+            ctx.fillRect(-size/2, -size/2, size, size);
+            // المدفع
+            ctx.fillRect(-3, -size, 6, size);
+            
+            ctx.restore();
+        }
+
+        function drawBullet(b) {
+            ctx.beginPath();
+            ctx.arc(b.x, b.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = b.color;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = b.color;
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function spawnEnemy() {
+            if(Math.random() < 0.02 + (score * 0.001)) { // زيادة الصعوبة مع السكور
+                let ex, ey;
+                if(Math.random() < 0.5) {
+                    ex = Math.random() < 0.5 ? 0 : canvas.width;
+                    ey = Math.random() * canvas.height;
+                } else {
+                    ex = Math.random() * canvas.width;
+                    ey = Math.random() < 0.5 ? 0 : canvas.height;
+                }
+                enemies.push({ x: ex, y: ey, size: 20, speed: 1 + Math.random(), color: '#ff3366' });
+            }
+        }
+
+        function createExplosion(x, y, color) {
+            for(let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5,
+                    life: 1, color: color
+                });
+            }
+        }
+
+        function update() {
+            if(isGameOver) return;
+
+            // حركة اللاعب
+            player.x += player.dx;
+            player.y += player.dy;
+
+            // منع الخروج من الشاشة
+            if(player.x < player.size) player.x = player.size;
+            if(player.x > canvas.width - player.size) player.x = canvas.width - player.size;
+            if(player.y < player.size) player.y = player.size;
+            if(player.y > canvas.height - player.size) player.y = canvas.height - player.size;
+
+            // تحديث الرصاص
+            for(let i = bullets.length - 1; i >= 0; i--) {
+                let b = bullets[i];
+                if(b.dir === 'up') b.y -= b.speed;
+                if(b.dir === 'down') b.y += b.speed;
+                if(b.dir === 'left') b.x -= b.speed;
+                if(b.dir === 'right') b.x += b.speed;
+
+                // حذف الرصاص الخارج عن الشاشة
+                if(b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
+                    bullets.splice(i, 1);
+                }
+            }
+
+            // تحديث الأعداء
+            for(let i = enemies.length - 1; i >= 0; i--) {
+                let e = enemies[i];
+                // الأعداء تتجه نحو اللاعب
+                let angle = Math.atan2(player.y - e.y, player.x - e.x);
+                e.x += Math.cos(angle) * e.speed;
+                e.y += Math.sin(angle) * e.speed;
+                
+                // تحديد اتجاه الدبابة العدو (تقريبي للشكل)
+                let eDir = 'up';
+                if (Math.abs(Math.cos(angle)) > Math.abs(Math.sin(angle))) {
+                    eDir = Math.cos(angle) > 0 ? 'right' : 'left';
+                } else {
+                    eDir = Math.sin(angle) > 0 ? 'down' : 'up';
+                }
+                e.dir = eDir;
+
+                // اصطدام العدو باللاعب
+                let dist = Math.hypot(player.x - e.x, player.y - e.y);
+                if(dist < player.size + e.size - 10) {
+                    health--;
+                    updateScoreAndHealth();
+                    createExplosion(player.x, player.y, player.color);
+                    enemies.splice(i, 1);
+                    
+                    // اهتزاز الشاشة
+                    canvas.style.transform = "translate(5px, 5px)";
+                    setTimeout(() => canvas.style.transform = "translate(0, 0)", 50);
+
+                    if(health <= 0) gameOver();
+                    continue;
+                }
+
+                // اصطدام الرصاص بالعدو
+                for(let j = bullets.length - 1; j >= 0; j--) {
+                    let b = bullets[j];
+                    if(!b.isEnemy && Math.hypot(b.x - e.x, b.y - e.y) < e.size) {
+                        score++;
+                        updateScoreAndHealth();
+                        createExplosion(e.x, e.y, e.color);
+                        enemies.splice(i, 1);
+                        bullets.splice(j, 1);
+                        break;
+                    }
+                }
+            }
+
+            // تحديث الجزيئات (الانفجارات)
+            for(let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx; p.y += p.vy; p.life -= 0.05;
+                if(p.life <= 0) particles.splice(i, 1);
+            }
+
+            spawnEnemy();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // رسم الجزيئات
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, Math.PI*2); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+
+            if(!isGameOver) drawTank(player.x, player.y, player.size, player.color, player.dir);
+            enemies.forEach(e => drawTank(e.x, e.y, e.size, e.color, e.dir));
+            bullets.forEach(b => drawBullet(b));
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            if(!isGameOver) animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function shoot() {
+            if(isGameOver) return;
+            bullets.push({ x: player.x, y: player.y, speed: 7, dir: player.dir, color: '#00C6FF', isEnemy: false });
+        }
+
+        function updateScoreAndHealth() {
+            scoreDisplay.innerText = score;
+            healthDisplay.innerText = "❤️".repeat(health) + "🖤".repeat(3 - health);
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            let reward = score * 5; // كل دبابة بـ 5 عملات
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+            
+            setTimeout(() => document.getElementById('resultModal').classList.add('active'), 500);
+        }
+
+        // --- التحكم بالشاشة للموبايل ---
+        const btnUp = document.getElementById('btn-up');
+        const btnDown = document.getElementById('btn-down');
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnShoot = document.getElementById('btn-shoot');
+
+        function setDir(dx, dy, dir) { player.dx = dx * player.speed; player.dy = dy * player.speed; player.dir = dir; }
+        function stopDir() { player.dx = 0; player.dy = 0; }
+
+        btnUp.ontouchstart = btnUp.onmousedown = (e) => { e.preventDefault(); setDir(0, -1, 'up'); };
+        btnDown.ontouchstart = btnDown.onmousedown = (e) => { e.preventDefault(); setDir(0, 1, 'down'); };
+        btnLeft.ontouchstart = btnLeft.onmousedown = (e) => { e.preventDefault(); setDir(-1, 0, 'left'); };
+        btnRight.ontouchstart = btnRight.onmousedown = (e) => { e.preventDefault(); setDir(1, 0, 'right'); };
+        
+        [btnUp, btnDown, btnLeft, btnRight].forEach(btn => {
+            btn.ontouchend = btn.onmouseup = btn.onmouseleave = stopDir;
+        });
+
+        btnShoot.ontouchstart = btnShoot.onmousedown = (e) => { e.preventDefault(); shoot(); };
+
+        // --- التحكم بالكيبورد ---
+        document.addEventListener('keydown', (e) => {
+            if(e.key === 'ArrowUp') setDir(0, -1, 'up');
+            if(e.key === 'ArrowDown') setDir(0, 1, 'down');
+            if(e.key === 'ArrowLeft') setDir(-1, 0, 'left');
+            if(e.key === 'ArrowRight') setDir(1, 0, 'right');
+            if(e.key === ' ' || e.key === 'Enter') shoot();
+        });
+        document.addEventListener('keyup', (e) => {
+            if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) stopDir();
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

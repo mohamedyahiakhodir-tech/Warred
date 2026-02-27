@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Temple Runner - Pro Max</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #1a1510; /* لون بني داكن خلفية أساسية */
+        font-family: 'Georgia', serif; /* خط كلاسيكي يدي طابع أثري */
+        user-select: none;
+    }
+    
+    #ui-layer {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    #top-bar {
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        display: none;
+    }
+
+    .stat-box {
+        color: #ffd700; /* لون ذهبي */
+        font-size: 24px;
+        font-weight: bold;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        background: rgba(40, 30, 20, 0.7); /* خلفية بنية شفافة */
+        padding: 10px 20px;
+        border-radius: 10px;
+        border: 2px solid #b8860b; /* إطار ذهبي غامق */
+    }
+
+    #powerup-timer {
+        color: #ff8c00;
+        display: none;
+    }
+
+    .screen {
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(30, 20, 10, 0.85); /* خلفية داكنة ترابية */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        pointer-events: auto;
+        color: #fff;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 50px;
+        color: #ffd700;
+        text-shadow: 3px 3px 5px #000;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+    }
+
+    p { font-size: 20px; color: #d2b48c; margin-bottom: 15px; }
+
+    button {
+        background: linear-gradient(to bottom, #b8860b, #8b6508);
+        color: white;
+        border: 2px solid #ffd700;
+        padding: 15px 40px;
+        font-size: 22px;
+        font-weight: bold;
+        border-radius: 10px; /* أطراف أقل دائرية لطابع حجري */
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        transition: 0.2s;
+        margin: 10px;
+    }
+
+    button:hover { transform: scale(1.05); filter: brightness(1.2); }
+
+    #game-over-screen { display: none; }
+    #missions-display {
+        font-size: 16px;
+        color: #ffebcd;
+        margin-bottom: 20px;
+    }
+
+    #hoverboard-btn {
+        position: absolute;
+        bottom: 30px;
+        right: 30px;
+        background: rgba(139, 69, 19, 0.8);
+        border: 2px solid #cd853f;
+        color: white;
+        padding: 15px;
+        border-radius: 50%;
+        font-size: 16px;
+        pointer-events: auto;
+        display: none;
+        font-weight: bold;
+    }
+</style>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+  }
+</script>
+
+</head>
+<body>
+
+<div id="ui-layer">
+    <div id="top-bar">
+        <div class="stat-box">Score: <span id="score-val">0</span> <br> <span style="font-size:14px; color:#d2b48c;">Best: <span id="high-score-val">0</span></span></div>
+        <div id="powerup-timer" class="stat-box">Power: <span id="power-time-val">0</span>s</div>
+        <div class="stat-box">Gold: <span id="coin-val">0</span></div>
+    </div>
+    <button id="hoverboard-btn" onclick="activateHoverboard()">Wood<br>Board</button>
+</div>
+
+<div id="start-screen" class="screen">
+    <h1>TEMPLE RUNNER</h1>
+    <div id="missions-display">Mission: Collect 50 Gold (Multiplier x1)</div>
+    <p>Swipe Up: Jump | Swipe Down: Slide<br>Double Tap or 'H' for Wood Board</p>
+    <button id="start-btn" onclick="startGame()" style="display:none;">Tap to Start</button>
+    <p id="loading-text" style="color: #ffd700;">Loading Explorer...</p>
+</div>
+
+<div id="game-over-screen" class="screen">
+    <h1>YOU DIED</h1>
+    <p>Score: <span id="final-score">0</span></p>
+    <button onclick="resetGame()">Try Again</button>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+window.startGame = startGame;
+window.resetGame = resetGame;
+window.activateHoverboard = activateHoverboard;
+
+// ===== إعدادات المشهد الأساسية (جو المعبد) =====
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0xd2b48c); // لون رملي للبيئة
+scene.fog = new THREE.Fog(0xd2b48c, 20, 120); // ضباب ترابي كثيف
+
+// دالة اعوجاج الأرض (عشان اللعبة تبان دائرية لقدام)
+const customShaderMaterial = (baseMat) => {
+    baseMat.onBeforeCompile = (shader) => {
+        shader.vertexShader = shader.vertexShader.replace(
+            '#include <begin_vertex>',
+            `
+            #include <begin_vertex>
+            float dist = position.z;
+            transformed.y -= pow(dist * 0.015, 2.0); 
+            `
+        );
+    };
+    return baseMat;
+};
+
+let camera = new THREE.PerspectiveCamera(70, window.innerWidth/window.innerHeight, 0.1, 200);
+camera.position.set(0, 6, 10);
+camera.lookAt(0, 2, 0);
+
+let renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+// إضاءة دافئة (زي الشمس في الصحراء أو المشاعل)
+let ambient = new THREE.AmbientLight(0xffeedd, 0.9); 
+scene.add(ambient);
+
+let light = new THREE.DirectionalLight(0xffdfba, 1.5);
+light.position.set(10, 20, 10);
+light.castShadow = true;
+scene.add(light);
+
+// ===== دالة لتوليد خامة حجرية للأرضية تلقائياً =====
+function createStoneTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512; canvas.height = 512;
+    const ctx = canvas.getContext('2d');
+    
+    // لون الأساس الحجري
+    ctx.fillStyle = '#6e6259';
+    ctx.fillRect(0, 0, 512, 512);
+    
+    // عمل ضوضاء (نقاط خشنة) عشان يبان حجر
+    for(let i=0; i<2000; i++) {
+        ctx.fillStyle = Math.random() > 0.5 ? '#5a4f47' : '#82756a';
+        ctx.fillRect(Math.random()*512, Math.random()*512, Math.random()*8+2, Math.random()*8+2);
+    }
+    
+    // رسم خطوط الطوب
+    ctx.strokeStyle = '#3d352e';
+    ctx.lineWidth = 4;
+    for(let y=0; y<=512; y+=64) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
+        for(let x=0; x<=512; x+=64) {
+            if(Math.random() > 0.3) {
+                let offsetX = (y % 128 === 0) ? 0 : 32;
+                ctx.beginPath(); ctx.moveTo(x + offsetX, y); ctx.lineTo(x + offsetX, y+64); ctx.stroke();
+            }
+        }
+    }
+    
+    let tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(4, 50); // تكرار الخامة على طول الأرضية
+    return tex;
+}
+
+// ===== البيئة والأرضية =====
+let groundGeo = new THREE.PlaneGeometry(30, 400, 30, 100); 
+let groundMat = customShaderMaterial(new THREE.MeshStandardMaterial({
+    color: 0xaaaaaa, 
+    map: createStoneTexture(), // إضافة خامة الحجر المبرمجة
+    roughness: 1.0
+}));
+let ground = new THREE.Mesh(groundGeo, groundMat);
+ground.rotation.x = -Math.PI/2;
+ground.position.z = -150;
+ground.receiveShadow = true;
+scene.add(ground);
+// تم إزالة الـ Grid لأننا مش في عالم خيال علمي نيون
+
+// ===== اللاعب =====
+let player = new THREE.Group();
+scene.add(player);
+
+// لوح الطيران (بقى خشبي بدل نيون)
+let boardGeo = new THREE.BoxGeometry(1.2, 0.2, 2);
+let boardMat = new THREE.MeshStandardMaterial({color: 0x5c4033, roughness: 0.9}); // خشب داكن
+let hoverboardMesh = new THREE.Mesh(boardGeo, boardMat);
+hoverboardMesh.position.y = 0.1;
+hoverboardMesh.visible = false;
+player.add(hoverboardMesh);
+
+let mixer;
+
+const loader = new GLTFLoader();
+loader.load('player.glb', function (gltf) {
+    let model = gltf.scene;
+    model.scale.set(0.01, 0.01, 0.01); 
+    model.position.y = 0; 
+    model.rotation.y = Math.PI;
+    
+    model.traverse(function (child) {
+        if (child.isMesh) {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            // شيلنا لون النيون الأزرق الموحد وسيبنا الشخصية بألوانها الطبيعية
+            // لو الشخصية ملهاش لون خالص جوه الملف، ممكن تفك الكومنت عن السطر الجاي:
+            // child.material = new THREE.MeshStandardMaterial({color: 0x8b4513, roughness: 0.8});
+        }
+    });
+
+    player.add(model);
+
+    if (gltf.animations.length > 0) {
+        mixer = new THREE.AnimationMixer(model);
+        let action = mixer.clipAction(gltf.animations[0]); 
+        action.play();
+    }
+
+    document.getElementById('loading-text').style.display = 'none';
+    document.getElementById('start-btn').style.display = 'block';
+
+}, undefined, function (error) {
+    console.error('حصل مشكلة في تحميل ملف الشخصية:', error);
+    document.getElementById('loading-text').innerText = 'Error loading character!';
+    document.getElementById('loading-text').style.color = 'red';
+});
+
+
+// ===== متغيرات اللعبة الأساسية =====
+let lanes = [-3, 0, 3];
+let currentLane = 1;
+let targetX = 0;
+
+let velocityY = 0;
+let gravity = -0.02; 
+let isJumping = false;
+let isSliding = false;
+let slideTimeout;
+
+let gameState = 'start';
+let speed = 0.6;
+let score = 0;
+let coinsCollected = 0;
+let clock = new THREE.Clock();
+
+let highScore = localStorage.getItem('templeHighScore') || 0;
+let totalCoins = localStorage.getItem('templeTotalCoins') || 0;
+document.getElementById('high-score-val').innerText = Math.floor(highScore);
+
+let scoreMultiplier = 1;
+let currentMissionGoal = 50;
+let missionCoinsThisRun = 0;
+
+let activePowerUp = null; 
+let powerUpTimeLeft = 0;
+let baseSpeed = 0.6;
+
+// ===== نظام إعادة استخدام العناصر (العقبات بقت صخور وأخشاب) =====
+const poolSize = 40; 
+const objectPool = []; 
+
+for(let i=0; i<poolSize; i++) {
+    let typeRand = Math.random();
+    let mesh;
+    let typeName;
+    
+    if(typeRand > 0.7) { 
+        // صخرة
+        typeName = 'obstacle';
+        let geo = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        let mat = customShaderMaterial(new THREE.MeshStandardMaterial({color: 0x666666, roughness: 1.0}));
+        mesh = new THREE.Mesh(geo, mat);
+    } else if(typeRand > 0.6) {
+        // جذع شجرة
+        typeName = 'moving_obstacle';
+        let geo = new THREE.BoxGeometry(1.5, 2, 4);
+        let mat = customShaderMaterial(new THREE.MeshStandardMaterial({color: 0x3e2723, roughness: 0.9}));
+        mesh = new THREE.Mesh(geo, mat);
+    } else if(typeRand > 0.1) { 
+        // عملة ذهبية أثرية
+        typeName = 'coin';
+        let geo = new THREE.CylinderGeometry(0.5, 0.5, 0.2, 16);
+        let mat = customShaderMaterial(new THREE.MeshStandardMaterial({color: 0xdaa520, metalness: 0.8, roughness: 0.2}));
+        mesh = new THREE.Mesh(geo, mat);
+        mesh.rotation.x = Math.PI / 2;
+    } else if(typeRand > 0.05) { 
+        // حجر سحري (مغناطيس)
+        typeName = 'magnet';
+        let geo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+        let mat = customShaderMaterial(new THREE.MeshStandardMaterial({color: 0x00ffff, emissive: 0x005555}));
+        mesh = new THREE.Mesh(geo, mat);
+    } else {
+        // طائر خشبي أو أداة طيران (Jetpack)
+        typeName = 'jetpack';
+        let geo = new THREE.OctahedronGeometry(0.8);
+        let mat = customShaderMaterial(new THREE.MeshStandardMaterial({color: 0xff4500, emissive: 0x8b0000}));
+        mesh = new THREE.Mesh(geo, mat);
+    }
+    
+    mesh.userData = { type: typeName, active: false };
+    mesh.visible = false; 
+    scene.add(mesh);
+    objectPool.push(mesh);
+}
+
+// جزيئات الغبار أو الذهب
+const particles = [];
+const particleGeo = new THREE.BoxGeometry(0.1, 0.1, 0.1);
+const particleMat = new THREE.MeshBasicMaterial({color: 0xffd700}); // ذهب
+for(let i=0; i<20; i++) {
+    let p = new THREE.Mesh(particleGeo, particleMat);
+    p.visible = false;
+    scene.add(p);
+    particles.push(p);
+}
+
+function spawnParticles(x, y, z) {
+    for(let i=0; i<5; i++) {
+        let p = particles.find(pt => !pt.visible);
+        if(p) {
+            p.position.set(x, y, z);
+            p.visible = true;
+            p.userData = { vx: (Math.random() - 0.5)*0.2, vy: Math.random()*0.2, vz: (Math.random() - 0.5)*0.2, life: 1.0 };
+        }
+    }
+}
+
+// ===== تأثير خطوط الهواء والسرعة =====
+const windParticles = [];
+const windGeo = new THREE.BoxGeometry(0.05, 0.05, 8); // خطوط رفيعة وطويلة
+const windMat = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.15});
+
+for(let i = 0; i < 40; i++) {
+    let p = new THREE.Mesh(windGeo, windMat);
+    // توزيع عشوائي حوالين اللاعب
+    p.position.set((Math.random() - 0.5) * 30, Math.random() * 15, -Math.random() * 100 - 20);
+    scene.add(p);
+    windParticles.push(p);
+}
+
+let spawnInterval;
+
+// ===== التحكم =====
+function moveLeft() { if(currentLane > 0) currentLane--; }
+function moveRight() { if(currentLane < 2) currentLane++; }
+
+function jump() {
+    if(!isJumping && !isSliding && activePowerUp !== 'jetpack') {
+        velocityY = 0.45;
+        isJumping = true;
+    }
+}
+
+function slide() {
+    if(!isJumping && !isSliding && activePowerUp !== 'jetpack') {
+        isSliding = true;
+        player.scale.y = 0.5;
+        player.position.y = -0.5; 
+        clearTimeout(slideTimeout);
+        slideTimeout = setTimeout(() => {
+            player.scale.y = 1;
+            player.position.y = 0;
+            isSliding = false;
+        }, 800); 
+    }
+}
+
+function activateHoverboard() {
+    if(activePowerUp !== 'jetpack' && activePowerUp !== 'hoverboard') {
+        activePowerUp = 'hoverboard';
+        hoverboardMesh.visible = true;
+    }
+}
+
+window.addEventListener('keydown', (e) => {
+    if(gameState !== 'playing') return;
+    if(e.code === 'ArrowLeft' || e.code === 'KeyA') moveLeft();
+    if(e.code === 'ArrowRight' || e.code === 'KeyD') moveRight();
+    if(e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Space') jump();
+    if(e.code === 'ArrowDown' || e.code === 'KeyS') slide(); 
+    if(e.code === 'KeyH') activateHoverboard();
+});
+
+let touchStartX = 0;
+let touchStartY = 0;
+let lastTap = 0;
+
+document.addEventListener("touchstart", (e)=>{
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    
+    let currentTime = new Date().getTime();
+    let tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+        activateHoverboard();
+        e.preventDefault();
+    }
+    lastTap = currentTime;
+});
+
+document.addEventListener("touchend", (e)=>{
+    if(gameState !== 'playing') return;
+    let diffX = e.changedTouches[0].clientX - touchStartX;
+    let diffY = e.changedTouches[0].clientY - touchStartY;
+
+    if(Math.abs(diffX) > Math.abs(diffY)) {
+        if(diffX > 50) moveRight();
+        else if(diffX < -50) moveLeft();
+    } else {
+        if(diffY < -50) jump();
+        else if(diffY > 50) slide(); 
+    }
+});
+
+function spawnObject() {
+    if(gameState !== 'playing') return;
+
+    let inactiveObj = objectPool.find(obj => !obj.userData.active);
+    if(!inactiveObj) return; 
+
+    if(activePowerUp === 'jetpack' && inactiveObj.userData.type.includes('obstacle')) return;
+
+    let lane = Math.floor(Math.random() * 3);
+    
+    inactiveObj.position.x = lanes[lane];
+    inactiveObj.position.z = -200; 
+    
+    if(inactiveObj.userData.type === 'coin' || inactiveObj.userData.type === 'magnet' || inactiveObj.userData.type === 'jetpack') {
+        inactiveObj.position.y = (activePowerUp === 'jetpack') ? 8 : 1;
+    }
+    else if(inactiveObj.userData.type === 'obstacle') inactiveObj.position.y = 0.75;
+    else if(inactiveObj.userData.type === 'moving_obstacle') inactiveObj.position.y = 1;
+
+    inactiveObj.visible = true;
+    inactiveObj.userData.active = true;
+}
+
+function activatePowerUp(type, duration) {
+    if(activePowerUp === 'jetpack') return; 
+    activePowerUp = type;
+    powerUpTimeLeft = duration;
+    document.getElementById('powerup-timer').style.display = 'block';
+    
+    if(type === 'jetpack') {
+        baseSpeed = speed;
+        speed = 1.0; 
+    }
+}
+
+function startGame() {
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('top-bar').style.display = 'flex';
+    document.getElementById('hoverboard-btn').style.display = 'block';
+    gameState = 'playing';
+    clock.start();
+    missionCoinsThisRun = 0;
+    spawnInterval = setInterval(spawnObject, 500); 
+}
+
+function handleCrash() {
+    if(activePowerUp === 'hoverboard') {
+        activePowerUp = null;
+        hoverboardMesh.visible = false;
+        spawnParticles(player.position.x, player.position.y, player.position.z); 
+        return; 
+    }
+    gameOver();
+}
+
+function gameOver() {
+    gameState = 'gameover';
+    clearInterval(spawnInterval);
+    
+    let finalScoreCalc = Math.floor(score) + (coinsCollected * 100);
+    
+    if(finalScoreCalc > highScore) {
+        highScore = finalScoreCalc;
+        localStorage.setItem('templeHighScore', highScore);
+    }
+    totalCoins = parseInt(totalCoins) + coinsCollected;
+    localStorage.setItem('templeTotalCoins', totalCoins);
+
+    document.getElementById('hoverboard-btn').style.display = 'none';
+    document.getElementById('game-over-screen').style.display = 'flex';
+    document.getElementById('final-score').innerText = finalScoreCalc;
+    document.getElementById('high-score-val').innerText = highScore;
+}
+
+function resetGame() {
+    objectPool.forEach(obj => { obj.visible = false; obj.userData.active = false; });
+    particles.forEach(p => p.visible = false);
+    
+    score = 0;
+    coinsCollected = 0;
+    speed = 0.6;
+    currentLane = 1;
+    player.position.set(0, 0, 0);
+    player.scale.y = 1;
+    isJumping = false;
+    isSliding = false;
+    velocityY = 0;
+    activePowerUp = null;
+    hoverboardMesh.visible = false;
+    document.getElementById('powerup-timer').style.display = 'none';
+
+    document.getElementById('game-over-screen').style.display = 'none';
+    updateUI();
+    startGame();
+}
+
+function checkMissions() {
+    if(missionCoinsThisRun >= currentMissionGoal) {
+        scoreMultiplier++;
+        currentMissionGoal += 50;
+        missionCoinsThisRun = 0; 
+        document.getElementById('missions-display').innerText = `Mission: Collect ${currentMissionGoal} Gold (Multiplier x${scoreMultiplier})`;
+        spawnParticles(player.position.x, player.position.y+2, player.position.z); 
+    }
+}
+
+function updateUI() {
+    document.getElementById('score-val').innerText = Math.floor(score);
+    document.getElementById('coin-val').innerText = coinsCollected;
+    if(activePowerUp === 'magnet' || activePowerUp === 'jetpack') {
+        document.getElementById('power-time-val').innerText = Math.ceil(powerUpTimeLeft);
+        document.getElementById('powerup-timer').style.color = (activePowerUp === 'jetpack') ? '#ff4500' : '#00ffff';
+    } else {
+        document.getElementById('powerup-timer').style.display = 'none';
+    }
+}
+
+// ===== الـ Game Loop =====
+// ===== الـ Game Loop =====
+function animate(){
+    requestAnimationFrame(animate);
+    let delta = clock.getDelta();
+
+    if(gameState === 'playing') {
+        // 1. تسريع الأنيميشن مع سرعة اللعبة
+        if (mixer) {
+            mixer.update(delta);
+            mixer.timeScale = speed * 1.8; // كل ما اللعبة تسرع، حركته تسرع
+        }
+
+        // 2. حركة الشخصية وميلان الجسم
+        targetX = lanes[currentLane];
+        player.position.x += (targetX - player.position.x) * 0.15;
+        
+        // تأثير الميل يمين وشمال وقت تغيير الحارة
+        let targetRotationZ = (targetX - player.position.x) * -0.15;
+        player.rotation.z += (targetRotationZ - player.rotation.z) * 0.2;
+
+        if(activePowerUp === 'jetpack') {
+            player.position.y += (8 - player.position.y) * 0.1; 
+        } else {
+            if(player.position.y > 0 && !isJumping) {
+                player.position.y -= 0.2; 
+                if(player.position.y < 0) player.position.y = 0;
+            }
+            if(isJumping){
+                velocityY += gravity;
+                player.position.y += velocityY;
+                if(player.position.y <= 0){
+                    player.position.y = 0;
+                    isJumping = false;
+                    velocityY = 0;
+                }
+            }
+        }
+
+        score += (speed * 0.5) * scoreMultiplier;
+        if(activePowerUp !== 'jetpack') speed += 0.00005; 
+        checkMissions();
+        
+        // 3. تأثير زاوية الكاميرا (FOV) عشان تحس بالسرعة
+        let targetFOV = 70 + (speed - 0.6) * 40; // الكاميرا بتوسع مع السرعة
+        if (activePowerUp === 'jetpack') targetFOV = 90; // زووم قوي وقت الطيران
+        camera.fov += (targetFOV - camera.fov) * 0.05;
+        camera.updateProjectionMatrix();
+
+        // 4. تحريك خطوط الهواء بسرعة كبيرة
+        windParticles.forEach(p => {
+            p.position.z += speed * 4; // سرعة الهواء أضعاف سرعة اللعبة
+            if(p.position.z > 10) {
+                p.position.z = -100 - Math.random() * 50; // ترجع لورا تاني
+                p.position.x = (Math.random() - 0.5) * 30;
+                p.position.y = Math.random() * 15;
+            }
+        });
+
+        if(activePowerUp === 'magnet' || activePowerUp === 'jetpack') {
+            powerUpTimeLeft -= delta;
+            if(powerUpTimeLeft <= 0) {
+                if(activePowerUp === 'jetpack') speed = baseSpeed;
+                activePowerUp = null;
+            }
+        }
+        updateUI();
+
+        for (let i = 0; i < objectPool.length; i++) {
+            let obj = objectPool[i];
+            if(!obj.userData.active) continue;
+
+            let objSpeed = speed;
+            if(obj.userData.type === 'moving_obstacle') objSpeed = speed * 1.5;
+            
+            obj.position.z += objSpeed;
+
+            if(obj.userData.type === 'coin') obj.rotation.z += 0.05;
+            if(obj.userData.type === 'magnet' || obj.userData.type === 'jetpack') {
+                obj.rotation.y += 0.05; obj.rotation.x += 0.05;
+            }
+
+            if(activePowerUp === 'magnet' && obj.userData.type === 'coin' && obj.position.z > -50 && obj.position.z < 5) {
+                obj.position.x += (player.position.x - obj.position.x) * 0.1;
+                obj.position.y += ((player.position.y + 1) - obj.position.y) * 0.1;
+                obj.position.z += (player.position.z - obj.position.z) * 0.05;
+            }
+
+            if(obj.position.z > 10){
+                obj.visible = false; obj.userData.active = false;
+                continue;
+            }
+
+            let distZ = Math.abs(obj.position.z - player.position.z);
+            let distX = Math.abs(obj.position.x - player.position.x);
+            let playerCenterY = isSliding ? 0.5 : player.position.y + 1;
+            let distY = Math.abs(obj.position.y - playerCenterY);
+
+            if(distZ < 1.5 && distX < 1.2) {
+                if(obj.userData.type === 'coin') {
+                    if(distY < 1.5) {
+                        coinsCollected++;
+                        missionCoinsThisRun++;
+                        spawnParticles(obj.position.x, obj.position.y, obj.position.z);
+                        obj.visible = false; obj.userData.active = false;
+                    }
+                } else if(obj.userData.type === 'magnet') {
+                    if(distY < 1.5) {
+                        activatePowerUp('magnet', 10); 
+                        obj.visible = false; obj.userData.active = false;
+                    }
+                } else if(obj.userData.type === 'jetpack') {
+                    if(distY < 1.5) {
+                        activatePowerUp('jetpack', 10); 
+                        obj.visible = false; obj.userData.active = false;
+                    }
+                } else if(obj.userData.type.includes('obstacle')) {
+                    if(player.position.y < 1.2 && !isSliding) { 
+                        handleCrash();
+                        if(activePowerUp !== 'hoverboard') {
+                           obj.visible = false; obj.userData.active = false; 
+                        }
+                    }
+                }
+            }
+        }
+
+        particles.forEach(p => {
+            if(p.visible) {
+                p.position.x += p.userData.vx;
+                p.position.y += p.userData.vy;
+                p.position.z += p.userData.vz;
+                p.userData.life -= delta * 2;
+                if(p.userData.life <= 0) p.visible = false;
+            }
+        });
+    }
+
+    renderer.render(scene, camera);
+}
+
+animate();
+
+window.addEventListener("resize", ()=>{
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+
+</body>
+</html>

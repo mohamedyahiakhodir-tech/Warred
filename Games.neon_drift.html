@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>دريفت نيون - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050508;
+            --player-color: #00C6FF;  
+            --enemy-color: #ff3366;
+            --road-color: #111;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 8, 0.95);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1); z-index: 100;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--player-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        .game-container {
+            flex: 1; position: relative; overflow: hidden;
+            background: #000;
+        }
+        
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .score-display {
+            position: absolute; top: 10px; left: 0; width: 100%; text-align: center;
+            font-size: 24px; font-weight: 900; color: #fff; pointer-events: none; z-index: 50;
+            text-shadow: 0 0 10px var(--player-color);
+        }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+        }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 10px; color: var(--enemy-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--player-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">دريفت نيون 🏎️</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-container">
+        <div class="score-display" id="score">0</div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div style="font-size: 60px; margin-bottom: 10px;">🔥</div>
+            <div class="modal-title">تحطمت السيارة!</div>
+            <p style="color: #aaa; margin-bottom: 15px;">المسافة المقطوعة: <span id="finalScore">0</span></p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="startGame()">سباق جديد</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const walletEl = document.getElementById('walletScore');
+
+        let player, enemies, particles, animationId, score, isGameOver, gameSpeed;
+        let roadOffset = 0;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Player {
+            constructor() {
+                this.width = 40;
+                this.height = 70;
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - 120;
+                this.targetX = this.x;
+                this.color = '#00C6FF';
+            }
+            draw() {
+                ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, 8);
+                ctx.fill();
+                // المصابيح
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(this.x + 5, this.y, 8, 4);
+                ctx.fillRect(this.x + this.width - 13, this.y, 8, 4);
+                ctx.shadowBlur = 0;
+            }
+            update() {
+                this.x += (this.targetX - this.x) * 0.15;
+                if (this.x < 10) this.x = 10;
+                if (this.x > canvas.width - this.width - 10) this.x = canvas.width - this.width - 10;
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                this.width = 40;
+                this.height = 70;
+                this.x = Math.random() * (canvas.width - this.width);
+                this.y = -100;
+                this.speed = gameSpeed + Math.random() * 2;
+                this.color = '#ff3366';
+            }
+            draw() {
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, 8);
+                ctx.fill();
+                // المصابيح الخلفية
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(this.x + 5, this.y + this.height - 4, 8, 4);
+                ctx.fillRect(this.x + this.width - 13, this.y + this.height - 4, 8, 4);
+                ctx.shadowBlur = 0;
+            }
+            update() { this.y += this.speed; }
+        }
+
+        function startGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            player = new Player();
+            enemies = [];
+            score = 0;
+            gameSpeed = 5;
+            isGameOver = false;
+            scoreEl.innerText = score;
+            gameLoop();
+        }
+
+        function drawRoad() {
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = 'rgba(0, 198, 255, 0.3)';
+            ctx.setLineDash([20, 20]);
+            ctx.lineWidth = 2;
+            
+            // الخطوط الجانبية
+            ctx.beginPath();
+            ctx.moveTo(10, 0); ctx.lineTo(10, canvas.height);
+            ctx.moveTo(canvas.width - 10, 0); ctx.lineTo(canvas.width - 10, canvas.height);
+            ctx.stroke();
+
+            // خطوط المنتصف المتحركة
+            ctx.lineDashOffset = -roadOffset;
+            ctx.beginPath();
+            ctx.moveTo(canvas.width / 2, 0); ctx.lineTo(canvas.width / 2, canvas.height);
+            ctx.stroke();
+            
+            roadOffset += gameSpeed;
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawRoad();
+            player.update();
+            player.draw();
+
+            if (Math.random() < 0.02) enemies.push(new Enemy());
+
+            enemies.forEach((enemy, index) => {
+                enemy.update();
+                enemy.draw();
+
+                // تصادم
+                if (enemy.y + enemy.height > player.y && enemy.y < player.y + player.height &&
+                    enemy.x < player.x + player.width && enemy.x + enemy.width > player.x) {
+                    endGame();
+                }
+
+                if (enemy.y > canvas.height) {
+                    enemies.splice(index, 1);
+                    score += 10;
+                    scoreEl.innerText = score;
+                    if (score % 100 === 0) gameSpeed += 0.5;
+                }
+            });
+
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            isGameOver = true;
+            cancelAnimationFrame(animationId);
+            const reward = Math.floor(score / 10);
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة`;
+            walletEl.innerText = parseInt(walletEl.innerText) + reward;
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        // تحكم اللمس
+        canvas.addEventListener('touchstart', (e) => {
+            const touchX = e.touches[0].clientX;
+            player.targetX = touchX - player.width / 2;
+            e.preventDefault();
+        }, {passive: false});
+
+        canvas.addEventListener('touchmove', (e) => {
+            const touchX = e.touches[0].clientX;
+            player.targetX = touchX - player.width / 2;
+            e.preventDefault();
+        }, {passive: false});
+
+        startGame();
+    </script>
+</body>
+</html>

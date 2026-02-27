@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سيف النينجا - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050508;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --success-color: #00e676;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 8, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 10px 20px; background: #0a0a0f;
+            border-bottom: 1px solid #222; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .lives { font-size: 20px; letter-spacing: 2px; color: var(--danger-color); }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; position: relative; background: radial-gradient(circle at center, #111 0%, #000 100%);
+            overflow: hidden; cursor: crosshair;
+        }
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .instructions {
+            position: absolute; top: 40%; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.3); font-size: 18px; font-weight: bold; pointer-events: none;
+            animation: fadeOut 3s forwards; animation-delay: 2s;
+        }
+        @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0, 198, 255, 0.2);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--danger-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--primary-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); transition: 0.2s;
+        }
+        .btn-restart:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">سيف النينجا 🥷</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">القلوب</div>
+            <div class="lives" id="livesDisplay">❤️❤️❤️</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+        <div class="instructions" id="instructions">مرر إصبعك لتقطيع الأشكال! ⚔️</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">💀</div>
+            <div class="modal-title" id="modalTitle">انتهت اللعبة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">لقد قطعت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> أشكال</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameArea = document.getElementById('gameArea');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const livesDisplay = document.getElementById('livesDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        function resizeCanvas() {
+            canvas.width = gameArea.clientWidth;
+            canvas.height = gameArea.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let score = 0;
+        let lives = 3;
+        let isGameOver = false;
+        let animationId;
+        
+        let shapes = [];
+        let particles = [];
+        let slicePoints = []; // مسار السيف
+        let isSlicing = false;
+
+        const colors = ['#00C6FF', '#00e676', '#FFD700', '#ff00ff'];
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            score = 0;
+            lives = 3;
+            isGameOver = false;
+            shapes = [];
+            particles = [];
+            slicePoints = [];
+            
+            updateScore();
+            updateLives();
+            canvas.style.filter = "none";
+            
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function updateScore() { scoreDisplay.innerText = score; }
+        function updateLives() { livesDisplay.innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives); }
+
+        // --- توليد الأشكال ---
+        function spawnShape() {
+            if (isGameOver) return;
+            // كل ما السكور يزيد، فرصة ظهور الأشكال بتزيد
+            let spawnRate = 0.02 + (score * 0.0005); 
+            
+            if (Math.random() < spawnRate) {
+                let isBomb = Math.random() < 0.2; // 20% فرصة تطلع قنبلة
+                let radius = isBomb ? 25 : Math.random() * 15 + 20;
+                
+                shapes.push({
+                    x: Math.random() * (canvas.width - 100) + 50,
+                    y: canvas.height + 50,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: -(Math.random() * 5 + 10 + (score * 0.05)), // سرعة القفز لفوق
+                    gravity: 0.15,
+                    radius: radius,
+                    color: isBomb ? '#ff3366' : colors[Math.floor(Math.random() * colors.length)],
+                    isBomb: isBomb,
+                    type: Math.floor(Math.random() * 3) // 0: دائرة, 1: مربع, 2: مثلث (لو مش قنبلة)
+                });
+            }
+        }
+
+        function createParticles(x, y, color) {
+            for (let i = 0; i < 15; i++) {
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+                    life: 1, color: color, size: Math.random() * 3 + 2
+                });
+            }
+        }
+
+        // --- دوال الرسم ---
+        function drawGlow(color, blur) {
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = color;
+        }
+
+        function drawShapes() {
+            for (let i = 0; i < shapes.length; i++) {
+                let s = shapes[i];
+                ctx.save();
+                ctx.translate(s.x, s.y);
+                
+                // إضافة دوران بطيء للأشكال
+                s.angle = (s.angle || 0) + 0.05;
+                ctx.rotate(s.angle);
+
+                drawGlow(s.color, 15);
+                ctx.fillStyle = s.color;
+
+                if (s.isBomb) {
+                    // رسم قنبلة
+                    ctx.beginPath();
+                    ctx.arc(0, 0, s.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    // فتيل القنبلة
+                    ctx.fillStyle = '#fff';
+                    ctx.fillRect(-3, -s.radius - 10, 6, 10);
+                    // شرارة
+                    if (Math.random() > 0.5) {
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath(); ctx.arc(0, -s.radius - 12, 4, 0, Math.PI*2); ctx.fill();
+                    }
+                } else {
+                    // رسم أشكال عادية
+                    ctx.beginPath();
+                    if (s.type === 0) { ctx.arc(0, 0, s.radius, 0, Math.PI * 2); } 
+                    else if (s.type === 1) { ctx.rect(-s.radius, -s.radius, s.radius*2, s.radius*2); } 
+                    else {
+                        ctx.moveTo(0, -s.radius);
+                        ctx.lineTo(s.radius, s.radius);
+                        ctx.lineTo(-s.radius, s.radius);
+                    }
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                drawGlow(p.color, 10);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.05;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function drawBlade() {
+            if (slicePoints.length < 2) return;
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(slicePoints[0].x, slicePoints[0].y);
+            for (let i = 1; i < slicePoints.length; i++) {
+                ctx.lineTo(slicePoints[i].x, slicePoints[i].y);
+            }
+            
+            // ستايل السيف
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#fff';
+            drawGlow('var(--primary-color)', 20);
+            ctx.stroke();
+            
+            // خط داخلي أرفع لزيادة الواقعية
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = 0;
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        // --- المنطق (Logic) ---
+        function update() {
+            if (isGameOver) return;
+
+            spawnShape();
+
+            // تحديث الأشكال
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                let s = shapes[i];
+                s.x += s.vx;
+                s.vy += s.gravity; // الجاذبية بتسحبها لتحت
+                s.y += s.vy;
+
+                // لو الشكل وقع تحت الشاشة
+                if (s.y > canvas.height + 60) {
+                    if (!s.isBomb) {
+                        loseLife(); // لو فاتك شكل بتخسر قلب (القنابل عادي تفوتك)
+                    }
+                    shapes.splice(i, 1);
+                }
+            }
+
+            // تقليل مسار السيف عشان يختفي بسرعة
+            if (slicePoints.length > 0 && !isSlicing) {
+                slicePoints.shift();
+            } else if (slicePoints.length > 10) {
+                slicePoints.shift(); // الحفاظ على طول معين للخط
+            }
+        }
+
+        function loseLife() {
+            if (isGameOver) return;
+            lives--;
+            updateLives();
+            
+            // اهتزاز الشاشة
+            canvas.style.transform = "translateX(5px)";
+            setTimeout(() => canvas.style.transform = "translateX(-5px)", 50);
+            setTimeout(() => canvas.style.transform = "translateX(0)", 100);
+
+            if (lives <= 0) gameOver();
+        }
+
+        function checkSlice(x, y) {
+            for (let i = shapes.length - 1; i >= 0; i--) {
+                let s = shapes[i];
+                let dist = Math.hypot(s.x - x, s.y - y);
+                
+                if (dist < s.radius + 15) { // 15 لتعويض سرعة حركة الإصبع
+                    createParticles(s.x, s.y, s.color);
+                    
+                    if (s.isBomb) {
+                        shapes.splice(i, 1);
+                        loseLife(); // لو قطعت قنبلة تخسر قلب فوراً
+                        // تأثير أحمر للشاشة
+                        canvas.style.filter = "brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(5)";
+                        setTimeout(() => { if(!isGameOver) canvas.style.filter = "none"; }, 200);
+                    } else {
+                        shapes.splice(i, 1);
+                        score++;
+                        updateScore();
+                    }
+                }
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            canvas.style.filter = "grayscale(0.8) blur(2px)";
+            
+            let reward = score * 2; // كل نقطة بـ 2 عملة
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                document.getElementById('resultModal').classList.add('active');
+            }, 500);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawParticles();
+            drawShapes();
+            drawBlade();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- التحكم بالشاشة (سحب السيف) ---
+        function handleInputStart(e) {
+            if (isGameOver) return;
+            isSlicing = true;
+            slicePoints = [];
+            let pos = getPos(e);
+            slicePoints.push(pos);
+        }
+
+        function handleInputMove(e) {
+            if (!isSlicing || isGameOver) return;
+            let pos = getPos(e);
+            slicePoints.push(pos);
+            checkSlice(pos.x, pos.y);
+        }
+
+        function handleInputEnd() {
+            isSlicing = false;
+        }
+
+        function getPos(e) {
+            e.preventDefault();
+            let rect = canvas.getBoundingClientRect();
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        canvas.addEventListener('mousedown', handleInputStart);
+        canvas.addEventListener('mousemove', handleInputMove);
+        window.addEventListener('mouseup', handleInputEnd);
+
+        canvas.addEventListener('touchstart', handleInputStart, {passive: false});
+        canvas.addEventListener('touchmove', handleInputMove, {passive: false});
+        window.addEventListener('touchend', handleInputEnd);
+
+        // التشغيل
+        initGame();
+    </script>
+</body>
+</html>

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wareed - توأم الصوت</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #09090b;
+            --card: #18181b;
+            --primary: #f43f5e; /* لون وردي غامق */
+            --wave: #fb7185;
+            --text: #eee;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* الهيدر */
+        .vt-header {
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            background: transparent; position: absolute; top: 0; width: 100%; z-index: 10;
+        }
+
+        /* منطقة البطاقات */
+        .cards-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; position: relative;
+            perspective: 1000px;
+        }
+
+        .voice-card {
+            width: 90%; max-width: 350px; height: 60vh;
+            background: linear-gradient(145deg, #18181b, #27272a);
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: absolute; transition: 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            border: 1px solid #333;
+            overflow: hidden;
+        }
+
+        /* المؤثرات البصرية للصوت */
+        .visualizer-circle {
+            width: 150px; height: 150px; border-radius: 50%;
+            background: rgba(244, 63, 94, 0.1);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; margin-bottom: 30px;
+        }
+        .visualizer-circle i { font-size: 50px; color: var(--primary); z-index: 2; transition: 0.3s; }
+        
+        /* حلقات الموجات */
+        .wave-ring {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            border-radius: 50%; border: 2px solid var(--primary); opacity: 0;
+            width: 100%; height: 100%;
+        }
+        .playing .wave-ring { animation: ripple 2s linear infinite; }
+        .playing .wave-ring:nth-child(1) { animation-delay: 0s; }
+        .playing .wave-ring:nth-child(2) { animation-delay: 0.6s; }
+        .playing .wave-ring:nth-child(3) { animation-delay: 1.2s; }
+
+        @keyframes ripple {
+            0% { width: 100px; height: 100px; opacity: 0.8; border-width: 3px; }
+            100% { width: 300px; height: 300px; opacity: 0; border-width: 0px; }
+        }
+
+        .user-secret-info {
+            text-align: center; z-index: 2;
+        }
+        .secret-name { font-size: 24px; font-weight: 900; letter-spacing: 2px; color: #fff; margin-bottom: 5px; }
+        .secret-bio { font-size: 14px; color: #aaa; max-width: 80%; margin: 0 auto; }
+
+        /* أزرار التحكم */
+        .controls-area {
+            position: absolute; bottom: 30px; width: 100%;
+            display: flex; justify-content: center; gap: 30px; align-items: center; z-index: 10;
+        }
+        .ctrl-btn {
+            width: 60px; height: 60px; border-radius: 50%; border: none;
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            cursor: pointer; transition: 0.2s; box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+        .btn-skip { background: #333; color: #ff3b30; }
+        .btn-connect { background: var(--primary); color: #fff; width: 70px; height: 70px; font-size: 30px; }
+        .btn-skip:active, .btn-connect:active { transform: scale(0.9); }
+
+        /* نافذة التسجيل */
+        .record-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 2000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .record-btn {
+            width: 80px; height: 80px; border-radius: 50%; background: #ff3b30;
+            border: 4px solid rgba(255,255,255,0.2); cursor: pointer; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 30px; transition: 0.3s;
+        }
+        .record-btn.recording { animation: pulseRec 1s infinite; border-color: #fff; }
+        @keyframes pulseRec { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="vt-header">
+        <div onclick="history.back()" style="font-size: 20px; cursor: pointer; color: #fff;"><i class="fa-solid fa-arrow-right"></i></div>
+        <div style="font-weight: 900; font-size: 18px; color: var(--primary);">Voice Twin 🎙️</div>
+        <div onclick="openRecorder()" style="font-size: 20px; cursor: pointer; color: #fff;"><i class="fa-solid fa-microphone-lines"></i></div>
+    </div>
+
+    <div class="cards-container" id="cardsStack">
+        <div style="color:#777;">جاري البحث عن أصوات...</div>
+    </div>
+
+    <div class="controls-area">
+        <button class="ctrl-btn btn-skip" onclick="swipeCard('left')"><i class="fa-solid fa-xmark"></i></button>
+        <button class="ctrl-btn btn-connect" onclick="swipeCard('right')"><i class="fa-solid fa-heart"></i></button>
+    </div>
+
+    <div class="record-overlay" id="recordModal">
+        <h2 style="color:#fff; margin-bottom:30px;">سجل رسالتك للعالم</h2>
+        <div id="micBtn" class="record-btn" onclick="toggleRecording()">
+            <i class="fa-solid fa-microphone"></i>
+        </div>
+        <div id="recTimer" style="color:#fff; margin-top:20px; font-size:20px; font-family:monospace;">00:00</div>
+        <p style="color:#aaa; margin-top:10px; font-size:12px;">اضغط للبدء، اضغط مجدداً للإرسال</p>
+        <button onclick="document.getElementById('recordModal').style.display='none'" style="margin-top:30px; background:none; border:1px solid #555; color:#fff; padding:10px 20px; border-radius:20px;">إلغاء</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        const storage = firebase.storage();
+
+        let currentUser = null;
+        let voicesList = [];
+        let currentIndex = 0;
+        let currentAudio = null;
+
+        // متغيرات التسجيل
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let recInterval;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadVoices();
+            } else {
+                alert("يجب تسجيل الدخول");
+                history.back();
+            }
+        });
+
+        // 1. تحميل الأصوات (باستثناء صوتي)
+        async function loadVoices() {
+            const container = document.getElementById('cardsStack');
+            container.innerHTML = '<div style="color:#777;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري التحميل...</div>';
+
+            const snap = await db.collection('voice_twins').limit(20).get();
+            voicesList = [];
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                // استبعاد صوتي أنا + استبعاد من أعجبت بهم سابقاً (يمكن تطويرها لاحقاً)
+                if (data.uid !== currentUser.uid) {
+                    voicesList.push({ id: doc.id, ...data });
+                }
+            });
+
+            if (voicesList.length === 0) {
+                container.innerHTML = '<div style="text-align:center; color:#555;">لا توجد أصوات جديدة.<br>كن أول من يسجل!</div>';
+                return;
+            }
+
+            renderCard();
+        }
+
+        // 2. عرض البطاقة الحالية
+        function renderCard() {
+            const container = document.getElementById('cardsStack');
+            if (currentIndex >= voicesList.length) {
+                container.innerHTML = '<div style="text-align:center; color:#555;">لقد سمعت كل الأصوات المتاحة 🎧</div>';
+                return;
+            }
+
+            const voice = voicesList[currentIndex];
+            
+            // توليد هوية مجهولة
+            const maskId = voice.uid.substring(0, 4).toUpperCase();
+            
+            container.innerHTML = `
+                <div class="voice-card" id="currentCard">
+                    <div class="visualizer-circle" id="visCircle" onclick="togglePlay('${voice.voiceUrl}')">
+                        <div class="wave-ring"></div>
+                        <div class="wave-ring"></div>
+                        <div class="wave-ring"></div>
+                        <i class="fa-solid fa-play" id="playIcon"></i>
+                    </div>
+                    
+                    <div class="user-secret-info">
+                        <div class="secret-name">VOICE #${maskId}</div>
+                        <div class="secret-bio">اضغط للاستماع واكتشاف الشخصية</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 3. تشغيل الصوت
+        function togglePlay(url) {
+            const icon = document.getElementById('playIcon');
+            const circle = document.getElementById('visCircle');
+
+            if (currentAudio && !currentAudio.paused) {
+                currentAudio.pause();
+                icon.className = "fa-solid fa-play";
+                circle.classList.remove('playing');
+            } else {
+                if (!currentAudio || currentAudio.src !== url) {
+                    currentAudio = new Audio(url);
+                    currentAudio.onended = () => {
+                        icon.className = "fa-solid fa-play";
+                        circle.classList.remove('playing');
+                    };
+                }
+                currentAudio.play();
+                icon.className = "fa-solid fa-pause";
+                circle.classList.add('playing');
+            }
+        }
+
+        // 4. السحب (Skip / Connect)
+        async function swipeCard(action) {
+            if (currentAudio) {
+                currentAudio.pause();
+                currentAudio = null;
+            }
+
+            const card = document.getElementById('currentCard');
+            if (!card) return;
+
+            // أنيميشن الخروج
+            const xMove = action === 'right' ? 500 : -500;
+            const rotate = action === 'right' ? 30 : -30;
+            card.style.transform = `translate(${xMove}px, 0) rotate(${rotate}deg)`;
+            card.style.opacity = '0';
+
+            // منطق الإعجاب
+            if (action === 'right') {
+                const targetVoice = voicesList[currentIndex];
+                await handleConnect(targetVoice);
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                renderCard();
+            }, 300);
+        }
+
+        // منطق "توصيل" (Match)
+        async function handleConnect(targetVoice) {
+            // تسجيل الإعجاب في الداتابيز
+            const batch = db.batch();
+            const myRef = db.collection('voice_twins').doc(targetVoice.id); // إضافة لايك لملف الهدف
+            
+            // هنا مجرد محاكاة بسيطة، يمكن تطويرها لتصبح Two-way Match
+            // سنرسل إشعار للشخص الآخر
+            await db.collection('notifications').add({
+                recipientId: targetVoice.uid,
+                senderUid: currentUser.uid,
+                type: 'voice_match',
+                text: 'شخص ما أعجب بصوتك! 🎙️',
+                read: false,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            // لو عايز تعمل نظام Match حقيقي:
+            // 1. شوف لو هو كمان عملك لايك
+            // 2. لو أيوة -> افتح شات
+        }
+
+        // 5. التسجيل والرفع
+        function openRecorder() {
+            document.getElementById('recordModal').style.display = 'flex';
+        }
+
+        async function toggleRecording() {
+            if (!isRecording) {
+                // بدء التسجيل
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    mediaRecorder = new MediaRecorder(stream);
+                    audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                    mediaRecorder.start();
+                    
+                    isRecording = true;
+                    document.getElementById('micBtn').classList.add('recording');
+                    
+                    // عداد
+                    let sec = 0;
+                    recInterval = setInterval(() => {
+                        sec++;
+                        document.getElementById('recTimer').innerText = `00:${sec < 10 ? '0'+sec : sec}`;
+                    }, 1000);
+
+                } catch(e) {
+                    alert("الميكروفون غير متاح");
+                }
+            } else {
+                // إيقاف وإرسال
+                mediaRecorder.stop();
+                isRecording = false;
+                document.getElementById('micBtn').classList.remove('recording');
+                clearInterval(recInterval);
+                document.getElementById('recTimer').innerText = "جاري الإرسال...";
+
+                mediaRecorder.onstop = async () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    await uploadVoice(blob);
+                };
+            }
+        }
+
+        async function uploadVoice(blob) {
+            const ref = storage.ref().child(`voice_twins/${currentUser.uid}_${Date.now()}.webm`);
+            try {
+                const snap = await ref.put(blob);
+                const url = await snap.ref.getDownloadURL();
+
+                // حفظ في الداتابيز
+                await db.collection('voice_twins').add({
+                    uid: currentUser.uid,
+                    voiceUrl: url,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    likes: []
+                });
+
+                document.getElementById('recordModal').style.display = 'none';
+                alert("تم نشر صوتك بنجاح! انتظر المعجبين 😉");
+                
+            } catch(e) {
+                alert("فشل الرفع");
+                document.getElementById('recTimer').innerText = "00:00";
+            }
+        }
+
+    </script>
+</body>
+</html>

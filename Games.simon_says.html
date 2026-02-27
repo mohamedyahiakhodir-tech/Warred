@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تذكر الترتيب - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            
+            /* ألوان الأزرار */
+            --color-red: #ff3366;
+            --color-blue: #00C6FF;
+            --color-green: #00e676;
+            --color-yellow: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- معلومات اللعبة --- */
+        .game-info {
+            display: flex; justify-content: center; align-items: center; padding: 20px; flex-direction: column; gap: 10px;
+        }
+        .level-display {
+            font-size: 24px; font-weight: 900; color: #fff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+        .status-text {
+            font-size: 14px; font-weight: bold; color: var(--secondary-text); height: 20px;
+        }
+
+        /* --- شبكة الألوان --- */
+        .game-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
+        }
+        .simon-board {
+            width: 100%; max-width: 320px; aspect-ratio: 1/1; background: #1a1a1a;
+            border-radius: 50%; padding: 15px; display: grid; grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr; gap: 15px; position: relative;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* الدائرة اللي في النص */
+        .center-circle {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100px; height: 100px; background: #222; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 5px solid #1a1a1a; z-index: 10; box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+        .start-btn {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF); border: none;
+            color: #fff; font-weight: bold; font-size: 18px; width: 70px; height: 70px;
+            border-radius: 50%; cursor: pointer; transition: 0.2s; box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+        }
+        .start-btn:active { transform: scale(0.9); }
+        .start-btn:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed; }
+
+        /* الأزرار الملونة */
+        .simon-btn {
+            border-radius: 15px; cursor: pointer; transition: all 0.1s; opacity: 0.5;
+            border: 4px solid #111; position: relative; overflow: hidden;
+        }
+        .simon-btn::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.2); opacity: 0; transition: 0.1s;
+        }
+        
+        /* تدوير الحواف عشان تدي شكل دائري شوية */
+        #btn-red { background-color: var(--color-red); border-top-right-radius: 100%; }
+        #btn-blue { background-color: var(--color-blue); border-top-left-radius: 100%; }
+        #btn-green { background-color: var(--color-green); border-bottom-right-radius: 100%; }
+        #btn-yellow { background-color: var(--color-yellow); border-bottom-left-radius: 100%; }
+
+        /* حالة الإضاءة (Active) */
+        .simon-btn.active { opacity: 1; border-color: #fff; transform: scale(1.02); z-index: 5; }
+        .simon-btn.active::after { opacity: 1; }
+        #btn-red.active { box-shadow: 0 0 40px var(--color-red); }
+        #btn-blue.active { box-shadow: 0 0 40px var(--color-blue); }
+        #btn-green.active { box-shadow: 0 0 40px var(--color-green); }
+        #btn-yellow.active { box-shadow: 0 0 40px var(--color-yellow); }
+
+        /* --- المودال (النتيجة) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-icon { font-size: 50px; margin-bottom: 10px; }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: #ff3366; }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3); transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">تذكر الترتيب 🧠</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-info">
+        <div class="level-display">المستوى: <span id="levelValue">0</span></div>
+        <div class="status-text" id="statusText">اضغط ابدأ للعب</div>
+    </div>
+
+    <div class="game-container">
+        <div class="simon-board">
+            <div class="simon-btn" id="btn-red" onclick="handlePlayerInput('red')"></div>
+            <div class="simon-btn" id="btn-blue" onclick="handlePlayerInput('blue')"></div>
+            <div class="simon-btn" id="btn-green" onclick="handlePlayerInput('green')"></div>
+            <div class="simon-btn" id="btn-yellow" onclick="handlePlayerInput('yellow')"></div>
+            
+            <div class="center-circle">
+                <button class="start-btn" id="startBtn" onclick="startGame()">ابدأ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-icon">💔</div>
+            <div class="modal-title">انتهت اللعبة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">لقد وصلت إلى المستوى <span id="finalLevel" style="color:#fff; font-weight:bold;">0</span></p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn" onclick="closeModalAndReset()">حاول مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        const colors = ['red', 'blue', 'green', 'yellow'];
+        let sequence = [];
+        let playerSequence = [];
+        let level = 0;
+        let isPlayerTurn = false;
+        
+        const levelDisplay = document.getElementById('levelValue');
+        const statusText = document.getElementById('statusText');
+        const startBtn = document.getElementById('startBtn');
+        const walletElement = document.getElementById('walletScore');
+
+        function startGame() {
+            sequence = [];
+            playerSequence = [];
+            level = 0;
+            isPlayerTurn = false;
+            startBtn.disabled = true;
+            nextRound();
+        }
+
+        function nextRound() {
+            level++;
+            levelDisplay.innerText = level;
+            playerSequence = [];
+            isPlayerTurn = false;
+            statusText.innerText = "انتبه للترتيب...";
+            statusText.style.color = "#FFD700";
+
+            // إضافة لون جديد للترتيب العشوائي
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            sequence.push(randomColor);
+
+            // تشغيل الترتيب
+            playSequence();
+        }
+
+        function playSequence() {
+            let i = 0;
+            const interval = setInterval(() => {
+                flashButton(sequence[i]);
+                i++;
+                if (i >= sequence.length) {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        isPlayerTurn = true;
+                        statusText.innerText = "دورك الآن!";
+                        statusText.style.color = "#00e676";
+                    }, 500);
+                }
+            }, 800); // سرعة إضاءة الألوان (ممكن تسرعها في المستويات المتقدمة)
+        }
+
+        function flashButton(color) {
+            const btn = document.getElementById(`btn-${color}`);
+            btn.classList.add('active');
+            
+            // إضافة صوت مستقبلاً لو أردت
+            // playSound(color);
+            
+            setTimeout(() => {
+                btn.classList.remove('active');
+            }, 400); // مدة الإضاءة
+        }
+
+        function handlePlayerInput(color) {
+            if (!isPlayerTurn) return;
+
+            // إضاءة الزر عند ضغط اللاعب
+            flashButton(color);
+            playerSequence.push(color);
+
+            // التحقق من صحة الإدخال
+            const currentMoveIndex = playerSequence.length - 1;
+            
+            if (playerSequence[currentMoveIndex] !== sequence[currentMoveIndex]) {
+                gameOver();
+                return;
+            }
+
+            // لو اللاعب كمل الترتيب صح
+            if (playerSequence.length === sequence.length) {
+                isPlayerTurn = false;
+                statusText.innerText = "ممتاز! استعد...";
+                statusText.style.color = "#00C6FF";
+                setTimeout(nextRound, 1000);
+            }
+        }
+
+        function gameOver() {
+            isPlayerTurn = false;
+            
+            // إضاءة كل الألوان بالأحمر أو إعطاء تأثير الغلط (اختياري)
+            document.querySelector('.simon-board').style.animation = "shake 0.3s ease";
+            setTimeout(() => { document.querySelector('.simon-board').style.animation = "none"; }, 300);
+
+            // حساب المكافأة بناءً على المستوى
+            // لو خسر في أول مستوى مفيش مكافأة، غير كده كل مستوى بـ 5 عملات مثلاً
+            let reward = (level - 1) * 5;
+            if (reward < 0) reward = 0;
+
+            document.getElementById('finalLevel').innerText = level - 1; // المستوى المكتمل
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            // تحديث المحفظة
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                document.getElementById('resultModal').classList.add('active');
+            }, 500);
+        }
+
+        function closeModalAndReset() {
+            document.getElementById('resultModal').classList.remove('active');
+            levelDisplay.innerText = "0";
+            statusText.innerText = "اضغط ابدأ للعب";
+            statusText.style.color = "#aaa";
+            startBtn.disabled = false;
+        }
+
+        // أنيميشن الاهتزاز عند الخسارة
+        const style = document.createElement('style');
+        style.innerHTML = `@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }`;
+        document.head.appendChild(style);
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الشطرنج السحري - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --enemy-color: #bf5af2;
+            --board-light: #1a1a2e;
+            --board-dark: #0f0f1a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            z-index: 100; flex-shrink: 0;
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; filter: drop-shadow(0 0 5px #000); }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; transition: 0.3s; }
+        .pulse-wallet { transform: scale(1.2); color: #fff; box-shadow: 0 0 15px var(--gold); }
+
+        /* --- لوحة التحكم --- */
+        .dashboard {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .turn-indicator { font-size: 16px; font-weight: 900; color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); transition: 0.3s; }
+        .turn-enemy { color: var(--enemy-color); text-shadow: 0 0 10px var(--enemy-color); }
+        
+        .magic-btn {
+            background: linear-gradient(45deg, #bf5af2, #ff0055);
+            color: #fff; border: 1px solid #fff; padding: 8px 15px; border-radius: 15px;
+            font-weight: bold; font-size: 12px; cursor: pointer; box-shadow: 0 0 15px rgba(191, 90, 242, 0.5);
+            display: flex; align-items: center; gap: 5px; transition: 0.2s;
+        }
+        .magic-btn:active { transform: scale(0.95); }
+
+        /* --- الرقعة (Chessboard) --- */
+        .board-container {
+            flex: 1; display: flex; justify-content: center; align-items: center; padding: 10px;
+        }
+        .chessboard {
+            display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr);
+            width: 100%; max-width: 400px; aspect-ratio: 1/1;
+            border: 3px solid var(--primary-color); border-radius: 8px; overflow: hidden;
+            box-shadow: 0 0 30px rgba(0, 198, 255, 0.2);
+        }
+        .square {
+            width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
+            font-size: 28px; cursor: pointer; position: relative; transition: 0.2s background;
+        }
+        .square.light { background: var(--board-light); }
+        .square.dark { background: var(--board-dark); }
+        
+        .square.selected { background: rgba(0, 198, 255, 0.5) !important; box-shadow: inset 0 0 15px var(--primary-color); }
+        .square.valid-move::after {
+            content: ''; position: absolute; width: 12px; height: 12px;
+            background: rgba(0, 198, 255, 0.6); border-radius: 50%; box-shadow: 0 0 10px var(--primary-color);
+        }
+        .square.valid-capture { background: rgba(255, 0, 85, 0.4) !important; box-shadow: inset 0 0 15px var(--danger); }
+
+        /* القطع */
+        .piece { transition: 0.3s transform; pointer-events: none; }
+        .piece.white { color: #fff; text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color); }
+        .piece.black { color: #fff; text-shadow: 0 0 10px var(--enemy-color), 0 0 20px var(--enemy-color); }
+        
+        .strike-anim { animation: lightning 0.5s ease-out; }
+        @keyframes lightning {
+            0% { transform: scale(1) translateY(-50px); opacity: 0; filter: brightness(2); }
+            50% { transform: scale(1.5) translateY(0); opacity: 1; filter: brightness(3) sepia(1); text-shadow: 0 0 50px #fff; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* --- نافذة النهاية --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--primary-color); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 15px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;"><i class="fa-solid fa-chess-knight" style="color:var(--primary-color)"></i> الشطرنج السحري</div>
+        <div class="stats-box" id="walletBox"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="turn-indicator" id="turnIndicator">دورك الآن (أزرق)</div>
+        <button class="magic-btn" onclick="castMagicSpell()">
+            <i class="fa-solid fa-bolt"></i> ضربة سحرية (-50)
+        </button>
+    </div>
+
+    <div class="board-container">
+        <div class="chessboard" id="chessboard"></div>
+    </div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box" id="resultBox">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-title" id="resultTitle">انتصار!</div>
+            <div class="score-text" id="resultDesc">لقد دمرت ملك الخصم.</div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" onclick="initGame()" id="restartBtn">لعب مجدداً</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // ♟️ إعدادات المحفظة واللعبة
+        // ==========================================
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        const boardEl = document.getElementById('chessboard');
+        let board = [];
+        let selectedSquare = null;
+        let validMoves = [];
+        let playerTurn = 'white'; // white = player, black = AI
+        let gameActive = true;
+        let coinsEarnedThisMatch = 0;
+
+        // قاموس القطع (رموز اليونيكود)
+        const PIECES = {
+            w: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' },
+            b: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+        };
+
+        // ==========================================
+        // 🏗️ بناء الرقعة
+        // ==========================================
+        function initGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            playerTurn = 'white';
+            gameActive = true;
+            coinsEarnedThisMatch = 0;
+            selectedSquare = null;
+            updateTurnUI();
+
+            // إعداد الرقعة الافتراضية
+            board = [
+                ['br','bn','bb','bq','bk','bb','bn','br'],
+                ['bp','bp','bp','bp','bp','bp','bp','bp'],
+                ['','','','','','','',''],
+                ['','','','','','','',''],
+                ['','','','','','','',''],
+                ['','','','','','','',''],
+                ['wp','wp','wp','wp','wp','wp','wp','wp'],
+                ['wr','wn','wb','wq','wk','wb','wn','wr']
+            ];
+            drawBoard();
+        }
+
+        function drawBoard() {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const square = document.createElement('div');
+                    square.className = `square ${(r + c) % 2 === 0 ? 'light' : 'dark'}`;
+                    square.dataset.r = r;
+                    square.dataset.c = c;
+                    
+                    const pieceCode = board[r][c];
+                    if (pieceCode !== '') {
+                        const color = pieceCode[0] === 'w' ? 'white' : 'black';
+                        const type = pieceCode[1];
+                        square.innerHTML = `<span class="piece ${color}">${PIECES[pieceCode[0]][type]}</span>`;
+                    }
+
+                    square.onclick = () => handleSquareClick(r, c);
+                    boardEl.appendChild(square);
+                }
+            }
+        }
+
+        // ==========================================
+        // 👆 تفاعل اللاعب
+        // ==========================================
+        function handleSquareClick(r, c) {
+            if (!gameActive || playerTurn !== 'white') return;
+
+            const piece = board[r][c];
+            const isMyPiece = piece.startsWith('w');
+
+            // 1. إذا كان المربع ضمن الحركات المتاحة (ينفذ الحركة)
+            if (validMoves.some(m => m.r === r && m.c === c)) {
+                executeMove(selectedSquare.r, selectedSquare.c, r, c);
+                return;
+            }
+
+            // 2. إذا ضغط على قطعة خاصة به
+            if (isMyPiece) {
+                selectedSquare = { r, c, piece };
+                validMoves = calculateValidMoves(r, c, piece);
+                highlightSquares();
+                if(navigator.vibrate) navigator.vibrate(10);
+            } 
+            // 3. ضغط في مكان فارغ أو قطعة خصم غير متاحة
+            else {
+                selectedSquare = null;
+                validMoves = [];
+                highlightSquares();
+            }
+        }
+
+        function highlightSquares() {
+            document.querySelectorAll('.square').forEach(sq => {
+                sq.classList.remove('selected', 'valid-move', 'valid-capture');
+            });
+
+            if (selectedSquare) {
+                const sqEl = document.querySelector(`[data-r="${selectedSquare.r}"][data-c="${selectedSquare.c}"]`);
+                sqEl.classList.add('selected');
+
+                validMoves.forEach(m => {
+                    const mEl = document.querySelector(`[data-r="${m.r}"][data-c="${m.c}"]`);
+                    if (board[m.r][m.c] !== '') mEl.classList.add('valid-capture');
+                    else mEl.classList.add('valid-move');
+                });
+            }
+        }
+
+        // ==========================================
+        // 🚀 تنفيذ الحركة والمكافآت
+        // ==========================================
+        function executeMove(sr, sc, tr, tc) {
+            const movingPiece = board[sr][sc];
+            const targetPiece = board[tr][tc];
+
+            // تحريك القطعة
+            board[tr][tc] = movingPiece;
+            board[sr][sc] = '';
+
+            // ترقية البيدق (Pawn Promotion)
+            if (movingPiece === 'wp' && tr === 0) board[tr][tc] = 'wq';
+            if (movingPiece === 'bp' && tr === 7) board[tr][tc] = 'bq';
+
+            // هل أكل قطعة؟
+            if (targetPiece !== '') {
+                if(navigator.vibrate) navigator.vibrate(50);
+                if (movingPiece.startsWith('w')) {
+                    addCoins(5); // +5 عملات لكل قطعة
+                }
+                // هل أكل الملك؟ (انتهاء اللعبة)
+                if (targetPiece[1] === 'k') {
+                    drawBoard();
+                    setTimeout(() => endGame(movingPiece.startsWith('w') ? 'win' : 'lose'), 300);
+                    return;
+                }
+            }
+
+            drawBoard();
+            
+            // تبديل الدور
+            playerTurn = playerTurn === 'white' ? 'black' : 'white';
+            updateTurnUI();
+
+            if (playerTurn === 'black' && gameActive) {
+                setTimeout(makeAIMove, 800); // الذكاء الاصطناعي يلعب بعد لحظة
+            }
+        }
+
+        // ==========================================
+        // 🤖 الذكاء الاصطناعي (AI) المخصص للعبة آركيد
+        // ==========================================
+        function makeAIMove() {
+            if(!gameActive) return;
+
+            let allPossibleMoves = [];
+            
+            // جمع كل الحركات المتاحة للأسود
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (piece.startsWith('b')) {
+                        let moves = calculateValidMoves(r, c, piece);
+                        moves.forEach(m => {
+                            allPossibleMoves.push({ sr: r, sc: c, tr: m.r, tc: m.c, target: board[m.r][m.c] });
+                        });
+                    }
+                }
+            }
+
+            if (allPossibleMoves.length === 0) return; // لا يوجد حركات
+
+            // AI منطق مبسط:
+            // 1. هل يمكنني أكل قطعة؟
+            let captures = allPossibleMoves.filter(m => m.target !== '');
+            let finalMove;
+
+            if (captures.length > 0) {
+                // ترتيب القطع حسب الأهمية لضربها (الملك، الوزير، الرخ..)
+                captures.sort((a,b) => getPieceValue(b.target[1]) - getPieceValue(a.target[1]));
+                finalMove = captures[0]; // يضرب أغلى قطعة
+            } else {
+                // 2. حركة عشوائية
+                finalMove = allPossibleMoves[Math.floor(Math.random() * allPossibleMoves.length)];
+            }
+
+            executeMove(finalMove.sr, finalMove.sc, finalMove.tr, finalMove.tc);
+        }
+
+        function getPieceValue(type) {
+            const vals = { 'p':1, 'n':3, 'b':3, 'r':5, 'q':9, 'k':100 };
+            return vals[type] || 0;
+        }
+
+        // ==========================================
+        // 🧠 محرك قواعد الشطرنج (مبسط وسريع)
+        // ==========================================
+        function calculateValidMoves(r, c, piece) {
+            let moves = [];
+            const color = piece[0];
+            const type = piece[1];
+            const enemyColor = color === 'w' ? 'b' : 'w';
+
+            function addMove(nr, nc) {
+                if (nr < 0 || nr > 7 || nc < 0 || nc > 7) return false;
+                const target = board[nr][nc];
+                if (target === '') { moves.push({r: nr, c: nc}); return true; }
+                if (target[0] === enemyColor) { moves.push({r: nr, c: nc}); return false; } // أكل القطعة وتوقف
+                return false; // قطعة صديقة
+            }
+
+            if (type === 'p') { // بيدق
+                const dir = color === 'w' ? -1 : 1;
+                const startRow = color === 'w' ? 6 : 1;
+                // خطوة للأمام
+                if (board[r+dir] && board[r+dir][c] === '') {
+                    moves.push({r: r+dir, c: c});
+                    // خطوتين في البداية
+                    if (r === startRow && board[r+(dir*2)][c] === '') moves.push({r: r+(dir*2), c: c});
+                }
+                // الأكل قطري
+                if (board[r+dir] && board[r+dir][c-1] && board[r+dir][c-1].startsWith(enemyColor)) moves.push({r: r+dir, c: c-1});
+                if (board[r+dir] && board[r+dir][c+1] && board[r+dir][c+1].startsWith(enemyColor)) moves.push({r: r+dir, c: c+1});
+            }
+            
+            else if (type === 'r' || type === 'q') { // رخ و وزير
+                for(let i=r-1; i>=0; i--) if(!addMove(i, c)) break;
+                for(let i=r+1; i<=7; i++) if(!addMove(i, c)) break;
+                for(let i=c-1; i>=0; i--) if(!addMove(r, i)) break;
+                for(let i=c+1; i<=7; i++) if(!addMove(r, i)) break;
+            }
+
+            if (type === 'b' || type === 'q') { // فيل و وزير
+                for(let i=1; i<8; i++) if(!addMove(r-i, c-i)) break;
+                for(let i=1; i<8; i++) if(!addMove(r+i, c+i)) break;
+                for(let i=1; i<8; i++) if(!addMove(r-i, c+i)) break;
+                for(let i=1; i<8; i++) if(!addMove(r+i, c-i)) break;
+            }
+
+            if (type === 'n') { // حصان
+                const knightMoves = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+                knightMoves.forEach(m => addMove(r+m[0], c+m[1]));
+            }
+
+            if (type === 'k') { // ملك
+                const kingMoves = [[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+                kingMoves.forEach(m => addMove(r+m[0], c+m[1]));
+            }
+
+            return moves;
+        }
+
+        // ==========================================
+        // ⚡ الضربة السحرية (ميزة اللعبة الحصرية)
+        // ==========================================
+        function castMagicSpell() {
+            if (!gameActive || playerTurn !== 'white') return;
+            
+            if (totalCoins < 50) {
+                alert("تحتاج 50 عملة لاستخدام السحر!");
+                return;
+            }
+
+            // جمع كل قطع الخصم ما عدا الملك
+            let enemyPieces = [];
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (board[r][c].startsWith('b') && board[r][c] !== 'bk') {
+                        enemyPieces.push({r, c});
+                    }
+                }
+            }
+
+            if (enemyPieces.length === 0) {
+                showToast("لا يوجد أعداء لضربهم!");
+                return;
+            }
+
+            // خصم التكلفة
+            addCoins(-50);
+            if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+
+            // اختيار قطعة عشوائية وتدميرها
+            const target = enemyPieces[Math.floor(Math.random() * enemyPieces.length)];
+            
+            const sqEl = document.querySelector(`[data-r="${target.r}"][data-c="${target.c}"]`);
+            sqEl.innerHTML = '⚡';
+            sqEl.classList.add('strike-anim');
+            
+            setTimeout(() => {
+                board[target.r][target.c] = '';
+                drawBoard();
+            }, 500);
+
+            // تضييع الدور
+            selectedSquare = null;
+            highlightSquares();
+            playerTurn = 'black';
+            updateTurnUI();
+            setTimeout(makeAIMove, 1000);
+        }
+
+        // ==========================================
+        // 💰 المحفظة ونهاية اللعبة
+        // ==========================================
+        function addCoins(amount) {
+            totalCoins += amount;
+            if(amount > 0) coinsEarnedThisMatch += amount;
+            localStorage.setItem('wareed_coins', totalCoins);
+            
+            const wb = document.getElementById('walletCoins');
+            wb.innerText = totalCoins;
+            const box = document.getElementById('walletBox');
+            box.classList.remove('pulse-wallet');
+            void box.offsetWidth;
+            box.classList.add('pulse-wallet');
+        }
+
+        function updateTurnUI() {
+            const ind = document.getElementById('turnIndicator');
+            if (playerTurn === 'white') {
+                ind.innerText = "دورك الآن (أزرق)";
+                ind.className = "turn-indicator";
+            } else {
+                ind.innerText = "دور الخصم (بنفسجي)";
+                ind.className = "turn-indicator turn-enemy";
+            }
+        }
+
+        function endGame(result) {
+            gameActive = false;
+            const modal = document.getElementById('gameOverModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            const box = document.getElementById('resultBox');
+            const btn = document.getElementById('restartBtn');
+
+            if (result === 'win') {
+                addCoins(200); // مكافأة الفوز
+                icon.innerHTML = '🏆';
+                title.innerText = 'انتصار ساحق!';
+                desc.innerText = 'تم تدمير ملك الخصم بنجاح.';
+                box.style.borderColor = 'var(--primary-color)';
+                box.style.boxShadow = '0 0 40px rgba(0,198,255,0.4)';
+                btn.style.background = 'linear-gradient(45deg, var(--primary-color), #0072FF)';
+            } else {
+                icon.innerHTML = '💀';
+                title.innerText = 'هزيمة مريرة!';
+                desc.innerText = 'لقد دمر الخصم ملكك.';
+                box.style.borderColor = 'var(--danger)';
+                box.style.boxShadow = '0 0 40px rgba(255,0,85,0.4)';
+                btn.style.background = 'linear-gradient(45deg, var(--danger), #ff5e62)';
+            }
+
+            document.getElementById('coinsEarned').innerText = coinsEarnedThisMatch;
+            modal.style.display = 'flex';
+        }
+
+        // تشغيل اللعبة
+        initGame();
+
+    </script>
+</body>
+</html>

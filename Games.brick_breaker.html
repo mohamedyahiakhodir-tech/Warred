@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تكسير الطوب - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050510; /* أزرق داكن جداً لبروز النيون */
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff3b30;
+            --life-color: #ff0055;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; filter: drop-shadow(0 0 5px #000); }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; backdrop-filter: blur(5px); }
+
+        /* --- لوحة المعلومات (النقاط والأرواح) --- */
+        .dashboard {
+            position: absolute; top: 65px; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: space-between; padding: 0 20px;
+            pointer-events: none;
+        }
+        .score-board { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .lives-board { font-size: 16px; color: var(--life-color); display: flex; gap: 5px; }
+
+        .level-badge {
+            position: absolute; top: 65px; left: 50%; transform: translateX(-50%);
+            font-size: 14px; font-weight: bold; color: #bf5af2; background: rgba(191, 90, 242, 0.1);
+            padding: 2px 10px; border-radius: 10px; border: 1px solid #bf5af2;
+        }
+        
+        /* --- مساحة الكانفاس --- */
+        #gameCanvas {
+            display: block; width: 100%; height: 100%; background: radial-gradient(circle at center, #111, var(--bg-color));
+        }
+
+        /* --- نوافذ النهاية والانتقال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--primary-color); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 15px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        /* تعليمات البداية */
+        .start-hint {
+            position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.6); font-weight: bold; font-size: 16px; text-align: center;
+            pointer-events: none; animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="stats-box"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="score-board">النقاط: <span id="scoreDisplay">0</span></div>
+        <div class="lives-board" id="livesDisplay">
+            <i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i><i class="fa-solid fa-heart"></i>
+        </div>
+    </div>
+    
+    <div class="level-badge" id="levelDisplay">مستوى 1</div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="start-hint" id="startHint">اضغط واسحب المضرب للبدء<br><i class="fa-solid fa-arrows-left-right" style="margin-top:10px; font-size:20px;"></i></div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box" style="border-color: var(--danger); box-shadow: 0 0 40px rgba(255, 59, 48, 0.3);">
+            <div class="result-icon" style="color: var(--danger);"><i class="fa-solid fa-heart-crack"></i></div>
+            <div class="result-title">انتهت المحاولات!</div>
+            <div class="score-text">مجموع النقاط: <span id="finalScore" style="color:#fff; font-weight:bold;">0</span></div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" style="background: linear-gradient(45deg, var(--danger), #ff5e62);" onclick="restartGame()">العب من جديد</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="levelUpModal">
+        <div class="result-box" style="border-color: #34c759; box-shadow: 0 0 40px rgba(52, 199, 89, 0.3);">
+            <div class="result-icon" style="color: #34c759;"><i class="fa-solid fa-bolt"></i></div>
+            <div class="result-title">مستوى جديد!</div>
+            <div class="score-text">السرعة ستزداد الآن 🔥</div>
+            <button class="btn-action" style="background: linear-gradient(45deg, #34c759, #28a745);" onclick="startNextLevel()">التالي</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🧱 محرك اللعبة الأساسي
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+        
+        let score = 0;
+        let lives = 3;
+        let level = 1;
+        let gameActive = true;
+        let hasStarted = false; // عشان الكرة تلزق في المضرب في البداية
+
+        // ==========================================
+        // 🏓 المضرب (Paddle)
+        // ==========================================
+        const paddle = {
+            width: 90,
+            height: 12,
+            x: canvas.width / 2 - 45,
+            y: canvas.height - 60,
+            color: '#00C6FF',
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.roundRect(this.x, this.y, this.width, this.height, 6);
+                ctx.fill();
+                ctx.restore();
+            }
+        };
+
+        // ==========================================
+        // ⚽ الكرة (Ball)
+        // ==========================================
+        const ball = {
+            radius: 8,
+            x: paddle.x + paddle.width / 2,
+            y: paddle.y - 8,
+            speed: 5,
+            dx: 0,
+            dy: 0,
+            color: '#FFD700',
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            },
+            reset() {
+                this.x = paddle.x + paddle.width / 2;
+                this.y = paddle.y - this.radius;
+                this.dx = 0;
+                this.dy = 0;
+                hasStarted = false;
+            }
+        };
+
+        // ==========================================
+        // 🧱 الطوب (Bricks)
+        // ==========================================
+        let bricks = [];
+        let brickRowCount = 4;
+        let brickColumnCount = 5; // يتناسب مع الموبايل
+        const brickPadding = 10;
+        const brickOffsetTop = 100;
+        const brickOffsetLeft = 15;
+        let brickWidth = (canvas.width - (brickOffsetLeft * 2) - (brickPadding * (brickColumnCount - 1))) / brickColumnCount;
+        const brickHeight = 20;
+        
+        // ألوان الطوب (تدرج نيون)
+        const brickColors = ['#ff0055', '#bf5af2', '#00C6FF', '#34c759', '#FFD700'];
+
+        function initBricks() {
+            bricks = [];
+            for(let c = 0; c < brickColumnCount; c++) {
+                bricks[c] = [];
+                for(let r = 0; r < brickRowCount; r++) {
+                    // قيمة الطوبة = لو انضربت تختفي
+                    bricks[c][r] = { x: 0, y: 0, status: 1, color: brickColors[r % brickColors.length] };
+                }
+            }
+        }
+
+        function drawBricks() {
+            for(let c = 0; c < brickColumnCount; c++) {
+                for(let r = 0; r < brickRowCount; r++) {
+                    if(bricks[c][r].status === 1) {
+                        let brickX = (c * (brickWidth + brickPadding)) + brickOffsetLeft;
+                        let brickY = (r * (brickHeight + brickPadding)) + brickOffsetTop;
+                        bricks[c][r].x = brickX;
+                        bricks[c][r].y = brickY;
+                        
+                        ctx.save();
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = bricks[c][r].color;
+                        ctx.fillStyle = bricks[c][r].color;
+                        ctx.beginPath();
+                        ctx.roundRect(brickX, brickY, brickWidth, brickHeight, 4);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // 🔄 منطق التصادم (Collision Detection)
+        // ==========================================
+        function collisionDetection() {
+            let activeBricks = 0;
+            for(let c = 0; c < brickColumnCount; c++) {
+                for(let r = 0; r < brickRowCount; r++) {
+                    let b = bricks[c][r];
+                    if(b.status === 1) {
+                        activeBricks++;
+                        // لو الكرة لمست الطوبة
+                        if(ball.x > b.x && ball.x < b.x + brickWidth && ball.y > b.y && ball.y < b.y + brickHeight) {
+                            ball.dy = -ball.dy; // اعكس الاتجاه
+                            b.status = 0; // اخفي الطوبة
+                            score++;
+                            document.getElementById('scoreDisplay').innerText = score;
+                            
+                            // اهتزاز عند تكسير الطوبة
+                            if(navigator.vibrate) navigator.vibrate(15);
+                        }
+                    }
+                }
+            }
+            
+            // لو كسرنا كل الطوب -> مستوى جديد
+            if (activeBricks === 0 && hasStarted) {
+                gameActive = false;
+                setTimeout(() => {
+                    document.getElementById('levelUpModal').style.display = 'flex';
+                }, 500);
+            }
+        }
+
+        function updateLivesDisplay() {
+            const container = document.getElementById('livesDisplay');
+            container.innerHTML = '';
+            for(let i=0; i<lives; i++) {
+                container.innerHTML += '<i class="fa-solid fa-heart"></i>';
+            }
+        }
+
+        // ==========================================
+        // 🎮 حلقة اللعبة (Game Loop)
+        // ==========================================
+        function animate() {
+            if (!gameActive) return;
+            requestAnimationFrame(animate);
+            
+            // مسح الشاشة مع تأثير الحركة
+            ctx.fillStyle = 'rgba(5, 5, 16, 0.4)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            drawBricks();
+            paddle.draw();
+            ball.draw();
+            collisionDetection();
+
+            // إذا بدأت اللعبة، حرك الكرة
+            if (hasStarted) {
+                ball.x += ball.dx;
+                ball.y += ball.dy;
+
+                // التصادم مع الجدران الجانبية (يمين ويسار)
+                if (ball.x + ball.dx > canvas.width - ball.radius || ball.x + ball.dx < ball.radius) {
+                    ball.dx = -ball.dx;
+                }
+                // التصادم مع السقف
+                if (ball.y + ball.dy < ball.radius) {
+                    ball.dy = -ball.dy;
+                }
+                
+                // التصادم مع المضرب (فيزياء متقدمة)
+                if (ball.y + ball.dy > paddle.y - ball.radius && ball.x > paddle.x && ball.x < paddle.x + paddle.width) {
+                    // نحدد زاوية الارتداد بناءً على مكان ضرب الكرة للمضرب
+                    let collidePoint = ball.x - (paddle.x + paddle.width / 2);
+                    collidePoint = collidePoint / (paddle.width / 2); // قيمة بين -1 و 1
+                    
+                    let angle = collidePoint * (Math.PI / 3); // أقصى زاوية 60 درجة
+                    
+                    ball.dx = ball.speed * Math.sin(angle);
+                    ball.dy = -ball.speed * Math.cos(angle);
+                    
+                    if(navigator.vibrate) navigator.vibrate(20);
+                } 
+                // التصادم مع القاع (خسارة روح)
+                else if (ball.y + ball.dy > canvas.height - ball.radius) {
+                    lives--;
+                    updateLivesDisplay();
+                    if(navigator.vibrate) navigator.vibrate(200);
+
+                    if (!lives) {
+                        endGame();
+                    } else {
+                        ball.reset(); // إرجاع الكرة للمضرب
+                    }
+                }
+            } else {
+                // الكرة تلحق المضرب قبل البدء
+                ball.x = paddle.x + paddle.width / 2;
+                ball.y = paddle.y - ball.radius;
+            }
+        }
+
+        // ==========================================
+        // 👆 التحكم باللمس (Touch & Mouse)
+        // ==========================================
+        function movePaddle(clientX) {
+            let relativeX = clientX - paddle.width / 2;
+            if (relativeX > 0 && relativeX < canvas.width - paddle.width) {
+                paddle.x = relativeX;
+            }
+            
+            // عند أول حركة، تنطلق الكرة للأعلى
+            if (!hasStarted) {
+                hasStarted = true;
+                document.getElementById('startHint').style.display = 'none';
+                // إطلاق الكرة بزاوية خفيفة
+                ball.dx = ball.speed * 0.5;
+                ball.dy = -ball.speed;
+            }
+        }
+
+        canvas.addEventListener('touchmove', (e) => {
+            movePaddle(e.touches[0].clientX);
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            movePaddle(e.clientX);
+        });
+
+        // دالة الدعم للمستطيل الدائري
+        CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h, r) {
+            if (w < 2 * r) r = w / 2;
+            if (h < 2 * r) r = h / 2;
+            this.moveTo(x + r, y);
+            this.arcTo(x + w, y, x + w, y + h, r);
+            this.arcTo(x + w, y + h, x, y + h, r);
+            this.arcTo(x, y + h, x, y, r);
+            this.arcTo(x, y, x + w, y, r);
+            return this;
+        }
+
+        // ==========================================
+        // 🛑 إدارة نهاية اللعبة والمستويات
+        // ==========================================
+        function endGame() {
+            gameActive = false;
+            
+            // كل 10 نقاط = 1 عملة
+            let earned = Math.floor(score / 10);
+            if (score > 0 && earned === 0) earned = 1; // مكافأة ترضية
+            
+            totalCoins += earned;
+            localStorage.setItem('wareed_coins', totalCoins);
+            document.getElementById('walletCoins').innerText = totalCoins;
+
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('coinsEarned').innerText = earned;
+            document.getElementById('gameOverModal').style.display = 'flex';
+        }
+
+        function restartGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            score = 0;
+            lives = 3;
+            level = 1;
+            ball.speed = 5;
+            brickRowCount = 4;
+            document.getElementById('scoreDisplay').innerText = score;
+            document.getElementById('levelDisplay').innerText = `مستوى ${level}`;
+            updateLivesDisplay();
+            
+            initBricks();
+            ball.reset();
+            gameActive = true;
+            document.getElementById('startHint').style.display = 'block';
+            animate();
+        }
+
+        function startNextLevel() {
+            document.getElementById('levelUpModal').style.display = 'none';
+            level++;
+            document.getElementById('levelDisplay').innerText = `مستوى ${level}`;
+            
+            // زيادة الصعوبة
+            ball.speed += 0.5; 
+            if (brickRowCount < 8) brickRowCount++; // زيادة صفوف الطوب بحد أقصى 8
+            
+            initBricks();
+            ball.reset();
+            gameActive = true;
+            animate();
+        }
+
+        // ==========================================
+        // 🚀 التشغيل
+        // ==========================================
+        window.onload = () => {
+            initBricks();
+            updateLivesDisplay();
+            animate();
+        };
+
+        // استجابة لتغير حجم الشاشة
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            paddle.y = canvas.height - 60;
+            brickWidth = (canvas.width - (brickOffsetLeft * 2) - (brickPadding * (brickColumnCount - 1))) / brickColumnCount;
+            if(!hasStarted) ball.reset();
+        });
+
+    </script>
+</body>
+</html>

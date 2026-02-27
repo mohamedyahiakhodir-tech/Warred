@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ضربة الأباتشي - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050508;
+            --hero-color: #00C6FF;  
+            --enemy-color: #ff3366;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 8, 0.95);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--hero-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        .game-container {
+            flex: 1; position: relative; overflow: hidden;
+            background: linear-gradient(to bottom, #050508, #1a1a2e);
+        }
+        
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .score-display {
+            position: absolute; top: 10; left: 0; width: 100%; text-align: center;
+            font-size: 24px; font-weight: 900; color: #fff; pointer-events: none; z-index: 5;
+            text-shadow: 0 0 10px var(--hero-color);
+        }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+        }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 10px; color: var(--enemy-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--hero-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">ضربة الأباتشي 🚁</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-container">
+        <div class="score-display" id="score">0</div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div style="font-size: 60px; margin-bottom: 10px;">💥</div>
+            <div class="modal-title">تحطمت الطائرة!</div>
+            <p style="color: #aaa; margin-bottom: 15px;">النقاط المحققة: <span id="finalScore">0</span></p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="startGame()">طيران جديد</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreEl = document.getElementById('score');
+        const walletEl = document.getElementById('walletScore');
+
+        let player, enemies, bullets, coins, animationId, score, isGameOver;
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Player {
+            constructor() {
+                this.width = 50;
+                this.height = 60;
+                this.x = canvas.width / 2 - this.width / 2;
+                this.y = canvas.height - 100;
+                this.color = '#00C6FF';
+            }
+            draw() {
+                ctx.shadowBlur = 15; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                // رسم جسم المروحية بشكل مبسط
+                ctx.fillRect(this.x + 20, this.y, 10, 60); // الجسم
+                ctx.fillRect(this.x, this.y + 20, 50, 10); // المراوح
+                ctx.shadowBlur = 0;
+            }
+            update(x) {
+                this.x = x - this.width / 2;
+                if (this.x < 0) this.x = 0;
+                if (this.x > canvas.width - this.width) this.x = canvas.width - this.width;
+            }
+        }
+
+        class Enemy {
+            constructor() {
+                this.width = 40;
+                this.height = 40;
+                this.x = Math.random() * (canvas.width - this.width);
+                this.y = -50;
+                this.speed = 2 + Math.random() * 3;
+                this.color = '#ff3366';
+            }
+            draw() {
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x + this.width, this.y);
+                ctx.lineTo(this.x + this.width/2, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+            update() { this.y += this.speed; }
+        }
+
+        class Bullet {
+            constructor(x, y) {
+                this.x = x; this.y = y;
+                this.radius = 3;
+                this.speed = 7;
+                this.color = '#FFD700';
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            update() { this.y -= this.speed; }
+        }
+
+        function startGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            player = new Player();
+            enemies = [];
+            bullets = [];
+            score = 0;
+            isGameOver = false;
+            scoreEl.innerText = score;
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            player.draw();
+
+            // إطلاق النار تلقائياً
+            if (Date.now() % 200 < 20) {
+                bullets.push(new Bullet(player.x + player.width / 2, player.y));
+            }
+
+            // تحديث الصواريخ
+            bullets.forEach((bullet, index) => {
+                bullet.update();
+                bullet.draw();
+                if (bullet.y < 0) bullets.splice(index, 1);
+            });
+
+            // توليد وتحديث الأعداء
+            if (Math.random() < 0.03) enemies.push(new Enemy());
+            enemies.forEach((enemy, eIndex) => {
+                enemy.update();
+                enemy.draw();
+
+                // تصادم مع اللاعب
+                if (enemy.y + enemy.height > player.y && enemy.x < player.x + player.width && enemy.x + enemy.width > player.x) {
+                    endGame();
+                }
+
+                // تصادم مع الرصاص
+                bullets.forEach((bullet, bIndex) => {
+                    if (bullet.x > enemy.x && bullet.x < enemy.x + enemy.width && bullet.y < enemy.y + enemy.height && bullet.y > enemy.y) {
+                        enemies.splice(eIndex, 1);
+                        bullets.splice(bIndex, 1);
+                        score += 10;
+                        scoreEl.innerText = score;
+                    }
+                });
+
+                if (enemy.y > canvas.height) enemies.splice(eIndex, 1);
+            });
+
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            isGameOver = true;
+            cancelAnimationFrame(animationId);
+            const reward = Math.floor(score / 5);
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة`;
+            walletEl.innerText = parseInt(walletEl.innerText) + reward;
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isGameOver) return;
+            player.update(e.touches[0].clientX);
+            e.preventDefault();
+        }, {passive: false});
+
+        startGame();
+    </script>
+</body>
+</html>

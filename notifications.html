@@ -382,7 +382,8 @@ function loadNotifications(uid) {
 }
 
 
-        async function handleNotificationClick(docId, notif) {
+                                async function handleNotificationClick(docId, notif) {
+            // تحديث حالة الإشعار لمقروء
             await db.collection('notifications').doc(docId).update({ opened: true, read: true });
             
             // لو إشعار نظام
@@ -399,12 +400,37 @@ function loadNotifications(uid) {
                     targetLink = targetLink.replace('#post-', '&post=');
                 }
                 window.location.href = targetLink; 
-            } else if (notif.postId) {
-                let url = `profile.html?uid=${notif.recipientId}&post=${notif.postId}`;
-                if (notif.commentId) { url += `&comment=${notif.commentId}`; }
-                window.location.href = url;
+            } 
+            // 🔥 التوجيه الذكي لصاحب البوست الأصلي 🔥
+            else if (notif.postId) {
+                try {
+                    // نروح نجيب البوست من الداتابيز عشان نعرف الـ ID بتاع صاحبه
+                    const postDoc = await db.collection('posts').doc(notif.postId).get();
+                    
+                    if (postDoc.exists) {
+                        const postOwnerId = postDoc.data().uid; // ده الـ ID بتاع صاحب البوست الحقيقي
+                        
+                        // دلوقتي نوجهه لبروفايل صاحب البوست
+                        let url = `profile.html?uid=${postOwnerId}&post=${notif.postId}`;
+                        
+                        // لو فيه كومنت معين، نبعته في الرابط
+                        if (notif.commentId) { 
+                            url += `&comment=${notif.commentId}`; 
+                        }
+                        
+                        // الانتقال الفوري للصفحة
+                        window.location.href = url;
+                    } else {
+                        alert("عذراً، هذا المنشور لم يعد موجوداً 🗑️"); // استخدمنا alert لأن showToast مش موجودة هنا
+                    }
+                } catch(e) {
+                    console.error("خطأ في التوجيه:", e);
+                    // لو حصل خطأ في الداتابيز، نوديه للرئيسية كاحتياطي
+                    window.location.href = `home.html?post=${notif.postId}`;
+                }
             }
         }
+
 
         async function markAllAsOpened() {
             const user = auth.currentUser;

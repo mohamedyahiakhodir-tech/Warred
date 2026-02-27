@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wareed - البورصة</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg: #0d0d0f;
+            --card: #161616;
+            --green: #00ff88;
+            --red: #ff3b30;
+            --text: #eee;
+            --accent: #2979ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+        /* الهيدر */
+        .market-header {
+            padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            background: rgba(22, 22, 22, 0.95);
+            border-bottom: 1px solid #333;
+            position: sticky; top: 0; z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+        .balance-box {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 14px;
+            box-shadow: 0 0 15px rgba(41, 121, 255, 0.4);
+        }
+
+        /* شريط الأخبار المتحرك */
+        .ticker-wrap {
+            width: 100%; overflow: hidden; background: #000; border-bottom: 1px solid #333;
+            height: 30px; display: flex; align-items: center;
+        }
+        .ticker { display: inline-block; white-space: nowrap; animation: ticker 20s linear infinite; }
+        .ticker-item { display: inline-block; padding: 0 20px; font-size: 12px; color: #aaa; }
+        .up { color: var(--green); } .down { color: var(--red); }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* التبويبات */
+        .tabs { display: flex; justify-content: center; margin: 15px; gap: 10px; }
+        .tab { 
+            padding: 10px 25px; border-radius: 12px; background: var(--card); 
+            border: 1px solid #333; cursor: pointer; transition: 0.3s; flex: 1; text-align: center; font-weight: bold;
+        }
+        .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+        /* قائمة الأسهم */
+        .stock-list { padding: 10px; }
+        .stock-card {
+            background: var(--card); border-radius: 16px; padding: 15px;
+            margin-bottom: 10px; display: flex; align-items: center; gap: 15px;
+            border: 1px solid #222; transition: 0.2s; cursor: pointer;
+        }
+        .stock-card:active { transform: scale(0.98); background: #222; }
+        
+        .stock-avatar { width: 50px; height: 50px; border-radius: 50%; background-size: cover; border: 2px solid #333; }
+        
+        .stock-info { flex: 1; }
+        .stock-name { font-weight: 800; font-size: 15px; display: flex; align-items: center; gap: 5px; }
+        .stock-symbol { color: #777; font-size: 11px; font-family: monospace; letter-spacing: 1px; }
+        
+        .stock-price { text-align: left; display: flex; flex-direction: column; align-items: flex-end; }
+        .current-price { font-size: 16px; font-weight: 900; color: #fff; }
+        .price-change { font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 3px; }
+        
+        /* مودال الشراء/البيع */
+        .trade-modal {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 85vh;
+            background: #1a1a1a; border-radius: 30px 30px 0 0;
+            transform: translateY(100%); transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2000; padding: 20px; display: flex; flex-direction: column;
+            border-top: 1px solid #333;
+        }
+        .trade-modal.active { transform: translateY(0); }
+        
+        .chart-container { width: 100%; height: 200px; margin-bottom: 20px; background: rgba(0,0,0,0.3); border-radius: 15px; padding: 10px; }
+        
+        .trade-actions { display: flex; gap: 15px; margin-top: auto; }
+        .btn-trade {
+            flex: 1; padding: 15px; border-radius: 15px; border: none;
+            font-weight: 900; font-size: 16px; cursor: pointer; color: #fff;
+        }
+        .btn-buy { background: var(--green); color: #000; box-shadow: 0 0 20px rgba(0, 255, 136, 0.2); }
+        .btn-sell { background: var(--red); color: #fff; box-shadow: 0 0 20px rgba(255, 59, 48, 0.2); }
+
+        .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1500; display: none; backdrop-filter: blur(5px); }
+
+    </style>
+</head>
+<body>
+
+    <div class="market-header">
+        <div onclick="history.back()" style="font-size: 20px; cursor: pointer;"><i class="fa-solid fa-arrow-right"></i></div>
+        <div style="font-weight: 900; font-size: 18px;">بورصة Wareed 📈</div>
+        <div class="balance-box">
+            <i class="fa-solid fa-wallet"></i> <span id="userBalance">0</span> $W
+        </div>
+    </div>
+
+    <div class="ticker-wrap">
+        <div class="ticker" id="marketTicker">
+            </div>
+    </div>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('market')">السوق</div>
+        <div class="tab" onclick="switchTab('portfolio')">محفظتي</div>
+    </div>
+
+    <div id="marketView" class="stock-list">
+        <div style="text-align:center; padding:20px; color:#666;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحليل السوق...</div>
+    </div>
+
+    <div id="portfolioView" class="stock-list" style="display: none;">
+        <div style="text-align:center; padding:20px; color:#666;">لا تملك أسهماً بعد</div>
+    </div>
+
+    <div class="overlay" id="overlay" onclick="closeTradeModal()"></div>
+
+    <div class="trade-modal" id="tradeModal">
+        <div style="width: 40px; height: 5px; background: #444; border-radius: 10px; margin: 0 auto 20px auto;"></div>
+        
+        <div style="display:flex; align-items:center; gap:15px; margin-bottom:20px;">
+            <div id="tmAvatar" style="width:60px; height:60px; border-radius:50%; background-size:cover; border:2px solid #fff;"></div>
+            <div>
+                <h2 id="tmName" style="margin:0; font-size:18px;">User Name</h2>
+                <span id="tmSymbol" style="color:#888; font-family:monospace;">@USER</span>
+            </div>
+            <div style="margin-right:auto; text-align:left;">
+                <div id="tmPrice" style="font-size:24px; font-weight:900;">0.00</div>
+                <div id="tmChange" style="font-size:12px; font-weight:bold;">0%</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="stockChart"></canvas>
+        </div>
+
+        <div style="background:#222; padding:15px; border-radius:12px; margin-bottom:15px;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                <span style="color:#aaa;">تمتلك:</span>
+                <span id="tmOwned" style="font-weight:bold; color:#fff;">0 سهم</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span style="color:#aaa;">القيمة السوقية:</span>
+                <span id="tmValue" style="font-weight:bold; color:var(--accent);">0 $W</span>
+            </div>
+        </div>
+
+        <div class="trade-actions">
+            <button class="btn-trade btn-sell" onclick="executeTrade('sell')">بيع</button>
+            <button class="btn-trade btn-buy" onclick="executeTrade('buy')">شراء</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        let currentUser = null;
+        let selectedUser = null;
+        let myWallet = { balance: 1000, stocks: {} }; // رصيد افتراضي 1000
+        let marketChart = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadWallet();
+                loadMarket();
+            } else {
+                alert("يجب تسجيل الدخول");
+                history.back();
+            }
+        });
+
+        // 1. حساب سعر السهم (المعادلة السحرية)
+        function calculateStockPrice(userData) {
+            // المعادلة: (اللايكات × 2) + (المشاهدات ÷ 10) + (أساسي 10)
+            const views = userData.totalViews || 0;
+            // بما أن اللايكات غير مخزنة كرقم إجمالي في اليوزر، سنعتمد على المشاهدات والتوثيق حالياً
+            // يمكنك تطويرها لجلب عدد البوستات
+            let basePrice = 10 + (views * 0.05); 
+            if (userData.isVerified) basePrice += 50; // بونص للتوثيق
+            
+            // إضافة عشوائية بسيطة لمحاكاة تذبذب السوق
+            const randomFluctuation = (Math.sin(Date.now() / 10000) * 2); 
+            return (basePrice + randomFluctuation).toFixed(2);
+        }
+
+        // 2. تحميل المحفظة
+        function loadWallet() {
+            db.collection('wallets').doc(currentUser.uid).onSnapshot(doc => {
+                if (doc.exists) {
+                    myWallet = doc.data();
+                } else {
+                    // إنشاء محفظة بونص للمستخدم الجديد
+                    myWallet = { balance: 1000, stocks: {} };
+                    db.collection('wallets').doc(currentUser.uid).set(myWallet);
+                }
+                document.getElementById('userBalance').innerText = parseFloat(myWallet.balance).toFixed(1);
+                renderPortfolio(); // تحديث المحفظة عند تغير البيانات
+            });
+        }
+
+        // 3. تحميل السوق (قائمة المستخدمين)
+        async function loadMarket() {
+            const container = document.getElementById('marketView');
+            const ticker = document.getElementById('marketTicker');
+            
+            // نجيب أشهر 20 مستخدم
+            const snap = await db.collection('users').orderBy('totalViews', 'desc').limit(20).get();
+            
+            let html = '';
+            let tickerHtml = '';
+
+            snap.forEach(doc => {
+                const u = doc.data();
+                const uid = doc.id;
+                const price = calculateStockPrice(u);
+                
+                // تحديد التغير (عشوائي للمحاكاة لأننا لا نخزن التاريخ حالياً)
+                const change = (Math.random() * 10 - 5).toFixed(1); 
+                const changeClass = change >= 0 ? 'up' : 'down';
+                const changeIcon = change >= 0 ? '▲' : '▼';
+                const color = change >= 0 ? 'var(--green)' : 'var(--red)';
+
+                // كود HTML للكارت
+                html += `
+                <div class="stock-card" onclick="openTradeModal('${uid}', '${u.name}', '${u.profilePic}', ${price})">
+                    <div class="stock-avatar" style="background-image: url('${u.profilePic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}');"></div>
+                    <div class="stock-info">
+                        <div class="stock-name">${u.name} ${u.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#2979ff;font-size:12px"></i>' : ''}</div>
+                        <div class="stock-symbol">@${uid.substring(0,6).toUpperCase()}</div>
+                    </div>
+                    <div class="stock-price">
+                        <span class="current-price">${price} $W</span>
+                        <span class="price-change" style="color:${color}">${changeIcon} ${change}%</span>
+                    </div>
+                </div>`;
+
+                // شريط الأخبار
+                tickerHtml += `<div class="ticker-item">${u.name}: <span class="${changeClass}">${price} (${change}%)</span></div>`;
+            });
+
+            container.innerHTML = html;
+            ticker.innerHTML = tickerHtml + tickerHtml; // تكرار للشريط المستمر
+        }
+
+        // 4. فتح نافذة التداول
+        function openTradeModal(uid, name, pic, price) {
+            selectedUser = { uid, name, pic, price };
+            
+            document.getElementById('tmAvatar').style.backgroundImage = `url('${pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}')`;
+            document.getElementById('tmName').innerText = name;
+            document.getElementById('tmSymbol').innerText = '@' + uid.substring(0,6).toUpperCase();
+            document.getElementById('tmPrice').innerText = price;
+            
+            // تحديث البيانات المملوكة
+            const owned = myWallet.stocks[uid] || 0;
+            document.getElementById('tmOwned').innerText = `${owned} سهم`;
+            document.getElementById('tmValue').innerText = (owned * price).toFixed(1) + ' $W';
+
+            document.getElementById('tradeModal').classList.add('active');
+            document.getElementById('overlay').style.display = 'block';
+
+            initChart(price);
+        }
+
+        function closeTradeModal() {
+            document.getElementById('tradeModal').classList.remove('active');
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        // 5. تنفيذ البيع والشراء
+        async function executeTrade(type) {
+            if (!selectedUser) return;
+            
+            const price = parseFloat(selectedUser.price);
+            const uid = selectedUser.uid;
+            
+            // نستخدم transaction لضمان سلامة العمليات المالية
+            try {
+                await db.runTransaction(async (transaction) => {
+                    const walletRef = db.collection('wallets').doc(currentUser.uid);
+                    const walletDoc = await transaction.get(walletRef);
+                    
+                    if (!walletDoc.exists) throw "المحفظة غير موجودة";
+                    
+                    let data = walletDoc.data();
+                    let currentBalance = parseFloat(data.balance);
+                    let currentStock = data.stocks[uid] || 0;
+
+                    if (type === 'buy') {
+                        if (currentBalance < price) throw "رصيدك غير كافي!";
+                        data.balance = currentBalance - price;
+                        data.stocks[uid] = currentStock + 1;
+                        alert(`تم شراء سهم في ${selectedUser.name} بنجاح ✅`);
+                    } else {
+                        if (currentStock <= 0) throw "لا تملك أسهماً للبيع!";
+                        data.balance = currentBalance + price;
+                        data.stocks[uid] = currentStock - 1;
+                        if (data.stocks[uid] === 0) delete data.stocks[uid];
+                        alert(`تم بيع سهم ${selectedUser.name} بنجاح 💰`);
+                    }
+
+                    transaction.set(walletRef, data);
+                });
+                
+                closeTradeModal();
+            } catch (e) {
+                alert("خطأ: " + e);
+            }
+        }
+
+        // 6. رسم محفظتي
+        async function renderPortfolio() {
+            const container = document.getElementById('portfolioView');
+            const stockIds = Object.keys(myWallet.stocks);
+            
+            if (stockIds.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:50px; color:#666;">لا تملك أي أسهم حالياً. اذهب للسوق واشترِ!</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            
+            for (const uid of stockIds) {
+                // نحتاج نجيب بيانات المستخدم عشان الاسم والصورة
+                // (في تطبيق حقيقي يفضل تخزين الاسم مع السهم لتوفير القراءات)
+                const uDoc = await db.collection('users').doc(uid).get();
+                if(uDoc.exists) {
+                    const u = uDoc.data();
+                    const count = myWallet.stocks[uid];
+                    const price = calculateStockPrice(u);
+                    const totalVal = (count * price).toFixed(1);
+
+                    container.innerHTML += `
+                    <div class="stock-card" onclick="openTradeModal('${uid}', '${u.name}', '${u.profilePic}', ${price})">
+                        <div class="stock-avatar" style="background-image: url('${u.profilePic}'); border-color:var(--accent);"></div>
+                        <div class="stock-info">
+                            <div class="stock-name">${u.name}</div>
+                            <div class="stock-symbol" style="color:var(--accent); font-weight:bold;">تملك: ${count} سهم</div>
+                        </div>
+                        <div class="stock-price">
+                            <span class="current-price">${totalVal} $W</span>
+                            <span class="price-change" style="color:#aaa;">سعر الوحدة: ${price}</span>
+                        </div>
+                    </div>`;
+                }
+            }
+        }
+
+        // دوال مساعدة
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if(tabName === 'market') {
+                document.getElementById('marketView').style.display = 'block';
+                document.getElementById('portfolioView').style.display = 'none';
+            } else {
+                document.getElementById('marketView').style.display = 'none';
+                document.getElementById('portfolioView').style.display = 'block';
+                renderPortfolio();
+            }
+        }
+
+        // رسم التشارت (وهمي للمظهر الجمالي)
+        function initChart(currentPrice) {
+            if(marketChart) marketChart.destroy();
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            
+            // توليد بيانات وهمية تعتمد على السعر الحالي
+            let dataPoints = [];
+            let p = parseFloat(currentPrice);
+            for(let i=0; i<10; i++) {
+                dataPoints.push(p);
+                p = p - (Math.random() * 5 - 2); // تغيير طفيف للوراء
+            }
+            dataPoints.reverse();
+
+            marketChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['10m', '9m', '8m', '7m', '6m', '5m', '4m', '3m', '2m', 'Now'],
+                    datasets: [{
+                        label: 'SPrice',
+                        data: dataPoints,
+                        borderColor: '#2979ff',
+                        backgroundColor: 'rgba(41, 121, 255, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { x: { display: false }, y: { display: false } }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>

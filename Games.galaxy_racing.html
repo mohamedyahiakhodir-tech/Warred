@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سباق المجرات - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #020205;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(2, 2, 5, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 10px 20px; background: #05050a;
+            border-bottom: 1px solid #111; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .speed-value { font-size: 20px; font-weight: 900; color: #00e676; }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; position: relative; background: linear-gradient(to bottom, #020205 0%, #0a0a1a 100%);
+            overflow: hidden; display: flex; flex-direction: column;
+        }
+        canvas { display: block; width: 100%; flex: 1; }
+
+        /* أزرار التحكم */
+        .controls {
+            display: flex; justify-content: space-between; padding: 20px;
+            background: rgba(0,0,0,0.5); border-top: 1px solid #222;
+        }
+        .ctrl-btn {
+            background: rgba(26, 26, 26, 0.8); border: 2px solid var(--primary-color);
+            width: 80px; height: 60px; border-radius: 15px; display: flex;
+            align-items: center; justify-content: center; font-size: 24px; color: var(--primary-color);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.2); transition: 0.1s; cursor: pointer;
+        }
+        .ctrl-btn:active { background: var(--primary-color); color: #000; transform: scale(0.9); }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0, 198, 255, 0.2);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--danger-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--primary-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); transition: 0.2s;
+        }
+        .btn-restart:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">سباق المجرات 🚀</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">المسافة</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">السرعة</div>
+            <div class="speed-value" id="speedDisplay">1.0x</div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <canvas id="gameCanvas"></canvas>
+        <div class="controls">
+            <div class="ctrl-btn" id="btnRight"><i class="fa-solid fa-chevron-right"></i></div>
+            <div class="ctrl-btn" id="btnLeft"><i class="fa-solid fa-chevron-left"></i></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">💥</div>
+            <div class="modal-title" id="modalTitle">تحطمت السفينة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">قطعت مسافة <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> سنة ضوئية</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">إعادة الرحلة</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight - 100; // مساحة الأزرار
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let animationId;
+        let isGameOver = false;
+        let score = 0;
+        let gameSpeed = 5;
+        let speedMultiplier = 1.0;
+        
+        let stars = [];
+        let obstacles = [];
+        let particles = []; // عادم المحرك والانفجار
+
+        // السفينة
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 80,
+            width: 30,
+            height: 45,
+            vx: 0,
+            speed: 7,
+            color: '#00C6FF'
+        };
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            resizeCanvas();
+            score = 0;
+            gameSpeed = 5;
+            speedMultiplier = 1.0;
+            isGameOver = false;
+            
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 80;
+            player.vx = 0;
+
+            stars = [];
+            obstacles = [];
+            particles = [];
+
+            // توليد النجوم المبدئية
+            for(let i=0; i<100; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 3 + 1
+                });
+            }
+
+            updateUI();
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function updateUI() {
+            scoreDisplay.innerText = Math.floor(score);
+            speedDisplay.innerText = speedMultiplier.toFixed(1) + 'x';
+        }
+
+        // --- دوال الرسم ---
+        function drawGlow(color, blur) {
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = color;
+        }
+
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            
+            // ميلان السفينة مع الحركة
+            let tilt = player.vx * 0.05;
+            ctx.rotate(tilt);
+
+            drawGlow(player.color, 15);
+            ctx.fillStyle = player.color;
+
+            // شكل السفينة (مثلث)
+            ctx.beginPath();
+            ctx.moveTo(0, -player.height/2);
+            ctx.lineTo(player.width/2, player.height/2);
+            ctx.lineTo(-player.width/2, player.height/2);
+            ctx.fill();
+
+            // قمرة القيادة
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function drawStars() {
+            ctx.fillStyle = '#fff';
+            ctx.shadowBlur = 0;
+            stars.forEach(star => {
+                ctx.globalAlpha = star.size / 2; // النجوم الصغيرة أبهت
+                ctx.beginPath();
+                ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+        }
+
+        function drawObstacles() {
+            obstacles.forEach(obs => {
+                ctx.save();
+                drawGlow(obs.color, 15);
+                ctx.fillStyle = obs.color;
+                
+                // شكل النيزك/العقبة
+                ctx.translate(obs.x, obs.y);
+                obs.angle += obs.rotSpeed;
+                ctx.rotate(obs.angle);
+                
+                ctx.beginPath();
+                ctx.rect(-obs.size/2, -obs.size/2, obs.size, obs.size);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                drawGlow(p.color, 10);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= p.decay;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        // عادم السفينة
+        function createExhaust() {
+            if (isGameOver) return;
+            particles.push({
+                x: player.x + (Math.random() - 0.5) * 10,
+                y: player.y + player.height/2,
+                vx: -player.vx * 0.2 + (Math.random() - 0.5) * 2,
+                vy: Math.random() * 5 + 5,
+                size: Math.random() * 4 + 2,
+                life: 1,
+                decay: 0.05,
+                color: Math.random() > 0.5 ? '#00C6FF' : '#fff'
+            });
+        }
+
+        // --- المنطق ---
+        function spawnObstacle() {
+            if (Math.random() < 0.03 * speedMultiplier) { // معدل الظهور يزيد مع السرعة
+                let size = Math.random() * 30 + 20;
+                obstacles.push({
+                    x: Math.random() * (canvas.width - size) + size/2,
+                    y: -50,
+                    size: size,
+                    vy: gameSpeed * speedMultiplier + (Math.random() * 2),
+                    color: '#ff3366',
+                    angle: 0,
+                    rotSpeed: (Math.random() - 0.5) * 0.2
+                });
+            }
+        }
+
+        function update() {
+            if (isGameOver) return;
+
+            // زيادة السكور والسرعة تدريجياً
+            score += 0.1 * speedMultiplier;
+            speedMultiplier += 0.0005; 
+            if (Math.floor(score) % 10 === 0) updateUI();
+
+            // حركة اللاعب
+            player.x += player.vx;
+            // الاحتكاك (تباطؤ عند ترك الزر)
+            player.vx *= 0.85; 
+
+            // حدود الشاشة
+            if (player.x - player.width/2 < 0) player.x = player.width/2;
+            if (player.x + player.width/2 > canvas.width) player.x = canvas.width - player.width/2;
+
+            createExhaust();
+
+            // حركة النجوم
+            stars.forEach(star => {
+                star.y += star.speed * speedMultiplier;
+                if (star.y > canvas.height) {
+                    star.y = 0;
+                    star.x = Math.random() * canvas.width;
+                }
+            });
+
+            // حركة العقبات والتصادم
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                let obs = obstacles[i];
+                obs.y += obs.vy;
+
+                // التصادم (AABB Collision)
+                let pRect = { left: player.x - player.width/3, right: player.x + player.width/3, top: player.y - player.height/2, bottom: player.y + player.height/2 };
+                let oRect = { left: obs.x - obs.size/2, right: obs.x + obs.size/2, top: obs.y - obs.size/2, bottom: obs.y + obs.size/2 };
+
+                if (pRect.left < oRect.right && pRect.right > oRect.left && pRect.top < oRect.bottom && pRect.bottom > oRect.top) {
+                    crash();
+                }
+
+                // مسح العقبات اللي خرجت
+                if (obs.y > canvas.height + 50) {
+                    obstacles.splice(i, 1);
+                }
+            }
+
+            spawnObstacle();
+        }
+
+        function crash() {
+            isGameOver = true;
+            
+            // انفجار السفينة
+            for (let i = 0; i < 30; i++) {
+                particles.push({
+                    x: player.x, y: player.y,
+                    vx: (Math.random() - 0.5) * 15, vy: (Math.random() - 0.5) * 15,
+                    size: Math.random() * 5 + 2, life: 1, decay: 0.02, color: '#00C6FF'
+                });
+                particles.push({
+                    x: player.x, y: player.y,
+                    vx: (Math.random() - 0.5) * 10, vy: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 4 + 2, life: 1, decay: 0.03, color: '#ff3366'
+                });
+            }
+
+            // اهتزاز الشاشة
+            canvas.style.transform = "translate(10px, 10px)";
+            setTimeout(() => canvas.style.transform = "translate(-10px, -10px)", 50);
+            setTimeout(() => canvas.style.transform = "translate(0, 0)", 100);
+
+            let finalScore = Math.floor(score);
+            let reward = Math.floor(finalScore / 10); // كل 10 نقط مسافة بعملة
+            if (reward < 5) reward = 5; // مكافأة ترضية
+            
+            document.getElementById('finalScore').innerText = finalScore;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                document.getElementById('resultModal').classList.add('active');
+            }, 1000);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawStars();
+            drawParticles();
+            drawObstacles();
+            if (!isGameOver) drawPlayer();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- التحكم بالشاشة ---
+        const btnLeft = document.getElementById('btnLeft');
+        const btnRight = document.getElementById('btnRight');
+        
+        let moveLeftInterval, moveRightInterval;
+
+        function startMoveLeft(e) { e.preventDefault(); clearInterval(moveLeftInterval); moveLeftInterval = setInterval(() => { player.vx -= 1.5; }, 20); }
+        function stopMoveLeft(e) { e.preventDefault(); clearInterval(moveLeftInterval); }
+
+        function startMoveRight(e) { e.preventDefault(); clearInterval(moveRightInterval); moveRightInterval = setInterval(() => { player.vx += 1.5; }, 20); }
+        function stopMoveRight(e) { e.preventDefault(); clearInterval(moveRightInterval); }
+
+        // الموبايل
+        btnLeft.addEventListener('touchstart', startMoveLeft);
+        btnLeft.addEventListener('touchend', stopMoveLeft);
+        btnRight.addEventListener('touchstart', startMoveRight);
+        btnRight.addEventListener('touchend', stopMoveRight);
+        // الماوس (للكمبيوتر لو حابب تجرب)
+        btnLeft.addEventListener('mousedown', startMoveLeft);
+        btnLeft.addEventListener('mouseup', stopMoveLeft);
+        btnLeft.addEventListener('mouseleave', stopMoveLeft);
+        btnRight.addEventListener('mousedown', startMoveRight);
+        btnRight.addEventListener('mouseup', stopMoveRight);
+        btnRight.addEventListener('mouseleave', stopMoveRight);
+
+        // الكيبورد
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') player.vx -= 2;
+            if (e.key === 'ArrowRight') player.vx += 2;
+        });
+
+        // التشغيل
+        initGame();
+    </script>
+</body>
+</html>

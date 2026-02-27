@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>الكتل الملونة - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050508;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --text-color: #eee;
+            --gold: #FFD700;
+            --grid-color: rgba(255, 255, 255, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 8, 0.95);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 10px 20px; background: #0a0a10;
+            border-bottom: 1px solid #1a1a2e; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 20px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.4); }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; display: flex; justify-content: center; align-items: center;
+            background: radial-gradient(circle at center, #111, #000); padding: 10px; overflow: hidden;
+        }
+        
+        .canvas-container {
+            background: #0a0a0f; border: 2px solid #333; border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 198, 255, 0.05);
+            padding: 2px;
+        }
+        canvas { display: block; background: transparent; }
+
+        /* --- أزرار التحكم للموبايل --- */
+        .controls {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            padding: 15px 20px; background: #0a0a10; border-top: 1px solid #222;
+        }
+        .ctrl-btn {
+            background: #16161c; border: 1px solid #333; height: 60px;
+            border-radius: 15px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: var(--primary-color); cursor: pointer; transition: 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .ctrl-btn:active { background: var(--primary-color); color: #000; transform: scale(0.9); }
+        .ctrl-btn.action { background: rgba(0, 198, 255, 0.1); }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0, 198, 255, 0.2);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--danger-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--primary-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+        }
+        .btn-restart:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">الكتل الملونة 🧱</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">المستوى</div>
+            <div class="score-value" id="levelDisplay" style="color:var(--gold)">1</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">الخطوط</div>
+            <div class="score-value" id="linesDisplay">0</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="240" height="480"></canvas>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="ctrl-btn" onclick="moveLeft()"><i class="fa-solid fa-chevron-left"></i></div>
+        <div class="ctrl-btn" onclick="moveDown()"><i class="fa-solid fa-chevron-down"></i></div>
+        <div class="ctrl-btn" onclick="moveRight()"><i class="fa-solid fa-chevron-right"></i></div>
+        <div class="ctrl-btn action" onclick="rotatePiece()"><i class="fa-solid fa-rotate-right"></i></div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">🧱</div>
+            <div class="modal-title" id="modalTitle">انتهت اللعبة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">كسرت <span id="finalLines" style="color:#fff; font-weight:bold;">0</span> خطوط</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">إعادة اللعب</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const linesDisplay = document.getElementById('linesDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 24; // 240 / 10
+
+        // ألوان النيون للأشكال
+        const COLORS = [
+            null,
+            '#00C6FF', // السماوي (I)
+            '#FFD700', // الأصفر (O)
+            '#b000ff', // البنفسجي (T)
+            '#00e676', // الأخضر (S)
+            '#ff3366', // الأحمر (Z)
+            '#0055ff', // الأزرق (J)
+            '#ff8c00'  // البرتقالي (L)
+        ];
+
+        // مصفوفات الأشكال
+        const SHAPES = [
+            [],
+            [[1, 1, 1, 1]], // I
+            [[2, 2], [2, 2]], // O
+            [[0, 3, 0], [3, 3, 3]], // T
+            [[0, 4, 4], [4, 4, 0]], // S
+            [[5, 5, 0], [0, 5, 5]], // Z
+            [[6, 0, 0], [6, 6, 6]], // J
+            [[0, 0, 7], [7, 7, 7]]  // L
+        ];
+
+        let board = [];
+        let piece = null;
+        let dropCounter = 0;
+        let dropInterval = 1000;
+        let lastTime = 0;
+        
+        let score = 0;
+        let lines = 0;
+        let level = 1;
+        let isGameOver = false;
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            board = createMatrix(COLS, ROWS);
+            score = 0;
+            lines = 0;
+            level = 1;
+            dropInterval = 1000;
+            isGameOver = false;
+            
+            updateUI();
+            resetPiece();
+            
+            lastTime = 0;
+            requestAnimationFrame(gameLoop);
+        }
+
+        function createMatrix(w, h) {
+            const matrix = [];
+            while (h--) {
+                matrix.push(new Array(w).fill(0));
+            }
+            return matrix;
+        }
+
+        function drawMatrix(matrix, offset) {
+            matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        ctx.fillStyle = COLORS[value];
+                        // رسم المربع بتأثير نيون
+                        ctx.shadowBlur = 10;
+                        ctx.shadowColor = COLORS[value];
+                        ctx.fillRect((x + offset.x) * BLOCK_SIZE + 1, (y + offset.y) * BLOCK_SIZE + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2);
+                        
+                        // إضاءة داخلية أخف
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.fillRect((x + offset.x) * BLOCK_SIZE + 2, (y + offset.y) * BLOCK_SIZE + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4);
+                    }
+                });
+            });
+        }
+
+        function drawGrid() {
+            ctx.strokeStyle = 'var(--grid-color)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= COLS; i++) {
+                ctx.beginPath(); ctx.moveTo(i * BLOCK_SIZE, 0); ctx.lineTo(i * BLOCK_SIZE, canvas.height); ctx.stroke();
+            }
+            for (let i = 0; i <= ROWS; i++) {
+                ctx.beginPath(); ctx.moveTo(0, i * BLOCK_SIZE); ctx.lineTo(canvas.width, i * BLOCK_SIZE); ctx.stroke();
+            }
+        }
+
+        function draw() {
+            ctx.fillStyle = '#050508';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawMatrix(board, {x: 0, y: 0});
+            if (piece) drawMatrix(piece.matrix, piece.pos);
+        }
+
+        function merge(board, piece) {
+            piece.matrix.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value !== 0) {
+                        board[y + piece.pos.y][x + piece.pos.x] = value;
+                    }
+                });
+            });
+        }
+
+        function collide(board, piece) {
+            const m = piece.matrix;
+            const o = piece.pos;
+            for (let y = 0; y < m.length; ++y) {
+                for (let x = 0; x < m[y].length; ++x) {
+                    if (m[y][x] !== 0 &&
+                       (board[y + o.y] && board[y + o.y][x + o.x]) !== 0) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function resetPiece() {
+            const typeId = Math.floor(Math.random() * 7) + 1;
+            piece = {
+                matrix: SHAPES[typeId],
+                pos: {x: Math.floor(COLS / 2) - Math.floor(SHAPES[typeId][0].length / 2), y: 0}
+            };
+            if (collide(board, piece)) {
+                isGameOver = true;
+                gameOver();
+            }
+        }
+
+        function clearLines() {
+            let linesCleared = 0;
+            outer: for (let y = board.length - 1; y >= 0; --y) {
+                for (let x = 0; x < board[y].length; ++x) {
+                    if (board[y][x] === 0) continue outer;
+                }
+                const row = board.splice(y, 1)[0].fill(0);
+                board.unshift(row);
+                ++y;
+                linesCleared++;
+            }
+
+            if (linesCleared > 0) {
+                lines += linesCleared;
+                score += linesCleared * 10 * level;
+                level = Math.floor(lines / 10) + 1;
+                dropInterval = Math.max(200, 1000 - (level - 1) * 100);
+                updateUI();
+                
+                // تأثير بصري للمسح
+                document.getElementById('gameArea').style.transform = "scale(1.02)";
+                setTimeout(() => document.getElementById('gameArea').style.transform = "scale(1)", 100);
+            }
+        }
+
+        function moveDown() {
+            if(isGameOver) return;
+            piece.pos.y++;
+            if (collide(board, piece)) {
+                piece.pos.y--;
+                merge(board, piece);
+                resetPiece();
+                clearLines();
+            }
+            dropCounter = 0;
+        }
+
+        function moveLeft() {
+            if(isGameOver) return;
+            piece.pos.x--;
+            if (collide(board, piece)) piece.pos.x++;
+        }
+
+        function moveRight() {
+            if(isGameOver) return;
+            piece.pos.x++;
+            if (collide(board, piece)) piece.pos.x--;
+        }
+
+        function rotatePiece() {
+            if(isGameOver) return;
+            const pos = piece.pos.x;
+            let offset = 1;
+            // تدوير المصفوفة
+            const matrix = piece.matrix;
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+            matrix.forEach(row => row.reverse());
+            
+            // التعامل مع الاصطدام عند التدوير عند الحواف
+            while (collide(board, piece)) {
+                piece.pos.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if (offset > matrix[0].length) {
+                    // التدوير غير مسموح هنا، ارجع للشكل الأصلي
+                    rotatePieceBack();
+                    piece.pos.x = pos;
+                    return;
+                }
+            }
+        }
+
+        function rotatePieceBack() {
+            const matrix = piece.matrix;
+            matrix.forEach(row => row.reverse());
+            for (let y = 0; y < matrix.length; ++y) {
+                for (let x = 0; x < y; ++x) {
+                    [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]];
+                }
+            }
+        }
+
+        function updateUI() {
+            scoreDisplay.innerText = score;
+            levelDisplay.innerText = level;
+            linesDisplay.innerText = lines;
+        }
+
+        function gameOver() {
+            let reward = lines * 2; // كل خط بـ 2 عملة
+            document.getElementById('finalLines').innerText = lines;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        function gameLoop(time = 0) {
+            if(isGameOver) return;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                moveDown();
+            }
+
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        // دعم الكيبورد للكمبيوتر
+        document.addEventListener('keydown', event => {
+            if(isGameOver) return;
+            if (event.keyCode === 37) { moveLeft(); }
+            else if (event.keyCode === 39) { moveRight(); }
+            else if (event.keyCode === 40) { moveDown(); }
+            else if (event.keyCode === 38) { rotatePiece(); }
+        });
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>

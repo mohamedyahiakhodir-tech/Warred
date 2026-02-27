@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مملكة الوحوش - الملحمة</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --panel-bg: #1f2833;
+            --primary: #66fcf1;
+            --secondary: #45a29e;
+            --gold: #ffd700;
+            --elixir: #ff00ff;
+            --danger: #ff3366;
+            --text: #c5c6c7;
+            --defense: #4facfe;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; user-select: none; }
+        body { background: var(--bg-color); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+        /* --- الهيدر والموارد --- */
+        .header { background: rgba(31, 40, 51, 0.95); padding: 15px; border-bottom: 2px solid var(--primary); display: flex; flex-direction: column; gap: 10px; z-index: 10; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; }
+        .title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--primary); }
+        .notification { font-size: 12px; color: var(--danger); animation: blink 1s infinite; display: none; }
+        
+        .resources { display: flex; justify-content: space-between; background: #000; padding: 10px; border-radius: 10px; border: 1px solid #333; flex-wrap: wrap; gap: 5px; }
+        .res-item { display: flex; align-items: center; gap: 5px; font-weight: bold; font-size: 13px; }
+        .res-item.gold { color: var(--gold); }
+        .res-item.elixir { color: var(--elixir); }
+        .res-item.power { color: var(--danger); }
+        .res-item.defense { color: var(--defense); }
+
+        /* --- منطقة اللعب الرئيسية --- */
+        .game-area { flex: 1; overflow-y: auto; padding: 15px; padding-bottom: 80px; }
+        .tab-content { display: none; animation: fadeIn 0.3s; }
+        .tab-content.active { display: block; }
+
+        /* الكروت */
+        .card { background: var(--panel-bg); border: 1px solid #333; border-radius: 15px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); position: relative; overflow: hidden; }
+        .card::before { content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent); transition: 0.5s; }
+        .card.upgraded::before { left: 100%; }
+        
+        .card-icon { min-width: 60px; height: 60px; background: #000; border-radius: 10px; display: flex; justify-content: center; align-items: center; font-size: 30px; border: 2px solid var(--secondary); color: var(--primary); }
+        .card-info { flex: 1; }
+        .card-title { font-size: 16px; font-weight: 900; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        .card-desc { font-size: 12px; color: #888; margin-bottom: 8px; line-height: 1.4; }
+        .level-badge { background: var(--primary); color: #000; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: bold; }
+        
+        .action-btn { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 15px; border-radius: 8px; font-weight: bold; width: 100%; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; gap: 5px; align-items: center; }
+        .action-btn:active { transform: scale(0.95); background: var(--primary); color: #000; }
+        .action-btn:disabled { border-color: #444; color: #666; cursor: not-allowed; background: transparent; }
+        .action-btn.attack-btn { background: rgba(255, 51, 102, 0.1); border-color: var(--danger); color: var(--danger); }
+        .action-btn.attack-btn:active { background: var(--danger); color: #fff; }
+
+        /* --- شريط التنقل السفلي --- */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: rgba(31, 40, 51, 0.95); border-top: 1px solid #333; display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: #888; font-size: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; width: 33%; position: relative; }
+        .nav-item i { font-size: 22px; }
+        .nav-item.active { color: var(--primary); }
+        .nav-item.active i { transform: translateY(-3px); text-shadow: 0 0 10px var(--primary); }
+
+        /* --- المودال --- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; pointer-events: none; transition: 0.3s; }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card { background: var(--panel-bg); border: 2px solid var(--primary); border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; text-align: center; transform: scale(0.8); transition: 0.3s; }
+        .modal-overlay.active .modal-card { transform: scale(1); }
+        .modal-title { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+        
+        #battleLog { background: #000; border-radius: 10px; padding: 10px; height: 100px; overflow-y: auto; text-align: right; font-size: 12px; color: #fff; margin-bottom: 15px; display: none; }
+        .log-entry { margin-bottom: 5px; border-bottom: 1px solid #333; padding-bottom: 3px; }
+
+        .btn-danger { background: transparent; border: 1px solid var(--danger); color: var(--danger); padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="top-bar">
+            <button class="btn-danger" onclick="resetGame()"><i class="fa-solid fa-rotate-right"></i> إعادة ضبط</button>
+            <div class="title"><i class="fa-solid fa-chess-rook"></i> مملكة الوحوش</div>
+            <div class="notification" id="attackAlert"><i class="fa-solid fa-triangle-exclamation"></i> هجوم قادم!</div>
+        </div>
+        <div class="resources">
+            <div class="res-item gold"><i class="fa-solid fa-coins"></i> <span id="goldVal">0</span></div>
+            <div class="res-item elixir"><i class="fa-solid fa-flask"></i> <span id="elixirVal">0</span></div>
+            <div class="res-item power"><i class="fa-solid fa-khanda"></i> <span id="powerVal">0</span></div>
+            <div class="res-item defense"><i class="fa-solid fa-shield-halved"></i> <span id="defenseVal">0</span></div>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div id="tab-base" class="tab-content active">
+            <div class="card" id="card-townhall">
+                <div class="card-icon"><i class="fa-solid fa-chess-rook"></i></div>
+                <div class="card-info">
+                    <div class="card-title">قلعة الظلام <span class="level-badge" id="lvl-townhall">مستوى 1</span></div>
+                    <div class="card-desc">المركز الرئيسي. يفتح لك ترقيات ومباني جديدة.</div>
+                    <button class="action-btn" id="btn-townhall" onclick="upgradeBuilding('townhall')">ترقية: <span id="cost-townhall">1000</span> <i class="fa-solid fa-coins"></i></button>
+                </div>
+            </div>
+            <div class="card" id="card-mine">
+                <div class="card-icon" style="color: var(--gold); border-color: var(--gold);"><i class="fa-solid fa-hammer"></i></div>
+                <div class="card-info">
+                    <div class="card-title">منجم الذهب <span class="level-badge" id="lvl-mine">مستوى 1</span></div>
+                    <div class="card-desc">ينتج <span id="prod-mine" style="color:var(--gold)">10</span> ذهب / ثانية.</div>
+                    <button class="action-btn" id="btn-mine" onclick="upgradeBuilding('mine')">ترقية: <span id="cost-mine">100</span> <i class="fa-solid fa-coins"></i></button>
+                </div>
+            </div>
+            <div class="card" id="card-pump">
+                <div class="card-icon" style="color: var(--elixir); border-color: var(--elixir);"><i class="fa-solid fa-vial"></i></div>
+                <div class="card-info">
+                    <div class="card-title">مستخرج الإكسير <span class="level-badge" id="lvl-pump">مستوى 1</span></div>
+                    <div class="card-desc">ينتج <span id="prod-pump" style="color:var(--elixir)">5</span> إكسير / ثانية.</div>
+                    <button class="action-btn" id="btn-pump" onclick="upgradeBuilding('pump')">ترقية: <span id="cost-pump">100</span> <i class="fa-solid fa-coins"></i></button>
+                </div>
+            </div>
+            <div class="card" id="card-tower">
+                <div class="card-icon" style="color: var(--defense); border-color: var(--defense);"><i class="fa-brands fa-fort-awesome"></i></div>
+                <div class="card-info">
+                    <div class="card-title">برج السهام <span class="level-badge" id="lvl-tower">مستوى 0</span></div>
+                    <div class="card-desc">يحمي قريتك. يضيف <span id="prod-tower" style="color:var(--defense)">0</span> قوة دفاعية.</div>
+                    <button class="action-btn" id="btn-tower" onclick="upgradeBuilding('tower')">بناء/ترقية: <span id="cost-tower">500</span> <i class="fa-solid fa-coins"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-army" class="tab-content">
+            <div class="card">
+                <div class="card-icon" style="color: #4caf50; border-color: #4caf50;"><i class="fa-solid fa-ghost"></i></div>
+                <div class="card-info">
+                    <div class="card-title">زومبي <span class="level-badge" style="background:#4caf50" id="count-zombie">0</span></div>
+                    <div class="card-desc">جندي رخيص. قوة الهجوم: 5</div>
+                    <button class="action-btn" id="btn-zombie" onclick="trainTroop('zombie')">تدريب: 20 <i class="fa-solid fa-flask"></i></button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="color: #ff9800; border-color: #ff9800;"><i class="fa-solid fa-hand-fist"></i></div>
+                <div class="card-info">
+                    <div class="card-title">غول مدرع <span class="level-badge" style="background:#ff9800" id="count-orc">0</span></div>
+                    <div class="card-desc">محارب قوي. قوة الهجوم: 25</div>
+                    <button class="action-btn" id="btn-orc" onclick="trainTroop('orc')">تدريب: 150 <i class="fa-solid fa-flask"></i></button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="color: var(--danger); border-color: var(--danger);"><i class="fa-solid fa-dragon"></i></div>
+                <div class="card-info">
+                    <div class="card-title">تنين الظلام <span class="level-badge" style="background:var(--danger)" id="count-dragon">0</span></div>
+                    <div class="card-desc">مدمر القواعد. قوة الهجوم: 150</div>
+                    <button class="action-btn" id="btn-dragon" onclick="trainTroop('dragon')">تدريب: 1000 <i class="fa-solid fa-flask"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-attack" class="tab-content">
+            <p style="text-align:center; color:#888; margin-bottom:15px; font-size:14px;">الهجوم الناجح يعتمد على قوة جيشك ضد دفاع العدو!</p>
+            
+            <div class="card">
+                <div class="card-icon" style="color: #fff; border-color: #555;"><i class="fa-solid fa-campground"></i></div>
+                <div class="card-info">
+                    <div class="card-title">معسكر اللصوص</div>
+                    <div class="card-desc">قوة الدفاع: <span style="color:var(--danger); font-weight:bold;">50</span></div>
+                    <div class="card-desc" style="color:var(--gold)">غنائم متوقعة: ~500 ذهب</div>
+                    <button class="action-btn attack-btn" onclick="attackBase(1, 50, 500, 200)">هجوم!</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="color: #fff; border-color: #ff9800;"><i class="fa-solid fa-tower-observation"></i></div>
+                <div class="card-info">
+                    <div class="card-title">حصن الجان</div>
+                    <div class="card-desc">قوة الدفاع: <span style="color:var(--danger); font-weight:bold;">300</span></div>
+                    <div class="card-desc" style="color:var(--gold)">غنائم متوقعة: ~3000 ذهب</div>
+                    <button class="action-btn attack-btn" onclick="attackBase(2, 300, 3000, 1500)">هجوم!</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('tab-base', this)"><i class="fa-solid fa-hammer"></i> القرية</div>
+        <div class="nav-item" onclick="switchTab('tab-army', this)"><i class="fa-solid fa-helmet-un"></i> الجيش</div>
+        <div class="nav-item" onclick="switchTab('tab-attack', this)"><i class="fa-solid fa-map-location-dot"></i> الهجوم</div>
+    </div>
+
+    <div class="modal-overlay" id="battleModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">⚔️</div>
+            <div class="modal-title" id="modalTitle">جاري المعركة...</div>
+            
+            <div id="battleLog"></div>
+
+            <button class="action-btn" style="margin-top:15px; display:none;" id="modalCloseBtn" onclick="closeModal()">العودة</button>
+        </div>
+    </div>
+
+    <script>
+        // --- تهيئة الحالة وحفظها (Save System) ---
+        const defaultState = {
+            gold: 500, elixir: 200,
+            buildings: {
+                townhall: { level: 1, baseCost: 1000, costMultiplier: 2.5, type: 'core' },
+                mine: { level: 1, baseCost: 100, costMultiplier: 1.8, baseProd: 10, type: 'prod' },
+                pump: { level: 1, baseCost: 100, costMultiplier: 1.8, baseProd: 5, type: 'prod' },
+                tower: { level: 0, baseCost: 500, costMultiplier: 2.0, baseProd: 20, type: 'def' }
+            },
+            army: {
+                zombie: { count: 0, cost: 20, power: 5 },
+                orc: { count: 0, cost: 150, power: 25 },
+                dragon: { count: 0, cost: 1000, power: 150 }
+            }
+        };
+
+        let gameState = JSON.parse(localStorage.getItem('monsterKingdomSave')) || JSON.parse(JSON.stringify(defaultState));
+        let totalPower = 0;
+        let totalDefense = 0;
+
+        function saveGame() {
+            localStorage.setItem('monsterKingdomSave', JSON.stringify(gameState));
+        }
+
+        function resetGame() {
+            if(confirm("هل أنت متأكد من تصفير اللعبة بالكامل؟")) {
+                localStorage.removeItem('monsterKingdomSave');
+                location.reload();
+            }
+        }
+
+        // --- التحديثات المستمرة للواجهة ---
+        function updateUI() {
+            document.getElementById('goldVal').innerText = Math.floor(gameState.gold);
+            document.getElementById('elixirVal').innerText = Math.floor(gameState.elixir);
+            
+            totalPower = (gameState.army.zombie.count * gameState.army.zombie.power) + 
+                         (gameState.army.orc.count * gameState.army.orc.power) + 
+                         (gameState.army.dragon.count * gameState.army.dragon.power);
+            document.getElementById('powerVal').innerText = totalPower;
+
+            totalDefense = gameState.buildings.tower.level * gameState.buildings.tower.baseProd;
+            document.getElementById('defenseVal').innerText = totalDefense;
+
+            // تحديث المباني
+            for (const [key, bData] of Object.entries(gameState.buildings)) {
+                let currentCost = Math.floor(bData.baseCost * Math.pow(bData.costMultiplier, bData.level));
+                document.getElementById(`lvl-${key}`).innerText = `مستوى ${bData.level}`;
+                document.getElementById(`cost-${key}`).innerText = currentCost;
+                
+                let btn = document.getElementById(`btn-${key}`);
+                btn.disabled = gameState.gold < currentCost;
+                
+                if (bData.type === 'prod' || bData.type === 'def') {
+                    document.getElementById(`prod-${key}`).innerText = bData.level * bData.baseProd;
+                }
+            }
+
+            // تحديث الجيش
+            for (const [key, aData] of Object.entries(gameState.army)) {
+                document.getElementById(`count-${key}`).innerText = aData.count;
+                document.getElementById(`btn-${key}`).disabled = gameState.elixir < aData.cost;
+            }
+            
+            saveGame();
+        }
+
+        // حلقة اللعبة (Game Loop)
+        setInterval(() => {
+            gameState.gold += (gameState.buildings.mine.level * gameState.buildings.mine.baseProd);
+            gameState.elixir += (gameState.buildings.pump.level * gameState.buildings.pump.baseProd);
+            updateUI();
+        }, 1000);
+
+        // هجوم عشوائي على قريتك كل 30-60 ثانية
+        setInterval(() => {
+            let enemyStrength = Math.floor(Math.random() * (totalPower + 50)); 
+            if(enemyStrength > totalDefense && gameState.gold > 100) {
+                let lostGold = Math.floor(gameState.gold * 0.1); // خسارة 10%
+                gameState.gold -= lostGold;
+                document.getElementById('attackAlert').style.display = 'block';
+                setTimeout(() => document.getElementById('attackAlert').style.display = 'none', 5000);
+            }
+        }, Math.floor(Math.random() * 30000) + 30000);
+
+        // --- التفاعلات ---
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        function upgradeBuilding(type) {
+            let cost = Math.floor(gameState.buildings[type].baseCost * Math.pow(gameState.buildings[type].costMultiplier, gameState.buildings[type].level));
+            if (gameState.gold >= cost) {
+                if (type !== 'townhall' && gameState.buildings[type].level >= gameState.buildings.townhall.level) {
+                    alert('يجب ترقية قلعة الظلام أولاً!');
+                    return;
+                }
+                gameState.gold -= cost;
+                gameState.buildings[type].level++;
+                
+                // تأثير حركي
+                let card = document.getElementById(`card-${type}`);
+                card.classList.remove('upgraded');
+                void card.offsetWidth; 
+                card.classList.add('upgraded');
+                
+                updateUI();
+            }
+        }
+
+        function trainTroop(type) {
+            if (gameState.elixir >= gameState.army[type].cost) {
+                gameState.elixir -= gameState.army[type].cost;
+                gameState.army[type].count++;
+                updateUI();
+            }
+        }
+
+        // --- نظام المعارك المتقدم ---
+        function attackBase(baseLevel, enemyPower, lootG, lootE) {
+            if (totalPower === 0) {
+                alert("جيشك فارغ! قم بتدريب وحوش أولاً."); return;
+            }
+
+            const modal = document.getElementById('battleModal');
+            const log = document.getElementById('battleLog');
+            const closeBtn = document.getElementById('modalCloseBtn');
+            const icon = document.getElementById('modalIcon');
+            const title = document.getElementById('modalTitle');
+
+            icon.innerText = "⚔️"; title.innerText = "جاري المعركة..."; title.style.color = "#fff";
+            log.innerHTML = ""; log.style.display = "block"; closeBtn.style.display = "none";
+            modal.classList.add('active');
+
+            let steps = [
+                "الجيوش تتقدم نحو حصون العدو...",
+                "بدأ الاشتباك! ضربات متبادلة...",
+                `قوة جيشك: ${totalPower} | دفاع العدو: ${enemyPower}`
+            ];
+
+            let stepDelay = 1000;
+            steps.forEach((step, index) => {
+                setTimeout(() => {
+                    log.innerHTML += `<div class="log-entry">${step}</div>`;
+                    log.scrollTop = log.scrollHeight;
+                }, index * stepDelay);
+            });
+
+            setTimeout(() => {
+                closeBtn.style.display = "block";
+                if (totalPower >= enemyPower) {
+                    let actualGoldLoot = Math.floor(lootG * (0.8 + Math.random() * 0.4)); // غنيمة عشوائية قليلاً
+                    let actualElixirLoot = Math.floor(lootE * (0.8 + Math.random() * 0.4));
+                    
+                    icon.innerText = "🏆"; title.innerText = "انتصار ساحق!"; title.style.color = "var(--primary)";
+                    log.innerHTML += `<div class="log-entry" style="color:var(--gold)">غنائم: +${actualGoldLoot} ذهب | +${actualElixirLoot} إكسير</div>`;
+                    
+                    gameState.gold += actualGoldLoot;
+                    gameState.elixir += actualElixirLoot;
+                    
+                    // خسائر الحرب (10-30% من الجيش)
+                    lossPercentage = 0.1 + (Math.random() * 0.2);
+                } else {
+                    icon.innerText = "💀"; title.innerText = "هزيمة نكراء!"; title.style.color = "var(--danger)";
+                    log.innerHTML += `<div class="log-entry" style="color:var(--danger)">تم سحق جيشك بالكامل!</div>`;
+                    lossPercentage = 0.8 + (Math.random() * 0.2); // خسارة شبه كاملة
+                }
+                
+                gameState.army.zombie.count = Math.floor(gameState.army.zombie.count * (1 - lossPercentage));
+                gameState.army.orc.count = Math.floor(gameState.army.orc.count * (1 - lossPercentage));
+                gameState.army.dragon.count = Math.floor(gameState.army.dragon.count * (1 - lossPercentage));
+                
+                updateUI();
+                log.scrollTop = log.scrollHeight;
+            }, steps.length * stepDelay + 500);
+        }
+
+        function closeModal() {
+            document.getElementById('battleModal').classList.remove('active');
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>

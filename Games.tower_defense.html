@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>دفاع البرج - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --success: #34c759;
+            --path-color: #1a1a2e;
+            --tower-1: #00C6FF;
+            --tower-2: #bf5af2;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 16, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; filter: drop-shadow(0 0 5px #000); }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+
+        /* --- لوحة المعلومات (Health, Money, Wave) --- */
+        .dashboard {
+            position: absolute; top: 65px; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: space-between; padding: 10px 20px;
+            pointer-events: none;
+        }
+        .dash-item {
+            background: rgba(0,0,0,0.6); padding: 5px 10px; border-radius: 10px;
+            font-weight: bold; border: 1px solid #333; backdrop-filter: blur(5px);
+        }
+        .hp-text { color: var(--success); text-shadow: 0 0 10px var(--success); }
+        .money-text { color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+        .wave-text { color: var(--primary-color); text-shadow: 0 0 10px var(--primary-color); }
+
+        /* --- الكانفاس --- */
+        #gameCanvas {
+            display: block; width: 100%; height: 100%; background: #05050a;
+        }
+
+        /* --- شريط بناء الأبراج (Shop) --- */
+        .build-menu {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 15px; background: rgba(20,20,30,0.9); padding: 10px 20px;
+            border-radius: 20px; border: 1px solid var(--primary-color); box-shadow: 0 0 20px rgba(0,198,255,0.2);
+            z-index: 100; backdrop-filter: blur(10px);
+        }
+        .tower-btn {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 70px; height: 80px; background: #111; border: 2px solid #444;
+            border-radius: 15px; cursor: pointer; transition: 0.2s;
+        }
+        .tower-btn.selected { border-color: var(--gold); transform: scale(1.1); box-shadow: 0 0 15px var(--gold); }
+        .tower-btn.disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
+        
+        .t-icon-1 { width: 20px; height: 20px; background: var(--tower-1); border-radius: 50%; box-shadow: 0 0 10px var(--tower-1); margin-bottom: 5px; }
+        .t-icon-2 { width: 20px; height: 20px; background: var(--tower-2); border-radius: 5px; box-shadow: 0 0 10px var(--tower-2); margin-bottom: 5px; }
+        
+        .t-price { font-size: 12px; font-weight: bold; color: var(--gold); }
+        .t-name { font-size: 10px; color: #aaa; }
+
+        /* --- نافذة النهاية --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--danger); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; color: var(--danger); margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 15px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--danger), #ff5e62);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        /* تلميح للبدء */
+        .start-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--primary-color); color: #000; font-size: 20px; font-weight: bold;
+            padding: 15px 40px; border-radius: 30px; border: none; cursor: pointer; z-index: 150;
+            box-shadow: 0 0 20px var(--primary-color); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.1); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;"><i class="fa-solid fa-tower-broadcast" style="color:var(--primary-color)"></i> دفاع البرج</div>
+        <div class="stats-box"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="dash-item hp-text"><i class="fa-solid fa-heart"></i> <span id="hpDisplay">20</span></div>
+        <div class="dash-item wave-text">موجة: <span id="waveDisplay">1</span></div>
+        <div class="dash-item money-text">$ <span id="moneyDisplay">100</span></div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <button class="start-btn" id="startBtn" onclick="startWave()">بدء الموجة 1</button>
+
+    <div class="build-menu">
+        <div class="tower-btn selected" id="btnTower1" onclick="selectTower(1, 50)">
+            <div class="t-icon-1"></div>
+            <div class="t-name">ليزر سريع</div>
+            <div class="t-price">$50</div>
+        </div>
+        <div class="tower-btn" id="btnTower2" onclick="selectTower(2, 120)">
+            <div class="t-icon-2"></div>
+            <div class="t-name">مدفع دمار</div>
+            <div class="t-price">$120</div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box">
+            <div class="result-icon"><i class="fa-solid fa-house-crack"></i></div>
+            <div class="result-title">سقطت القاعدة!</div>
+            <div class="score-text">صمدت حتى الموجة: <span id="finalWave" style="color:#fff; font-weight:bold;">0</span></div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" onclick="restartGame()">إعادة الدفاع <i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+    </div>
+
+<script type="module">
+    // ==========================================
+    // 🔥 1. إعدادات فايربيز (الربط بالسيرفر)
+    // ==========================================
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+        authDomain: "pools-e4381.firebaseapp.com",
+        projectId: "pools-e4381",
+        storageBucket: "pools-e4381.firebasestorage.app",
+        messagingSenderId: "339799216046",
+        appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    let currentUser = null;
+    let userDocRef = null;
+    let totalCoins = 0; // الرصيد هيبدأ بصفر لحد ما يجي من السيرفر
+
+    // جلب الرصيد الحقيقي أول ما اللعبة تفتح
+    onAuthStateChanged(auth, async (user) => {
+        if (user) {
+            currentUser = user;
+            userDocRef = doc(db, "users", user.uid);
+            const docSnap = await getDoc(userDocRef);
+            if(docSnap.exists()){
+                totalCoins = docSnap.data().wallet || 0;
+                document.getElementById('walletCoins').innerText = totalCoins;
+            }
+        }
+    });
+
+    // ==========================================
+    // ⚙️ 2. إعدادات الكانفاس واللعبة
+    // ==========================================
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    let cols = 8;
+    let rows = 12;
+    let cellSize = 0;
+
+    function resize() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        cellSize = canvas.width / cols;
+        rows = Math.ceil(canvas.height / cellSize);
+        generatePath();
+    }
+    window.addEventListener('resize', resize);
+
+    // متغيرات الجيم بلاي
+    let hp = 20;
+    let money = 100; // الفلوس الوهمية بتاعت اللعب بس (بناء الأبراج)
+    let wave = 1;
+    let gameActive = true;
+    let waveInProgress = false;
+    
+    let enemiesToSpawn = 0;
+    let spawnTimer = 0;
+    let selectedTowerType = 1;
+    let selectedTowerPrice = 50;
+
+    let path = [];
+    let enemies = [];
+    let towers = [];
+    let projectiles = [];
+    let particles = [];
+
+    // ==========================================
+    // 🗺️ بناء المسار (Path Generation)
+    // ==========================================
+    function generatePath() {
+        path = [];
+        let c = 1, r = -1;
+        while(r < 3) { path.push({c, r}); r++; }
+        while(c < cols-2) { path.push({c, r}); c++; }
+        while(r < 7) { path.push({c, r}); r++; }
+        while(c > 2) { path.push({c, r}); c--; }
+        while(r <= rows) { path.push({c, r}); r++; }
+    }
+
+    function drawGridAndPath() {
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.lineWidth = 1;
+        for(let i=0; i<=cols; i++) { ctx.beginPath(); ctx.moveTo(i*cellSize, 0); ctx.lineTo(i*cellSize, canvas.height); ctx.stroke(); }
+        for(let i=0; i<=rows; i++) { ctx.beginPath(); ctx.moveTo(0, i*cellSize); ctx.lineTo(canvas.width, i*cellSize); ctx.stroke(); }
+
+        ctx.fillStyle = 'rgba(0, 198, 255, 0.05)';
+        ctx.strokeStyle = 'rgba(0, 198, 255, 0.3)';
+        ctx.lineWidth = 2;
+
+        for(let i=0; i<path.length; i++) {
+            let x = path[i].c * cellSize;
+            let y = path[i].r * cellSize;
+            ctx.fillRect(x, y, cellSize, cellSize);
+            ctx.strokeRect(x, y, cellSize, cellSize);
+        }
+
+        if(path.length > 0) {
+            let end = path[path.length-2];
+            ctx.fillStyle = 'rgba(52, 199, 89, 0.3)';
+            ctx.fillRect(end.c*cellSize, end.r*cellSize, cellSize, cellSize);
+            ctx.fillStyle = '#34c759'; 
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.font = '20px Arial';
+            ctx.fillText('🛡️', end.c*cellSize + cellSize/2, end.r*cellSize + cellSize/2);
+        }
+    }
+
+    // ==========================================
+    // 👹 الأعداء (Enemies)
+    // ==========================================
+    class Enemy {
+        constructor() {
+            this.pathIndex = 0;
+            this.x = path[0].c * cellSize + cellSize/2;
+            this.y = path[0].r * cellSize + cellSize/2;
+            this.radius = cellSize * 0.3;
+            this.maxHp = 50 + (wave * 20);
+            this.hp = this.maxHp;
+            this.speed = 1.5 + (wave * 0.1);
+            this.reward = 10;
+            this.color = '#ff0055';
+        }
+
+        draw() {
+            ctx.save();
+            ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.moveTo(this.x, this.y - this.radius);
+            ctx.lineTo(this.x + this.radius, this.y);
+            ctx.lineTo(this.x, this.y + this.radius);
+            ctx.lineTo(this.x - this.radius, this.y);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#333';
+            ctx.fillRect(this.x - 15, this.y - this.radius - 8, 30, 4);
+            ctx.fillStyle = '#34c759';
+            ctx.fillRect(this.x - 15, this.y - this.radius - 8, 30 * (this.hp / this.maxHp), 4);
+            ctx.restore();
+        }
+
+        update() {
+            let target = path[this.pathIndex + 1];
+            if(!target) return;
+
+            let targetX = target.c * cellSize + cellSize/2;
+            let targetY = target.r * cellSize + cellSize/2;
+
+            let dx = targetX - this.x;
+            let dy = targetY - this.y;
+            let dist = Math.hypot(dx, dy);
+
+            if(dist < this.speed) {
+                this.x = targetX; this.y = targetY;
+                this.pathIndex++;
+                if(this.pathIndex >= path.length - 1) {
+                    this.hp = 0;
+                    hp--;
+                    document.getElementById('hpDisplay').innerText = hp;
+                    if(navigator.vibrate) navigator.vibrate(200);
+                    ctx.fillStyle = 'rgba(255,0,0,0.3)';
+                    ctx.fillRect(0,0,canvas.width,canvas.height);
+                    if(hp <= 0) window.endGame();
+                }
+            } else {
+                this.x += (dx / dist) * this.speed;
+                this.y += (dy / dist) * this.speed;
+            }
+            this.draw();
+        }
+    }
+
+    // ==========================================
+    // 🗼 الأبراج (Towers)
+    // ==========================================
+    class Tower {
+        constructor(c, r, type) {
+            this.c = c; this.r = r;
+            this.x = c * cellSize + cellSize/2;
+            this.y = r * cellSize + cellSize/2;
+            this.type = type;
+            
+            if (type === 1) {
+                this.range = cellSize * 3; this.damage = 15; this.fireRate = 15; this.color = '#00C6FF';
+            } else {
+                this.range = cellSize * 4; this.damage = 60; this.fireRate = 60; this.color = '#bf5af2';
+            }
+            
+            this.cooldown = 0; this.target = null;
+        }
+
+        draw() {
+            ctx.save();
+            ctx.fillStyle = '#111'; ctx.strokeStyle = this.color; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.arc(this.x, this.y, cellSize*0.4, 0, Math.PI*2);
+            ctx.fill(); ctx.stroke();
+            
+            ctx.shadowBlur = 10; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+            let angle = 0;
+            if(this.target && this.target.hp > 0) {
+                angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+            } else {
+                angle = -Math.PI/2;
+            }
+
+            ctx.translate(this.x, this.y); ctx.rotate(angle);
+            if(this.type === 1) ctx.fillRect(0, -4, cellSize*0.4, 8);
+            else ctx.fillRect(0, -8, cellSize*0.5, 16);
+            ctx.restore();
+        }
+
+        update() {
+            if(!this.target || this.target.hp <= 0 || Math.hypot(this.x - this.target.x, this.y - this.target.y) > this.range) {
+                this.target = null;
+                let closestDist = this.range;
+                enemies.forEach(e => {
+                    let d = Math.hypot(this.x - e.x, this.y - e.y);
+                    if(d < closestDist && e.hp > 0) { closestDist = d; this.target = e; }
+                });
+            }
+
+            if(this.target && this.cooldown <= 0) {
+                projectiles.push(new Projectile(this.x, this.y, this.target, this.damage, this.color));
+                this.cooldown = this.fireRate;
+            }
+            
+            if(this.cooldown > 0) this.cooldown--;
+            this.draw();
+        }
+    }
+
+    // ==========================================
+    // ☄️ الرصاص والمؤثرات
+    // ==========================================
+    class Projectile {
+        constructor(x, y, target, damage, color) {
+            this.x = x; this.y = y; this.target = target; this.damage = damage; this.color = color; this.speed = 10;
+        }
+        draw() {
+            ctx.shadowBlur = 10; ctx.shadowColor = this.color; ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, 4, 0, Math.PI*2); ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+        update(index) {
+            if(!this.target || this.target.hp <= 0) { projectiles.splice(index, 1); return; }
+
+            let dx = this.target.x - this.x; let dy = this.target.y - this.y;
+            let dist = Math.hypot(dx, dy);
+
+            if(dist < this.speed) {
+                this.target.hp -= this.damage;
+                for(let i=0; i<5; i++) particles.push(new Particle(this.target.x, this.target.y, this.color));
+                projectiles.splice(index, 1);
+                if(this.target.hp <= 0) { money += this.target.reward; updateMoneyUI(); }
+            } else {
+                this.x += (dx/dist) * this.speed; this.y += (dy/dist) * this.speed;
+                this.draw();
+            }
+        }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y;
+            this.vx = (Math.random()-0.5)*6; this.vy = (Math.random()-0.5)*6;
+            this.life = 1; this.color = color;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy; this.life -= 0.05;
+            ctx.globalAlpha = this.life; ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, 2, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 1;
+        }
+    }
+
+    // ==========================================
+    // 👆 التحكم والبناء
+    // ==========================================
+    window.selectTower = function(type, price) {
+        selectedTowerType = type;
+        selectedTowerPrice = price;
+        document.querySelectorAll('.tower-btn').forEach(b => b.classList.remove('selected'));
+        document.getElementById(`btnTower${type}`).classList.add('selected');
+    }
+
+    function updateMoneyUI() {
+        document.getElementById('moneyDisplay').innerText = money;
+        document.getElementById('btnTower1').classList.toggle('disabled', money < 50);
+        document.getElementById('btnTower2').classList.toggle('disabled', money < 120);
+    }
+
+    canvas.addEventListener('click', (e) => {
+        if(!gameActive) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left; const y = e.clientY - rect.top;
+        const c = Math.floor(x / cellSize); const r = Math.floor(y / cellSize);
+
+        if(path.some(p => p.c === c && p.r === r) || towers.some(t => t.c === c && t.r === r)) { showError(x,y); return; }
+
+        if(money >= selectedTowerPrice) {
+            money -= selectedTowerPrice;
+            updateMoneyUI();
+            towers.push(new Tower(c, r, selectedTowerType));
+            
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.beginPath();
+            ctx.arc(c*cellSize+cellSize/2, r*cellSize+cellSize/2, selectedTowerType===1?cellSize*3:cellSize*4, 0, Math.PI*2);
+            ctx.stroke();
+            if(navigator.vibrate) navigator.vibrate(30);
+        } else {
+            showError(x,y);
+        }
+    });
+
+    function showError(x,y) {
+        ctx.fillStyle = 'rgba(255,0,0,0.5)';
+        ctx.fillRect(Math.floor(x/cellSize)*cellSize, Math.floor(y/cellSize)*cellSize, cellSize, cellSize);
+        if(navigator.vibrate) navigator.vibrate([50,50]);
+    }
+
+    // ==========================================
+    // 🔄 إدارة الموجات (Waves) وحلقة اللعبة
+    // ==========================================
+    window.startWave = function() {
+        if(waveInProgress) return;
+        waveInProgress = true;
+        document.getElementById('startBtn').style.display = 'none';
+        document.getElementById('waveDisplay').innerText = wave;
+        enemiesToSpawn = 10 + (wave * 5);
+        spawnTimer = 0;
+    }
+
+    function checkWaveEnd() {
+        if(waveInProgress && enemiesToSpawn <= 0 && enemies.length === 0) {
+            waveInProgress = false;
+            wave++;
+            money += 50;
+            updateMoneyUI();
+            const btn = document.getElementById('startBtn');
+            btn.innerText = `بدء الموجة ${wave}`;
+            btn.style.display = 'block';
+        }
+    }
+
+    function animate() {
+        if (!gameActive) return;
+        requestAnimationFrame(animate);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawGridAndPath();
+
+        if(waveInProgress && enemiesToSpawn > 0) {
+            spawnTimer++;
+            let rate = Math.max(20, 60 - wave*2); 
+            if(spawnTimer > rate) {
+                enemies.push(new Enemy());
+                enemiesToSpawn--; spawnTimer = 0;
+            }
+        }
+
+        towers.forEach(t => t.update());
+        for(let i = enemies.length-1; i>=0; i--) { if(enemies[i].hp <= 0) enemies.splice(i, 1); else enemies[i].update(); }
+        for(let i = projectiles.length-1; i>=0; i--) { projectiles[i].update(i); }
+        for(let i = particles.length-1; i>=0; i--) { if(particles[i].life <= 0) particles.splice(i, 1); else particles[i].update(); }
+
+        checkWaveEnd();
+    }
+
+    // ==========================================
+    // 🛑 نهاية اللعبة والتحديث في السيرفر (Firebase)
+    // ==========================================
+    window.endGame = async function() {
+        gameActive = false;
+        
+        // حساب المكافأة
+        let earned = (wave - 1) * 10;
+        totalCoins += earned; 
+
+        document.getElementById('walletCoins').innerText = totalCoins;
+        document.getElementById('finalWave').innerText = wave - 1;
+        document.getElementById('coinsEarned').innerText = earned;
+        document.getElementById('gameOverModal').style.display = 'flex';
+
+        // 🔥 رفع الفلوس بجد للسيرفر عشان تسمّع بره
+        if (userDocRef && earned > 0) {
+            try {
+                await updateDoc(userDocRef, { wallet: totalCoins });
+            } catch(e) {
+                console.log("حدث خطأ في حفظ الرصيد: ", e);
+            }
+        }
+    }
+
+    window.restartGame = function() {
+        document.getElementById('gameOverModal').style.display = 'none';
+        hp = 20; money = 150; wave = 1;
+        towers = []; enemies = []; projectiles = []; particles = []; waveInProgress = false;
+        
+        document.getElementById('hpDisplay').innerText = hp;
+        document.getElementById('startBtn').innerText = 'بدء الموجة 1';
+        document.getElementById('startBtn').style.display = 'block';
+        updateMoneyUI();
+        
+        gameActive = true; animate();
+    }
+
+    // الإقلاع
+    resize();
+    updateMoneyUI();
+    animate();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>روليت الحظ - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050508;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --success-color: #00e676;
+            --warning-color: #ff8c00;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 8, 0.95);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--gold); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- منطقة العجلة --- */
+        .wheel-area {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: radial-gradient(circle at center, #111, #000); position: relative;
+            overflow: hidden;
+        }
+
+        .wheel-container {
+            position: relative; width: 300px; height: 300px;
+            display: flex; justify-content: center; align-items: center;
+            filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.2));
+        }
+
+        /* المؤشر (السهم) */
+        .pointer {
+            position: absolute; top: -15px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 30px solid var(--gold);
+            z-index: 20; filter: drop-shadow(0 0 10px var(--gold));
+        }
+
+        /* العجلة نفسها */
+        canvas {
+            border-radius: 50%; border: 4px solid #fff;
+            box-shadow: 0 0 30px rgba(255, 255, 255, 0.2);
+            /* الأنيميشن هيتم التحكم فيه بالـ JS */
+        }
+
+        /* زر المنتصف */
+        .center-btn {
+            position: absolute; width: 60px; height: 60px; background: #111;
+            border: 4px solid var(--gold); border-radius: 50%; z-index: 10;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px var(--gold), inset 0 0 10px #000;
+        }
+        .center-btn i { color: var(--gold); font-size: 24px; text-shadow: 0 0 5px var(--gold); }
+
+        /* --- منطقة الرهان --- */
+        .bet-section {
+            padding: 20px; background: #0a0a0f; border-top: 1px solid #222;
+            text-align: center; z-index: 10;
+        }
+        .bet-title { font-size: 14px; color: #aaa; margin-bottom: 15px; font-weight: bold; }
+        .bet-chips { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; }
+        
+        .chip {
+            background: #16161c; border: 2px solid #333; width: 70px; height: 70px;
+            border-radius: 50%; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-weight: 900; color: #fff; cursor: pointer; transition: 0.3s;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5);
+        }
+        .chip span { font-size: 12px; color: #aaa; margin-top: 2px; }
+        .chip.active { 
+            background: rgba(255, 215, 0, 0.15); border-color: var(--gold); color: var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.4); transform: scale(1.1);
+        }
+        .chip.active span { color: var(--gold); }
+
+        .spin-btn {
+            background: linear-gradient(45deg, var(--gold), #ff8c00);
+            color: #000; border: none; padding: 15px 40px; border-radius: 15px;
+            font-size: 18px; font-weight: 900; cursor: pointer; width: 100%; max-width: 300px;
+            box-shadow: 0 5px 20px rgba(255, 140, 0, 0.5); transition: 0.2s;
+        }
+        .spin-btn:active { transform: scale(0.95); }
+        .spin-btn:disabled { background: #333; color: #666; box-shadow: none; cursor: not-allowed; }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; }
+        .modal-reward { font-size: 22px; font-weight: bold; margin-bottom: 25px; }
+        
+        .btn-close {
+            background: #222; color: #fff; border: 1px solid #444; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s;
+        }
+        .btn-close:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">روليت الحظ 🎡</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="wheel-area">
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <canvas id="wheelCanvas" width="300" height="300"></canvas>
+            <div class="center-btn"><i class="fa-solid fa-star"></i></div>
+        </div>
+    </div>
+
+    <div class="bet-section">
+        <div class="bet-title">اختر قيمة الرهان لبدء اللعب</div>
+        <div class="bet-chips">
+            <div class="chip active" onclick="setBet(10, this)">10 <span>عملة</span></div>
+            <div class="chip" onclick="setBet(50, this)">50 <span>عملة</span></div>
+            <div class="chip" onclick="setBet(100, this)">100 <span>عملة</span></div>
+        </div>
+        <button class="spin-btn" id="spinBtn" onclick="spinWheel()">لف العجلة!</button>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">🎉</div>
+            <div class="modal-title" id="modalTitle">مبروك!</div>
+            <p style="color: #aaa; margin-bottom: 5px;" id="modalDesc">لقد حصلت على الجائزة</p>
+            <div class="modal-reward" id="modalReward" style="color: var(--gold);">+0</div>
+            <button class="btn-close" onclick="closeModal()">استمرار</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('wheelCanvas');
+        const ctx = canvas.getContext('2d');
+        const spinBtn = document.getElementById('spinBtn');
+        const walletElement = document.getElementById('walletScore');
+        
+        let currentBet = 10;
+        let wallet = parseInt(walletElement.innerText);
+        let isSpinning = false;
+        let currentRotation = 0;
+
+        // إعدادات العجلة (الخانات والمضاعفات)
+        const segments = [
+            { label: '0x', mult: 0, color: '#ff3366', text: '#fff' }, // خسارة (أحمر)
+            { label: '2x', mult: 2, color: '#00e676', text: '#000' }, // ضعف (أخضر)
+            { label: '0.5x', mult: 0.5, color: '#ff8c00', text: '#fff' }, // نصف (برتقالي)
+            { label: '5x', mult: 5, color: '#00C6FF', text: '#000' }, // 5 أضعاف (أزرق)
+            { label: '1x', mult: 1, color: '#444444', text: '#fff' }, // استرجاع (رمادي)
+            { label: '10x', mult: 10, color: '#FFD700', text: '#000' }  // الجائزة الكبرى (ذهبي)
+        ];
+
+        const numSegments = segments.length;
+        const arcSize = (2 * Math.PI) / numSegments;
+
+        function drawWheel() {
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = centerX;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < numSegments; i++) {
+                const angle = i * arcSize;
+                
+                // رسم الخانة
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, angle, angle + arcSize, false);
+                ctx.lineTo(centerX, centerY);
+                ctx.fillStyle = segments[i].color;
+                ctx.fill();
+
+                // خط فاصل بين الخانات
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // رسم النص داخل الخانة
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(angle + arcSize / 2);
+                ctx.textAlign = "right";
+                ctx.fillStyle = segments[i].text;
+                ctx.font = "bold 26px Cairo";
+                // إضافة ظل للنص عشان يظهر بوضوح
+                if(segments[i].text === '#fff') {
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 5;
+                }
+                ctx.fillText(segments[i].label, radius - 20, 10);
+                ctx.restore();
+            }
+        }
+
+        function setBet(amount, element) {
+            if (isSpinning) return;
+            currentBet = amount;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function spinWheel() {
+            if (isSpinning) return;
+            
+            if (wallet < currentBet) {
+                alert("رصيدك لا يكفي لهذا الرهان!");
+                return;
+            }
+
+            // خصم الرهان
+            wallet -= currentBet;
+            walletElement.innerText = wallet;
+
+            isSpinning = true;
+            spinBtn.disabled = true;
+
+            // تحديد درجة الدوران العشوائية (بين 5 و 10 لفات كاملة + زاوية عشوائية)
+            let randomDeg = Math.floor(Math.random() * 360);
+            let extraSpins = (5 + Math.floor(Math.random() * 5)) * 360;
+            currentRotation += extraSpins + randomDeg;
+
+            // تطبيق الأنيميشن على الـ Canvas باستخدام CSS
+            canvas.style.transition = 'transform 4s cubic-bezier(0.1, 0.8, 0.2, 1)';
+            canvas.style.transform = `rotate(${currentRotation}deg)`;
+
+            // انتظار انتهاء الأنيميشن لحساب النتيجة
+            setTimeout(() => {
+                calculateResult();
+            }, 4000);
+        }
+
+        function calculateResult() {
+            // المؤشر موجود في الأعلى (زاوية 270 درجة أو -90 درجة بالنسبة للـ Canvas)
+            // نحتاج لحساب أي خانة توقفت عند المؤشر العلوي
+            
+            // الدرجة الفعلية بعد إزالة اللفات الكاملة
+            let degrees = currentRotation % 360;
+            
+            // لأن العجلة تلف مع عقارب الساعة، الخانة اللي فوق بتكون متراجعة بالزاوية دي
+            // الزاوية في الأعلى هي 270 درجة
+            let actualDeg = (270 - degrees + 360) % 360;
+            
+            // حجم الخانة بالدرجات (360 / 6 = 60)
+            let segmentSize = 360 / numSegments;
+            
+            let winningIndex = Math.floor(actualDeg / segmentSize);
+            let winningSegment = segments[winningIndex];
+
+            showResult(winningSegment);
+        }
+
+        function showResult(segment) {
+            const modal = document.getElementById('resultModal');
+            const icon = document.getElementById('modalIcon');
+            const title = document.getElementById('modalTitle');
+            const desc = document.getElementById('modalDesc');
+            const reward = document.getElementById('modalReward');
+
+            let winAmount = currentBet * segment.mult;
+
+            if (segment.mult > 1) {
+                icon.innerText = "🎉";
+                title.innerText = "مبروك!";
+                title.style.color = "var(--success-color)";
+                desc.innerText = `لقد ضاعفت رهانك بـ ${segment.label}`;
+                reward.innerText = `+${winAmount} عملة`;
+                reward.style.color = "var(--gold)";
+            } else if (segment.mult === 1) {
+                icon.innerText = "🤝";
+                title.innerText = "تعادل!";
+                title.style.color = "#aaa";
+                desc.innerText = "تم استرجاع رهانك";
+                reward.innerText = `+${winAmount} عملة`;
+                reward.style.color = "#aaa";
+            } else if (segment.mult > 0 && segment.mult < 1) {
+                icon.innerText = "😬";
+                title.innerText = "حظ سيء!";
+                title.style.color = "var(--warning-color)";
+                desc.innerText = `استرجعت نصف رهانك فقط`;
+                reward.innerText = `+${winAmount} عملة`;
+                reward.style.color = "var(--warning-color)";
+            } else {
+                icon.innerText = "💸";
+                title.innerText = "خسرت!";
+                title.style.color = "var(--danger-color)";
+                desc.innerText = "لقد خسرت رهانك بالكامل";
+                reward.innerText = "0 عملة";
+                reward.style.color = "var(--danger-color)";
+            }
+
+            // إضافة المكسب للمحفظة
+            wallet += winAmount;
+            walletElement.innerText = wallet;
+
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').classList.remove('active');
+            isSpinning = false;
+            spinBtn.disabled = false;
+            
+            // إعادة ضبط الـ transition عشان ميحصلش مشكلة لو لف تاني
+            canvas.style.transition = 'none';
+            // مش بنصفر الـ currentRotation عشان يكمل لف من مكانه
+        }
+
+        // رسم العجلة عند بداية التحميل
+        window.onload = () => {
+            drawWheel();
+        };
+    </script>
+</body>
+</html>

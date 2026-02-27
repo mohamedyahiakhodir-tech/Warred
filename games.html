@@ -3,269 +3,894 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>هدايا النبض - NABD</title>
+    <title>Wareed - العب واربح</title>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Poppins:wght@700;900&display=swap" rel="stylesheet">
+
     <style>
         :root {
-            --primary: #5D5FEF;
-            --gold: #ffcc00;
-            --dark-bg: #0d0d0f;
-            --card-bg: #161616;
-            --neon-green: #3fff00;
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --primary-solid: #0072FF;  
+            --text-color: #eee;
+            --secondary-text: #aaa;
+            --border-color: #222;
+            --gold: #FFD700;
+            --success: #00e676;
+            --danger: #ff3366;
         }
 
-        body {
-            background-color: var(--dark-bg);
-            color: white;
-            font-family: 'Cairo', sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background: var(--bg-color); color: var(--text-color); padding-bottom: 80px; overflow-x: hidden; }
+
+        /* --- الهيدر (شريط التنقل العلوي) --- */
+        .games-header {
+            position: sticky; top: 0; z-index: 1000;
+            background: rgba(13, 13, 15, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; height: 60px;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet-badge {
+            background: rgba(255, 215, 0, 0.1); border: 1px solid var(--gold);
+            color: var(--gold); padding: 5px 10px; border-radius: 20px;
+            font-size: 12px; font-weight: bold; display: flex; align-items: center; gap: 5px; transition: 0.3s;
+        }
+
+        /* --- شريط البحث --- */
+        .search-container { padding: 15px; position: relative; }
+        .search-box {
+            width: 100%; background: #1a1a1a; border: 1px solid #333;
+            border-radius: 15px; padding: 12px 40px 12px 15px; color: #fff;
+            font-size: 14px; transition: 0.3s;
+        }
+        .search-box:focus { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 198, 255, 0.2); }
+        .search-icon { position: absolute; right: 30px; top: 50%; transform: translateY(-50%); color: var(--secondary-text); }
+
+        /* --- التصنيفات (الفلاتر) --- */
+        .categories-scroll {
+            display: flex; gap: 10px; overflow-x: auto; padding: 0 15px 15px; scrollbar-width: none;
+        }
+        .categories-scroll::-webkit-scrollbar { display: none; }
+        .cat-chip {
+            white-space: nowrap; padding: 8px 18px; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 20px; font-size: 13px;
+            font-weight: 700; color: var(--secondary-text); cursor: pointer; transition: 0.2s;
+        }
+        .cat-chip.active {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-solid));
+            color: #fff; border-color: transparent; box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4);
+        }
+
+        /* --- شبكة الألعاب --- */
+        .games-grid {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 0 15px 20px;
+        }
+        
+        /* كارت اللعبة */
+        .game-card {
+            background: linear-gradient(145deg, #161616, #0d0d0f); border: 1px solid #222;
+            border-radius: 20px; overflow: hidden; position: relative; transition: 0.3s;
+            display: flex; flex-direction: column; cursor: pointer; animation: fadeIn 0.4s ease;
+        }
+        .game-card:active { transform: scale(0.96); border-color: var(--primary-color); }
+        
+        .game-img-wrapper { position: relative; width: 100%; aspect-ratio: 1/1; background: #222; }
+        .game-img { width: 100%; height: 100%; object-fit: cover; transition: 0.3s; }
+        .game-card:hover .game-img { opacity: 0.8; }
+        
+        .reward-badge {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            border: 1px solid var(--gold); color: var(--gold); padding: 3px 8px;
+            border-radius: 10px; font-size: 10px; font-weight: 900;
+        }
+
+        .game-info { padding: 12px; display: flex; flex-direction: column; flex: 1; justify-content: space-between;}
+        .game-title { font-size: 14px; font-weight: 900; color: #fff; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .game-category { font-size: 11px; color: var(--primary-color); font-weight: bold; margin-bottom: 10px;}
+        
+        .play-btn {
+            background: rgba(255,255,255,0.05); color: #fff; border: 1px solid #333;
+            width: 100%; padding: 8px; border-radius: 12px; font-size: 12px;
+            font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 5px; transition: 0.2s;
+        }
+        .game-card:hover .play-btn { background: var(--primary-color); border-color: var(--primary-color); box-shadow: 0 0 10px rgba(0,198,255,0.3);}
+
+        .no-results { grid-column: 1 / -1; text-align: center; padding: 40px 20px; color: var(--secondary-text); }
+        .no-results i { font-size: 40px; margin-bottom: 15px; color: #444; }
+
+        /* ========================================== */
+        /* ✨ شريط التنقل السفلي (Bottom Navigation) ✨ */
+        /* ========================================== */
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background: rgba(13, 13, 15, 0.95); backdrop-filter: blur(15px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; justify-content: space-around; align-items: center; z-index: 1000;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center; gap: 5px;
+            color: var(--secondary-text); cursor: pointer; transition: 0.3s;
+            width: 25%;
+        }
+        .nav-item i { font-size: 22px; transition: 0.3s; }
+        .nav-item span { font-size: 11px; font-weight: bold; }
+        .nav-item.active { color: var(--primary-color); }
+        .nav-item.active i { transform: translateY(-5px); text-shadow: 0 0 10px var(--primary-color); }
+
+        /* ========================================== */
+        /* 🎨 النوافذ المنبثقة (Modals) المشتركة 🎨 */
+        /* ========================================== */
+        .app-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: flex-end; /* يفتح من تحت */
+            z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s ease;
+        }
+        .app-modal.active { opacity: 1; pointer-events: all; }
+        
+        .modal-content {
+            background: #111; border-top: 1px solid #333;
+            width: 100%; max-height: 85vh; border-radius: 30px 30px 0 0;
+            padding: 20px; transform: translateY(100%); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; overflow-y: auto;
+        }
+        .app-modal.active .modal-content { transform: translateY(0); }
+        
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #222;
+        }
+        .modal-title { font-size: 20px; font-weight: 900; display: flex; align-items: center; gap: 10px; }
+        .close-modal { font-size: 24px; color: #888; cursor: pointer; }
+
+        /* --- 1. تصميم لوحة الصدارة (Leaderboard) --- */
+        .leaderboard-list { display: flex; flex-direction: column; gap: 10px; }
+        .rank-item {
+            display: flex; align-items: center; background: #16161a; border: 1px solid #222;
+            padding: 10px 15px; border-radius: 15px;
+        }
+        .rank-num { font-size: 18px; font-weight: 900; width: 30px; color: #888; }
+        .rank-item.top-1 { border-color: var(--gold); background: rgba(255, 215, 0, 0.1); }
+        .rank-item.top-1 .rank-num { color: var(--gold); }
+        .rank-item.top-2 { border-color: #C0C0C0; }
+        .rank-item.top-2 .rank-num { color: #C0C0C0; }
+        .rank-item.top-3 { border-color: #cd7f32; }
+        .rank-item.top-3 .rank-num { color: #cd7f32; }
+        .rank-item.my-rank { border-color: var(--primary-color); background: rgba(0, 198, 255, 0.1); }
+        
+        .player-info { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .player-avatar { width: 40px; height: 40px; border-radius: 50%; background: #333; object-fit: cover; }
+        .player-name { font-weight: bold; font-size: 14px; }
+        .player-score { font-weight: 900; color: var(--gold); font-size: 14px; display: flex; align-items: center; gap: 5px;}
+
+        /* --- 2. تصميم المكافآت اليومية (Daily Rewards) --- */
+        .daily-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .day-card {
+            background: #16161a; border: 1px solid #333; border-radius: 12px;
+            padding: 15px 5px; text-align: center; opacity: 0.6;
+        }
+        .day-card.active {
+            opacity: 1; border-color: var(--primary-color); background: rgba(0, 198, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.2);
+        }
+        .day-card.claimed { opacity: 0.4; border-color: var(--success); }
+        .day-title { font-size: 11px; color: #aaa; margin-bottom: 5px; font-weight: bold; }
+        .day-reward { font-weight: 900; color: var(--gold); font-size: 14px; }
+        .day-card:last-child { grid-column: span 4; background: linear-gradient(45deg, #221100, #332200); border-color: var(--gold); }
+        
+        .claim-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-solid));
+            color: #fff; border: none; padding: 15px; border-radius: 15px;
+            font-size: 16px; font-weight: 900; cursor: pointer; width: 100%; transition: 0.2s;
+        }
+        .claim-btn:active { transform: scale(0.95); }
+        .claim-btn.claimed { background: var(--success); pointer-events: none; }
+
+        /* --- 3. تصميم الملف الشخصي (Profile) --- */
+        .profile-header { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+        .profile-pic-container { position: relative; margin-bottom: 10px; }
+        .profile-pic { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary-color); object-fit: cover; }
+        .edit-pic { position: absolute; bottom: 0; right: 0; background: var(--primary-color); color: #000; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 14px; cursor: pointer; }
+        .profile-name { font-size: 22px; font-weight: 900; }
+        .profile-id { font-size: 12px; color: #888; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #16161a; padding: 15px; border-radius: 15px; border: 1px solid #222; text-align: center; }
+        .stat-title { font-size: 12px; color: #aaa; margin-bottom: 5px; }
+        .stat-value { font-size: 24px; font-weight: 900; color: #fff; }
+
+        .profile-menu { display: flex; flex-direction: column; gap: 10px; }
+        .menu-btn {
+            background: transparent; border: 1px solid #333; padding: 15px; border-radius: 12px;
+            color: #fff; font-size: 14px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .menu-btn:hover { background: #1a1a1a; }
+        .menu-btn.logout { color: var(--danger); border-color: rgba(255, 51, 102, 0.3); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* تصميم النافذة الترحيبية */
+        .welcome-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            display: none;
+            justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .header-stats {
-            width: 90%;
-            max-width: 400px;
+        .welcome-modal.active {
             display: flex;
-            justify-content: space-between;
-            padding: 15px;
-            background: var(--card-bg);
+            opacity: 1;
+        }
+
+        .welcome-content {
+            background: linear-gradient(145deg, #161616, #0d0d0f);
+            border: 2px solid var(--primary-color);
             border-radius: 20px;
-            border: 1px solid #222;
-            margin-top: 20px;
-        }
-
-        .game-container {
-            background: var(--card-bg);
-            padding: 25px 15px;
-            border-radius: 30px;
-            width: 90%;
-            max-width: 400px;
+            padding: 30px;
             text-align: center;
-            border: 1px solid #222;
-            margin-top: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 80%;
+            max-width: 350px;
+            box-shadow: 0 0 30px rgba(0, 198, 255, 0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s ease;
         }
 
-        .slot-machine {
-            display: flex;
-            justify-content: center;
-            gap: 5px;
-            background: #000;
-            padding: 15px 5px;
-            border-radius: 15px;
-            margin: 20px 0;
-            overflow: hidden;
-            border: 2px solid #222;
+        .welcome-modal.active .welcome-content {
+            transform: scale(1);
         }
 
-        .reel {
-            width: 60px;
-            height: 80px;
-            background: #111;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
+        .welcome-icon {
+            font-size: 50px;
+            color: var(--gold);
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
         }
 
-        .strip {
-            position: absolute;
-            width: 100%;
-            transition: transform 3s cubic-bezier(0.1, 0, 0.1, 1);
-        }
-
-        .symbol {
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-        }
-
-        .btn-spin {
-            background: linear-gradient(180deg, var(--primary), #3b3dbb);
-            color: white;
-            border: none;
-            padding: 15px;
-            width: 100%;
-            border-radius: 15px;
-            font-size: 18px;
+        .welcome-title {
+            font-size: 22px;
             font-weight: 900;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .welcome-text {
+            font-size: 14px;
+            color: var(--secondary-text);
+            margin-bottom: 20px;
+        }
+
+        .welcome-btn {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-solid));
+            color: #fff;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
             cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
         }
 
-        .btn-spin:disabled { opacity: 0.4; }
-
-        .paytable {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            font-size: 11px;
-            margin-top: 15px;
-            color: #777;
+        .welcome-btn:active {
+            transform: scale(0.95);
         }
+
     </style>
 </head>
 <body>
 
-    <div class="header-stats">
-        <span>اللفات: <b id="tries">--/20</b></span>
-        <span style="color:var(--neon-green)">💰 <span id="balance">0</span></span>
-    </div>
-
-    <div class="game-container">
-        <h2 style="margin:0; color:var(--gold);">🎰 هدايا النبض</h2>
-        <p style="font-size: 12px; color:#666;">اربح نقاط حقيقية تضاف لحسابك</p>
-
-        <div class="slot-machine" id="machine">
-            <div class="reel"><div class="strip" id="s0"></div></div>
-            <div class="reel"><div class="strip" id="s1"></div></div>
-            <div class="reel"><div class="strip" id="s2"></div></div>
-            <div class="reel"><div class="strip" id="s3"></div></div>
-            <div class="reel"><div class="strip" id="s4"></div></div>
-        </div>
-
-        <div id="msg" style="margin-bottom: 15px; font-weight: bold;">اضغط SPIN لتبدأ</div>
-        <button class="btn-spin" id="spinBtn" onclick="handleSpin()" disabled>جاري التحميل...</button>
-
-        <div class="paytable">
-            <div>5 أشكال = 500ن</div>
-            <div>4 أشكال = 50ن</div>
-            <div>3 أشكال = 5ن</div>
-            <div>ظهور 💎 = 1ن</div>
+    <div class="welcome-modal" id="welcomeModal">
+        <div class="welcome-content">
+            <div class="welcome-icon"><i class="fa-solid fa-gift"></i></div>
+            <div class="welcome-title">مرحباً بك!</div>
+            <div class="welcome-text">اضغط أدناه لتحديث بياناتك واستلام هديتك اليومية للبدء في اللعب.</div>
+            <button class="welcome-btn" onclick="claimWelcomeReward()">تحديث واستلام</button>
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <div class="games-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="window.history.back()"></i>
+        <div class="header-title"><i class="fa-solid fa-gamepad" style="color:var(--primary-color)"></i> العب واربح</div>
+        <div class="wallet-badge" id="mainWallet"><i class="fa-solid fa-coins"></i> <span id="walletText">0</span></div>
+    </div>
 
-    <script>
-        // 1. إعدادات Firebase (نفس إعداداتك بالظبط)
+    <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="gameSearchInput" class="search-box" placeholder="ابحث عن لعبة (مثال: سباق، ذكاء...)" oninput="window.handleSearch()">
+    </div>
+
+    <div class="categories-scroll" id="categoriesContainer">
+        <div class="cat-chip active" onclick="window.filterGames('all', this)">الكل</div>
+        <div class="cat-chip" onclick="window.filterGames('action', this)">🔥 أكشن</div>
+        <div class="cat-chip" onclick="window.filterGames('arcade', this)">🕹️ آركيد</div>
+        <div class="cat-chip" onclick="window.filterGames('puzzle', this)">🧩 ألغاز</div>
+        <div class="cat-chip" onclick="window.filterGames('racing', this)">🏎️ سباق</div>
+        <div class="cat-chip" onclick="window.filterGames('sports', this)">⚽ رياضة</div>
+        <div class="cat-chip" onclick="window.filterGames('strategy', this)">♟️ استراتيجية</div>
+        <div class="cat-chip" onclick="window.filterGames('words', this)">📝 كلمات</div>
+        <div class="cat-chip" onclick="window.filterGames('cards', this)">🃏 ورق</div>
+        <div class="cat-chip" onclick="window.filterGames('memory', this)">🧠 ذاكرة</div>
+        <div class="cat-chip" onclick="window.filterGames('luck', this)">🎲 حظ ومراهنات</div>
+    </div>
+
+    <div class="games-grid" id="gamesGrid"></div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" id="nav-games" onclick="window.closeAllModals()"><i class="fa-solid fa-gamepad"></i><span>الألعاب</span></div>
+        <div class="nav-item" id="nav-leaderboard" onclick="window.openModal('leaderboardModal', 'nav-leaderboard')"><i class="fa-solid fa-trophy"></i><span>الصدارة</span></div>
+        <div class="nav-item" id="nav-daily" onclick="window.openModal('dailyModal', 'nav-daily')"><i class="fa-solid fa-gift"></i><span>مكافآت</span></div>
+        <div class="nav-item" id="nav-profile" onclick="window.openModal('profileModal', 'nav-profile')"><i class="fa-solid fa-user"></i><span>حسابي</span></div>
+    </div>
+
+    <div class="app-modal" id="leaderboardModal" onclick="window.closeOnBackground(event, 'leaderboardModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-crown" style="color:var(--gold)"></i> أفضل اللاعبين</div>
+                <i class="fa-solid fa-xmark close-modal" onclick="window.closeModal('leaderboardModal')"></i>
+            </div>
+            <div class="leaderboard-list" id="leaderboardList">
+                <div style="text-align:center; padding: 20px; color: var(--secondary-text);">جاري تحميل الأبطال...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-modal" id="dailyModal" onclick="window.closeOnBackground(event, 'dailyModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-calendar-check" style="color:var(--primary-color)"></i> مكافآتك اليومية</div>
+                <i class="fa-solid fa-xmark close-modal" onclick="window.closeModal('dailyModal')"></i>
+            </div>
+            
+            <p style="color: #aaa; font-size: 13px; margin-bottom: 15px; text-align: center;">افتح التطبيق يومياً لجمع عملات أكثر!</p>
+
+            <div class="daily-grid">
+                <div class="day-card claimed">
+                    <div class="day-title">اليوم 1</div>
+                    <i class="fa-solid fa-check-circle" style="color:var(--success); margin-bottom:5px;"></i>
+                </div>
+                <div class="day-card claimed">
+                    <div class="day-title">اليوم 2</div>
+                    <i class="fa-solid fa-check-circle" style="color:var(--success); margin-bottom:5px;"></i>
+                </div>
+                <div class="day-card active" id="todayCard">
+                    <div class="day-title" style="color:var(--primary-color)">مكافأة اليوم</div>
+                    <div class="day-reward">+30 <i class="fa-solid fa-coins"></i></div>
+                </div>
+                <div class="day-card">
+                    <div class="day-title">اليوم 4</div>
+                    <div class="day-reward">+40 <i class="fa-solid fa-coins"></i></div>
+                </div>
+                <div class="day-card">
+                    <div class="day-title">اليوم 5</div>
+                    <div class="day-reward">+50 <i class="fa-solid fa-coins"></i></div>
+                </div>
+                <div class="day-card">
+                    <div class="day-title">اليوم 6</div>
+                    <div class="day-reward">+60 <i class="fa-solid fa-coins"></i></div>
+                </div>
+                <div class="day-card">
+                    <div class="day-title" style="color:var(--gold); font-size: 14px;">اليوم 7 (الكنز الأكبر)</div>
+                    <i class="fa-solid fa-toolbox" style="font-size: 30px; color:var(--gold); margin-top:5px;"></i>
+                    <div class="day-reward" style="margin-top:5px;">حتى +500 <i class="fa-solid fa-coins"></i></div>
+                </div>
+            </div>
+
+            <button class="claim-btn" id="claimBtn" onclick="window.claimDailyReward()">استلام مكافأة اليوم (+30)</button>
+        </div>
+    </div>
+
+    <div class="app-modal" id="profileModal" onclick="window.closeOnBackground(event, 'profileModal')">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title"><i class="fa-solid fa-user-astronaut" style="color:var(--primary-color)"></i> الملف الشخصي</div>
+                <i class="fa-solid fa-xmark close-modal" onclick="window.closeModal('profileModal')"></i>
+            </div>
+            
+            <div class="profile-header">
+                <div class="profile-pic-container">
+                    <img src="https://ui-avatars.com/api/?name=User&background=111&color=fff&size=128" class="profile-pic" id="profileImage">
+                    <div class="edit-pic"><i class="fa-solid fa-pen"></i></div>
+                </div>
+                <div class="profile-name" id="profileName">جاري التحميل...</div>
+                <div class="profile-id" id="profileId">ID: #---</div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-title">إجمالي الرصيد</div>
+                    <div class="stat-value" style="color:var(--gold)" id="profileWallet">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-title">الألعاب الملعوبة</div>
+                    <div class="stat-value" style="color:var(--primary-color)" id="profileGamesPlayed">0</div>
+                </div>
+            </div>
+
+            <div class="profile-menu">
+                <div class="menu-btn">
+                    <span><i class="fa-solid fa-clock-rotate-left" style="margin-left:8px; color:#aaa;"></i> سجل الأرباح</span>
+                    <i class="fa-solid fa-chevron-left" style="color:#555; font-size: 12px;"></i>
+                </div>
+                <div class="menu-btn">
+                    <span><i class="fa-solid fa-gear" style="margin-left:8px; color:#aaa;"></i> الإعدادات</span>
+                    <i class="fa-solid fa-chevron-left" style="color:#555; font-size: 12px;"></i>
+                </div>
+                <div class="menu-btn logout" onclick="window.logoutUser()">
+                    <span><i class="fa-solid fa-arrow-right-from-bracket" style="margin-left:8px;"></i> تسجيل الخروج</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
             authDomain: "pools-e4381.firebaseapp.com",
             projectId: "pools-e4381",
-            storageBucket: "pools-e4381.appspot.com", 
+            storageBucket: "pools-e4381.firebasestorage.app",
             messagingSenderId: "339799216046",
             appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth(), db = firebase.firestore();
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-        const symbols = ["🍎", "🍒", "🌟", "🚀", "⚡", "🍀", "💎", "💰"];
-        let userRef = null;
-        let dailyTries = 0;
+        let currentUser = null;
+        let userDocRef = null;
+        let walletBalance = 0;
+        let countdownInterval;
 
-        // 2. الربط مع بيانات المستخدم
-        auth.onAuthStateChanged(async (user) => {
+        // إظهار النافذة الترحيبية لأول مرة فقط في حياة اللاعب
+        window.onload = () => {
+            if (localStorage.getItem('wareed_welcome_claimed') !== 'true') {
+                document.getElementById('welcomeModal').classList.add('active');
+            }
+        }
+
+        // 🛠️ التعديل الجذري لربط الحسابات
+        onAuthStateChanged(auth, async (user) => {
             if (user) {
-                userRef = db.collection('users').doc(user.uid);
-                await syncData();
-                document.getElementById('spinBtn').disabled = false;
-                document.getElementById('spinBtn').innerText = "SPIN 🚀";
+                // المستخدم مسجل دخول (سواء من NABD أو مجهول)
+                currentUser = user;
+                userDocRef = doc(db, "users", user.uid);
+                
+                // جلب بياناته فوراً وتحديث الواجهة
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    walletBalance = data.wallet || 0;
+                    updateGlobalWalletUI(walletBalance);
+                    updateProfileUI(data); // تحديث صورة واسم NABD
+                    checkDailyRewardStatus(data);
+                } else {
+                    // لو ده أول مرة يفتح (حتى لو حسابه في NABD موجود، بس لسه ملوش محفظة ألعاب)
+                    const newUserData = {
+                        wallet: 1500, 
+                        gamesPlayed: 0,
+                        lastDailyClaim: "",
+                        nextRewardTime: 0,
+                        name: user.displayName || "لاعب نبض", // محاولة سحب اسمه من NABD
+                        profilePic: user.photoURL || "https://ui-avatars.com/api/?name=User",
+                        isVerified: false
+                    };
+                    await setDoc(userDocRef, newUserData);
+                    walletBalance = 1500;
+                    updateGlobalWalletUI(walletBalance);
+                    updateProfileUI(newUserData);
+                    checkDailyRewardStatus(newUserData);
+                }
             } else {
-                window.location.href = "index.html"; // لو مش مسجل يخرجه
+                // لو مش مسجل أصلاً، خليه يدخل كزائر مؤقتاً
+                signInAnonymously(auth).catch(error => console.error("Login Error:", error));
             }
         });
 
-        async function syncData() {
-            const doc = await userRef.get();
-            if (doc.exists) {
-                const data = doc.data();
-                const today = new Date().toLocaleDateString('en-US');
-
-                if (data.lastSpinDate !== today) {
-                    await userRef.update({ dailyTries: 20, lastSpinDate: today });
-                    dailyTries = 20;
-                } else {
-                    dailyTries = data.dailyTries || 0;
-                }
-                document.getElementById('tries').innerText = `${dailyTries}/20`;
-                document.getElementById('balance').innerText = data.points || 0;
-            }
-        }
-
-        // تهيئة البكرات بالصور
-        function init() {
-            for (let i = 0; i < 5; i++) {
-                const s = document.getElementById(`s${i}`);
-                for (let j = 0; j < 30; j++) {
-                    const d = document.createElement('div');
-                    d.className = 'symbol';
-                    d.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                    s.appendChild(d);
-                }
-            }
-        }
-        init();
-
-        async function handleSpin() {
-            if (dailyTries <= 0) {
-                alert("خلصت لفاتك النهاردة، استنى لبكرة!");
+        // دالة استلام الجائزة الترحيبية (أول ما يضغط "تحديث واستلام")
+        window.claimWelcomeReward = async () => {
+            document.getElementById('welcomeModal').classList.remove('active');
+            
+            localStorage.setItem('wareed_welcome_claimed', 'true');
+            // لو اليوزر لسه بيعمل لوج ان، هنستنى شوية
+            if (!currentUser) {
+                setTimeout(window.claimWelcomeReward, 500);
                 return;
             }
 
-            const btn = document.getElementById('spinBtn');
-            btn.disabled = true;
-            document.getElementById('msg').innerText = "جاري اللف... 🎰";
-
-            let res = [];
-            const isWin = Math.random() < 0.05; // 5% نسبة الفوز بـ 500
-            const winSym = symbols[Math.floor(Math.random() * symbols.length)];
-
-            for (let i = 0; i < 5; i++) {
-                const strip = document.getElementById(`s${i}`);
-                const final = isWin ? winSym : symbols[Math.floor(Math.random() * symbols.length)];
-                res.push(final);
-
-                strip.lastElementChild.innerText = final;
-                strip.style.transition = 'none';
-                strip.style.transform = 'translateY(0)';
+            const docSnap = await getDoc(userDocRef);
+            
+            if (docSnap.exists()) {
+                // لو هو مستخدم قديم وعنده بيانات، هنجيبها ونحدثها
+                const data = docSnap.data();
+                walletBalance = data.wallet || 0;
                 
-                setTimeout(() => {
-                    strip.style.transition = `transform ${2 + i * 0.3}s cubic-bezier(0.1, 0, 0.1, 1)`;
-                    strip.style.transform = `translateY(-${29 * 80}px)`;
-                }, 50);
+                // هنشوف لو لسه ميعاد الجائزة اليومية مجاش، هنديله هدية ترحيب استثنائية (مثلاً 10 عملات)
+                const now = Date.now();
+                let nextTime = data.nextRewardTime;
+                
+                if (!nextTime || now >= nextTime) {
+                   // لو متاح ليه مكافأة يومية، هياخدها
+                   walletBalance += 30;
+                   const newNextTime = now + (24 * 60 * 60 * 1000);
+                   await updateDoc(userDocRef, {
+                       wallet: walletBalance,
+                       nextRewardTime: newNextTime,
+                       lastDailyClaim: new Date().toISOString().split('T')[0]
+                   });
+                   data.nextRewardTime = newNextTime; // عشان العداد يشتغل
+                }
+
+                updateGlobalWalletUI(walletBalance);
+                updateProfileUI(data);
+                checkDailyRewardStatus(data);
+                
+            } else {
+                // مستخدم جديد تماماً
+                const newUserData = {
+                    wallet: 1530, // 1500 رصيد مبدئي + 30 هدية ترحيب
+                    gamesPlayed: 0,
+                    lastDailyClaim: new Date().toISOString().split('T')[0],
+                    nextRewardTime: Date.now() + (24 * 60 * 60 * 1000), // بعد 24 ساعة
+                    name: "لاعب جديد",
+                    profilePic: "https://ui-avatars.com/api/?name=User",
+                    isVerified: false
+                };
+                
+                await setDoc(userDocRef, newUserData);
+                walletBalance = 1530;
+                updateGlobalWalletUI(walletBalance);
+                updateProfileUI(newUserData);
+                checkDailyRewardStatus(newUserData);
             }
 
-            setTimeout(async () => {
-                await processResult(res);
-                btn.disabled = false;
-            }, 4000);
+            // أنيميشن للمحفظة عشان يحس إنه كسب
+            const walletBadge = document.getElementById('mainWallet');
+            walletBadge.style.transform = "scale(1.3)";
+            walletBadge.style.boxShadow = "0 0 25px var(--gold)";
+            setTimeout(() => {
+                walletBadge.style.transform = "scale(1)";
+                walletBadge.style.boxShadow = "none";
+            }, 400);
+        };
+
+
+        window.logoutUser = () => {
+            signOut(auth).then(() => {
+                alert("تم تسجيل الخروج");
+                window.location.reload();
+            });
+        };
+
+        function updateGlobalWalletUI(amount) {
+            document.getElementById('walletText').innerText = amount;
+            document.getElementById('profileWallet').innerText = amount;
         }
 
-        async function processResult(res) {
-            const counts = {};
-            res.forEach(x => counts[x] = (counts[x] || 0) + 1);
-            const max = Math.max(...Object.values(counts));
-            
-            let prize = 0;
-            if (max === 5) prize = 500;
-            else if (max === 4) prize = 50;
-            else if (max === 3) prize = 5;
-            else if (res.includes("💎")) prize = 1;
+        window.updateUserWallet = async (amountToAdd) => {
+            if (!currentUser) return;
+            walletBalance += amountToAdd;
+            updateGlobalWalletUI(walletBalance);
+            await updateDoc(userDocRef, { wallet: walletBalance });
+        };
 
-            // تحديث السيرفر
-            await userRef.update({
-                points: firebase.firestore.FieldValue.increment(prize),
-                dailyTries: firebase.firestore.FieldValue.increment(-1)
+        window.loadLeaderboard = async () => {
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '<div style="text-align:center; padding: 20px; color:#aaa;">جاري تحميل الأبطال... <i class="fa-solid fa-spinner fa-spin"></i></div>';
+            
+            try {
+                const q = query(collection(db, "users"), orderBy("wallet", "desc"), limit(10));
+                const querySnapshot = await getDocs(q);
+                
+                leaderboardList.innerHTML = '';
+                let rank = 1;
+                let foundMe = false;
+                
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    const isMe = currentUser && docSnap.id === currentUser.uid;
+                    if (isMe) foundMe = true;
+                    
+                    let rankClass = rank === 1 ? 'top-1' : rank === 2 ? 'top-2' : rank === 3 ? 'top-3' : '';
+                    let myRankClass = isMe ? 'my-rank' : '';
+                    
+                    const userName = data.name || data.displayName || "لاعب مجهول";
+                    const userPic = data.profilePic || data.avatar || "https://ui-avatars.com/api/?name=User&background=111&color=fff";
+                    const verifiedBadge = data.isVerified ? ' <i class="fa-solid fa-circle-check" style="color:var(--primary-color); font-size: 14px; margin-right: 4px;"></i>' : '';
+                    
+                    const playerHTML = `
+                        <div class="rank-item ${rankClass} ${myRankClass}">
+                            <div class="rank-num">${rank}</div>
+                            <div class="player-info">
+                                <img src="${userPic}" class="player-avatar">
+                                <div class="player-name" style="${isMe ? 'color:var(--primary-color)' : ''}">
+                                    ${isMe ? 'أنت' : userName} ${verifiedBadge}
+                                </div>
+                            </div>
+                            <div class="player-score">${data.wallet || 0} <i class="fa-solid fa-coins"></i></div>
+                        </div>
+                    `;
+                    leaderboardList.innerHTML += playerHTML;
+                    rank++;
+                });
+
+                if (!foundMe && currentUser) {
+                    leaderboardList.innerHTML += `
+                        <div class="rank-item my-rank" style="margin-top: 10px; border-top: 2px dashed #333;">
+                            <div class="rank-num" style="font-size:12px;">أنت</div>
+                            <div class="player-info">
+                                <div class="player-name" style="color:var(--primary-color)">ترتيبك الحالي غير متوفر في الـ Top 10</div>
+                            </div>
+                            <div class="player-score">${walletBalance} <i class="fa-solid fa-coins"></i></div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                leaderboardList.innerHTML = '<div style="text-align:center; padding: 20px; color:var(--danger);">خطأ في جلب البيانات. تأكد من إعدادات Firebase Rules.</div>';
+                console.error(error);
+            }
+        };
+
+        function checkDailyRewardStatus(data) {
+            const btn = document.getElementById('claimBtn');
+            const todayCard = document.getElementById('todayCard');
+            clearInterval(countdownInterval); 
+
+            const now = Date.now();
+            let nextTime = data.nextRewardTime;
+
+            if (!nextTime && data.lastDailyClaim === new Date().toISOString().split('T')[0]) {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                tomorrow.setHours(0, 0, 0, 0); 
+                nextTime = tomorrow.getTime();
+            }
+
+            if (nextTime && now < nextTime) {
+                btn.classList.add('claimed');
+                todayCard.classList.remove('active');
+                todayCard.classList.add('claimed');
+                todayCard.innerHTML = `
+                    <div class="day-title">اليوم</div>
+                    <i class="fa-solid fa-check-circle" style="color:var(--success); margin-top:5px; font-size:18px;"></i>
+                `;
+
+                updateTimerDisplay(nextTime, btn);
+                countdownInterval = setInterval(() => {
+                    const stillWaiting = updateTimerDisplay(nextTime, btn);
+                    if (!stillWaiting) {
+                        clearInterval(countdownInterval);
+                        checkDailyRewardStatus({ nextRewardTime: 0 }); 
+                    }
+                }, 1000);
+
+            } else {
+                btn.innerHTML = "استلام مكافأة اليوم (+30)";
+                btn.classList.remove('claimed');
+                todayCard.classList.add('active');
+                todayCard.classList.remove('claimed');
+                todayCard.innerHTML = `
+                    <div class="day-title" style="color:var(--primary-color)">مكافأة اليوم</div>
+                    <div class="day-reward">+30 <i class="fa-solid fa-coins"></i></div>
+                `;
+            }
+        }
+
+        function updateTimerDisplay(targetTime, btn) {
+            const now = Date.now();
+            const diff = targetTime - now;
+
+            if (diff <= 0) return false; 
+
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            btn.innerHTML = `متاح بعد: ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ⏳`;
+            return true;
+        }
+
+        window.claimDailyReward = async () => {
+            if (!currentUser) return;
+            
+            const docSnap = await getDoc(userDocRef);
+            const data = docSnap.data();
+            const now = Date.now();
+            let nextTime = data.nextRewardTime;
+
+            if (nextTime && now < nextTime) {
+                alert("لم يحن وقت المكافأة بعد!");
+                return;
+            }
+
+            const newNextTime = now + (24 * 60 * 60 * 1000);
+
+            await updateDoc(userDocRef, {
+                wallet: walletBalance + 30,
+                nextRewardTime: newNextTime,
+                lastDailyClaim: new Date().toISOString().split('T')[0] 
             });
 
-            await syncData(); // تحديث الأرقام على الشاشة
+            walletBalance += 30;
+            updateGlobalWalletUI(walletBalance);
+            
+            data.nextRewardTime = newNextTime;
+            checkDailyRewardStatus(data);
 
-            const msg = document.getElementById('msg');
-            if (prize > 0) {
-                msg.innerText = `مبروك! كسبت ${prize} نقطة 🎉`;
-                msg.style.color = "#3fff00";
-            } else {
-                msg.innerText = "حظ أوفر المرة القادمة!";
-                msg.style.color = "#777";
-            }
+            const walletBadge = document.getElementById('mainWallet');
+            walletBadge.style.transform = "scale(1.2)";
+            walletBadge.style.boxShadow = "0 0 20px var(--gold)";
+            setTimeout(() => {
+                walletBadge.style.transform = "scale(1)";
+                walletBadge.style.boxShadow = "none";
+            }, 300);
+        };
+
+        function updateProfileUI(data) {
+            let verifiedBadge = data.isVerified ? ' <i class="fa-solid fa-circle-check" style="color:var(--primary-color); font-size: 16px; margin-right: 5px;"></i>' : '';
+            let userName = data.name || data.displayName || "لاعب مجهول";
+            let userPic = data.profilePic || data.avatar || "https://ui-avatars.com/api/?name=User&background=111&color=fff&size=128";
+
+            document.getElementById('profileName').innerHTML = userName + verifiedBadge;
+            document.getElementById('profileId').innerText = `ID: #${currentUser.uid.substring(0, 6).toUpperCase()}`;
+            document.getElementById('profileImage').src = userPic;
+            document.getElementById('profileGamesPlayed').innerText = data.gamesPlayed || 0;
         }
+
+        window.openModal = (modalId, navId) => {
+            window.closeAllModals();
+            document.getElementById(modalId).classList.add('active');
+            document.getElementById(navId).classList.add('active');
+            
+            if(modalId === 'leaderboardModal') {
+                window.loadLeaderboard();
+            }
+        };
+
+        window.closeModal = (modalId) => {
+            document.getElementById(modalId).classList.remove('active');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('nav-games').classList.add('active');
+        };
+
+        window.closeAllModals = () => {
+            document.querySelectorAll('.app-modal').forEach(m => m.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById('nav-games').classList.add('active');
+        };
+
+        window.closeOnBackground = (event, modalId) => {
+            if(event.target.id === modalId) window.closeModal(modalId);
+        };
+
+        const gamesDatabase = [
+            { id: "game1", title: "حرب الفضاء", category: "action", categoryAr: "أكشن", image: "images/game1.jpg", reward: "+50", fileUrl: "Games.space_war.html" },
+            { id: "game2", title: "لغز المتاهة", category: "puzzle", categoryAr: "ألغاز", image: "images/game2.jpg", reward: "+20", fileUrl: "Games.maze.html" },
+            { id: "game3", title: "سباق نيون", category: "racing", categoryAr: "سباق", image: "images/game3.jpg", reward: "+100", fileUrl: "Games.neon_racing.html" },
+            { id: "game4", title: "عجلة الحظ", category: "luck", categoryAr: "حظ ومراهنات", image: "images/game4.jpg", reward: "حتى +1000", fileUrl: "Games.spin_wheel.html" },
+            { id: "game5", title: "تكسير الطوب", category: "arcade", categoryAr: "آركيد", image: "images/game5.jpg", reward: "+10", fileUrl: "Games.brick_breaker.html" },
+            { id: "game6", title: "مقاتل الشوارع", category: "action", categoryAr: "أكشن", image: "images/game6.jpg", reward: "+80", fileUrl: "Games.street_fighter.html" },
+            { id: "game7", title: "الطائر المضيء", category: "arcade", categoryAr: "آركيد", image: "images/game7.jpg", reward: "+15", fileUrl: "Games.neon_bird.html" },
+            { id: "game8", title: "ضربات الجزاء", category: "sports", categoryAr: "رياضة", image: "images/game8.jpg", reward: "+30", fileUrl: "Games.penalty.html" },
+            { id: "game9", title: "الشطرنج السحري", category: "strategy", categoryAr: "استراتيجية", image: "images/game9.jpg", reward: "+200", fileUrl: "Games.chess.html" },
+            { id: "game10", title: "كلمات متقاطعة", category: "words", categoryAr: "كلمات", image: "images/game10.jpg", reward: "+40", fileUrl: "Games.crosswords.html" },
+            { id: "game11", title: "سوليتير نيون", category: "cards", categoryAr: "ورق", image: "images/game11.jpg", reward: "+50", fileUrl: "Games.solitaire.html" },
+            { id: "game12", title: "تطابق الصور", category: "memory", categoryAr: "ذاكرة", image: "images/game12.jpg", reward: "+25", fileUrl: "Games.memory_match.html" },
+            { id: "game13", title: "بلياردو المحترفين", category: "sports", categoryAr: "رياضة", image: "images/game13.jpg", reward: "+60", fileUrl: "Games.billiards.html" },
+            { id: "game14", title: "قناص الزومبي", category: "action", categoryAr: "أكشن", image: "images/game14.jpg", reward: "+120", fileUrl: "Games.zombie_sniper.html" },
+            { id: "game15", title: "دفاع البرج", category: "strategy", categoryAr: "استراتيجية", image: "images/game15.jpg", reward: "+150", fileUrl: "Games.tower_defense.html" },
+            { id: "game16", title: "سباق الدراجات", category: "racing", categoryAr: "سباق", image: "images/game16.jpg", reward: "+90", fileUrl: "Games.moto_racing.html" },
+            { id: "game17", title: "تخمين الكلمة", category: "words", categoryAr: "كلمات", image: "images/game17.jpg", reward: "+30", fileUrl: "Games.guess_word.html" },
+            { id: "game18", title: "أونو (Uno)", category: "cards", categoryAr: "ورق", image: "images/game18.jpg", reward: "+70", fileUrl: "Games.uno.html" },
+            { id: "game19", title: "سودوكو", category: "puzzle", categoryAr: "ألغاز", image: "images/game19.jpg", reward: "+100", fileUrl: "Games.sudoku.html" },
+            { id: "game20", title: "صيد السمك", category: "arcade", categoryAr: "آركيد", image: "images/game20.jpg", reward: "+15", fileUrl: "Games.fishing.html" },
+            { id: "game21", title: "كرة سلة", category: "sports", categoryAr: "رياضة", image: "images/game21.jpg", reward: "+40", fileUrl: "Games.basketball.html" },
+            { id: "game22", title: "حجر ورقة مقص", category: "luck", categoryAr: "حظ ومراهنات", image: "images/game22.jpg", reward: "مضاعفة", fileUrl: "Games.rock_paper_scissors.html" },
+            { id: "game23", title: "الهروب من السجن", category: "action", categoryAr: "أكشن", image: "images/game23.jpg", reward: "+150", fileUrl: "Games.prison_escape.html" },
+            { id: "game24", title: "لعبة الأرقام 2048", category: "puzzle", categoryAr: "ألغاز", image: "images/game24.jpg", reward: "+110", fileUrl: "Games.2048.html" },
+            { id: "game25", title: "تذكر الترتيب", category: "memory", categoryAr: "ذاكرة", image: "images/game25.jpg", reward: "+35", fileUrl: "Games.simon_says.html" },
+            { id: "game26", title: "حرب الدبابات", category: "strategy", categoryAr: "استراتيجية", image: "images/game26.jpg", reward: "+250", fileUrl: "Games.tanks_war.html" },
+            { id: "game27", title: "ضربة النيون", category: "arcade", categoryAr: "آركيد", image: "images/game27.jpg", reward: "+100", fileUrl: "Games.neon_strike.html" },
+            { id: "game28", title: "بطل الرماية", category: "sports", categoryAr: "رياضة", image: "images/game28.jpg", reward: "+80", fileUrl: "Games.archery_hero.html" },
+            { id: "game29", title: "توصيل الألوان", category: "puzzle", categoryAr: "ألغاز", image: "images/game29.jpg", reward: "+40", fileUrl: "Games.color_connect.html" },
+            { id: "game30", title: "سيف النينجا", category: "action", categoryAr: "أكشن", image: "images/game30.jpg", reward: "+150", fileUrl: "Games.ninja_slice.html" },
+            { id: "game31", title: "سباق المجرات", category: "racing", categoryAr: "سباق", image: "images/game31.jpg", reward: "+200", fileUrl: "Games.galaxy_racing.html" },
+            { id: "game32", title: "بطل البولينج", category: "sports", categoryAr: "رياضة", image: "images/game32.jpg", reward: "+60", fileUrl: "Games.bowling_hero.html" },
+            { id: "game33", title: "كاسحة الألغام", category: "puzzle", categoryAr: "ألغاز", image: "images/game33.jpg", reward: "+120", fileUrl: "Games.minesweeper.html" },
+            { id: "game34", title: "بلاك جاك نيون", category: "cards", categoryAr: "ورق", image: "images/game34.jpg", reward: "+250", fileUrl: "Games.blackjack.html" },
+            { id: "game35", title: "الكؤوس المخفية", category: "memory", categoryAr: "ذاكرة", image: "images/game35.jpg", reward: "+50", fileUrl: "Games.hidden_cups.html" },
+            { id: "game36", title: "الجلاد", category: "words", categoryAr: "كلمات", image: "images/game36.jpg", reward: "+35", fileUrl: "Games.hangman.html" },
+            { id: "game37", title: "هوكي الهواء", category: "arcade", categoryAr: "آركيد", image: "images/game37.jpg", reward: "+70", fileUrl: "Games.air_hockey.html" },
+            { id: "game38", title: "الكتل الملونة", category: "puzzle", categoryAr: "ألغاز", image: "images/game38.jpg", reward: "+80", fileUrl: "Games.color_blocks.html" },
+            { id: "game39", title: "قادة الجيوش", category: "strategy", categoryAr: "استراتيجية", image: "images/game39.jpg", reward: "+300", fileUrl: "Games.army_commanders.html" },
+            { id: "game40", title: "طائرات الأباتشي", category: "action", categoryAr: "أكشن", image: "images/game40.jpg", reward: "+180", fileUrl: "Games.apache_strike.html" },
+            { id: "game41", title: "لعبة الطاولة", category: "strategy", categoryAr: "استراتيجية", image: "images/game41.jpg", reward: "+150", fileUrl: "Games.backgammon.html" },
+            { id: "game42", title: "دريفت نيون", category: "racing", categoryAr: "سباق", image: "images/game42.jpg", reward: "+110", fileUrl: "Games.neon_drift.html" },
+            { id: "game43", title: "مسار الذاكرة", category: "memory", categoryAr: "ذاكرة", image: "images/game43.jpg", reward: "+60", fileUrl: "Games.memory_path.html" },
+            { id: "game44", title: "الدومينو", category: "strategy", categoryAr: "استراتيجية", image: "images/game44.jpg", reward: "+90", fileUrl: "Games.domino.html" },
+            { id: "game45", title: "روليت الحظ", category: "luck", categoryAr: "حظ ومراهنات", image: "images/game45.jpg", reward: "مضاعفة", fileUrl: "Games.lucky_roulette.html" },
+            { id: "game46", title: "غزو الفضاء", category: "arcade", categoryAr: "آركيد", image: "images/game46.jpg", reward: "+130", fileUrl: "Games.space_invaders.html" },
+            { id: "game47", title: "المقبرة", category: "action", categoryAr: "أكشن", image: "images/game47.jpg", reward: "+200", fileUrl: "cemetery.html" },
+            { id: "game48", title: "رويال الحظ", category: "luck", categoryAr: "حظ ومراهنات", image: "images/game48.jpg", reward: "مضاعفة كبرى", fileUrl: "royalluck.html" },
+            { id: "game49", title: "مملكة الوحوش", category: "strategy", categoryAr: "استراتيجية", image: "images/game49.jpg", reward: "تصل لـ +200", fileUrl: "Games.monster_kingdom.html" }
+        ];
+
+        window.renderGames = (gamesArray) => {
+            const gamesGrid = document.getElementById('gamesGrid');
+            gamesGrid.innerHTML = '';
+            if (gamesArray.length === 0) {
+                gamesGrid.innerHTML = `<div class="no-results"><i class="fa-solid fa-gamepad"></i><h3>لا توجد ألعاب مطابقة</h3></div>`;
+                return;
+            }
+            gamesArray.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.onclick = async () => {
+                    if (currentUser) {
+                        const docSnap = await getDoc(userDocRef);
+                        if(docSnap.exists()){
+                            let currentGames = docSnap.data().gamesPlayed || 0;
+                            await updateDoc(userDocRef, { gamesPlayed: currentGames + 1 });
+                        }
+                    }
+                    window.location.href = game.fileUrl;
+                }; 
+                card.innerHTML = `
+                    <div class="game-img-wrapper">
+                        <img src="${game.image}" alt="${game.title}" class="game-img" loading="lazy">
+                        <div class="reward-badge"><i class="fa-solid fa-coins"></i> ${game.reward}</div>
+                    </div>
+                    <div class="game-info">
+                        <div>
+                            <div class="game-title">${game.title}</div>
+                            <div class="game-category">${game.categoryAr}</div>
+                        </div>
+                        <div class="play-btn"><i class="fa-solid fa-play"></i> العب الآن</div>
+                    </div>
+                `;
+                gamesGrid.appendChild(card);
+            });
+        };
+
+        let currentFilter = 'all';
+        window.filterGames = (category, element) => {
+            document.querySelectorAll('.cat-chip').forEach(chip => chip.classList.remove('active'));
+            element.classList.add('active');
+            currentFilter = category;
+            window.handleSearch();
+        };
+
+        window.handleSearch = () => {
+            const searchTerm = document.getElementById('gameSearchInput').value.toLowerCase().trim();
+            const result = gamesDatabase.filter(game => {
+                const matchCategory = (currentFilter === 'all') || (game.category === currentFilter);
+                const matchSearch = game.title.toLowerCase().includes(searchTerm) || game.categoryAr.toLowerCase().includes(searchTerm);
+                return matchCategory && matchSearch;
+            });
+            window.renderGames(result);
+        };
+
+        window.renderGames(gamesDatabase);
     </script>
 </body>
 </html>

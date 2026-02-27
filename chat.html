@@ -5320,6 +5320,7 @@ z-index: 2147483647 !important;
     font-size: 10px; color: #00e5ff; font-weight: bold; margin-top: 2px;
 }
 
+
     </style>
 </head>
 <body>
@@ -5921,6 +5922,45 @@ auth.onAuthStateChanged(async user => {
     if (user) {
         currentUserId = user.uid;
         checkPageSecurity(); 
+const urlParams = new URLSearchParams(window.location.search);
+        const paramChatId = urlParams.get('chatId');
+        const targetUid = urlParams.get('uid');
+        const action = urlParams.get('action');
+
+        if (paramChatId === 'new' && targetUid) {
+            // ... (انسخ الكود الذي كتبته لك في الأعلى هنا) ...
+            // تأكد من وضع الكود كاملاً لإنشاء الشات أو جلبه
+            
+            // ملاحظة: بما أنك تستخدم async/await، فالكود سيعمل بشكل متزامن وجميل.
+            // الكود الذي كتبته لك في الأعلى (handleExternalRedirect) قم بوضعه كدالة منفصلة واستدعه هنا، أو ضع محتواه هنا مباشرة.
+            
+            // مثال سريع للتنفيذ المباشر:
+            let finalChatId = null;
+            const snapshot = await db.collection('chats').where('users', 'array-contains', currentUserId).get();
+            snapshot.forEach(doc => {
+                if (doc.data().users.includes(targetUid) && doc.data().type !== 'GROUP') finalChatId = doc.id;
+            });
+            
+            if (!finalChatId) {
+                const ref = await db.collection('chats').add({
+                    users: [currentUserId, targetUid], type: 'DIRECT', 
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    lastMessage: "محادثة جديدة", lastMessageTime: firebase.firestore.FieldValue.serverTimestamp(),
+                    deletedBy: [], archivedBy: []
+                });
+                finalChatId = ref.id;
+            }
+            
+            // توجيه
+            window.history.replaceState({}, '', `chat.html?chatId=${finalChatId}`);
+            if(action === 'call') setTimeout(initiateCall, 1500);
+            
+            // تحديث المتغير global chatId ليقرأه باقي الكود
+            // (لاحظ: const chatId معرفة في الأعلى، قد تحتاج لتغييرها لـ let أو إعادة تحميل الصفحة)
+            window.location.href = `chat.html?chatId=${finalChatId}${action === 'call' ? '&autoCall=true' : ''}`;
+            return; // وقف التنفيذ الحالي لعمل ريلود
+        }
+        
 
         // ================= التعديل الجديد: تحميل الخصوصية فوراً =================
         try {
@@ -5980,7 +6020,16 @@ let isTypingStatus = false;
 msgInput.addEventListener('input', () => {
     if(chatId && currentUserId) {
         const val = msgInput.value; // شيلنا trim مؤقتاً عشان نحسب المسافات ككتابة لو حابب، أو رجعها
-        
+        if (params.get('autoCall') === 'true') {
+    // تنظيف الرابط
+    const newUrl = window.location.href.replace('&autoCall=true', '');
+    window.history.replaceState({}, document.title, newUrl);
+    
+    // بدء الاتصال
+    setTimeout(() => {
+        initiateCall();
+    }, 2000); // وقت كافي لتحميل الصفحة
+}
         // 1. لو الصندوق فضي تماماً -> الغي الكتابة فوراً
         if (val.trim() === '') {
             clearTimeout(typingTimeout);

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>قادة الجيوش - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050508;
+            --player-color: #00C6FF;  
+            --enemy-color: #ff3366;
+            --neutral-color: #444;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 8, 0.95);
+            border-bottom: 1px solid rgba(0, 198, 255, 0.1); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--player-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- منطقة الحرب --- */
+        .war-zone {
+            flex: 1; position: relative; overflow: hidden;
+            background: radial-gradient(circle at center, #111, #000);
+        }
+        
+        canvas { display: block; width: 100%; height: 100%; }
+
+        .ui-overlay {
+            position: absolute; top: 10px; width: 100%; text-align: center;
+            pointer-events: none; font-weight: bold; color: rgba(255,255,255,0.5);
+        }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+        }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 10px; }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--player-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">قادة الجيوش ⚔️</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="war-zone" id="warZone">
+        <div class="ui-overlay">اسحب من قلاعك الزرقاء لاحتلال القلاع الأخرى</div>
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">🚩</div>
+            <div class="modal-title" id="modalTitle">انتصرت!</div>
+            <p id="modalDesc" style="color: #aaa; margin-bottom: 15px;">لقد سيطرت على كامل الخريطة</p>
+            <div class="modal-reward" id="modalReward">+100 عملة</div>
+            <button class="btn-restart" onclick="initGame()">معركة جديدة</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const walletScore = document.getElementById('walletScore');
+
+        let castles = [];
+        let troops = [];
+        let selectedCastle = null;
+        let isGameOver = false;
+        let lastUpdate = Date.now();
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        class Castle {
+            constructor(x, y, owner, army = 10) {
+                this.x = x; this.y = y;
+                this.owner = owner; // 'player', 'enemy', 'neutral'
+                this.army = army;
+                this.radius = 35;
+                this.maxArmy = 100;
+                this.lastSpawn = Date.now();
+            }
+
+            draw() {
+                let color = this.owner === 'player' ? '#00C6FF' : (this.owner === 'enemy' ? '#ff3366' : '#444');
+                
+                // الظل والوهج
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = color;
+                
+                // الجسم الخارجي
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // التحديد لو مختارة
+                if (selectedCastle === this) {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + 8, 0, Math.PI * 2);
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+
+                // العدد
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = "#fff";
+                ctx.font = "bold 16px Cairo";
+                ctx.textAlign = "center";
+                ctx.fillText(Math.floor(this.army), this.x, this.y + 6);
+            }
+
+            update() {
+                if (this.owner !== 'neutral' && this.army < this.maxArmy) {
+                    let now = Date.now();
+                    if (now - this.lastSpawn > 1000) {
+                        this.army += 1;
+                        this.lastSpawn = now;
+                    }
+                }
+            }
+        }
+
+        class Troop {
+            constructor(from, to, amount, owner) {
+                this.x = from.x; this.y = from.y;
+                this.target = to;
+                this.amount = amount;
+                this.owner = owner;
+                this.speed = 2;
+                let dx = to.x - from.x;
+                let dy = to.y - from.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                this.vx = (dx / dist) * this.speed;
+                this.vy = (dy / dist) * this.speed;
+            }
+
+            draw() {
+                let color = this.owner === 'player' ? '#00C6FF' : '#ff3366';
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                let dx = this.target.x - this.x;
+                let dy = this.target.y - this.y;
+                if (Math.sqrt(dx*dx + dy*dy) < 20) {
+                    this.arrive();
+                    return true; // يجب حذفها
+                }
+                return false;
+            }
+
+            arrive() {
+                if (this.target.owner === this.owner) {
+                    this.target.army += this.amount;
+                } else {
+                    this.target.army -= this.amount;
+                    if (this.target.army < 0) {
+                        this.target.army = Math.abs(this.target.army);
+                        this.target.owner = this.owner;
+                    }
+                }
+            }
+        }
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            castles = [];
+            troops = [];
+            isGameOver = false;
+
+            // توزيع القلاع بشكل عشوائي ذكي
+            castles.push(new Castle(50, 60, 'enemy', 20)); // قلعة العدو
+            castles.push(new Castle(canvas.width - 50, canvas.height - 60, 'player', 20)); // قلعة اللاعب
+            
+            // قلاع محايدة
+            for(let i=0; i<5; i++) {
+                let x = 70 + Math.random() * (canvas.width - 140);
+                let y = 100 + Math.random() * (canvas.height - 200);
+                castles.push(new Castle(x, y, 'neutral', 5 + Math.floor(Math.random()*10)));
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            castles.forEach(c => { c.update(); c.draw(); });
+            
+            troops = troops.filter(t => {
+                t.draw();
+                return !t.update();
+            });
+
+            enemyAI();
+            checkGameState();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // ذكاء اصطناعي بسيط للعدو
+        let lastAiAction = 0;
+        function enemyAI() {
+            if (Date.now() - lastAiAction < 3000) return;
+            let enemyCastles = castles.filter(c => c.owner === 'enemy');
+            let targetCastles = castles.filter(c => c.owner !== 'enemy');
+            
+            if (enemyCastles.length > 0 && targetCastles.length > 0) {
+                let source = enemyCastles[Math.floor(Math.random() * enemyCastles.length)];
+                let target = targetCastles[Math.floor(Math.random() * targetCastles.length)];
+                
+                if (source.army > 10) {
+                    let sendAmount = Math.floor(source.army / 2);
+                    source.army -= sendAmount;
+                    troops.push(new Troop(source, target, sendAmount, 'enemy'));
+                }
+            }
+            lastAiAction = Date.now();
+        }
+
+        function checkGameState() {
+            let playerOwns = castles.filter(c => c.owner === 'player').length;
+            let enemyOwns = castles.filter(c => c.owner === 'enemy').length;
+
+            if (playerOwns === castles.length) endGame(true);
+            else if (enemyOwns === castles.length) endGame(false);
+        }
+
+        function endGame(win) {
+            isGameOver = true;
+            const modal = document.getElementById('resultModal');
+            document.getElementById('modalTitle').innerText = win ? "انتصرت!" : "هزمت!";
+            document.getElementById('modalTitle').style.color = win ? "var(--player-color)" : "var(--enemy-color)";
+            document.getElementById('modalReward').style.display = win ? "block" : "none";
+            
+            if (win) {
+                let current = parseInt(walletScore.innerText);
+                walletScore.innerText = current + 100;
+            }
+            modal.classList.add('active');
+        }
+
+        // التحكم
+        canvas.addEventListener('touchstart', (e) => {
+            let rect = canvas.getBoundingClientRect();
+            let x = e.touches[0].clientX - rect.left;
+            let y = e.touches[0].clientY - rect.top;
+            
+            castles.forEach(c => {
+                let dist = Math.sqrt((x-c.x)**2 + (y-c.y)**2);
+                if (dist < c.radius) {
+                    if (c.owner === 'player') {
+                        selectedCastle = c;
+                    } else if (selectedCastle) {
+                        // هجوم
+                        let sendAmount = Math.floor(selectedCastle.army / 2);
+                        selectedCastle.army -= sendAmount;
+                        troops.push(new Troop(selectedCastle, c, sendAmount, 'player'));
+                        selectedCastle = null;
+                    }
+                }
+            });
+        });
+
+        initGame();
+    </script>
+</body>
+</html>

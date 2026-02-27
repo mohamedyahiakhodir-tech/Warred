@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سودوكو - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --text-color: #eee;
+            --gold: #FFD700;
+            --cell-bg: #1a1a1a;
+            --cell-border: #333;
+            --cell-highlight: rgba(0, 198, 255, 0.2);
+            --cell-selected: rgba(0, 198, 255, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- معلومات اللعبة --- */
+        .game-info {
+            display: flex; justify-content: space-between; padding: 15px 20px;
+        }
+        .info-box { background: #111; padding: 8px 15px; border-radius: 10px; border: 1px solid #333; font-weight: bold; }
+        .mistakes { color: var(--danger-color); }
+
+        /* --- شبكة سودوكو --- */
+        .board-container {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 10px;
+        }
+        .sudoku-board {
+            display: grid; grid-template-columns: repeat(9, 1fr); grid-template-rows: repeat(9, 1fr);
+            width: 100%; max-width: 380px; aspect-ratio: 1/1; background: #fff; border: 3px solid var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.2); gap: 1px;
+        }
+        .cell {
+            background: var(--cell-bg); color: #fff; font-size: 20px; font-weight: 900;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: 0.1s;
+        }
+        /* خطوط الشبكة العريضة لتقسيم الـ 3x3 */
+        .cell:nth-child(3n) { border-right: 2px solid var(--primary-color); }
+        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--primary-color); }
+
+        .cell.fixed { color: #888; font-weight: bold; }
+        .cell.selected { background: var(--cell-selected); color: #fff; }
+        .cell.highlighted { background: var(--cell-highlight); }
+        .cell.error { color: var(--danger-color); background: rgba(255, 51, 102, 0.1); animation: shake 0.3s; }
+        .cell.correct { color: var(--primary-color); }
+
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+
+        /* --- لوحة الأرقام (Numpad) --- */
+        .numpad {
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px;
+            padding: 20px; background: #111; border-top: 1px solid #333;
+        }
+        .num-btn {
+            background: #1a1a1a; border: 2px solid #333; border-radius: 12px;
+            height: 50px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: bold; color: var(--primary-color);
+            cursor: pointer; transition: 0.1s; box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .num-btn:active { transform: scale(0.9); background: var(--primary-color); color: #000; }
+        .num-btn.erase { grid-column: span 5; background: #2a1a1a; color: var(--danger-color); border-color: var(--danger-color); }
+        .num-btn.erase:active { background: var(--danger-color); color: #fff; }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">سودوكو 🧩</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-info">
+        <div class="info-box">الوقت: <span id="timerDisplay" style="color:var(--primary-color)">00:00</span></div>
+        <div class="info-box mistakes">الأخطاء: <span id="mistakesDisplay">0</span>/3</div>
+    </div>
+
+    <div class="board-container">
+        <div class="sudoku-board" id="board">
+            </div>
+    </div>
+
+    <div class="numpad">
+        <div class="num-btn" onclick="inputNumber(1)">1</div>
+        <div class="num-btn" onclick="inputNumber(2)">2</div>
+        <div class="num-btn" onclick="inputNumber(3)">3</div>
+        <div class="num-btn" onclick="inputNumber(4)">4</div>
+        <div class="num-btn" onclick="inputNumber(5)">5</div>
+        <div class="num-btn" onclick="inputNumber(6)">6</div>
+        <div class="num-btn" onclick="inputNumber(7)">7</div>
+        <div class="num-btn" onclick="inputNumber(8)">8</div>
+        <div class="num-btn" onclick="inputNumber(9)">9</div>
+        <div class="num-btn erase" onclick="inputNumber(0)"><i class="fa-solid fa-eraser"></i> مسح</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 50px; margin-bottom: 10px;">🏆</div>
+            <div class="modal-title" id="modalTitle">عمل رائع!</div>
+            <p style="color: #aaa; margin-bottom: 10px;" id="modalDesc">تم حل اللغز بنجاح</p>
+            <div class="modal-reward" id="modalReward">+100 عملة</div>
+            <button class="btn-restart" onclick="initGame()">لغز جديد</button>
+        </div>
+    </div>
+
+    <script>
+        const boardEl = document.getElementById('board');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const mistakesDisplay = document.getElementById('mistakesDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        // لوحة محلولة كقالب أساسي (لتسهيل توليد ألغاز صحيحة)
+        const baseGrid = [
+            [5,3,4,6,7,8,9,1,2],
+            [6,7,2,1,9,5,3,4,8],
+            [1,9,8,3,4,2,5,6,7],
+            [8,5,9,7,6,1,4,2,3],
+            [4,2,6,8,5,3,7,9,1],
+            [7,1,3,9,2,4,8,5,6],
+            [9,6,1,5,3,7,2,8,4],
+            [2,8,7,4,1,9,6,3,5],
+            [3,4,5,2,8,6,1,7,9]
+        ];
+
+        let solutionGrid = [];
+        let playGrid = [];
+        let selectedCell = null;
+        let mistakes = 0;
+        let timer = 0;
+        let timerInterval;
+        let isGameOver = false;
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            mistakes = 0;
+            timer = 0;
+            isGameOver = false;
+            mistakesDisplay.innerText = mistakes;
+            updateTimerDisplay();
+            clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+            selectedCell = null;
+
+            generatePuzzle();
+            renderBoard();
+        }
+
+        function updateTimer() {
+            if(isGameOver) return;
+            timer++;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timer / 60).toString().padStart(2, '0');
+            let s = (timer % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${m}:${s}`;
+        }
+
+        // إنشاء لغز عن طريق إخفاء أرقام من القالب الأساسي
+        function generatePuzzle() {
+            solutionGrid = JSON.parse(JSON.stringify(baseGrid));
+            playGrid = JSON.parse(JSON.stringify(baseGrid));
+            
+            // إخفاء حوالي 40 خلية لعمل لغز (يمكنك تغيير الرقم لزيادة الصعوبة)
+            let cellsToRemove = 40;
+            while(cellsToRemove > 0) {
+                let r = Math.floor(Math.random() * 9);
+                let c = Math.floor(Math.random() * 9);
+                if (playGrid[r][c] !== 0) {
+                    playGrid[r][c] = 0;
+                    cellsToRemove--;
+                }
+            }
+        }
+
+        function renderBoard() {
+            boardEl.innerHTML = '';
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    
+                    if (playGrid[r][c] !== 0) {
+                        cell.innerText = playGrid[r][c];
+                        // إذا كانت الخلية من أصل اللغز
+                        if (playGrid[r][c] === solutionGrid[r][c]) {
+                            cell.classList.add('fixed');
+                        } else {
+                            cell.classList.add('correct');
+                        }
+                    }
+
+                    cell.onclick = () => selectCell(r, c, cell);
+                    boardEl.appendChild(cell);
+                }
+            }
+        }
+
+        function selectCell(r, c, cellElement) {
+            if (isGameOver || cellElement.classList.contains('fixed')) return;
+            
+            // إزالة التحديد السابق
+            document.querySelectorAll('.cell').forEach(el => {
+                el.classList.remove('selected', 'highlighted');
+            });
+
+            selectedCell = { r, c, el: cellElement };
+            cellElement.classList.add('selected');
+
+            // تظليل الصف والعمود والمربع (ميزة إضافية لراحة اللاعب)
+            document.querySelectorAll('.cell').forEach(el => {
+                let el_r = parseInt(el.dataset.r);
+                let el_c = parseInt(el.dataset.c);
+                if (el_r === r || el_c === c || 
+                   (Math.floor(el_r/3) === Math.floor(r/3) && Math.floor(el_c/3) === Math.floor(c/3))) {
+                    if (el !== cellElement) el.classList.add('highlighted');
+                }
+            });
+        }
+
+        function inputNumber(num) {
+            if (!selectedCell || isGameOver) return;
+
+            let { r, c, el } = selectedCell;
+
+            if (num === 0) {
+                playGrid[r][c] = 0;
+                el.innerText = '';
+                el.classList.remove('error', 'correct');
+                return;
+            }
+
+            if (num === solutionGrid[r][c]) {
+                // إجابة صحيحة
+                playGrid[r][c] = num;
+                el.innerText = num;
+                el.classList.remove('error');
+                el.classList.add('correct');
+                checkWin();
+            } else {
+                // إجابة خاطئة
+                el.innerText = num;
+                el.classList.add('error');
+                mistakes++;
+                mistakesDisplay.innerText = mistakes;
+                
+                if (mistakes >= 3) {
+                    endGame(false);
+                } else {
+                    setTimeout(() => {
+                        el.innerText = '';
+                        el.classList.remove('error');
+                    }, 500); // يمسح الغلط بعد نص ثانية
+                }
+            }
+        }
+
+        function checkWin() {
+            let isWon = true;
+            for (let r = 0; r < 9; r++) {
+                for (let c = 0; c < 9; c++) {
+                    if (playGrid[r][c] !== solutionGrid[r][c]) {
+                        isWon = false;
+                        break;
+                    }
+                }
+            }
+            if (isWon) endGame(true);
+        }
+
+        function endGame(isWin) {
+            isGameOver = true;
+            clearInterval(timerInterval);
+            
+            const modal = document.getElementById('resultModal');
+            const title = document.getElementById('modalTitle');
+            const icon = document.getElementById('modalIcon');
+            const desc = document.getElementById('modalDesc');
+            const reward = document.getElementById('modalReward');
+
+            if (isWin) {
+                icon.innerText = "🧠";
+                title.innerText = "عبقري!";
+                title.style.color = "var(--primary-color)";
+                desc.innerText = `حليت اللغز في ${timerDisplay.innerText}`;
+                reward.innerText = "+100 عملة ذهبية";
+                reward.style.display = "block";
+                
+                let currentWallet = parseInt(walletElement.innerText);
+                walletElement.innerText = currentWallet + 100;
+            } else {
+                icon.innerText = "❌";
+                title.innerText = "انتهت المحاولات!";
+                title.style.color = "var(--danger-color)";
+                desc.innerText = "لقد أخطأت 3 مرات";
+                reward.style.display = "none";
+            }
+
+            setTimeout(() => { modal.classList.add('active'); }, 500);
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>

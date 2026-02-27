@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>حجر ورقة مقص - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --success-color: #00e676;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- منطقة الرهان --- */
+        .bet-section { padding: 20px; text-align: center; }
+        .bet-title { font-size: 14px; color: #aaa; margin-bottom: 10px; font-weight: bold; }
+        .bet-chips { display: flex; justify-content: center; gap: 10px; }
+        .chip {
+            background: #1a1a1a; border: 2px solid #333; padding: 10px 20px; border-radius: 25px;
+            font-weight: bold; color: #fff; cursor: pointer; transition: 0.3s;
+        }
+        .chip.active { background: rgba(255, 215, 0, 0.2); border-color: var(--gold); color: var(--gold); box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); transform: scale(1.1); }
+
+        /* --- حلبة المواجهة --- */
+        .arena {
+            flex: 1; display: flex; align-items: center; justify-content: space-around;
+            padding: 20px; position: relative;
+        }
+        .fighter-card {
+            background: var(--card-color); border: 1px solid #333; width: 120px; height: 150px;
+            border-radius: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); transition: 0.3s; position: relative;
+        }
+        .fighter-name { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #aaa; }
+        .fighter-icon { font-size: 50px; color: #fff; }
+        .vs-badge {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: linear-gradient(45deg, var(--danger-color), #ff6b81);
+            color: #fff; font-weight: 900; font-size: 20px; width: 50px; height: 50px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            border: 3px solid var(--bg-color); box-shadow: 0 0 20px rgba(255, 51, 102, 0.5);
+        }
+
+        /* أنيميشن المواجهة */
+        .shake-player { animation: shakeLeft 0.5s ease infinite; }
+        .shake-bot { animation: shakeRight 0.5s ease infinite; }
+        @keyframes shakeLeft { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(-10deg); } }
+        @keyframes shakeRight { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-10px) rotate(10deg); } }
+
+        /* --- خيارات اللعب --- */
+        .controls {
+            padding: 20px; background: #161616; border-top: 1px solid #333;
+            border-radius: 30px 30px 0 0; display: flex; justify-content: space-around;
+        }
+        .choice-btn {
+            background: #1a1a1a; border: 2px solid #333; width: 80px; height: 80px;
+            border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 30px; color: #fff; cursor: pointer; transition: 0.2s;
+        }
+        .choice-btn:active { transform: scale(0.9); }
+        .choice-btn:hover { border-color: var(--primary-color); color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 198, 255, 0.3); }
+        .choice-btn span { font-size: 12px; font-weight: bold; margin-top: 5px; font-family: "Cairo", sans-serif; }
+
+        /* --- المودال (النتيجة) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 10px; }
+        .modal-reward { font-size: 20px; font-weight: bold; margin-bottom: 25px; }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3); transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">حجر ورقة مقص ✌️</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="bet-section">
+        <div class="bet-title">اختر قيمة الرهان</div>
+        <div class="bet-chips">
+            <div class="chip active" onclick="setBet(10, this)">10 🪙</div>
+            <div class="chip" onclick="setBet(50, this)">50 🪙</div>
+            <div class="chip" onclick="setBet(100, this)">100 🪙</div>
+        </div>
+    </div>
+
+    <div class="arena">
+        <div class="fighter-card" id="playerCard">
+            <div class="fighter-name" style="color: var(--primary-color);">أنت</div>
+            <i class="fa-solid fa-question fighter-icon" id="playerIcon"></i>
+        </div>
+        
+        <div class="vs-badge">VS</div>
+
+        <div class="fighter-card" id="botCard">
+            <div class="fighter-name" style="color: var(--danger-color);">الخصم</div>
+            <i class="fa-solid fa-question fighter-icon" id="botIcon"></i>
+        </div>
+    </div>
+
+    <div class="controls">
+        <div class="choice-btn" onclick="playGame('rock')">
+            <i class="fa-solid fa-hand-back-fist"></i>
+            <span>حجر</span>
+        </div>
+        <div class="choice-btn" onclick="playGame('paper')">
+            <i class="fa-solid fa-hand"></i>
+            <span>ورقة</span>
+        </div>
+        <div class="choice-btn" onclick="playGame('scissors')">
+            <i class="fa-solid fa-hand-scissors" style="transform: rotate(90deg);"></i>
+            <span>مقص</span>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-title" id="modalTitle">النتيجة</div>
+            <div class="modal-reward" id="modalReward"></div>
+            <button class="btn" onclick="resetArena()">العب جولة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        let wallet = parseInt(document.getElementById('walletScore').innerText);
+        let currentBet = 10;
+        let isPlaying = false;
+
+        const choices = ['rock', 'paper', 'scissors'];
+        const icons = {
+            'rock': 'fa-hand-back-fist',
+            'paper': 'fa-hand',
+            'scissors': 'fa-hand-scissors'
+        };
+
+        const playerIcon = document.getElementById('playerIcon');
+        const botIcon = document.getElementById('botIcon');
+        const playerCard = document.getElementById('playerCard');
+        const botCard = document.getElementById('botCard');
+
+        // تحديد قيمة الرهان
+        function setBet(amount, element) {
+            if (isPlaying) return;
+            currentBet = amount;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function playGame(playerChoice) {
+            if (isPlaying) return;
+            
+            // التأكد من وجود رصيد كافي
+            if (wallet < currentBet) {
+                alert("رصيدك لا يكفي لهذا الرهان!");
+                return;
+            }
+
+            isPlaying = true;
+            
+            // خصم الرهان مبدئياً
+            updateWallet(-currentBet);
+
+            // أنيميشن التحضير للمواجهة (هز الكروت)
+            playerIcon.className = `fa-solid fa-hand-back-fist fighter-icon`;
+            botIcon.className = `fa-solid fa-hand-back-fist fighter-icon`;
+            playerCard.classList.add('shake-player');
+            botCard.classList.add('shake-bot');
+
+            // بعد ثانية واحدة نظهر النتيجة
+            setTimeout(() => {
+                playerCard.classList.remove('shake-player');
+                botCard.classList.remove('shake-bot');
+
+                // اختيار الخصم العشوائي
+                const botChoice = choices[Math.floor(Math.random() * choices.length)];
+
+                // تحديث الأيقونات
+                playerIcon.className = `fa-solid ${icons[playerChoice]} fighter-icon`;
+                botIcon.className = `fa-solid ${icons[botChoice]} fighter-icon`;
+
+                // تدوير المقص عشان يبقى شكله صح
+                if(playerChoice === 'scissors') playerIcon.style.transform = "rotate(90deg)"; else playerIcon.style.transform = "none";
+                if(botChoice === 'scissors') botIcon.style.transform = "rotate(-90deg) scaleX(-1)"; else botIcon.style.transform = "none"; // الخصم بيبص الناحية التانية
+
+                determineWinner(playerChoice, botChoice);
+            }, 1000);
+        }
+
+        function determineWinner(player, bot) {
+            let resultText = "";
+            let resultColor = "";
+            let winAmount = 0;
+
+            if (player === bot) {
+                resultText = "تعادل! 🤝";
+                resultColor = "#aaa";
+                winAmount = currentBet; // إرجاع الرهان
+            } else if (
+                (player === 'rock' && bot === 'scissors') ||
+                (player === 'paper' && bot === 'rock') ||
+                (player === 'scissors' && bot === 'paper')
+            ) {
+                resultText = "انت كسبت! 🎉";
+                resultColor = "var(--success-color)";
+                winAmount = currentBet * 2; // مكسب الضعف
+            } else {
+                resultText = "الخصم كسب! 💔";
+                resultColor = "var(--danger-color)";
+                winAmount = 0; // خسر الرهان
+            }
+
+            if (winAmount > 0) {
+                updateWallet(winAmount);
+            }
+
+            // إظهار المودال بعد إظهار الحركات بنصف ثانية
+            setTimeout(() => showModal(resultText, resultColor, winAmount), 600);
+        }
+
+        function updateWallet(amount) {
+            wallet += amount;
+            document.getElementById('walletScore').innerText = wallet;
+        }
+
+        function showModal(title, color, amount) {
+            const modal = document.getElementById('resultModal');
+            const titleEl = document.getElementById('modalTitle');
+            const rewardEl = document.getElementById('modalReward');
+
+            titleEl.innerText = title;
+            titleEl.style.color = color;
+
+            if (amount > currentBet) {
+                rewardEl.innerText = `+${amount} عملة ذهبية 💰`;
+                rewardEl.style.color = "var(--gold)";
+            } else if (amount === currentBet) {
+                rewardEl.innerText = "لم تخسر شيئاً 🔄";
+                rewardEl.style.color = "#aaa";
+            } else {
+                rewardEl.innerText = `-${currentBet} عملة ذهبية 💸`;
+                rewardEl.style.color = "var(--danger-color)";
+            }
+
+            modal.classList.add('active');
+        }
+
+        function resetArena() {
+            document.getElementById('resultModal').classList.remove('active');
+            playerIcon.className = 'fa-solid fa-question fighter-icon';
+            botIcon.className = 'fa-solid fa-question fighter-icon';
+            playerIcon.style.transform = "none";
+            botIcon.style.transform = "none";
+            isPlaying = false;
+        }
+    </script>
+</body>
+</html>

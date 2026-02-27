@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>توصيل الألوان - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --grid-bg: #111;
+            --cell-border: #222;
+            
+            /* ألوان النيون للعبة */
+            --color-1: #ff3366; /* أحمر/وردي */
+            --color-2: #00C6FF; /* أزرق */
+            --color-3: #00e676; /* أخضر */
+            --color-4: #FFD700; /* أصفر */
+            --color-5: #ff8c00; /* برتقالي */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- معلومات اللعبة --- */
+        .game-info {
+            display: flex; justify-content: space-between; padding: 15px 30px; background: #111;
+            border-bottom: 1px solid #222;
+        }
+        .level-text { font-size: 18px; font-weight: bold; color: var(--primary-color); }
+        .percent-text { font-size: 16px; font-weight: bold; color: #aaa; }
+
+        /* --- شبكة اللعب --- */
+        .game-area {
+            flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px;
+            background: radial-gradient(circle at center, #1a1a2e 0%, #0d0d0f 100%);
+        }
+        
+        .board {
+            display: grid; background: var(--grid-bg); padding: 5px; border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 198, 255, 0.1);
+            border: 2px solid #333; gap: 2px; position: relative;
+        }
+        
+        .cell {
+            background: #161616; border-radius: 8px; position: relative;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* النقاط الأساسية */
+        .dot {
+            width: 60%; height: 60%; border-radius: 50%; position: absolute; z-index: 5;
+            box-shadow: 0 0 15px currentColor;
+        }
+        
+        /* الأنابيب (المسارات) */
+        .pipe {
+            position: absolute; background: currentColor; opacity: 0.8; z-index: 2;
+        }
+        /* لتوصيل الأنابيب بين المربعات */
+        .pipe.center { width: 35%; height: 35%; border-radius: 50%; }
+        .pipe.up { top: 0; left: 32.5%; width: 35%; height: 50%; }
+        .pipe.down { bottom: 0; left: 32.5%; width: 35%; height: 50%; }
+        .pipe.left { left: 0; top: 32.5%; width: 50%; height: 35%; }
+        .pipe.right { right: 0; top: 32.5%; width: 50%; height: 35%; }
+
+        /* ألوان العناصر بناءً على الفئات */
+        .color-1 { color: var(--color-1); }
+        .color-2 { color: var(--color-2); }
+        .color-3 { color: var(--color-3); }
+        .color-4 { color: var(--color-4); }
+        .color-5 { color: var(--color-5); }
+
+        .instructions {
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.4); font-size: 16px; font-weight: bold;
+        }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0, 198, 255, 0.2);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--primary-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-next {
+            background: linear-gradient(45deg, var(--primary-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); transition: 0.2s;
+        }
+        .btn-next:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">توصيل الألوان 🧩</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-info">
+        <div class="level-text" id="levelDisplay">المستوى: 1</div>
+        <div class="percent-text" id="percentDisplay">مكتمل: 0%</div>
+    </div>
+
+    <div class="game-area">
+        <div class="board" id="board">
+            </div>
+        <div class="instructions">اربط كل لونين متشابهين دون تقاطع المسارات</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+            <div class="modal-title">عمل رائع!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">تم حل اللغز بنجاح</p>
+            <div class="modal-reward" id="modalReward">+40 عملة</div>
+            <button class="btn-next" onclick="nextLevel()">المستوى التالي</button>
+        </div>
+    </div>
+
+    <script>
+        const boardEl = document.getElementById('board');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const percentDisplay = document.getElementById('percentDisplay');
+        const walletElement = document.getElementById('walletScore');
+
+        // تصميم المستويات (5x5 شبكة، الأرقام تمثل الألوان، 0 يعني فارغ)
+        const levels = [
+            {
+                size: 5,
+                grid: [
+                    [1, 0, 0, 0, 2],
+                    [0, 0, 3, 0, 0],
+                    [0, 0, 0, 0, 4],
+                    [0, 3, 1, 0, 0],
+                    [0, 2, 0, 4, 0]
+                ]
+            },
+            {
+                size: 5,
+                grid: [
+                    [1, 2, 0, 0, 3],
+                    [0, 0, 0, 4, 0],
+                    [0, 2, 0, 0, 0],
+                    [0, 0, 0, 0, 1],
+                    [4, 0, 3, 0, 0]
+                ]
+            },
+            {
+                size: 6,
+                grid: [
+                    [1, 0, 2, 0, 0, 3],
+                    [0, 0, 0, 0, 0, 0],
+                    [0, 4, 0, 5, 0, 0],
+                    [0, 0, 0, 0, 2, 0],
+                    [1, 0, 5, 0, 0, 4],
+                    [0, 0, 0, 0, 0, 3]
+                ]
+            }
+        ];
+
+        let currentLevel = 0;
+        let gridSize = 5;
+        let boardState = []; // لتخزين حالة كل خلية
+        let paths = {}; // مسارات الألوان
+        let isDrawing = false;
+        let currentColor = 0;
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            let levelData = levels[currentLevel % levels.length];
+            gridSize = levelData.size;
+            
+            levelDisplay.innerText = `المستوى: ${currentLevel + 1}`;
+            percentDisplay.innerText = `مكتمل: 0%`;
+            
+            // إعداد حجم اللوحة
+            boardEl.style.gridTemplateColumns = `repeat(${gridSize}, 1fr)`;
+            boardEl.style.gridTemplateRows = `repeat(${gridSize}, 1fr)`;
+            
+            let cellSize = gridSize === 5 ? 60 : 50; // حجم الخلية حسب حجم الشبكة
+            boardEl.style.width = `${gridSize * cellSize + 10}px`;
+            boardEl.style.height = `${gridSize * cellSize + 10}px`;
+
+            boardState = [];
+            paths = {};
+            boardEl.innerHTML = '';
+
+            // بناء الشبكة
+            for (let r = 0; r < gridSize; r++) {
+                boardState[r] = [];
+                for (let c = 0; c < gridSize; c++) {
+                    let color = levelData.grid[r][c];
+                    boardState[r][c] = {
+                        dot: color, // نقطة أساسية
+                        path: 0     // خط التوصيل
+                    };
+
+                    const cellEl = document.createElement('div');
+                    cellEl.className = 'cell';
+                    cellEl.id = `cell-${r}-${c}`;
+                    cellEl.dataset.r = r;
+                    cellEl.dataset.c = c;
+
+                    if (color !== 0) {
+                        const dot = document.createElement('div');
+                        dot.className = `dot color-${color}`;
+                        cellEl.appendChild(dot);
+                    }
+
+                    // أحداث الماوس واللمس
+                    cellEl.addEventListener('mousedown', (e) => startDraw(e, r, c));
+                    cellEl.addEventListener('mouseenter', (e) => continueDraw(e, r, c));
+                    
+                    boardEl.appendChild(cellEl);
+                }
+            }
+
+            // إعداد التتبع للمس للموبايل
+            boardEl.addEventListener('touchstart', handleTouchStart, {passive: false});
+            boardEl.addEventListener('touchmove', handleTouchMove, {passive: false});
+            window.addEventListener('mouseup', stopDraw);
+            window.addEventListener('touchend', stopDraw);
+        }
+
+        function drawPipes() {
+            // تنظيف الأنابيب القديمة
+            document.querySelectorAll('.pipe').forEach(p => p.remove());
+
+            let filledCells = 0;
+
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    let state = boardState[r][c];
+                    if (state.path !== 0 || state.dot !== 0) filledCells++;
+                    
+                    if (state.path !== 0) {
+                        const cellEl = document.getElementById(`cell-${r}-${c}`);
+                        const colorClass = `color-${state.path}`;
+
+                        // دائرة المنتصف للأنبوب
+                        let center = document.createElement('div');
+                        center.className = `pipe center ${colorClass}`;
+                        cellEl.appendChild(center);
+
+                        // التحقق من الاتصالات لرسم الوصلات
+                        let pathArr = paths[state.path] || [];
+                        let currentIndex = pathArr.findIndex(p => p.r === r && p.c === c);
+
+                        if (currentIndex !== -1) {
+                            let prev = pathArr[currentIndex - 1];
+                            let next = pathArr[currentIndex + 1];
+
+                            // توصيل مع الخلية السابقة
+                            if (prev) addPipeConnection(cellEl, r, c, prev.r, prev.c, colorClass);
+                            // توصيل مع الخلية التالية
+                            if (next) addPipeConnection(cellEl, r, c, next.r, next.c, colorClass);
+                        }
+                    }
+                }
+            }
+
+            // تحديث نسبة الاكتمال
+            let percent = Math.floor((filledCells / (gridSize * gridSize)) * 100);
+            percentDisplay.innerText = `مكتمل: ${percent}%`;
+            
+            // إضافة تأثير توهج عند الاكتمال
+            if(percent === 100) percentDisplay.style.color = 'var(--primary-color)';
+            else percentDisplay.style.color = '#aaa';
+
+            checkWin();
+        }
+
+        function addPipeConnection(cellEl, r1, c1, r2, c2, colorClass) {
+            let pipe = document.createElement('div');
+            if (r2 < r1) pipe.className = `pipe up ${colorClass}`;
+            else if (r2 > r1) pipe.className = `pipe down ${colorClass}`;
+            else if (c2 < c1) pipe.className = `pipe left ${colorClass}`;
+            else if (c2 > c1) pipe.className = `pipe right ${colorClass}`;
+            cellEl.appendChild(pipe);
+        }
+
+        function startDraw(e, r, c) {
+            e.preventDefault();
+            let state = boardState[r][c];
+            let colorToDraw = state.dot !== 0 ? state.dot : state.path;
+
+            if (colorToDraw !== 0) {
+                isDrawing = true;
+                currentColor = colorToDraw;
+
+                // إذا بدأنا من مسار موجود، نقطع المسار من هذه النقطة
+                if (paths[currentColor]) {
+                    let index = paths[currentColor].findIndex(p => p.r === r && p.c === c);
+                    if (index !== -1) {
+                        // إزالة النقاط اللاحقة
+                        let removed = paths[currentColor].splice(index + 1);
+                        removed.forEach(p => { if (boardState[p.r][p.c].dot === 0) boardState[p.r][p.c].path = 0; });
+                    } else {
+                        // مسار جديد، تنظيف القديم
+                        paths[currentColor].forEach(p => { if (boardState[p.r][p.c].dot === 0) boardState[p.r][p.c].path = 0; });
+                        paths[currentColor] = [{r, c}];
+                    }
+                } else {
+                    paths[currentColor] = [{r, c}];
+                }
+                
+                if (state.dot === 0) state.path = currentColor;
+                drawPipes();
+            }
+        }
+
+        function continueDraw(e, r, c) {
+            if (!isDrawing || currentColor === 0) return;
+
+            let pathArr = paths[currentColor];
+            let lastPoint = pathArr[pathArr.length - 1];
+
+            // التأكد أن الحركة لخلية مجاورة
+            let isAdjacent = Math.abs(lastPoint.r - r) + Math.abs(lastPoint.c - c) === 1;
+
+            if (isAdjacent) {
+                let state = boardState[r][c];
+                
+                // منع المرور فوق نقطة بلون مختلف أو مسار مسدود
+                if (state.dot !== 0 && state.dot !== currentColor) return;
+
+                // لو رجع خطوة للخلف، نحذف آخر نقطة
+                if (pathArr.length > 1 && pathArr[pathArr.length - 2].r === r && pathArr[pathArr.length - 2].c === c) {
+                    let removed = pathArr.pop();
+                    if (boardState[removed.r][removed.c].dot === 0) boardState[removed.r][removed.c].path = 0;
+                    drawPipes();
+                    return;
+                }
+
+                // لو الخلية فاضية أو هي الهدف، ضيفها
+                if (state.path === 0 || state.path === currentColor) {
+                    
+                    // لو الخلية فيها مسار للون تاني، اقطعه
+                    if (state.path !== 0 && state.path !== currentColor) {
+                        let otherPath = paths[state.path];
+                        let idx = otherPath.findIndex(p => p.r === r && p.c === c);
+                        if (idx !== -1) {
+                            let removed = otherPath.splice(idx);
+                            removed.forEach(p => { if (boardState[p.r][p.c].dot === 0) boardState[p.r][p.c].path = 0; });
+                        }
+                    }
+
+                    if (state.dot === 0) state.path = currentColor;
+                    
+                    // منع تكرار نفس النقطة في المسار
+                    if (!pathArr.find(p => p.r === r && p.c === c)) {
+                        pathArr.push({r, c});
+                    }
+
+                    drawPipes();
+
+                    // لو وصلنا للهدف التاني، أوقف الرسم
+                    if (state.dot === currentColor && pathArr.length > 1) {
+                        isDrawing = false;
+                    }
+                }
+            }
+        }
+
+        function stopDraw() {
+            isDrawing = false;
+        }
+
+        // دعم اللمس للموبايل (تحويل إحداثيات اللمس إلى خلايا)
+        function handleTouchStart(e) {
+            if(e.cancelable) e.preventDefault();
+            let touch = e.touches[0];
+            let el = document.elementFromPoint(touch.clientX, touch.clientY);
+            if (el && el.classList.contains('cell')) {
+                startDraw(e, parseInt(el.dataset.r), parseInt(el.dataset.c));
+            } else if (el && el.parentElement.classList.contains('cell')) {
+                startDraw(e, parseInt(el.parentElement.dataset.r), parseInt(el.parentElement.dataset.c));
+            }
+        }
+
+        function handleTouchMove(e) {
+            if(e.cancelable) e.preventDefault();
+            if (!isDrawing) return;
+            let touch = e.touches[0];
+            let el = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            let cell = el?.classList.contains('cell') ? el : el?.parentElement?.classList.contains('cell') ? el.parentElement : null;
+            
+            if (cell) {
+                continueDraw(e, parseInt(cell.dataset.r), parseInt(cell.dataset.c));
+            }
+        }
+
+        function checkWin() {
+            let levelData = levels[currentLevel % levels.length];
+            
+            // 1. هل كل النقاط متوصلة؟
+            // الألوان موجودة في الـ grid الأساسي. لو فيه 4 ألوان، لازم يكون فيه 4 مسارات، وكل مسار بيبدأ وينتهي بـ dot.
+            let colorsInLevel = new Set();
+            for(let r=0; r<gridSize; r++){
+                for(let c=0; c<gridSize; c++){
+                    if(levelData.grid[r][c] !== 0) colorsInLevel.add(levelData.grid[r][c]);
+                }
+            }
+
+            for (let color of colorsInLevel) {
+                let pathArr = paths[color];
+                if (!pathArr || pathArr.length < 2) return; // لسه مفيش مسار
+                
+                let start = pathArr[0];
+                let end = pathArr[pathArr.length - 1];
+                
+                if (boardState[start.r][start.c].dot !== color || boardState[end.r][end.c].dot !== color) {
+                    return; // المسار مش واصل بين النقطتين
+                }
+            }
+
+            // 2. هل الشبكة كلها مليانة؟
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (boardState[r][c].dot === 0 && boardState[r][c].path === 0) {
+                        return; // لسه فيه خلايا فاضية
+                    }
+                }
+            }
+
+            // فاز!
+            setTimeout(levelComplete, 300);
+        }
+
+        function levelComplete() {
+            let reward = 40; 
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            initGame();
+        }
+
+        // تشغيل اللعبة
+        window.onload = initGame;
+    </script>
+</body>
+</html>

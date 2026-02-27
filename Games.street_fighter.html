@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مقاتل الشوارع - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --player-color: #34c759; /* لون البطل أخضر نيون */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; touch-action: none; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 100;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; filter: drop-shadow(0 0 5px #000); }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; backdrop-filter: blur(5px); }
+
+        /* --- لوحة المعلومات (النقاط والكومبو) --- */
+        .dashboard {
+            position: absolute; top: 65px; width: 100%; z-index: 100;
+            display: flex; flex-direction: column; align-items: center;
+            pointer-events: none;
+        }
+        .score-board { font-size: 28px; font-weight: 900; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .combo-board { font-size: 16px; font-weight: bold; color: #ff9900; transition: transform 0.1s; }
+        .combo-board.pulse { transform: scale(1.5); color: var(--gold); text-shadow: 0 0 10px var(--gold); }
+        
+        .health-bar-container { width: 150px; height: 10px; background: #222; border-radius: 5px; margin-top: 10px; overflow: hidden; border: 1px solid #444; }
+        .health-bar { height: 100%; background: var(--player-color); width: 100%; transition: width 0.2s, background 0.3s; }
+
+        /* --- مساحة الكانفاس --- */
+        #gameCanvas {
+            display: block; width: 100%; height: 100%; background: radial-gradient(circle at bottom, #1a1a2e, #050505);
+            position: absolute; top: 0; left: 0; z-index: 10;
+        }
+
+        /* --- أزرار التحكم الخفية للموبايل --- */
+        .touch-zones {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 50;
+            display: flex;
+        }
+        .zone-left { flex: 1; height: 100%; }
+        .zone-right { flex: 1; height: 100%; }
+
+        /* تأثيرات بصرية للضرب */
+        .flash {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.2); z-index: 40; pointer-events: none;
+            opacity: 0; transition: opacity 0.1s;
+        }
+
+        /* --- نافذة نهاية اللعبة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--danger); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(255, 0, 85, 0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; color: var(--danger); margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 16px; color: #aaa; margin-bottom: 5px; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--danger), #ff5e62);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* رسالة مساعدة */
+        .start-hint {
+            position: absolute; top: 70%; left: 50%; transform: translate(-50%, -50%);
+            color: rgba(255,255,255,0.6); font-weight: bold; font-size: 16px; text-align: center;
+            pointer-events: none; animation: blink 1.5s infinite; z-index: 100; width: 100%;
+        }
+        @keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="stats-box"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="score-board" id="scoreDisplay">0</div>
+        <div class="combo-board" id="comboDisplay">x1 Combo</div>
+        <div class="health-bar-container">
+            <div class="health-bar" id="healthBar"></div>
+        </div>
+    </div>
+    
+    <div class="start-hint" id="startHint">
+        اضغط يسار الشاشة للضرب يساراً <br> واضغط يمين الشاشة للضرب يميناً
+        <div style="display:flex; justify-content:center; gap:50px; margin-top:10px; font-size:24px;">
+            <i class="fa-solid fa-hand-pointer"></i> <i class="fa-solid fa-hand-pointer"></i>
+        </div>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div class="touch-zones">
+        <div class="zone-left" onmousedown="attack('left')" ontouchstart="attack('left')"></div>
+        <div class="zone-right" onmousedown="attack('right')" ontouchstart="attack('right')"></div>
+    </div>
+
+    <div class="flash" id="flashScreen"></div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box">
+            <div class="result-icon"><i class="fa-solid fa-skull"></i></div>
+            <div class="result-title">سقط البطل!</div>
+            <div class="score-text">الأعداء المهزومين: <span id="finalScore" style="color:#fff; font-weight:bold;">0</span></div>
+            <div class="score-text" style="font-size:12px;">أعلى كومبو: <span id="finalCombo" style="color:#ff9900;">0</span></div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" onclick="restartGame()">قتال جديد <i class="fa-solid fa-rotate-right"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🥷 محرك اللعبة (Game Engine)
+        // ==========================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        // متغيرات اللعب
+        let score = 0;
+        let combo = 0;
+        let maxCombo = 0;
+        let health = 100;
+        let gameActive = true;
+        let hasStarted = false;
+        let frameCount = 0;
+        
+        // مسافة الهجوم (المدى الذي يمكن للاعب ضرب العدو فيه)
+        const attackRange = 120; 
+
+        // ==========================================
+        // 🦸‍♂️ البطل (Player)
+        // ==========================================
+        const player = {
+            x: canvas.width / 2,
+            y: canvas.height - 150,
+            radius: 25,
+            color: '#34c759',
+            attackTimer: 0,
+            attackDirection: 0, // -1 يسار, 1 يمين, 0 واقف
+
+            draw() {
+                ctx.save();
+                
+                // توهج البطل
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+
+                // رسم البطل (شكل ماسة نيون)
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y - this.radius);
+                ctx.lineTo(this.x + this.radius, this.y);
+                ctx.lineTo(this.x, this.y + this.radius);
+                ctx.lineTo(this.x - this.radius, this.y);
+                ctx.closePath();
+                ctx.fill();
+
+                // تأثير الهجوم (رسم خط يمثل السيف أو الضربة)
+                if (this.attackTimer > 0) {
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.moveTo(this.x, this.y);
+                    // رسم خط للجهة التي يضرب فيها
+                    ctx.lineTo(this.x + (this.attackDirection * attackRange), this.y);
+                    ctx.stroke();
+                    this.attackTimer--;
+                }
+
+                // رسم دائرة توضح المدى (خفيفة جداً)
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, attackRange, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        };
+
+        // ==========================================
+        // 👹 الأعداء (Enemies)
+        // ==========================================
+        let enemies = [];
+        class Enemy {
+            constructor() {
+                // يظهر إما من أقصى اليمين أو أقصى اليسار
+                this.side = Math.random() > 0.5 ? 1 : -1; 
+                this.x = this.side === 1 ? canvas.width + 50 : -50;
+                this.y = player.y; // نفس مستوى البطل
+                this.radius = 20;
+                this.color = '#ff0055';
+                // السرعة تزيد مع السكور
+                this.baseSpeed = 3 + (score / 20);
+                this.speed = this.side === 1 ? -this.baseSpeed : this.baseSpeed;
+                this.active = true;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = this.color;
+                ctx.fillStyle = this.color;
+
+                // رسم العدو (مثلث متجه نحو البطل)
+                ctx.beginPath();
+                if (this.side === 1) { // قادم من اليمين
+                    ctx.moveTo(this.x + this.radius, this.y - this.radius);
+                    ctx.lineTo(this.x - this.radius, this.y);
+                    ctx.lineTo(this.x + this.radius, this.y + this.radius);
+                } else { // قادم من اليسار
+                    ctx.moveTo(this.x - this.radius, this.y - this.radius);
+                    ctx.lineTo(this.x + this.radius, this.y);
+                    ctx.lineTo(this.x - this.radius, this.y + this.radius);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+
+            update() {
+                this.x += this.speed;
+                this.draw();
+            }
+        }
+
+        // ==========================================
+        // ✨ المؤثرات (الدم/الشرار)
+        // ==========================================
+        let particles = [];
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y;
+                this.radius = Math.random() * 4 + 1;
+                this.vx = (Math.random() - 0.5) * 10;
+                this.vy = (Math.random() - 0.5) * 10;
+                this.color = color;
+                this.alpha = 1;
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+                ctx.fill();
+                ctx.restore();
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.alpha -= 0.05;
+                this.draw();
+            }
+        }
+
+        // ==========================================
+        // 🕹️ نظام الهجوم (Attack System)
+        // ==========================================
+        function attack(directionStr) {
+            if (!gameActive) return;
+            if (!hasStarted) {
+                hasStarted = true;
+                document.getElementById('startHint').style.display = 'none';
+            }
+
+            const directionNum = directionStr === 'right' ? 1 : -1;
+            
+            // انيميشن البطل
+            player.attackTimer = 5; // عدد الفريمات لظهور خط الضربة
+            player.attackDirection = directionNum;
+
+            let hit = false;
+
+            // البحث عن عدو في المدى في هذا الاتجاه
+            for (let i = 0; i < enemies.length; i++) {
+                let e = enemies[i];
+                if (!e.active) continue;
+
+                // هل العدو في الجهة التي ضربنا فيها؟
+                if (e.side === directionNum) {
+                    // حساب المسافة
+                    let dist = Math.abs(e.x - player.x);
+                    
+                    // إذا كان داخل المدى (دائرة الهجوم)
+                    if (dist <= attackRange + e.radius) {
+                        // ضربة ناجحة!
+                        hit = true;
+                        e.active = false; // تدمير العدو
+                        enemies.splice(i, 1);
+                        
+                        // انفجار
+                        for(let j=0; j<10; j++) particles.push(new Particle(e.x, e.y, e.color));
+                        
+                        // زيادة النقاط والكومبو
+                        combo++;
+                        if(combo > maxCombo) maxCombo = combo;
+                        score += 1 + Math.floor(combo / 10); // نقاط أكثر لو الكومبو عالي
+                        
+                        updateScoreBoard();
+                        if(navigator.vibrate) navigator.vibrate(20);
+                        
+                        // البطل يلمع بلون سماوي
+                        player.color = '#00C6FF';
+                        setTimeout(()=> player.color = '#34c759', 100);
+                        break; // نضرب عدو واحد في كل ضغطة
+                    }
+                }
+            }
+
+            // لو ضربنا على الفاضي (Miss)
+            if (!hit) {
+                combo = 0; // تصفير الكومبو
+                updateScoreBoard();
+                
+                // وميض أحمر خفيف للشاشة (عقاب)
+                const flash = document.getElementById('flashScreen');
+                flash.style.background = 'rgba(255, 0, 0, 0.1)';
+                flash.style.opacity = '1';
+                setTimeout(() => flash.style.opacity = '0', 100);
+            }
+        }
+
+        function updateScoreBoard() {
+            document.getElementById('scoreDisplay').innerText = score;
+            const cb = document.getElementById('comboDisplay');
+            cb.innerText = `x${combo} Combo`;
+            
+            if (combo > 5) {
+                cb.classList.remove('pulse');
+                void cb.offsetWidth;
+                cb.classList.add('pulse');
+            } else {
+                cb.classList.remove('pulse');
+            }
+        }
+
+        // ==========================================
+        // ❤️ نظام الصحة (Health System)
+        // ==========================================
+        function takeDamage() {
+            health -= 25; // 4 ضربات ويموت
+            combo = 0;
+            updateScoreBoard();
+            
+            // تحديث الشريط
+            const hb = document.getElementById('healthBar');
+            hb.style.width = health + '%';
+            if(health <= 25) hb.style.background = 'var(--danger)';
+            else if(health <= 50) hb.style.background = 'var(--gold)';
+            
+            // وميض قوي
+            const flash = document.getElementById('flashScreen');
+            flash.style.background = 'rgba(255, 0, 85, 0.3)';
+            flash.style.opacity = '1';
+            setTimeout(() => flash.style.opacity = '0', 150);
+            
+            if(navigator.vibrate) navigator.vibrate(200);
+
+            if(health <= 0) {
+                endGame();
+            }
+        }
+
+        // ==========================================
+        // 🔄 الحلقة الرئيسية (Game Loop)
+        // ==========================================
+        function animate() {
+            if (!gameActive) return;
+            requestAnimationFrame(animate);
+            
+            // تنظيف الشاشة مع أثر حركة
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.5)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // تحديث موقع البطل عند تغيير حجم الشاشة
+            player.x = canvas.width / 2;
+            player.y = canvas.height - 150;
+            
+            // رسم خط الأرضية
+            ctx.strokeStyle = '#222';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, player.y + player.radius);
+            ctx.lineTo(canvas.width, player.y + player.radius);
+            ctx.stroke();
+
+            player.draw();
+
+            if (hasStarted) {
+                frameCount++;
+                
+                // معدل ظهور الأعداء يزيد مع النقاط
+                let spawnRate = Math.max(30, 80 - Math.floor(score / 5));
+                if (frameCount % spawnRate === 0) {
+                    enemies.push(new Enemy());
+                }
+
+                // تحديث الأعداء
+                for (let i = enemies.length - 1; i >= 0; i--) {
+                    let e = enemies[i];
+                    e.update();
+
+                    // هل وصل العدو للبطل؟
+                    let dist = Math.abs(e.x - player.x);
+                    if (dist < player.radius + e.radius) {
+                        takeDamage();
+                        // تدمير العدو اللي ضربنا
+                        for(let j=0; j<10; j++) particles.push(new Particle(e.x, e.y, e.color));
+                        enemies.splice(i, 1);
+                    }
+                }
+
+                // تحديث الشرار (Particles)
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    if (particles[i].alpha <= 0) particles.splice(i, 1);
+                    else particles[i].update();
+                }
+            }
+        }
+
+        // ==========================================
+        // 🛑 نهاية اللعبة وإعادة التشغيل
+        // ==========================================
+        function endGame() {
+            gameActive = false;
+            
+            // حساب المكافأة: كل 15 عدو = 1 عملة
+            let earned = Math.floor(score / 15);
+            if (score > 0 && earned === 0) earned = 1;
+            
+            totalCoins += earned;
+            localStorage.setItem('wareed_coins', totalCoins);
+            document.getElementById('walletCoins').innerText = totalCoins;
+
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('finalCombo').innerText = `x${maxCombo}`;
+            document.getElementById('coinsEarned').innerText = earned;
+            document.getElementById('gameOverModal').style.display = 'flex';
+        }
+
+        function restartGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            score = 0;
+            combo = 0;
+            maxCombo = 0;
+            health = 100;
+            frameCount = 0;
+            enemies = [];
+            particles = [];
+            hasStarted = false;
+            
+            updateScoreBoard();
+            document.getElementById('healthBar').style.width = '100%';
+            document.getElementById('healthBar').style.background = 'var(--player-color)';
+            document.getElementById('startHint').style.display = 'block';
+            
+            gameActive = true;
+            animate();
+        }
+
+        // البدء
+        animate();
+
+        // تعطيل السحب المزدوج (Double Tap Zoom) اللي بيبوظ اللعب ع الموبايل
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+
+    </script>
+</body>
+</html>

@@ -566,6 +566,146 @@ body {
     font-weight: 700;
     cursor: pointer;
 }
+/* ================= شريط التنقل السفلي (Royal Nav) ================= */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background: rgba(15, 15, 20, 0.95); /* لون داكن جداً */
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255, 215, 0, 0.1); /* خط ذهبي خافت */
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 8000;
+    padding-bottom: 5px; /* عشان الآيفون */
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #777;
+    font-size: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 20%; /* تقسيم المساحة بالتساوي */
+    position: relative;
+}
+
+.nav-item i {
+    font-size: 22px;
+    margin-bottom: 4px;
+    transition: 0.3s;
+}
+
+/* حالة النشاط (لما تكون واقف على الصفحة) */
+.nav-item.active {
+    color: var(--accent-color); /* اللون البنفسجي بتاعك */
+}
+
+.nav-item.active i {
+    transform: translateY(-2px);
+    text-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+}
+
+/* نقطة صغيرة تحت العنصر النشط */
+.nav-item.active::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    width: 5px;
+    height: 5px;
+    background: var(--accent-color);
+    border-radius: 50%;
+}
+
+/* ================= زر الإضافة المركزي (The Core) ================= */
+.nav-center-btn {
+    position: relative;
+    top: -25px; /* يرفع الزر لفوق الشريط */
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #FFD700 0%, #d4af37 100%); /* ذهبي */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 0 0 5px rgba(15, 15, 20, 1); /* ظل وإطار عشان يبان مفصول */
+    cursor: pointer;
+    transition: 0.3s;
+    animation: pulseGlow 3s infinite;
+}
+
+.nav-center-btn i {
+    color: #000;
+    font-size: 24px;
+    transition: 0.3s;
+}
+
+.nav-center-btn:active {
+    transform: scale(0.95);
+}
+.nav-center-btn:active i {
+    transform: rotate(90deg);
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 0 0 5px rgba(15, 15, 20, 1); }
+    50% { box-shadow: 0 0 25px rgba(255, 215, 0, 0.6), 0 0 0 5px rgba(15, 15, 20, 1); }
+    100% { box-shadow: 0 0 15px rgba(255, 215, 0, 0.4), 0 0 0 5px rgba(15, 15, 20, 1); }
+}
+
+
+/* ================= تصميم الصفحات المنبثقة (Popup Pages) ================= */
+.popup-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: calc(100% - 70px); /* نترك مساحة للشريط السفلي */
+    background: #050505; /* نفس لون الخلفية الأصلي */
+    z-index: 5000; /* تحت الهيدر والشريط السفلي */
+    transform: translateY(100%); /* مخفية في الأسفل افتراضياً */
+    transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1); /* أنيميشن ناعم */
+    overflow-y: auto;
+    padding-bottom: 20px;
+    display: block !important; /* نلغي الـ display:none القديم */
+    opacity: 0; /* شفافية للتحسين البصري */
+}
+
+.popup-page.active {
+    transform: translateY(0); /* تظهر في مكانها */
+    opacity: 1;
+}
+
+/* تحسين الهيدر الخاص بكل صفحة منبثقة */
+.popup-header {
+    position: sticky;
+    top: 0;
+    background: rgba(20, 20, 25, 0.95);
+    backdrop-filter: blur(10px);
+    padding: 15px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+}
+
+.popup-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
 
 
     </style>
@@ -795,6 +935,7 @@ body {
 
 
     <div id="list" style="padding-bottom: 20px;"></div>
+
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -1300,7 +1441,12 @@ else {
     clearTimeout(storyTimer);
     const group = storyGroups[currentGroupIndex];
     const story = group.stories[currentStoryIndex];
-    const contentDiv = document.getElementById('storyContent');
+    // --- إصلاح: التأكد من وجود حاوية القصة للتفاعل ---
+const storyContentEl = document.getElementById('storyContent');
+if (storyContentEl) {
+    storyContentEl.addEventListener('touchend', handleDoubleTap);
+}
+
     const blurBg = document.getElementById('storyBlurBg');
     const timeAgoDiv = document.getElementById('storyTimeAgo');
 
@@ -4544,7 +4690,14 @@ async function saveNewSecretPass() {
 // 4. فتح نافذة التحقق من الباسورد
 function openVerifySecretModal() {
     document.getElementById('verifySecretModal').style.display = 'flex';
-    const input = document.getElementById('inputSecretPass');
+    // --- إصلاح: زر Enter لإنشاء المجموعة ---
+const groupInput = document.getElementById('newGroupNameInput');
+if (groupInput) {
+    groupInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') executeCreateGroup();
+    });
+}
+
     input.value = '';
     // تركيز المؤشر للكتابة فوراً
     setTimeout(() => input.focus(), 100);
@@ -4741,8 +4894,14 @@ function openUnlockModal() {
     closeOptions(); // نقفل القائمة السفلية الأول
     
     const modal = document.getElementById('unlockChatModal');
-    const input = document.getElementById('unlockPassInput');
-    
+    // --- إصلاح: زر Enter لفك قفل المحادثة ---
+const unlockInput = document.getElementById('unlockPassInput');
+if (unlockInput) {
+    unlockInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') confirmUnlockAction();
+    });
+}
+
     modal.style.display = 'flex';
     input.value = ''; // تصفير الحقل
     
@@ -5847,8 +6006,14 @@ function initResetProcess(type) {
     // إعداد النافذة الجديدة
     resetTargetType = type; // CHAT or VAULT
     const modal = document.getElementById('masterResetModal');
-    const input = document.getElementById('masterPassInput');
-    
+    // --- إصلاح: زر Enter لإثبات الملكية ---
+const masterPassInputEl = document.getElementById('masterPassInput');
+if (masterPassInputEl) {
+    masterPassInputEl.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') confirmMasterReset();
+    });
+}
+
     modal.style.display = 'flex';
     input.value = '';
     setTimeout(() => input.focus(), 100);
@@ -5930,7 +6095,160 @@ if (masterInput) {
         if (e.key === 'Enter') confirmMasterReset();
     });
 }
+// 1. فتح وإغلاق قائمة الزر العائم
+function toggleFabMenu() {
+    const modal = document.getElementById('fabMenuModal');
+    // تبديل الكلاس active لإظهار وإخفاء القائمة
+    if (modal.classList.contains('active')) {
+        modal.classList.remove('active');
+    } else {
+        modal.classList.add('active');
+    }
+}
 
+// 2. تشغيل خيار "محادثة خاصة"
+function startNewChatFromMenu() {
+    toggleFabMenu(); // إغلاق القائمة الصغيرة أولاً
+    setTimeout(() => {
+        startNewChat(); // استدعاء دالة بدء المحادثة الأصلية الموجودة عندك
+    }, 200);
+}
+
+// 3. تشغيل خيار "مجموعة جديدة"
+// 3. تشغيل خيار "مجموعة جديدة" (زي القائمة الجانبية بالضبط)
+function createGroupFromMenu() {
+    toggleFabMenu(); // نقفل القائمة الصغيرة الأول
+    
+    setTimeout(() => {
+        // التوجيه لنفس الصفحة الموجودة في القائمة الجانبية
+        window.location.href = 'create_group.html';
+    }, 200);
+}
+
+// 1. دالة التبديل بين التبويبات
+function switchTab(pageId, element) {
+    vibrate(); // اهتزاز بسيط
+    
+    // 1. تحديث شكل الأزرار في الشريط السفلي
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    if(element) element.classList.add('active');
+
+    // 2. التحكم في الصفحات المنبثقة
+    const allPopups = document.querySelectorAll('.popup-page');
+    const mainInbox = document.getElementById('page-inbox'); // الصفحة الرئيسية (الشات)
+    const mainHeader = document.querySelector('.main-header'); // الهيدر الرئيسي
+    const searchBar = document.getElementById('searchContainer'); // شريط البحث
+
+    if (pageId === 'inbox') {
+        // --- حالة العودة للرئيسية ---
+        // إخفاء جميع الصفحات المنبثقة (تنزلق للأسفل)
+        allPopups.forEach(p => p.classList.remove('active'));
+        
+        // إظهار المحتوى الرئيسي والهيدر
+        setTimeout(() => {
+            mainInbox.style.display = 'block';
+            mainHeader.style.transform = 'translateY(0)';
+            if(searchBar) searchBar.style.display = 'block';
+        }, 100);
+
+    } else {
+        // --- حالة فتح صفحة فرعية (قصص، مكالمات، بروفايل) ---
+        
+        // أولاً: إغلاق أي صفحة منبثقة أخرى مفتوحة
+        allPopups.forEach(p => {
+            if (p.id !== `page-${pageId}`) p.classList.remove('active');
+        });
+
+        // ثانياً: فتح الصفحة المطلوبة
+        const targetPage = document.getElementById(`page-${pageId}`);
+        if (targetPage) {
+            targetPage.classList.add('active');
+            
+            // تنفيذ الوظائف الخاصة بكل صفحة
+            if (pageId === 'stories') {
+                renderStoriesPage(); // دالة تحميل القصص
+            } else if (pageId === 'calls') {
+                loadCallsLog(); // دالة تحميل المكالمات
+            } else if (pageId === 'profile') {
+                 // تحديث البروفايل إذا لزم الأمر
+                 const iframe = document.getElementById('profileFrame');
+                 if(iframe && !iframe.src.includes('uid')) {
+                     // إعادة تحميله لضمان التحديث
+                     iframe.src = iframe.src; 
+                 }
+            }
+        }
+        
+        // (اختياري) إخفاء الهيدر الرئيسي للدردشات لإعطاء مساحة أكبر
+        // mainHeader.style.transform = 'translateY(-100%)'; 
+    }
+}
+
+// 2. دالة الانتقال للبروفايل
+function goToProfile() {
+    vibrate();
+    // الانتقال لصفحة البروفايل (تأكد من وجود الملف)
+    window.location.href = 'profile.html';
+}
+
+// 3. تحديث صورة البروفايل في الشريط السفلي
+function updateNavAvatar() {
+    if(currentUser && currentUser.photoURL) {
+        document.getElementById('navProfileImg').style.backgroundImage = `url('${currentUser.photoURL}')`;
+    }
+}
+// استدعي هذه الدالة داخل initApp أو authStateChanged
+auth.onAuthStateChanged(user => {
+    if(user) setTimeout(updateNavAvatar, 1000);
+});
+
+
+// 4. دالة ملء صفحة القصص (Grid View)
+function renderStoriesPage() {
+    const grid = document.getElementById('storiesFullGrid');
+    grid.innerHTML = '';
+    
+    // استخدام المتغير global storyGroups الموجود في كودك الأصلي
+    if (!storyGroups || storyGroups.length === 0) {
+        grid.innerHTML = '<div style="grid-column:span 2; text-align:center; color:#777; padding:20px;">لا توجد قصص حالياً</div>';
+        return;
+    }
+
+    storyGroups.forEach((group, index) => {
+        const lastStory = group.stories[group.stories.length - 1];
+        const user = group.user;
+        
+        const item = document.createElement('div');
+        item.className = 'story-grid-item';
+        
+        // الخلفية (صورة أو فيديو)
+        if (lastStory.type === 'video') {
+            item.innerHTML = `<video src="${lastStory.url}#t=0.1" style="width:100%; height:100%; object-fit:cover;" muted></video>`;
+        } else {
+            item.style.backgroundImage = `url('${lastStory.url}')`;
+        }
+        
+        // طبقة المعلومات فوق القصة
+        item.innerHTML += `
+            <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent);">
+                <div style="position:absolute; bottom:10px; right:10px; display:flex; align-items:center; gap:5px;">
+                    <div style="width:20px; height:20px; border-radius:50%; background-image:url('${user.avatar}'); background-size:cover; border:1px solid #fff;"></div>
+                    <span style="color:#fff; font-size:11px; font-weight:bold;">${user.name}</span>
+                </div>
+            </div>
+        `;
+        
+        item.onclick = () => openStoryViewer(index); // فتح العارض عند الضغط
+        grid.appendChild(item);
+    });
+}
+
+// 5. دالة مبدئية لسجل المكالمات (يمكن ربطها بـ Firebase لاحقاً)
+function loadCallsLog() {
+    const list = document.getElementById('callsLogList');
+    // هنا المفروض تجيب البيانات من كولكشن 'calls' في الفايربيس
+    // حالياً سنتركها فارغة أو يمكنك وضع كود الجلب هنا
+}
 
 </script>
 <div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
@@ -6174,6 +6492,145 @@ if (masterInput) {
     })();
 </script>
 
+
+<div id="page-inbox" class="page-section active">
+    <div id="storiesContainer" class="stories-section">
+        <div class="stories-title">القصص</div>
+        <div class="stories-scroll" id="storiesList"></div>
+    </div>
+    
+    <div id="quickUsersContainer" class="quick-users-section">
+        <div class="quick-users-title">نشط الآن</div>
+        <div class="quick-users-scroll" id="quickUsersList"></div>
+    </div>
+
+    <div id="listTitleContainer" style="padding: 10px 25px;">
+        <span id="listTitleText" style="font-size: 18px; font-weight: 800; color: #fff;">الدردشات</span>
+    </div>
+    <div id="list"></div>
+</div>
+
+<div id="page-stories" class="page-section">
+    <div style="padding: 20px; text-align: center;">
+        <h2 style="color: #fff;">القصص</h2>
+        <p style="color: #aaa; font-size: 13px;">شارك لحظاتك مع الأصدقاء</p>
+        
+        <button onclick="window.location.href='add_story.html'" style="background: var(--accent-color); color: #fff; border: none; padding: 10px 20px; border-radius: 20px; margin-top: 10px; width: 100%; font-weight: bold;">
+            <i class="fa-solid fa-plus"></i> إضافة إلى القصة
+        </button>
+    </div>
+    <div id="storiesFullGrid" class="full-stories-grid">
+        </div>
+</div>
+
+<div id="page-calls" class="page-section">
+    <div style="padding: 20px;">
+        <h2 style="color: #fff; margin-bottom: 5px;">المكالمات</h2>
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <span style="background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 15px; color: #fff; font-size: 12px;">الكل</span>
+            <span style="background: rgba(255, 59, 48, 0.1); color: #ff3b30; padding: 5px 15px; border-radius: 15px; font-size: 12px;">فائتة</span>
+        </div>
+    </div>
+    <div id="callsLogList">
+        <div style="text-align:center; color:#555; margin-top:50px;">
+            <i class="fa-solid fa-phone-slash" style="font-size:40px; margin-bottom:10px;"></i>
+            <br>لا توجد مكالمات حديثة
+        </div>
+    </div>
+</div>
+
+<nav class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab('inbox', this)">
+        <i class="fa-solid fa-comments"></i>
+        <span>الدردشات</span>
+    </div>
+
+    <div class="nav-item" onclick="switchTab('stories', this)">
+        <i class="fa-solid fa-circle-notch"></i> <span>القصص</span>
+    </div>
+
+    <div class="nav-center-btn" onclick="vibrate(); toggleFabMenu()">
+        <i class="fa-solid fa-plus"></i>
+    </div>
+
+    <div class="nav-item" onclick="switchTab('calls', this)">
+        <i class="fa-solid fa-phone"></i>
+        <span>المكالمات</span>
+    </div>
+
+    <div class="nav-item" onclick="switchTab('profile', this)">
+        <div id="navProfileImg" style="width: 24px; height: 24px; border-radius: 50%; background: #333; background-size: cover;"></div>
+        <span style="margin-top: 2px;">أنا</span>
+    </div>
+</nav>
+
+<div class="bottom-sheet-overlay" id="fabMenuModal" onclick="toggleFabMenu()">
+    <div class="bottom-sheet" onclick="event.stopPropagation()" style="padding-bottom: 30px;">
+        <div class="sheet-handle"></div>
+        <div style="text-align: center; margin-bottom: 20px;">
+            <h3 style="color: #fff; margin: 0;">إنشاء جديد</h3>
+        </div>
+        <div class="sheet-action" onclick="vibrate(); startNewChatFromMenu()">
+            <div style="width: 40px; height: 40px; background: rgba(139, 92, 246, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: 10px;">
+                <i class="fa-solid fa-user-plus" style="color: #8b5cf6;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; color: #fff;">محادثة خاصة</div>
+                <div style="font-size: 11px; color: #aaa;">ابدأ شات مع صديق</div>
+            </div>
+        </div>
+        <div class="sheet-action" onclick="vibrate(); createGroupFromMenu()">
+            <div style="width: 40px; height: 40px; background: rgba(245, 158, 11, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-left: 10px;">
+                <i class="fa-solid fa-users" style="color: #f59e0b;"></i>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-weight: bold; color: #fff;">مجموعة جديدة</div>
+                <div style="font-size: 11px; color: #aaa;">دردشة جماعية مع الأصدقاء</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div id="page-stories" class="popup-page">
+    <div class="popup-header">
+        <div class="popup-title">
+            <i class="fa-solid fa-circle-notch" style="color:var(--accent-color)"></i> القصص
+        </div>
+        <div class="icon-btn" style="width:35px; height:35px;" onclick="window.location.href='add_story.html'">
+            <i class="fa-solid fa-plus"></i>
+        </div>
+    </div>
+    
+    <div id="storiesFullGrid" class="full-stories-grid">
+        </div>
+</div>
+
+<div id="page-calls" class="popup-page">
+    <div class="popup-header">
+        <div class="popup-title">
+            <i class="fa-solid fa-phone" style="color:#4ade80"></i> المكالمات
+        </div>
+    </div>
+    
+    <div style="padding: 15px;">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px; background: #1a1a1a; padding: 5px; border-radius: 12px; width: fit-content;">
+            <div style="padding: 6px 15px; background: #333; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;">الكل</div>
+            <div style="padding: 6px 15px; color: #ff3b30; font-size: 12px; font-weight: bold; cursor: pointer;">فائتة</div>
+        </div>
+
+        <div id="callsLogList">
+            <div style="text-align:center; color:#555; margin-top:80px;">
+                <i class="fa-solid fa-phone-slash" style="font-size:50px; margin-bottom:15px; opacity: 0.5;"></i>
+                <div style="font-size: 14px;">سجل المكالمات فارغ</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="page-profile" class="popup-page">
+    <iframe src="profile.html" style="width:100%; height:100%; border:none;" id="profileFrame"></iframe>
+</div>
 
 </body>
 </html>

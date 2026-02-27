@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بطل البولينج - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --text-color: #eee;
+            --gold: #FFD700;
+            --alley-color: #1a1a2e;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--primary-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 15px 30px; background: #111;
+            border-bottom: 1px solid #222; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 24px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .throws-left { font-size: 20px; font-weight: bold; color: var(--danger-color); }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; position: relative; background: radial-gradient(circle at center, #111, #000);
+            display: flex; justify-content: center; overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+
+        /* شريط القوة (مخفي في البداية) */
+        .power-bar-container {
+            position: absolute; right: 20px; top: 50%; transform: translateY(-50%);
+            width: 30px; height: 200px; background: #222; border: 2px solid #444;
+            border-radius: 15px; overflow: hidden; display: none;
+        }
+        .power-bar-fill {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+            background: linear-gradient(to top, #00e676, #FFD700, #ff3366);
+            transition: height 0.05s linear;
+        }
+
+        .instructions {
+            position: absolute; bottom: 30px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.5); font-size: 18px; font-weight: bold; pointer-events: none;
+        }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0, 198, 255, 0.2);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--primary-color); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--primary-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); transition: 0.2s;
+        }
+        .btn-restart:active { transform: scale(0.95); }
+        
+        .strike-text {
+            position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            font-size: 50px; font-weight: 900; color: var(--danger-color); text-shadow: 0 0 20px var(--danger-color);
+            opacity: 0; pointer-events: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .strike-text.active { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">بطل البولينج 🎳</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">الرميات</div>
+            <div class="throws-left" id="throwsDisplay">3 🎳</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+        <div class="power-bar-container" id="powerBarContainer">
+            <div class="power-bar-fill" id="powerBarFill"></div>
+        </div>
+        <div class="instructions" id="instructions">اضغط لتحديد الاتجاه!</div>
+        <div class="strike-text" id="strikeText">STRIKE! 💥</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+            <div class="modal-title" id="modalTitle">انتهت الجولة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">أسقطت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> دبابيس</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">العب من جديد</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameArea = document.getElementById('gameArea');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const throwsDisplay = document.getElementById('throwsDisplay');
+        const walletElement = document.getElementById('walletScore');
+        const instructions = document.getElementById('instructions');
+        const powerBarContainer = document.getElementById('powerBarContainer');
+        const powerBarFill = document.getElementById('powerBarFill');
+        const strikeText = document.getElementById('strikeText');
+
+        function resizeCanvas() {
+            canvas.width = gameArea.clientWidth;
+            canvas.height = gameArea.clientHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        let animationId;
+        let isGameOver = false;
+        let score = 0;
+        let throwsLeft = 3;
+        
+        let state = 'aiming'; // aiming, power, rolling, waiting
+        
+        let aimAngle = 0;
+        let aimDirection = 1;
+        
+        let power = 0;
+        let powerDirection = 1;
+
+        let ball = { x: 0, y: 0, radius: 15, vx: 0, vy: 0, color: '#00C6FF' };
+        let pins = [];
+        let particles = [];
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            resizeCanvas();
+            score = 0;
+            throwsLeft = 3;
+            isGameOver = false;
+            
+            setupThrow();
+            updateUI();
+            
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function setupThrow() {
+            state = 'aiming';
+            aimAngle = 0;
+            power = 0;
+            
+            ball.x = canvas.width / 2;
+            ball.y = canvas.height - 50;
+            ball.vx = 0;
+            ball.vy = 0;
+
+            powerBarContainer.style.display = 'none';
+            instructions.innerText = "اضغط لتحديد الاتجاه!";
+            
+            // ترتيب الدبابيس الـ 10 إذا كانت الرمية الأولى أو لو وقعوا كلهم
+            let activePins = pins.filter(p => !p.isKnocked).length;
+            if (throwsLeft === 3 || activePins === 0) {
+                pins = [];
+                let startY = 100;
+                let spacingX = 25;
+                let spacingY = 22;
+                
+                // 4 صفوف (1, 2, 3, 4)
+                let pinId = 0;
+                for (let row = 0; row < 4; row++) {
+                    let cols = row + 1;
+                    let startX = (canvas.width / 2) - ((cols - 1) * spacingX / 2);
+                    for (let c = 0; c < cols; c++) {
+                        pins.push({
+                            id: pinId++,
+                            x: startX + c * spacingX,
+                            y: startY + row * spacingY,
+                            radius: 8,
+                            vx: 0, vy: 0,
+                            isKnocked: false,
+                            color: '#fff'
+                        });
+                    }
+                }
+            }
+        }
+
+        function updateUI() {
+            scoreDisplay.innerText = score;
+            throwsDisplay.innerText = `${throwsLeft} 🎳`;
+        }
+
+        function handleInput(e) {
+            if (e) e.preventDefault();
+            if (isGameOver) return;
+
+            if (state === 'aiming') {
+                state = 'power';
+                powerBarContainer.style.display = 'block';
+                instructions.innerText = "اضغط لتحديد القوة!";
+            } 
+            else if (state === 'power') {
+                state = 'rolling';
+                powerBarContainer.style.display = 'none';
+                instructions.innerText = "";
+                
+                // حساب سرعة الكرة بناءً على القوة والزاوية
+                let speed = 5 + (power / 100) * 15; // سرعة بين 5 و 20
+                let angleRad = aimAngle * Math.PI / 180;
+                
+                ball.vx = Math.sin(angleRad) * speed;
+                ball.vy = -Math.cos(angleRad) * speed;
+            }
+        }
+
+        // --- دوال الرسم ---
+        function drawGlow(color, blur) {
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = color;
+        }
+
+        function drawAlley() {
+            // رسم خطوط الممر (صالة البولينج)
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(canvas.width/2 - 100, 0, 200, canvas.height);
+            
+            ctx.strokeStyle = '#00C6FF';
+            ctx.lineWidth = 2;
+            drawGlow('#00C6FF', 10);
+            ctx.beginPath();
+            ctx.moveTo(canvas.width/2 - 100, 0); ctx.lineTo(canvas.width/2 - 100, canvas.height);
+            ctx.moveTo(canvas.width/2 + 100, 0); ctx.lineTo(canvas.width/2 + 100, canvas.height);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+        }
+
+        function drawAim() {
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            ctx.rotate(aimAngle * Math.PI / 180);
+            
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, -20);
+            ctx.lineTo(0, -150);
+            ctx.stroke();
+            
+            // رأس السهم
+            ctx.beginPath();
+            ctx.moveTo(-5, -140);
+            ctx.lineTo(5, -140);
+            ctx.lineTo(0, -150);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.fill();
+            
+            ctx.restore();
+        }
+
+        function drawPins() {
+            pins.forEach(pin => {
+                ctx.save();
+                ctx.translate(pin.x, pin.y);
+                
+                if (pin.isKnocked) {
+                    ctx.globalAlpha = 0.3; // الدبابيس الواقعة شفافة
+                }
+
+                drawGlow(pin.color, 10);
+                ctx.fillStyle = pin.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, pin.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // خط أحمر على الدبوس للزينة
+                ctx.strokeStyle = '#ff3366';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(-pin.radius, 0);
+                ctx.lineTo(pin.radius, 0);
+                ctx.stroke();
+
+                ctx.restore();
+            });
+        }
+
+        function drawBall() {
+            ctx.save();
+            ctx.translate(ball.x, ball.y);
+            drawGlow(ball.color, 20);
+            
+            // تدرج لوني للكرة
+            let grad = ctx.createRadialGradient(-5, -5, 2, 0, 0, ball.radius);
+            grad.addColorStop(0, '#fff');
+            grad.addColorStop(0.3, ball.color);
+            grad.addColorStop(1, '#0055ff');
+            
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // فتحات الأصابع
+            ctx.fillStyle = '#000';
+            ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(-4, -4, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(4, -4, 2, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(0, 4, 2.5, 0, Math.PI*2); ctx.fill();
+
+            ctx.restore();
+        }
+
+        // --- المنطق (الفيزياء) ---
+        function update() {
+            if (isGameOver) return;
+
+            if (state === 'aiming') {
+                aimAngle += 2 * aimDirection;
+                if (aimAngle > 45 || aimAngle < -45) aimDirection *= -1;
+            } 
+            else if (state === 'power') {
+                power += 3 * powerDirection;
+                if (power > 100 || power < 0) powerDirection *= -1;
+                powerBarFill.style.height = power + '%';
+            }
+            else if (state === 'rolling') {
+                // تحديث مكان الكرة
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                
+                // احتكاك بسيط لتقليل السرعة تدريجياً
+                ball.vx *= 0.99;
+                ball.vy *= 0.99;
+
+                // انحراف بسيط للكرة (Curve) عشان اللعبة تكون ممتعة
+                if(ball.vx > 0) ball.vx += 0.02;
+                if(ball.vx < 0) ball.vx -= 0.02;
+
+                // تحريك الدبابيس المضروبة
+                pins.forEach(pin => {
+                    if (pin.vx !== 0 || pin.vy !== 0) {
+                        pin.x += pin.vx;
+                        pin.y += pin.vy;
+                        pin.vx *= 0.9; // احتكاك الدبابيس
+                        pin.vy *= 0.9;
+                    }
+                });
+
+                checkCollisions();
+
+                // التحقق من انتهاء الرمية (الكرة وقفت أو خرجت من الشاشة)
+                if (ball.y < -50 || ball.x < 0 || ball.x > canvas.width || (Math.abs(ball.vy) < 0.1 && Math.abs(ball.vx) < 0.1)) {
+                    finishThrow();
+                }
+            }
+        }
+
+        function checkCollisions() {
+            // تصادم الكرة مع الدبابيس
+            pins.forEach(pin => {
+                if (!pin.isKnocked) {
+                    let dx = ball.x - pin.x;
+                    let dy = ball.y - pin.y;
+                    let dist = Math.hypot(dx, dy);
+                    
+                    if (dist < ball.radius + pin.radius) {
+                        // خبطت في الدبوس!
+                        pin.isKnocked = true;
+                        // نقل القوة (توجيه الدبوس في نفس اتجاه الكرة تقريباً)
+                        pin.vx = ball.vx * 0.8 + (Math.random()-0.5)*2;
+                        pin.vy = ball.vy * 0.8 + (Math.random()-0.5)*2;
+                        
+                        score++;
+                        updateUI();
+                        createSparkles(pin.x, pin.y);
+                    }
+                }
+            });
+
+            // تصادم الدبابيس ببعض (Chain reaction)
+            for (let i = 0; i < pins.length; i++) {
+                for (let j = i + 1; j < pins.length; j++) {
+                    let p1 = pins[i];
+                    let p2 = pins[j];
+                    
+                    // لو واحد منهم بيتحرك والتاني واقف
+                    if ((p1.isKnocked || p2.isKnocked) && !(p1.isKnocked && p2.isKnocked && Math.abs(p1.vx)<0.5 && Math.abs(p2.vx)<0.5)) {
+                        let dx = p1.x - p2.x;
+                        let dy = p1.y - p2.y;
+                        let dist = Math.hypot(dx, dy);
+                        
+                        if (dist < p1.radius + p2.radius + 5) {
+                            if (!p1.isKnocked) { p1.isKnocked = true; score++; updateUI(); createSparkles(p1.x, p1.y); }
+                            if (!p2.isKnocked) { p2.isKnocked = true; score++; updateUI(); createSparkles(p2.x, p2.y); }
+                            
+                            // تبادل السرعات (تبسيط فيزيائي)
+                            let tempVx = p1.vx; let tempVy = p1.vy;
+                            p1.vx = p2.vx * 0.5 + (Math.random()-0.5); p1.vy = p2.vy * 0.5 + (Math.random()-0.5);
+                            p2.vx = tempVx * 0.5 + (Math.random()-0.5); p2.vy = tempVy * 0.5 + (Math.random()-0.5);
+                        }
+                    }
+                }
+            }
+        }
+
+        function createSparkles(x, y) {
+            for(let i=0; i<5; i++){
+                particles.push({
+                    x: x, y: y,
+                    vx: (Math.random() - 0.5) * 5, vy: (Math.random() - 0.5) * 5,
+                    life: 1, color: '#fff'
+                });
+            }
+        }
+
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI*2); ctx.fill();
+                ctx.restore();
+                
+                p.x += p.vx; p.y += p.vy; p.life -= 0.1;
+                if(p.life <= 0) particles.splice(i, 1);
+            }
+        }
+
+        function finishThrow() {
+            state = 'waiting';
+            throwsLeft--;
+            updateUI();
+            
+            // هل وقع الـ 10 كلهم في الرمية دي؟
+            let activePins = pins.filter(p => !p.isKnocked).length;
+            if (activePins === 0 && throwsLeft === 2) { // Strike (رمية أولى)
+                strikeText.classList.add('active');
+                score += 5; // بونص
+                updateUI();
+                setTimeout(() => strikeText.classList.remove('active'), 1500);
+            }
+
+            if (throwsLeft <= 0) {
+                setTimeout(gameOver, 1000);
+            } else {
+                setTimeout(setupThrow, 1500);
+            }
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            let reward = score * 3; // كل دبوس بـ 3 عملات
+            
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            document.getElementById('resultModal').classList.add('active');
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawAlley();
+            drawPins();
+            drawParticles();
+            drawBall();
+            
+            if (state === 'aiming') drawAim();
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- التحكم ---
+        canvas.addEventListener('mousedown', handleInput);
+        canvas.addEventListener('touchstart', handleInput);
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>

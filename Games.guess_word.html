@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تخمين الكلمة - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --success-color: #00e676;
+            --text-color: #eee;
+            --secondary-text: #aaa;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        
+        /* --- منطقة اللعب --- */
+        .game-area { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 20px; overflow-y: auto; }
+        
+        .hint-box {
+            background: #1a1a1a; border: 1px solid #333; padding: 15px; border-radius: 15px;
+            text-align: center; width: 100%; max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .hint-title { font-size: 12px; color: var(--primary-color); margin-bottom: 5px; font-weight: bold; }
+        .hint-text { font-size: 18px; font-weight: 700; }
+
+        .lives-container { font-size: 24px; color: var(--danger-color); letter-spacing: 5px; }
+
+        .word-container {
+            display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 20px 0; direction: rtl;
+        }
+        .letter-box {
+            width: 45px; height: 55px; background: #222; border: 2px solid #444;
+            border-radius: 10px; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: 900; color: #fff; text-transform: uppercase;
+            transition: all 0.3s ease;
+        }
+        .letter-box.revealed { background: var(--primary-color); border-color: var(--primary-color); color: #000; box-shadow: 0 0 15px rgba(0, 198, 255, 0.4); animation: popIn 0.3s ease; }
+
+        /* --- الكيبورد --- */
+        .keyboard {
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; max-width: 400px; padding-bottom: 20px; direction: rtl;
+        }
+        .key {
+            background: #1a1a1a; border: 1px solid #333; border-radius: 10px;
+            padding: 12px; min-width: 40px; text-align: center; font-size: 18px;
+            font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s; flex-grow: 1;
+        }
+        .key:active { transform: scale(0.9); }
+        .key.disabled-right { background: var(--success-color); color: #000; border-color: var(--success-color); pointer-events: none; opacity: 0.8;}
+        .key.disabled-wrong { background: transparent; color: #444; border-color: #222; pointer-events: none; }
+
+        /* --- المودال (النتيجة) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-icon { font-size: 50px; margin-bottom: 15px; }
+        .modal-title { font-size: 24px; font-weight: 900; margin-bottom: 10px; }
+        .modal-reward { color: var(--gold); font-size: 18px; font-weight: bold; margin-bottom: 20px; }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.3); transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        .shake-anim { animation: shake 0.3s ease; border-color: var(--danger-color); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">تخمين الكلمة 📝</div>
+        <div style="color: var(--gold); font-weight: bold; font-size: 14px;"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="game-area">
+        <div class="lives-container" id="livesDisplay">❤️❤️❤️❤️❤️</div>
+        
+        <div class="hint-box">
+            <div class="hint-title"><i class="fa-solid fa-lightbulb"></i> تلميح اللغز</div>
+            <div class="hint-text" id="hintText">جاري التحميل...</div>
+        </div>
+
+        <div class="word-container" id="wordContainer">
+            </div>
+
+        <div class="keyboard" id="keyboard">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-icon" id="modalIcon">🏆</div>
+            <div class="modal-title" id="modalTitle">مبروك!</div>
+            <div class="modal-reward" id="modalReward">+30 عملة معدنية</div>
+            <p style="color: #aaa; margin-bottom: 20px;" id="modalWordReveal"></p>
+            <button class="btn" onclick="initGame()">العب مرة أخرى</button>
+        </div>
+    </div>
+
+    <script>
+        // قاعدة بيانات الكلمات والتلميحات
+        const wordsDatabase = [
+            { word: "انترنت", hint: "شبكة عالمية تربط الأجهزة ببعضها" },
+            { word: "شمس", hint: "نجم يمد الأرض بالحرارة والضوء" },
+            { word: "القاهرة", hint: "عاصمة أم الدنيا مصر" },
+            { word: "مبرمج", hint: "شخص يكتب الأكواد ليصنع التطبيقات" },
+            { word: "رياضة", hint: "مجهود بدني مفيد للصحة مثل كرة القدم" },
+            { word: "تفاحة", hint: "فاكهة سقطت على رأس نيوتن" },
+            { word: "فضاء", hint: "المكان الذي تسبح فيه الكواكب والنجوم" },
+            { word: "سيف", hint: "سلاح أبيض قديم" },
+            { word: "قهوة", hint: "مشروب ساخن يعشقه الكثيرون في الصباح" },
+            { word: "اسد", hint: "يُلقب بملك الغابة" }
+        ];
+
+        let currentWord = "";
+        let guessedLetters = [];
+        let maxLives = 5;
+        let currentLives = maxLives;
+        
+        const wordContainer = document.getElementById("wordContainer");
+        const keyboard = document.getElementById("keyboard");
+        const livesDisplay = document.getElementById("livesDisplay");
+        const hintText = document.getElementById("hintText");
+        
+        // الحروف الأبجدية العربية
+        const arabicAlphabet = "ابتثجحخدذرزسشصضطظعغفقكلمنهويأإآؤئءة".split("");
+
+        function initGame() {
+            // إخفاء نافذة النتيجة
+            document.getElementById("resultModal").classList.remove("active");
+            
+            // إعادة ضبط المتغيرات
+            guessedLetters = [];
+            currentLives = 5;
+            updateLivesDisplay();
+            
+            // اختيار كلمة عشوائية
+            const randomObj = wordsDatabase[Math.floor(Math.random() * wordsDatabase.length)];
+            currentWord = randomObj.word;
+            hintText.innerText = randomObj.hint;
+
+            renderWordBox();
+            renderKeyboard();
+        }
+
+        function renderWordBox() {
+            wordContainer.innerHTML = "";
+            for (let i = 0; i < currentWord.length; i++) {
+                const letter = currentWord[i];
+                const box = document.createElement("div");
+                box.className = "letter-box";
+                // إذا كان الحرف مسافة، أظهره تلقائياً
+                if (letter === " ") {
+                    box.classList.add("revealed");
+                    box.style.background = "transparent";
+                    box.style.borderColor = "transparent";
+                }
+                wordContainer.appendChild(box);
+            }
+        }
+
+        function renderKeyboard() {
+            keyboard.innerHTML = "";
+            // ترتيب الحروف الشائع أو الأبجدي
+            arabicAlphabet.forEach(letter => {
+                const btn = document.createElement("button");
+                btn.className = "key";
+                btn.innerText = letter;
+                btn.onclick = () => handleGuess(letter, btn);
+                keyboard.appendChild(btn);
+            });
+        }
+
+        function handleGuess(letter, btn) {
+            if (guessedLetters.includes(letter) || currentLives <= 0) return;
+            
+            guessedLetters.push(letter);
+            
+            if (currentWord.includes(letter)) {
+                // تخمين صحيح
+                btn.classList.add("disabled-right");
+                updateWordBox();
+                checkWin();
+            } else {
+                // تخمين خاطئ
+                btn.classList.add("disabled-wrong");
+                currentLives--;
+                updateLivesDisplay();
+                wordContainer.classList.add("shake-anim");
+                setTimeout(() => wordContainer.classList.remove("shake-anim"), 300);
+                checkLose();
+            }
+        }
+
+        function updateWordBox() {
+            const boxes = wordContainer.children;
+            for (let i = 0; i < currentWord.length; i++) {
+                if (guessedLetters.includes(currentWord[i])) {
+                    if (!boxes[i].classList.contains("revealed")) {
+                        boxes[i].innerText = currentWord[i];
+                        boxes[i].classList.add("revealed");
+                    }
+                }
+            }
+        }
+
+        function updateLivesDisplay() {
+            livesDisplay.innerText = "❤️".repeat(currentLives) + "🖤".repeat(maxLives - currentLives);
+        }
+
+        function checkWin() {
+            const isWon = currentWord.split("").every(char => char === " " || guessedLetters.includes(char));
+            if (isWon) {
+                setTimeout(() => showModal(true), 500);
+            }
+        }
+
+        function checkLose() {
+            if (currentLives <= 0) {
+                setTimeout(() => showModal(false), 500);
+            }
+        }
+
+        function showModal(isWin) {
+            const modal = document.getElementById("resultModal");
+            const title = document.getElementById("modalTitle");
+            const icon = document.getElementById("modalIcon");
+            const reward = document.getElementById("modalReward");
+            const reveal = document.getElementById("modalWordReveal");
+            const walletScore = document.getElementById("walletScore");
+
+            if (isWin) {
+                icon.innerText = "🎉";
+                title.innerText = "عمل رائع!";
+                title.style.color = "var(--primary-color)";
+                reward.innerText = "+30 عملة معدنية";
+                reward.style.display = "block";
+                reveal.innerText = `الكلمة كانت: ${currentWord}`;
+                
+                // تحديث المحفظة (محاكاة)
+                walletScore.innerText = parseInt(walletScore.innerText) + 30;
+            } else {
+                icon.innerText = "💔";
+                title.innerText = "انتهت المحاولات!";
+                title.style.color = "var(--danger-color)";
+                reward.style.display = "none";
+                reveal.innerText = `الكلمة الصحيحة هي: ${currentWord}`;
+            }
+
+            modal.classList.add("active");
+        }
+
+        // تشغيل اللعبة عند فتح الصفحة
+        window.onload = initGame;
+    </script>
+</body>
+</html>

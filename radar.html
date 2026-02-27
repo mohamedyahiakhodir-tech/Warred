@@ -3,20 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NABD - الرادار المحيط</title>
+    <title>NABD Pro - الرادار المحيط (V4.0 Ultimate)</title>
     
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-color: #020202;
-            --radar-color: #00ff00; /* اللون الأخضر */
+            --bg-color: #050505;
+            --radar-color: #00ff00; 
             --radar-dim: rgba(0, 255, 0, 0.15);
+            --danger-color: #ff3333;
+            --ghost-color: #00ffff;
+            --sos-bg: #330000;
+            --sos-active: #ff0000;
+            --hud-font: 'Share Tech Mono', monospace;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; }
-        body { background: var(--bg-color); color: var(--radar-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; }
+        
+        body { 
+            background: var(--bg-color); 
+            color: var(--radar-color); 
+            height: 100vh; 
+            overflow: hidden; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            transition: box-shadow 0.3s;
+            /* خلفية تكتيكية شبكية */
+            background-image: 
+                linear-gradient(rgba(0, 50, 0, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 50, 0, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
 
         /* --- الهيدر --- */
         .header {
@@ -26,9 +46,29 @@
         .back-btn {
             font-size: 20px; color: var(--radar-color); border: 1px solid var(--radar-color);
             width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; cursor: pointer;
+            transition: 0.3s; background: rgba(0,20,0,0.8);
+        }
+        .back-btn:active { transform: scale(0.9); }
+
+        .ghost-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--radar-color);
+            display: grid; place-items: center; cursor: pointer; color: var(--radar-color);
+            transition: 0.3s; background: rgba(0,20,0,0.8);
+        }
+        .ghost-btn.active {
+            border-color: var(--ghost-color); color: var(--ghost-color);
+            box-shadow: 0 0 15px var(--ghost-color);
         }
         
-        /* اختيار المسافة */
+        .sensor-btn {
+            position: absolute; top: 130px; z-index: 45;
+            padding: 10px 20px; background: rgba(0, 50, 0, 0.9); 
+            border: 1px solid var(--radar-color); color: var(--radar-color);
+            border-radius: 20px; font-size: 14px; cursor: pointer;
+            box-shadow: 0 0 15px rgba(0,255,0,0.3);
+            animation: pulseBtn 2s infinite;
+        }
+
         .range-selector {
             position: absolute; top: 80px; z-index: 40; display: flex; gap: 10px;
         }
@@ -36,73 +76,266 @@
             padding: 5px 15px; border: 1px solid var(--radar-color); border-radius: 20px;
             font-size: 12px; cursor: pointer; opacity: 0.5; transition: 0.3s; background: rgba(0,20,0,0.8);
         }
-        .range-chip.active { opacity: 1; background: var(--radar-color); color: #000; font-weight: bold; }
+        .range-chip.active { opacity: 1; background: var(--radar-color); color: #000; font-weight: bold; box-shadow: 0 0 10px var(--radar-color); }
 
         /* --- الرادار --- */
+        .radar-wrapper {
+            position: relative; margin-top: 25vh; width: 340px; height: 340px;
+            will-change: transform; 
+        }
+
         .radar-container {
-            position: relative; width: 340px; height: 340px; margin-top: 25vh;
+            width: 100%; height: 100%;
             border-radius: 50%; border: 2px solid var(--radar-color);
             background: 
                 repeating-radial-gradient(transparent 0, transparent 58px, var(--radar-dim) 59px, var(--radar-dim) 60px);
             box-shadow: 0 0 40px var(--radar-dim), inset 0 0 60px rgba(0,20,0,0.9);
-            overflow: hidden;
+            overflow: hidden; position: relative;
+            transition: border-color 0.3s, box-shadow 0.3s;
         }
 
-        /* خطوط */
-        .crosshair {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--radar-dim);
+        .radar-grid-label {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            font-size: 10px; color: var(--radar-color); background: rgba(0,0,0,0.8);
+            padding: 2px 6px; border-radius: 4px; opacity: 0.7; pointer-events: none;
+            font-family: var(--hud-font); z-index: 5;
+            border: 1px solid rgba(0,255,0,0.2);
         }
+
+        .crosshair { position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: var(--radar-dim); }
         .crosshair.v { transform: rotate(90deg); }
+        
+        .north-marker {
+            position: absolute; top: 5px; left: 50%; transform: translateX(-50%);
+            color: var(--radar-color); font-size: 12px; font-weight: bold; z-index: 20;
+            text-shadow: 0 0 5px var(--radar-color); font-family: var(--hud-font);
+        }
 
-        /* الماسح */
         .scanner {
             position: absolute; inset: 0; border-radius: 50%;
             background: conic-gradient(from 0deg, transparent 75%, rgba(0, 255, 0, 0.4));
             animation: scan 4s linear infinite; z-index: 2; pointer-events: none;
         }
 
-        /* المستخدم (نقطة) */
+        /* --- تصميم النقاط (Blip) المطور --- */
         .blip {
-            position: absolute; width: 12px; height: 12px; background: #fff;
-            border-radius: 50%; box-shadow: 0 0 10px #fff, 0 0 20px var(--radar-color);
-            transform: translate(-50%, -50%); cursor: pointer; z-index: 5;
+            position: absolute; width: 24px; height: 24px;
+            /* لم نعد نستخدم الخلفية هنا مباشرة لأننا سنضيف عنصر داخلي */
+            transform: translate(-50%, -50%); cursor: pointer; z-index: 10;
             transition: opacity 0.5s; opacity: 0;
+            display: flex; justify-content: center; align-items: center;
         }
-        .blip.visible { opacity: 1; animation: blipPulse 2s infinite; }
+        
+        /* الحاوية الداخلية للصورة */
+        .blip-inner {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            background-size: cover; background-position: center;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(0,255,0,0.5);
+            position: relative;
+            z-index: 2;
+        }
 
-        /* مركز الرادار (أنا) */
+        /* مؤشر الاتجاه (السهم) */
+        .blip-arrow {
+            position: absolute;
+            top: -8px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0;
+            border-left: 5px solid transparent;
+            border-right: 5px solid transparent;
+            border-bottom: 8px solid var(--radar-color);
+            display: none; /* يظهر فقط عند الحركة */
+            z-index: 1;
+        }
+
+        /* تأثير النبض */
+        .blip::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            border-radius: 50%; background: rgba(0, 255, 0, 0.3); opacity: 0;
+            z-index: 0; animation: blipPulse 2s infinite;
+        }
+        
+        .blip.stale-signal .blip-inner {
+            opacity: 0.4 !important;
+            filter: grayscale(100%);
+            border-color: #888;
+        }
+        .blip.danger .blip-inner {
+            border-color: var(--danger-color);
+            animation: dangerPulse 1s infinite;
+        }
+        
+        .blip.sos-blip {
+            width: 34px !important; height: 34px !important;
+            z-index: 100 !important;
+            animation: sosShake 0.5s infinite alternate !important;
+        }
+        .blip.sos-blip .blip-inner {
+            border-color: #ff0000 !important;
+            background-color: #500000 !important;
+            box-shadow: 0 0 20px #ff0000 !important;
+        }
+        .blip.sos-blip::after {
+            background: rgba(255, 0, 0, 0.6);
+            animation: blipPulse 0.8s infinite;
+        }
+
+        .blip.visible { opacity: 1; }
+        .blip.visible::after { opacity: 1; }
+
         .center-point {
-            position: absolute; top: 50%; left: 50%; width: 8px; height: 8px; 
+            position: absolute; top: 50%; left: 50%; width: 12px; height: 12px; 
             background: var(--radar-color); border-radius: 50%; transform: translate(-50%, -50%);
-            box-shadow: 0 0 10px var(--radar-color); z-index: 10;
+            box-shadow: 0 0 15px var(--radar-color); z-index: 20; border: 2px solid #fff;
         }
 
-        /* --- لوحة المعلومات --- */
+        /* --- [جديد] HUD Stats (عدادات السرعة والارتفاع) --- */
+        .hud-stats {
+            position: absolute;
+            bottom: 180px; 
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            pointer-events: none;
+            z-index: 30;
+        }
+        .hud-box {
+            background: rgba(0, 20, 0, 0.6);
+            border: 1px solid var(--radar-color);
+            padding: 5px 10px;
+            border-radius: 5px;
+            text-align: center;
+            min-width: 80px;
+            backdrop-filter: blur(2px);
+        }
+        .hud-label {
+            font-family: var(--hud-font);
+            font-size: 10px; color: var(--radar-color); opacity: 0.8; letter-spacing: 1px;
+        }
+        .hud-value {
+            font-family: var(--hud-font);
+            font-size: 22px; font-weight: bold; color: #fff; text-shadow: 0 0 5px var(--radar-color);
+        }
+        .hud-unit {
+            font-size: 9px; color: #aaa; margin-top: -2px;
+        }
+
+        /* --- Info Panel --- */
         .info-panel {
             position: absolute; bottom: 30px; width: 90%; text-align: center;
         }
-        .status-text { font-family: monospace; font-size: 14px; margin-bottom: 15px; text-shadow: 0 0 5px var(--radar-color); }
+        .status-text { 
+            font-family: monospace; font-size: 14px; margin-bottom: 15px; 
+            text-shadow: 0 0 5px var(--radar-color); transition: color 0.3s;
+        }
 
-        /* كارت المستخدم */
         .user-card {
             background: rgba(0, 20, 0, 0.95); border: 1px solid var(--radar-color);
             padding: 15px; border-radius: 15px; display: flex; align-items: center; gap: 15px;
             box-shadow: 0 0 20px var(--radar-dim); display: none; text-align: left;
+            backdrop-filter: blur(5px);
+            animation: slideUp 0.3s ease-out;
+            min-height: 80px; 
         }
-        .uc-img { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--radar-color); background-size: cover; }
+        .uc-img { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--radar-color); background-size: cover; background-position: center; }
         .uc-btn { margin-right: auto; padding: 8px 15px; background: var(--radar-color); border: none; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        
+        .address-line {
+            font-size: 10px; color: #fff; margin-top: 5px; 
+            border-top: 1px solid rgba(0,255,0,0.3); padding-top: 4px;
+            white-space: normal; line-height: 1.3;
+        }
 
+        .toast-container {
+            position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+            z-index: 100; display: flex; flex-direction: column; gap: 10px; width: 80%;
+        }
+        .toast {
+            background: rgba(0, 0, 0, 0.9); border-right: 4px solid var(--radar-color);
+            color: #fff; padding: 12px 20px; border-radius: 8px; font-size: 13px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5); opacity: 0; transform: translateY(-20px);
+            animation: fadeInToast 0.4s forwards; display: flex; align-items: center; justify-content: space-between;
+        }
+        .toast.error { border-right-color: var(--danger-color); }
+        .toast i { margin-left: 10px; }
+
+        /* --- SOS STYLES --- */
+        .sos-container {
+            position: absolute; bottom: 100px; right: 20px; z-index: 60;
+            display: flex; flex-direction: column; align-items: center;
+        }
+        
+        .sos-btn {
+            width: 60px; height: 60px; border-radius: 50%; border: none;
+            background: var(--sos-bg); color: var(--danger-color); font-size: 16px; font-weight: bold;
+            cursor: pointer; position: relative; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 0 15px rgba(255, 0, 0, 0.3); transition: 0.3s;
+            overflow: visible; outline: none; -webkit-tap-highlight-color: transparent;
+        }
+        
+        .sos-btn.active-emergency {
+            background: var(--sos-active); color: white;
+            animation: urgentPulse 0.5s infinite;
+            box-shadow: 0 0 30px var(--sos-active);
+        }
+        
+        .progress-ring { position: absolute; top: 0; left: 0; transform: rotate(-90deg); pointer-events: none; }
+        .progress-ring__circle {
+            stroke-dasharray: 176; stroke-dashoffset: 176;
+            transition: stroke-dashoffset 3s linear;
+        }
+        
+        .sos-text {
+            font-size: 10px; color: var(--danger-color); margin-top: 8px; opacity: 0; transition: 0.3s;
+            background: rgba(0,0,0,0.9); padding: 4px 8px; border-radius: 4px; pointer-events: none;
+        }
+
+        body.emergency-mode {
+            box-shadow: inset 0 0 50px rgba(255,0,0,0.5);
+            animation: screenFlash 2s infinite;
+        }
+        body.emergency-mode .radar-container {
+            border-color: #ff0000;
+            box-shadow: 0 0 50px rgba(255,0,0,0.4), inset 0 0 60px rgba(50,0,0,0.9);
+        }
+        body.emergency-mode .scanner {
+            background: conic-gradient(from 0deg, transparent 75%, rgba(255, 0, 0, 0.4));
+        }
+
+        /* Animations */
         @keyframes scan { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes blipPulse { 0% { transform: translate(-50%, -50%) scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.7); } 70% { transform: translate(-50%, -50%) scale(1.5); box-shadow: 0 0 0 10px rgba(255,255,255,0); } 100% { transform: translate(-50%, -50%) scale(1); } }
+        @keyframes blipPulse { 0% { transform: scale(0.5); opacity: 1; } 100% { transform: scale(2); opacity: 0; } }
+        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(0,255,0,0.4); } 70% { box-shadow: 0 0 0 10px rgba(0,255,0,0); } 100% { box-shadow: 0 0 0 0 rgba(0,255,0,0); } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes fadeInToast { to { opacity: 1; transform: translateY(0); } }
+        @keyframes dangerPulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 50, 50, 0.7); border-color: #ff3333; }
+            50% { border-color: #fff; }
+            70% { box-shadow: 0 0 0 15px rgba(255, 50, 50, 0); border-color: #ff3333; }
+            100% { box-shadow: 0 0 0 0 rgba(255, 50, 50, 0); }
+        }
+        @keyframes urgentPulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes screenFlash { 0% { box-shadow: inset 0 0 0 0 red; } 50% { box-shadow: inset 0 0 80px rgba(255,0,0,0.6); } 100% { box-shadow: inset 0 0 0 0 red; } }
+        @keyframes sosShake { 0% { transform: translate(-50%, -50%) rotate(0deg); } 25% { transform: translate(-52%, -50%) rotate(-5deg); } 75% { transform: translate(-48%, -50%) rotate(5deg); } 100% { transform: translate(-50%, -50%) rotate(0deg); } }
+
     </style>
 </head>
 <body>
 
     <div class="header">
         <div class="back-btn" onclick="history.back()"><i class="fa-solid fa-arrow-right"></i></div>
-        <div style="font-family: monospace; font-weight: bold;">LIVE RADAR</div>
-        <div style="width: 40px;"></div>
+        <div style="font-family: var(--hud-font); font-weight: bold; text-align: center;">
+            NABD <span style="font-size:10px; background:var(--radar-color); color:black; padding:2px 4px; border-radius:4px;">PRO</span>
+            <div style="font-size: 9px; opacity: 0.7; margin-top: 2px;">V4.0 ULTIMATE</div>
+        </div>
+        <div class="ghost-btn" id="ghostBtn" onclick="toggleGhostMode()">
+            <i class="fa-solid fa-eye"></i>
+        </div>
     </div>
+
+    <div class="toast-container" id="toastBox"></div>
 
     <div class="range-selector">
         <div class="range-chip active" onclick="setRange(50, this)">50 كم</div>
@@ -110,26 +343,66 @@
         <div class="range-chip" onclick="setRange(300, this)">300 كم</div>
     </div>
 
-    <div class="radar-container" id="radarBox">
-        <div class="crosshair"></div>
-        <div class="crosshair v"></div>
-        <div class="scanner"></div>
-        <div class="center-point"></div> </div>
+    <button id="enableSensorsBtn" class="sensor-btn" onclick="enableSensors()">
+        <i class="fa-solid fa-compass"></i> تفعيل الرادار والمستشعرات
+    </button>
+
+    <div class="hud-stats">
+        <div class="hud-box">
+            <div class="hud-label">ALTITUDE</div>
+            <div class="hud-value" id="altValue">0</div>
+            <div class="hud-unit">METERS</div>
+        </div>
+        <div class="hud-box">
+            <div class="hud-label">SPEED</div>
+            <div class="hud-value" id="spdValue">0</div>
+            <div class="hud-unit">KM/H</div>
+        </div>
+    </div>
+
+    <div class="sos-container">
+        <button id="sosBtn" class="sos-btn" 
+                onmousedown="startSOSTimer()" onmouseup="cancelSOS()" onmouseleave="cancelSOS()"
+                ontouchstart="startSOSTimer()" ontouchend="cancelSOS()">
+            SOS
+            <svg class="progress-ring" width="60" height="60">
+                <circle class="progress-ring__circle" stroke="white" stroke-width="3" fill="transparent" r="28" cx="30" cy="30"/>
+            </svg>
+        </button>
+        <div id="sosStatus" class="sos-text">اضغط مطولاً للطوارئ</div>
+    </div>
+
+    <div class="radar-wrapper" id="radarWrapper">
+        <div class="radar-container" id="radarBox">
+            <div class="north-marker">N</div>
+            
+            <div class="radar-grid-label" style="top: 58%;" id="midRangeLabel">25 كم</div>
+            <div class="radar-grid-label" style="top: 85%;" id="maxRangeLabel">50 كم</div>
+
+            <div class="crosshair"></div>
+            <div class="crosshair v"></div>
+            <div class="scanner"></div>
+            <div class="center-point"></div> 
+            </div>
+    </div>
 
     <div class="info-panel">
-        <div class="status-text" id="statusText">جاري تحديد موقعك...</div>
+        <div class="status-text" id="statusText">جاري تهيئة الأقمار الصناعية...</div>
         
         <div class="user-card" id="userCard">
             <div class="uc-img" id="ucImg"></div>
-            <div>
-                <h4 id="ucName" style="margin:0; font-size:16px;">Name</h4>
-                <span id="ucDist" style="font-size:12px; font-family:monospace; opacity:0.8;">يبعد 5 كم</span>
+            <div style="flex:1">
+                <h4 id="ucName" style="margin:0; font-size:16px;">User</h4>
+                <span id="ucDist" style="font-size:12px; font-family:monospace; opacity:0.8; color:var(--radar-color)">-- km</span>
+                <div id="ucBearing" style="font-size:10px; color:#aaa; margin-top:2px;">الاتجاه: --</div>
+                <div id="ucStatus" style="font-size:9px; color:var(--radar-color); margin-top:2px;">متصل</div>
             </div>
-            <button class="uc-btn" onclick="openProfile()">زيارة</button>
+            <button class="uc-btn" onclick="openProfile()">تواصل</button>
         </div>
     </div>
 
     <audio id="pingSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3"></audio>
+    <audio id="sirenSound" src="https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-alarm-907.mp3" loop></audio>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -149,43 +422,239 @@
         
         let myLat = null;
         let myLng = null;
-        let searchRadius = 50; // الافتراضي 50 كم
+        let myHeading = 0; // اتجاهي الحقيقي
+        let mySpeed = 0;   // سرعتي
+        let searchRadius = 50; 
         let selectedUserId = null;
+        let myCurrentAddress = "جاري تحديد العنوان...";
+        
+        // متغيرات التنعيم للبوصلة
+        let targetHeading = 0;
+        let smoothHeading = 0;
+        let isGhostMode = false;
 
-        // 1. طلب الموقع أول ما يفتح
-        navigator.geolocation.getCurrentPosition(
+        let renderedBlips = [];
+        let lastUploadLat = 0;
+        let lastUploadLng = 0;
+        let lastUploadTime = 0;
+
+        let sosTimer;
+        let isSOSActive = false;
+        const circle = document.querySelector('.progress-ring__circle');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+
+        const geoOptions = {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000
+        };
+
+        // 1. طلب الموقع مع تحديث العدادات (HUD)
+        navigator.geolocation.watchPosition(
             (pos) => {
                 myLat = pos.coords.latitude;
                 myLng = pos.coords.longitude;
-                updateMyLocation(myLat, myLng);
-                startScanning();
+                
+                // [جديد] قراءة السرعة والارتفاع
+                let rawSpeed = pos.coords.speed; // متر/ثانية
+                let rawAlt = pos.coords.altitude; // متر
+                let rawHeading = pos.coords.heading; // اتجاه الحركة (GPS)
+
+                // معالجة البيانات للعرض
+                mySpeed = (rawSpeed && rawSpeed > 0) ? (rawSpeed * 3.6) : 0; // تحويل كم/س
+                let dispAlt = rawAlt ? Math.round(rawAlt) : 0;
+                
+                // تحديث الـ HUD
+                document.getElementById('spdValue').innerText = Math.round(mySpeed);
+                document.getElementById('altValue').innerText = dispAlt;
+
+                // إذا توفر اتجاه من الـ GPS (أثناء الحركة) نستخدمه، وإلا نستخدم البوصلة
+                if(rawHeading && !isNaN(rawHeading) && mySpeed > 5) {
+                   myHeading = rawHeading; 
+                }
+
+                updateMyLocation(myLat, myLng, myHeading, mySpeed);
+                
+                if(document.querySelectorAll('.blip').length === 0) {
+                    startScanning();
+                }
             },
             (err) => {
-                document.getElementById('statusText').innerText = "❌ يرجى تفعيل الموقع (GPS)";
-                document.getElementById('statusText').style.color = "red";
-            }
+                showToast("جاري البحث عن إشارة GPS...", "error");
+                document.getElementById('statusText').innerText = "⚠️ إشارة GPS ضعيفة";
+                document.getElementById('statusText').style.color = "var(--danger-color)";
+            },
+            geoOptions 
         );
 
-        function updateMyLocation(lat, lng) {
+        // [تحديث] إضافة السرعة والاتجاه لقاعدة البيانات
+        async function updateMyLocation(lat, lng, heading, speed) {
+            if(isGhostMode) return;
+
+            const now = Date.now();
+            const distMoved = calcDistance(lat, lng, lastUploadLat, lastUploadLng);
+            
+            // تحديث كل 20 متر أو 30 ثانية لتوفير الأداء، إلا في الطوارئ
+            if (distMoved < 0.02 && (now - lastUploadTime) < 30000 && !isSOSActive) {
+                return; 
+            }
+
+            try {
+                // استخدام Nominatim للعنوان
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`, {
+                    headers: { 'User-Agent': 'NABD-App-V4' } 
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const addr = data.address || {};
+                    const parts = [
+                        addr.road || addr.pedestrian, 
+                        addr.suburb || addr.neighbourhood, 
+                        addr.city || addr.town, 
+                        addr.country 
+                    ].filter(Boolean);
+                    
+                    myCurrentAddress = parts.join('، ');
+                }
+            } catch (err) {
+                console.log("Address fetch failed");
+            }
+
             firebase.auth().onAuthStateChanged(user => {
                 if(user) {
-                    // تحديث موقعك في الداتابيز عشان تظهر لغيرك
                     db.collection('users').doc(user.uid).update({
-                        locationLat: lat,
+                        locationLat: lat, 
                         locationLng: lng,
-                        lastActive: firebase.firestore.FieldValue.serverTimestamp()
-                    });
+                        address: myCurrentAddress, 
+                        heading: heading || 0, // [جديد] حفظ الاتجاه
+                        speed: speed || 0,     // [جديد] حفظ السرعة
+                        accuracy: "High",          
+                        lastActive: firebase.firestore.FieldValue.serverTimestamp(),
+                        status: isSOSActive ? 'SOS' : 'online'
+                    }).then(() => {
+                        lastUploadLat = lat;
+                        lastUploadLng = lng;
+                        lastUploadTime = now;
+                    }).catch(e => console.log("Loc update skipped"));
                 }
             });
         }
 
-        // تغيير نطاق البحث
+        function toggleGhostMode() {
+            isGhostMode = !isGhostMode;
+            const btn = document.getElementById('ghostBtn');
+            const radar = document.getElementById('radarBox');
+            
+            if(isGhostMode) {
+                btn.classList.add('active');
+                btn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+                showToast("تم تفعيل وضع الشبح: موقعك مخفي");
+                document.documentElement.style.setProperty('--radar-color', '#00ffff'); 
+                document.documentElement.style.setProperty('--radar-dim', 'rgba(0, 255, 255, 0.15)');
+            } else {
+                btn.classList.remove('active');
+                btn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+                showToast("تم تعطيل وضع الشبح: أنت مرئي");
+                document.documentElement.style.setProperty('--radar-color', '#00ff00'); 
+                document.documentElement.style.setProperty('--radar-dim', 'rgba(0, 255, 0, 0.15)');
+                if(myLat && myLng) updateMyLocation(myLat, myLng, myHeading, mySpeed);
+            }
+        }
+
+        function enableSensors() {
+            const sound = document.getElementById('pingSound');
+            sound.volume = 0.5;
+            sound.play().then(() => {
+                sound.pause();
+                sound.currentTime = 0;
+            }).catch(e => {});
+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            initCompassLogic();
+                            hideSensorBtn();
+                        } else {
+                            showToast("تم رفض إذن البوصلة", "error");
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                initCompassLogic();
+                hideSensorBtn();
+            }
+        }
+
+        function hideSensorBtn() {
+            const btn = document.getElementById('enableSensorsBtn');
+            btn.style.opacity = '0';
+            setTimeout(() => btn.remove(), 500);
+            showToast("تم تفعيل الرادار عالي الدقة");
+            document.getElementById('statusText').innerText = "الرادار نشط - جاري المسح الدقيق";
+        }
+
+        function initCompassLogic() {
+            window.addEventListener('deviceorientation', function(event) {
+                let heading = event.alpha; 
+                if(event.webkitCompassHeading) heading = event.webkitCompassHeading;
+                if (heading == null) heading = 0;
+                targetHeading = heading;
+                // إذا كنا متوقفين، نستخدم البوصلة المغناطيسية كاتجاه
+                if(mySpeed < 5) myHeading = heading;
+            }, true);
+            requestAnimationFrame(animateCompass);
+        }
+
+        function animateCompass() {
+            let diff = targetHeading - smoothHeading;
+            while (diff < -180) diff += 360;
+            while (diff > 180) diff -= 360;
+
+            const easeFactor = (Math.abs(diff) > 30) ? 0.2 : 0.05;
+            smoothHeading += diff * easeFactor; 
+
+            // تدوير الرادار بالكامل عكس اتجاه الهاتف
+            const wrapper = document.getElementById('radarWrapper');
+            wrapper.style.transform = `rotate(${-smoothHeading}deg)`;
+
+            // الحفاظ على اتجاه الأيقونات والنصوص ثابت بالنسبة للشاشة
+            const labels = document.querySelectorAll('.radar-grid-label');
+            labels.forEach(lbl => {
+                 lbl.style.transform = `translateX(-50%) rotate(${smoothHeading}deg)`;
+            });
+
+            // [مطور] تحديث دوران النقاط (Blips)
+            const blips = document.querySelectorAll('.blip');
+            blips.forEach(blip => {
+                // تدوير العنصر الحاوي ليبقى مستقيماً بالنسبة للشاشة
+                blip.style.transform = `translate(-50%, -50%) rotate(${smoothHeading}deg)`;
+                
+                // [جديد] تدوير سهم الاتجاه الداخلي ليشير لاتجاه حركة المستخدم الحقيقي
+                const userHeading = parseFloat(blip.getAttribute('data-heading')) || 0;
+                const arrow = blip.querySelector('.blip-arrow');
+                if(arrow) {
+                    // السهم يدور بالنسبة لاتجاه الشمال، ونحن دورنا الرادار عكس الشمال، لذا:
+                    // نضيف userHeading ليكون السهم يشير للاتجاه الصحيح داخل الرادار
+                    arrow.style.transform = `translateX(-50%) rotate(${userHeading}deg)`;
+                }
+            });
+
+            requestAnimationFrame(animateCompass);
+        }
+
         function setRange(km, el) {
             searchRadius = km;
             document.querySelectorAll('.range-chip').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             
-            // مسح النقاط القديمة وإعادة البحث
+            document.getElementById('midRangeLabel').innerText = (km / 2) + ' كم';
+            document.getElementById('maxRangeLabel').innerText = km + ' كم';
+            
             document.querySelectorAll('.blip').forEach(b => b.remove());
             document.getElementById('userCard').style.display = 'none';
             startScanning();
@@ -193,90 +662,205 @@
 
         async function startScanning() {
             if(!myLat) return;
-            document.getElementById('statusText').innerText = `بحث في نطاق ${searchRadius} كم...`;
+            document.getElementById('statusText').innerText = `جاري مسح المحيط (${searchRadius} كم)...`;
 
-            // جلب المستخدمين النشطين مؤخراً (في آخر 24 ساعة مثلاً)
-            // ملاحظة: للتطبيق الفعلي يفضل استخدام GeoFire للحسابات المعقدة
-            // هنا سنجلب المستخدمين ونفلترهم بالمسافة في المتصفح (مناسب للتطبيقات المتوسطة)
-            const yesterday = new Date(Date.now() - 86400000); 
-            
-            const snap = await db.collection('users')
-                .orderBy('lastActive', 'desc')
-                .limit(50) // أقصى عدد عشان الأداء
-                .get();
+            renderedBlips = [];
 
-            let foundCount = 0;
+            try {
+                const snap = await db.collection('users')
+                    .orderBy('lastActive', 'desc')
+                    .limit(50) 
+                    .get();
 
-            snap.forEach(doc => {
-                const u = doc.data();
-                // استثناء نفسي + التأكد من وجود إحداثيات
-                if(doc.id !== firebase.auth().currentUser.uid && u.locationLat && u.locationLng) {
-                    
-                    const dist = calcDistance(myLat, myLng, u.locationLat, u.locationLng);
-                    
-                    // لو المسافة أقل من النطاق المحدد
-                    if(dist <= searchRadius) {
-                        createBlip(u, dist, doc.id);
-                        foundCount++;
+                let foundCount = 0;
+                const radarBox = document.getElementById('radarBox');
+                document.querySelectorAll('.blip').forEach(b => b.remove());
+
+                snap.forEach(doc => {
+                    const u = doc.data();
+                    if(doc.id !== firebase.auth().currentUser?.uid && u.locationLat && u.locationLng) {
+                        
+                        const dist = calcDistance(myLat, myLng, u.locationLat, u.locationLng);
+                        
+                        if(dist <= searchRadius) {
+                            const bearing = getBearing(myLat, myLng, u.locationLat, u.locationLng);
+                            createBlip(u, dist, doc.id, bearing);
+                            foundCount++;
+                        }
+                    }
+                });
+
+                if(foundCount > 0) {
+                    if (!isSOSActive) {
+                        document.getElementById('statusText').innerText = `تم رصد ${foundCount} أهداف`;
+                        document.getElementById('statusText').style.color = "var(--radar-color)";
+                    }
+                    if(navigator.vibrate) navigator.vibrate([50, 30, 50]);
+                } else {
+                    if (!isSOSActive) {
+                        document.getElementById('statusText').innerText = "لا توجد إشارات قريبة";
+                        document.getElementById('statusText').style.color = "#aaa";
                     }
                 }
-            });
-
-            if(foundCount === 0) {
-                document.getElementById('statusText').innerText = "لا يوجد مستخدمين في هذا النطاق";
-            } else {
-                document.getElementById('statusText').innerText = `تم رصد ${foundCount} مستخدمين`;
+            } catch(error) {
+                console.error(error);
+                showToast("جاري المزامنة...", "info");
             }
         }
 
-        // رسم النقطة على الرادار
-        function createBlip(user, dist, uid) {
+        function createBlip(user, dist, uid, bearing) {
             const radarBox = document.getElementById('radarBox');
             const blip = document.createElement('div');
             blip.className = 'blip';
-
-            // تحويل المسافة والزاوية لمكان على شاشة الرادار (Pixel)
-            // بما أننا لا نعرف الاتجاه (Bearing)، سنوزعهم عشوائياً كزاوية
-            // لكن المسافة من المركز (Radius) ستكون دقيقة نسبياً للنطاق
-            const angle = Math.random() * Math.PI * 2;
             
-            // تحويل المسافة (كم) لنسبة مئوية من نصف قطر الرادار (170px)
+            // تخزين اتجاه المستخدم لاستخدامه في الأنيميشن
+            blip.setAttribute('data-heading', user.heading || 0);
+
+            let isStale = false;
+            let lastSeenText = "نشط الآن";
+            let isTargetSOS = false;
+
+            if (user.status === 'SOS') {
+                blip.classList.add('sos-blip');
+                isTargetSOS = true;
+                showToast(`⚠️ استغاثة عاجلة من ${user.name || 'مجهول'}!`, "error");
+            }
+            
+            if (user.lastActive) {
+                const now = new Date();
+                const lastSeen = user.lastActive.toDate ? user.lastActive.toDate() : new Date(user.lastActive);
+                const diffMins = (now - lastSeen) / 1000 / 60;
+
+                if (diffMins > 10) {
+                    blip.classList.add('stale-signal');
+                    isStale = true;
+                    lastSeenText = `منذ ${Math.round(diffMins)} دقيقة`;
+                }
+                if (diffMins > 60) return;
+            }
+
+            if (dist < 1.0 && !isTargetSOS) {
+                blip.classList.add('danger');
+            }
+
+            // [جديد] بناء الهيكل الداخلي للنقطة
+            let innerContent = '';
+            let bgStyle = '';
+            
+            if(user.profilePic) {
+                bgStyle = `background-image: url('${user.profilePic}'); border-color: #fff;`;
+            } else {
+                let color = isTargetSOS ? '#500000' : (isStale ? '#333' : '#003300');
+                bgStyle = `background-color: ${color}; display:grid; place-items:center;`;
+                innerContent = `<span style="font-size:8px; font-weight:bold; color:#fff;">${user.name ? user.name[0].toUpperCase() : '?'}</span>`;
+            }
+
+            // إضافة سهم الاتجاه إذا كان المستخدم يتحرك
+            let arrowDisplay = (user.speed && user.speed > 3) ? 'block' : 'none';
+
+            blip.innerHTML = `
+                <div class="blip-arrow" style="display:${arrowDisplay}"></div>
+                <div class="blip-inner" style="${bgStyle}">
+                    ${innerContent}
+                </div>
+            `;
+
+            const angleRad = deg2rad(bearing - 90); 
             const maxRadiusPx = 160; 
             const pixelDist = (dist / searchRadius) * maxRadiusPx;
             
-            const x = 170 + pixelDist * Math.cos(angle);
-            const y = 170 + pixelDist * Math.sin(angle);
+            let x = 170 + pixelDist * Math.cos(angleRad);
+            let y = 170 + pixelDist * Math.sin(angleRad);
+
+            // منع التداخل
+            let overlap = true;
+            let attempts = 0;
+            while(overlap && attempts < 10) {
+                overlap = false;
+                for(let other of renderedBlips) {
+                    const dx = x - other.x;
+                    const dy = y - other.y;
+                    const distance = Math.sqrt(dx*dx + dy*dy);
+                    if(distance < 25) {
+                        x += (Math.random() - 0.5) * 20; 
+                        y += (Math.random() - 0.5) * 20;
+                        overlap = true;
+                        break;
+                    }
+                }
+                attempts++;
+            }
+            renderedBlips.push({x, y});
 
             blip.style.left = x + 'px';
             blip.style.top = y + 'px';
 
-            blip.onclick = () => showUser(user, dist, uid);
+            blip.onclick = (e) => {
+                e.stopPropagation();
+                showUser(user, dist, uid, bearing, lastSeenText, isStale);
+            };
 
-            // إظهار النقطة لما الخط يعدي عليها (محاكاة)
             setTimeout(() => {
                 blip.classList.add('visible');
                 const audio = document.getElementById('pingSound');
-                audio.currentTime = 0; audio.play().catch(()=>{});
-            }, Math.random() * 2000);
+                if(audio && !document.hidden && !isSOSActive) {
+                   const clone = audio.cloneNode();
+                   clone.volume = 0.2;
+                   clone.play().catch(()=>{});
+                }
+            }, Math.random() * 1500);
 
             radarBox.appendChild(blip);
         }
 
-        function showUser(user, dist, uid) {
+        function showUser(user, dist, uid, bearing, lastSeenText, isStale) {
             selectedUserId = uid;
             const card = document.getElementById('userCard');
             const img = document.getElementById('ucImg');
+            const statusDiv = document.getElementById('ucStatus');
             
-            document.getElementById('ucName').innerText = user.name || 'مستخدم';
-            document.getElementById('ucDist').innerText = `يبعد ${dist.toFixed(1)} كم`;
+            card.style.animation = 'none';
+            card.offsetHeight; 
+            card.style.animation = 'slideUp 0.3s ease-out';
             
+            document.getElementById('ucName').innerText = user.name || 'مستخدم مجهول';
+            document.getElementById('ucDist').innerText = `المسافة: ${dist.toFixed(2)} كم`;
+            
+            let dirTxt = getCardinal(bearing);
+            
+            let addressHTML = "";
+            if (user.address) {
+                addressHTML = `<div class="address-line">
+                    <i class="fa-solid fa-location-dot" style="margin-left:3px; font-size:9px;"></i> ${user.address}
+                </div>`;
+            }
+
+            // [جديد] إضافة السرعة للكارت إذا توفرت
+            let speedHTML = "";
+            if (user.speed && user.speed > 0) {
+                speedHTML = ` | 🚀 ${Math.round(user.speed)} كم/س`;
+            }
+
+            document.getElementById('ucBearing').innerHTML = `${Math.round(bearing)}° ${speedHTML} | ${dirTxt} ${addressHTML}`;
+
+            if (user.status === 'SOS') {
+                statusDiv.innerText = "⚠️ حالة طوارئ SOS";
+                statusDiv.style.color = "#ff0000";
+                statusDiv.style.fontWeight = "bold";
+                card.style.borderColor = "#ff0000";
+            } else {
+                statusDiv.innerText = lastSeenText;
+                statusDiv.style.color = isStale ? '#888' : 'var(--radar-color)';
+                card.style.borderColor = "var(--radar-color)";
+            }
+
             if(user.profilePic) {
                 img.style.backgroundImage = `url('${user.profilePic}')`;
-                img.innerText = '';
+                img.innerHTML = '';
             } else {
-                img.style.background = '#003300';
-                img.innerText = user.name ? user.name[0] : 'U';
-                img.style.display = 'grid'; img.style.placeItems = 'center'; img.style.fontWeight='bold';
+                img.style.background = user.status === 'SOS' ? '#500000' : '#003300';
+                img.innerHTML = `<span style="color:#fff; font-size:20px;">${user.name ? user.name[0] : '?'}</span>`;
+                img.style.display = 'grid'; img.style.placeItems = 'center';
             }
 
             card.style.display = 'flex';
@@ -286,21 +870,150 @@
             if(selectedUserId) location.href = `profile.html?uid=${selectedUserId}`;
         }
 
-        // دالة حساب المسافة (Haversine Formula)
+        function showToast(msg, type = 'info') {
+            const box = document.getElementById('toastBox');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            let icon = type === 'error' ? '<i class="fa-solid fa-triangle-exclamation"></i>' : '<i class="fa-solid fa-check"></i>';
+            toast.innerHTML = `<span>${msg}</span> ${icon}`;
+            
+            box.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-20px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         function calcDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; // نصف قطر الأرض بالكيلومتر
+            const R = 6371; 
             const dLat = deg2rad(lat2 - lat1);
             const dLon = deg2rad(lon2 - lon1);
-            const a = 
-                Math.sin(dLat/2) * Math.sin(dLat/2) +
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
                 Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2); 
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); 
             return R * c;
         }
 
-        function deg2rad(deg) {
-            return deg * (Math.PI/180);
+        function getBearing(startLat, startLng, destLat, destLng) {
+            const startLatRad = deg2rad(startLat);
+            const startLngRad = deg2rad(startLng);
+            const destLatRad = deg2rad(destLat);
+            const destLngRad = deg2rad(destLng);
+
+            const y = Math.sin(destLngRad - startLngRad) * Math.cos(destLatRad);
+            const x = Math.cos(startLatRad) * Math.sin(destLatRad) -
+                    Math.sin(startLatRad) * Math.cos(destLatRad) * Math.cos(destLngRad - startLngRad);
+            
+            let brng = Math.atan2(y, x);
+            brng = brng * (180 / Math.PI);
+            return (brng + 360) % 360; 
         }
+
+        function deg2rad(deg) { return deg * (Math.PI/180); }
+        function getCardinal(angle) {
+            const directions = ['شمال', 'شمال شرق', 'شرق', 'جنوب شرق', 'جنوب', 'جنوب غرب', 'غرب', 'شمال غرب'];
+            return directions[Math.round(angle / 45) % 8];
+        }
+
+        // --- دوال ال SOS ---
+        function startSOSTimer() {
+            if(isSOSActive) {
+                stopSOS(); 
+                return;
+            }
+            document.getElementById('sosStatus').style.opacity = '1';
+            document.getElementById('sosStatus').innerText = "استمر بالضغط...";
+            
+            circle.style.transition = 'stroke-dashoffset 3s linear';
+            circle.style.strokeDashoffset = '0'; 
+            
+            sosTimer = setTimeout(() => {
+                triggerSOS();
+            }, 3000); 
+        }
+
+        function cancelSOS() {
+            if(!isSOSActive) {
+                clearTimeout(sosTimer);
+                circle.style.transition = 'stroke-dashoffset 0.5s ease-out';
+                circle.style.strokeDashoffset = circumference;
+                document.getElementById('sosStatus').style.opacity = '0';
+            }
+        }
+
+        function triggerSOS() {
+            isSOSActive = true;
+            const btn = document.getElementById('sosBtn');
+            btn.classList.add('active-emergency');
+            btn.innerHTML = 'SOS';
+            
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("class", "progress-ring");
+            svg.setAttribute("width", "60");
+            svg.setAttribute("height", "60");
+            const newCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            newCircle.setAttribute("class", "progress-ring__circle");
+            newCircle.setAttribute("stroke", "white");
+            newCircle.setAttribute("stroke-width", "3");
+            newCircle.setAttribute("fill", "transparent");
+            newCircle.setAttribute("r", "28");
+            newCircle.setAttribute("cx", "30");
+            newCircle.setAttribute("cy", "30");
+            newCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            newCircle.style.strokeDashoffset = 0;
+            svg.appendChild(newCircle);
+            btn.appendChild(svg);
+            
+            document.getElementById('sosStatus').innerText = "تم إرسال الاستغاثة!";
+            document.body.classList.add('emergency-mode');
+            
+            document.getElementById('sirenSound').play().catch(e=>console.log(e));
+            showToast("جاري بث إشارة استغاثة للمحيطين!", "error");
+
+            if(myLat && myLng) updateMyLocation(myLat, myLng, myHeading, mySpeed);
+        }
+
+        function stopSOS() {
+            isSOSActive = false;
+            const btn = document.getElementById('sosBtn');
+            btn.classList.remove('active-emergency');
+            
+            btn.innerHTML = 'SOS <svg class="progress-ring" width="60" height="60"><circle class="progress-ring__circle" stroke="white" stroke-width="3" fill="transparent" r="28" cx="30" cy="30"/></svg>';
+            
+            const restoredCircle = btn.querySelector('.progress-ring__circle');
+            restoredCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            restoredCircle.style.strokeDashoffset = circumference;
+
+            document.body.classList.remove('emergency-mode');
+            document.getElementById('sirenSound').pause();
+            document.getElementById('sirenSound').currentTime = 0;
+            showToast("تم إلغاء حالة الطوارئ");
+            document.getElementById('sosStatus').style.opacity = '0';
+
+            if(myLat && myLng) updateMyLocation(myLat, myLng, myHeading, mySpeed);
+        }
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) {
+                const sound = document.getElementById('pingSound');
+                if(sound) sound.pause();
+                
+                const scanner = document.querySelector('.scanner');
+                if(scanner) scanner.style.animationPlayState = 'paused';
+                
+                document.title = "NABD - متوقف مؤقتاً";
+            } else {
+                const scanner = document.querySelector('.scanner');
+                if(scanner) scanner.style.animationPlayState = 'running';
+                
+                document.title = "NABD Pro - الرادار المحيط";
+                if(myLat) startScanning();
+            }
+        });
+
     </script>
 </body>
 </html>

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ضربة النيون - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050505;
+            --primary-color: #00e676; /* أخضر نيون */
+            --danger-color: #ff3366;  /* أحمر نيون */
+            --cyan-color: #00C6FF;    /* أزرق نيون */
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--cyan-color); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-between; padding: 10px 20px; background: #0a0a0a;
+            border-bottom: 1px solid #222; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 22px; font-weight: 900; color: #fff; text-shadow: 0 0 10px rgba(255,255,255,0.3); }
+        
+        /* الأسهم المتبقية */
+        .darts-left { display: flex; gap: 5px; margin-top: 5px; justify-content: center; }
+        .dart-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--danger-color); box-shadow: 0 0 8px var(--danger-color); transition: 0.3s; }
+        .dart-dot.used { background: #333; box-shadow: none; }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; position: relative; display: flex; align-items: center; justify-content: center;
+            background: radial-gradient(circle at center, #111 0%, #000 100%); overflow: hidden;
+        }
+        canvas { display: block; width: 100%; height: 100%; cursor: pointer; }
+
+        /* إرشادات */
+        .instructions {
+            position: absolute; bottom: 80px; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.4); font-size: 16px; font-weight: bold; pointer-events: none;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
+
+        /* --- المودال --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #111; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn-restart {
+            background: linear-gradient(45deg, var(--cyan-color), #0055ff);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(0, 198, 255, 0.4); transition: 0.2s;
+        }
+        .btn-restart:active { transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">ضربة النيون 🎯</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">المستوى</div>
+            <div class="score-value" id="levelDisplay" style="color: var(--primary-color);">1</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">الأسهم</div>
+            <div class="darts-left" id="dartsDisplay">
+                </div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea">
+        <canvas id="gameCanvas"></canvas>
+        <div class="instructions" id="instructions">اضغط على الشاشة للتصويب!</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div id="modalIcon" style="font-size: 60px; margin-bottom: 10px;">💥</div>
+            <div class="modal-title" id="modalTitle" style="color: var(--danger-color);">تحطمت!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">وصلت إلى المستوى <span id="finalLevel" style="color:#fff; font-weight:bold;">1</span></p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn-restart" onclick="initGame()">إعادة اللعب</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const gameArea = document.getElementById('gameArea');
+        const levelDisplay = document.getElementById('levelDisplay');
+        const dartsDisplay = document.getElementById('dartsDisplay');
+        const walletElement = document.getElementById('walletScore');
+        const instructions = document.getElementById('instructions');
+
+        // ضبط أبعاد الـ Canvas لتكون عالية الدقة
+        function resizeCanvas() {
+            canvas.width = gameArea.clientWidth * window.devicePixelRatio;
+            canvas.height = gameArea.clientHeight * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        // متغيرات اللعبة
+        let level = 1;
+        let isGameOver = false;
+        let animationId;
+        
+        let target = { x: 0, y: 0, radius: 60, angle: 0, speed: 0.03, isExploding: false };
+        let attachedDarts = []; // الأسهم المغروزة
+        let flyingDart = null;  // السهم اللي طاير
+        let readyDart = null;   // السهم اللي مستني ينضرب
+        
+        let totalDarts = 5;
+        let dartsLeft = 5;
+        let particles = [];     // تأثيرات الانفجار
+
+        // ألوان النيون
+        const targetColor = "#00C6FF";
+        const dartColor = "#ff3366";
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            resizeCanvas();
+            level = 1;
+            setupLevel();
+            isGameOver = false;
+            cancelAnimationFrame(animationId);
+            gameLoop();
+        }
+
+        function setupLevel() {
+            target.x = gameArea.clientWidth / 2;
+            target.y = gameArea.clientHeight / 3; // الدائرة فوق شوية
+            target.radius = 65;
+            target.isExploding = false;
+            
+            // زيادة الصعوبة
+            totalDarts = 4 + Math.floor(level / 2); // الأسهم بتزيد مع المستويات
+            if(totalDarts > 12) totalDarts = 12;
+            dartsLeft = totalDarts;
+            
+            // سرعة واتجاه متغير
+            target.speed = (0.02 + (level * 0.005)) * (Math.random() > 0.5 ? 1 : -1); 
+
+            attachedDarts = [];
+            flyingDart = null;
+            createReadyDart();
+            updateUI();
+        }
+
+        function createReadyDart() {
+            if (dartsLeft > 0) {
+                readyDart = { x: target.x, y: gameArea.clientHeight - 80, width: 6, height: 40 };
+            } else {
+                readyDart = null;
+            }
+        }
+
+        function updateUI() {
+            levelDisplay.innerText = level;
+            dartsDisplay.innerHTML = '';
+            for (let i = 0; i < totalDarts; i++) {
+                const dot = document.createElement('div');
+                dot.className = `dart-dot ${i >= dartsLeft ? 'used' : ''}`;
+                dartsDisplay.appendChild(dot);
+            }
+        }
+
+        // --- دوال الرسم (Canvas) ---
+        function drawGlow(x, y, radius, color, blur) {
+            ctx.shadowBlur = blur;
+            ctx.shadowColor = color;
+            ctx.fillStyle = color;
+        }
+
+        function drawTarget() {
+            if (target.isExploding) return;
+
+            ctx.save();
+            ctx.translate(target.x, target.y);
+            ctx.rotate(target.angle);
+
+            // رسم الدائرة الخارجية (نيون)
+            ctx.beginPath();
+            ctx.arc(0, 0, target.radius, 0, Math.PI * 2);
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = targetColor;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = targetColor;
+            ctx.stroke();
+
+            // رسم قلب الدائرة
+            ctx.beginPath();
+            ctx.arc(0, 0, target.radius - 10, 0, Math.PI * 2);
+            ctx.fillStyle = "#111";
+            ctx.shadowBlur = 0;
+            ctx.fill();
+            
+            // رسم علامات على الدائرة عشان تبان إنها بتلف
+            ctx.fillStyle = targetColor;
+            for(let i=0; i<4; i++){
+                ctx.rotate(Math.PI / 2);
+                ctx.beginPath();
+                ctx.arc(target.radius - 5, 0, 5, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            
+            ctx.restore();
+        }
+
+        function drawAttachedDarts() {
+            if (target.isExploding) return;
+
+            ctx.save();
+            ctx.translate(target.x, target.y);
+            
+            attachedDarts.forEach(dartAngle => {
+                ctx.save();
+                // دوران السهم ليكون مغروز في الدائرة
+                ctx.rotate(target.angle + dartAngle);
+                
+                // رسم السهم (يبدأ من حافة الدائرة لبره)
+                drawGlow(0, 0, 0, dartColor, 15);
+                ctx.beginPath();
+                // السهم بيترسم كأنه باصص لتحت عشان كده الـ Y بالموجب
+                ctx.moveTo(-3, target.radius);
+                ctx.lineTo(3, target.radius);
+                ctx.lineTo(0, target.radius + 40);
+                ctx.fill();
+                ctx.restore();
+            });
+            ctx.restore();
+        }
+
+        function drawDart(dart) {
+            if (!dart) return;
+            ctx.save();
+            drawGlow(0, 0, 0, dartColor, 15);
+            ctx.beginPath();
+            ctx.moveTo(dart.x - dart.width/2, dart.y);
+            ctx.lineTo(dart.x + dart.width/2, dart.y);
+            ctx.lineTo(dart.x, dart.y - dart.height);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        function createExplosion() {
+            for (let i = 0; i < 40; i++) {
+                particles.push({
+                    x: target.x, y: target.y,
+                    vx: (Math.random() - 0.5) * 15,
+                    vy: (Math.random() - 0.5) * 15,
+                    life: 1,
+                    color: Math.random() > 0.5 ? targetColor : dartColor
+                });
+            }
+        }
+
+        function drawParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02; // سرعة اختفاء الجزيئات
+                
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                drawGlow(0, 0, 0, p.color, 10);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // --- التحديث والمنطق (Game Logic) ---
+        function update() {
+            if (isGameOver) return;
+
+            // دوران الهدف
+            if (!target.isExploding) {
+                target.angle += target.speed;
+                // تغيير السرعة عشوائياً في المستويات العالية
+                if (level > 3 && Math.random() < 0.01) {
+                    target.speed = -target.speed; 
+                }
+            }
+
+            // حركة السهم الطائر
+            if (flyingDart) {
+                flyingDart.y -= 25; // سرعة السهم
+
+                // التحقق من الاصطدام بالدائرة
+                if (flyingDart.y - flyingDart.height <= target.y + target.radius) {
+                    checkCollision();
+                }
+            }
+        }
+
+        function checkCollision() {
+            // الزاوية اللي خبط فيها السهم
+            // السهم بيضرب من تحت، يعني بيعادل زاوية 0 بالنسبة للمركز لو عكسنا الدوران
+            let hitAngle = -target.angle + (Math.PI / 2); // تعويض بسيط للرسم
+
+            // التحقق من الخبط في سهم تاني
+            let isCrash = false;
+            for (let i = 0; i < attachedDarts.length; i++) {
+                let existingAngle = attachedDarts[i];
+                // حساب الفرق بين الزاويتين وتجاهل اللفات (2PI)
+                let diff = Math.abs((hitAngle - existingAngle) % (Math.PI * 2));
+                if (diff > Math.PI) diff = (Math.PI * 2) - diff;
+                
+                // لو المسافة أقل من 0.25 راديان (حوالي 14 درجة)، يبقى خبطوا في بعض
+                if (diff < 0.25) {
+                    isCrash = true;
+                    break;
+                }
+            }
+
+            if (isCrash) {
+                // خسر! السهم بيقع
+                flyingDart.vy = 10;
+                flyingDart.vx = (Math.random() - 0.5) * 10;
+                gameOver();
+            } else {
+                // نجح! السهم بيغرز
+                attachedDarts.push(hitAngle);
+                flyingDart = null;
+                dartsLeft--;
+                updateUI();
+
+                // اهتزاز الشاشة البسيط
+                canvas.style.transform = "translateY(5px)";
+                setTimeout(() => canvas.style.transform = "translateY(0)", 50);
+
+                if (dartsLeft === 0) {
+                    // فاز بالمستوى!
+                    levelComplete();
+                } else {
+                    createReadyDart();
+                }
+            }
+        }
+
+        function levelComplete() {
+            target.isExploding = true;
+            createExplosion();
+            
+            // اهتزاز قوي للشاشة
+            canvas.style.transform = "scale(1.05)";
+            setTimeout(() => canvas.style.transform = "scale(1)", 150);
+
+            setTimeout(() => {
+                level++;
+                setupLevel();
+            }, 1000); // الانتقال للمستوى التالي بعد ثانية
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            
+            // تأثير الشاشة الحمراء
+            canvas.style.filter = "drop-shadow(0 0 20px #ff3366)";
+            
+            // حساب المكافأة (5 عملات لكل مستوى عدا الأول)
+            let reward = (level - 1) * 5;
+            
+            document.getElementById('finalLevel').innerText = level;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            // تحديث المحفظة
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                canvas.style.filter = "none";
+                document.getElementById('resultModal').classList.add('active');
+            }, 800);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width / window.devicePixelRatio, canvas.height / window.devicePixelRatio);
+            
+            drawParticles();
+            drawAttachedDarts();
+            drawTarget();
+            drawDart(readyDart);
+            
+            if (flyingDart) {
+                drawDart(flyingDart);
+                if (isGameOver && flyingDart) {
+                    // لو خسر السهم بيطير لتحت
+                    flyingDart.x += flyingDart.vx || 0;
+                    flyingDart.y += flyingDart.vy || 0;
+                }
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- التحكم بالشاشة ---
+        function shootDart(e) {
+            if (e) e.preventDefault();
+            instructions.style.display = 'none';
+            if (isGameOver || target.isExploding || flyingDart || !readyDart) return;
+            
+            flyingDart = { ...readyDart };
+            readyDart = null;
+        }
+
+        // دعم اللمس والماوس
+        canvas.addEventListener('touchstart', shootDart);
+        canvas.addEventListener('mousedown', shootDart);
+
+        // تشغيل اللعبة
+        initGame();
+    </script>
+</body>
+</html>

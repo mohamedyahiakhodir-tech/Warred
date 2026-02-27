@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Wareed - الثقب الأسود</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #8e44ad;
+            --accent: #cd84f1;
+            --bg: #050505;
+            --text: #eee;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--text); height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+        /* --- خلفية النجوم المتحركة --- */
+        .stars { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+        .star { position: absolute; background: #fff; border-radius: 50%; animation: twinkle var(--duration) infinite ease-in-out; opacity: 0.8; }
+        @keyframes twinkle { 0%, 100% { opacity: 0.3; transform: scale(0.8); } 50% { opacity: 1; transform: scale(1.2); } }
+
+        /* --- زر العودة --- */
+        .back-btn {
+            position: absolute; top: 20px; right: 20px;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; cursor: pointer; z-index: 100;
+        }
+
+        /* --- الثقب الأسود نفسه --- */
+        .black-hole-container {
+            position: relative;
+            width: 300px; height: 300px;
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .black-hole {
+            width: 150px; height: 150px;
+            background: #000;
+            border-radius: 50%;
+            box-shadow: 
+                0 0 20px #4b0082, 
+                0 0 60px #800080, 
+                inset 0 0 40px #000;
+            position: relative;
+            z-index: 2;
+            animation: pulseHole 4s infinite alternate;
+        }
+
+        /* حلقة الجاذبية (Accretion Disk) */
+        .accretion-disk {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 280px; height: 280px;
+            transform: translate(-50%, -50%) rotateX(70deg);
+            border-radius: 50%;
+            background: radial-gradient(transparent 40%, rgba(142, 68, 173, 0.8) 45%, rgba(205, 132, 241, 0.4) 60%, transparent 70%);
+            animation: spinDisk 10s linear infinite;
+            z-index: 1;
+            box-shadow: 0 0 30px rgba(142, 68, 173, 0.5);
+        }
+
+        /* --- منطقة الكتابة --- */
+        .vent-area {
+            width: 90%; max-width: 400px;
+            position: relative;
+            z-index: 10;
+            transition: all 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19); /* حركة الشفط */
+        }
+
+        .vent-input {
+            width: 100%;
+            background: rgba(20, 20, 25, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            color: #fff;
+            font-size: 16px;
+            resize: none;
+            outline: none;
+            min-height: 120px;
+            backdrop-filter: blur(10px);
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .vent-input::placeholder { color: #666; font-size: 14px; }
+
+        .send-vent-btn {
+            background: linear-gradient(135deg, #8e44ad, #6c5ce7);
+            color: #fff; border: none;
+            padding: 12px 30px; border-radius: 50px;
+            font-weight: 900; font-size: 16px;
+            margin-top: 20px; cursor: pointer;
+            box-shadow: 0 0 20px rgba(142, 68, 173, 0.4);
+            transition: 0.3s; width: 100%;
+        }
+        .send-vent-btn:active { transform: scale(0.95); }
+
+        /* --- أنيميشن الشفط (Suck Effect) --- */
+        .sucked-in {
+            transform: translateY(-200px) scale(0) rotate(720deg);
+            opacity: 0;
+            filter: blur(10px);
+        }
+
+        /* --- رسالة النجاح --- */
+        .success-msg {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: #fff; font-size: 20px; font-weight: bold;
+            opacity: 0; pointer-events: none; transition: 0.5s;
+            text-align: center; width: 100%;
+        }
+        .success-msg.show { opacity: 1; animation: floatUp 2s forwards; }
+
+        @keyframes pulseHole { 0% { box-shadow: 0 0 20px #4b0082, 0 0 60px #800080; } 100% { box-shadow: 0 0 40px #4b0082, 0 0 100px #800080; } }
+        @keyframes spinDisk { from { transform: translate(-50%, -50%) rotateX(70deg) rotate(0deg); } to { transform: translate(-50%, -50%) rotateX(70deg) rotate(360deg); } }
+        @keyframes floatUp { 0% { transform: translate(-50%, -50%); opacity: 0; } 50% { transform: translate(-50%, -80%); opacity: 1; } 100% { transform: translate(-50%, -120%); opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div class="stars" id="starsContainer"></div>
+
+    <div class="back-btn" onclick="history.back()">
+        <i class="fa-solid fa-arrow-right"></i>
+    </div>
+
+    <div class="black-hole-container">
+        <div class="black-hole"></div>
+        <div class="accretion-disk"></div>
+    </div>
+
+    <div class="vent-area" id="ventBox">
+        <h2 style="text-align:center; margin-bottom:10px; font-weight:900; background:linear-gradient(to right, #fff, #cd84f1); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">تفريغ مجهول</h2>
+        <textarea id="ventInput" class="vent-input" placeholder="اكتب ما بداخلك.. سر، مشكلة، اعتراف.. لا أحد سيعرف هويتك هنا."></textarea>
+        <button class="send-vent-btn" onclick="suckMessage()">إرسال إلى العدم</button>
+    </div>
+
+    <div class="success-msg" id="successMsg">
+        تم تحرير الرسالة في الفضاء 🌌
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        // --- 1. إعداد الفايربيس (استخدم نفس مفاتيح مشروعك الأصلي) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+const auth = firebase.auth();
+        // --- 2. صناعة النجوم (Design) ---
+        const starsContainer = document.getElementById('starsContainer');
+        for(let i=0; i<100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            const xy = Math.random() * 100;
+            const duration = Math.random() * 3 + 2;
+            const size = Math.random() * 2 + 1;
+            
+            star.style.left = `${Math.random() * 100}%`;
+            star.style.top = `${Math.random() * 100}%`;
+            star.style.width = `${size}px`;
+            star.style.height = `${size}px`;
+            star.style.setProperty('--duration', `${duration}s`);
+            
+            starsContainer.appendChild(star);
+        }
+
+        // --- 3. المنطق البرمجي (شفط الرسالة) ---
+        async function suckMessage() {
+            const input = document.getElementById('ventInput');
+            const text = input.value.trim();
+            const box = document.getElementById('ventBox');
+            const msg = document.getElementById('successMsg');
+
+            if(!text) return;
+
+            // أ) تشغيل الصوت (تأثير الشفط)
+            const audio = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-space-deploy-whoosh-3004.mp3'); // صوت فضائي
+            audio.volume = 0.5;
+            audio.play().catch(e=>{});
+
+            // ب) تشغيل الأنيميشن (الشفط داخل الثقب)
+            box.classList.add('sucked-in');
+
+            // ج) الإرسال للداتابيز (بدون هوية)
+            try {
+                await db.collection('black_hole_messages').add({
+                    text: text,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+                    // لاحظ: لا نرسل uid أو name نهائياً
+                    isRead: false,
+                    reactions: 0
+                });
+
+                // د) رسالة النجاح وإعادة الضبط
+                setTimeout(() => {
+                    msg.classList.add('show');
+                    input.value = '';
+                    
+                    // استعادة الصندوق بعد لحظات
+                    setTimeout(() => {
+                        box.classList.remove('sucked-in');
+                        msg.classList.remove('show');
+                    }, 2500);
+                }, 800); // انتظر حتى ينتهي أنيميشن الشفط
+
+            } catch(e) {
+                alert("حدث خطأ في الاتصال بالثقب الأسود!");
+                box.classList.remove('sucked-in');
+            }
+        }
+    </script>
+</body>
+</html>

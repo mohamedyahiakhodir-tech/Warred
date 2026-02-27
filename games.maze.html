@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لغز المتاهة - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --wall-color: #333;
+            --path-color: #1a1a1a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+
+        /* --- معلومات المستوى --- */
+        .game-info {
+            display: flex; justify-content: space-around; padding: 15px;
+            font-size: 16px; font-weight: bold; background: #111;
+        }
+        .timer { color: #ff3b30; }
+        .level-text { color: var(--primary-color); }
+
+        /* --- منطقة اللعب (Canvas) --- */
+        .canvas-container {
+            display: flex; justify-content: center; align-items: center;
+            padding: 10px; height: calc(100vh - 280px);
+        }
+        canvas {
+            background: var(--path-color);
+            box-shadow: 0 0 20px rgba(0, 198, 255, 0.2);
+            border-radius: 8px;
+            border: 2px solid var(--primary-color);
+        }
+
+        /* --- أزرار التحكم للموبايل (D-Pad) --- */
+        .controls {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            display: grid; grid-template-columns: repeat(3, 60px); grid-template-rows: repeat(2, 60px);
+            gap: 10px; justify-content: center; align-items: center;
+        }
+        .ctrl-btn {
+            width: 60px; height: 60px; background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; color: #fff; cursor: pointer; transition: 0.1s;
+        }
+        .ctrl-btn:active { background: var(--primary-color); border-color: var(--primary-color); transform: scale(0.9); }
+        .btn-up { grid-column: 2; grid-row: 1; }
+        .btn-left { grid-column: 1; grid-row: 2; }
+        .btn-down { grid-column: 2; grid-row: 2; }
+        .btn-right { grid-column: 3; grid-row: 2; }
+
+        /* --- نافذة الفوز --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .win-box {
+            background: #161616; border: 1px solid var(--gold); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 350px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .win-icon { font-size: 50px; color: var(--gold); margin-bottom: 10px; }
+        .btn-next {
+            background: linear-gradient(45deg, var(--primary-color), var(--primary-solid));
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; margin-top: 20px; cursor: pointer;
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;">لغز المتاهة</div>
+        <div class="stats-box"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="game-info">
+        <div class="level-text">المستوى: <span id="levelDisplay">1</span></div>
+        <div class="timer"><i class="fa-regular fa-clock"></i> <span id="timeDisplay">30</span>ث</div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="mazeCanvas"></canvas>
+    </div>
+
+    <div class="controls">
+        <div class="ctrl-btn btn-up" onclick="movePlayer('up')"><i class="fa-solid fa-arrow-up"></i></div>
+        <div class="ctrl-btn btn-left" onclick="movePlayer('left')"><i class="fa-solid fa-arrow-left"></i></div>
+        <div class="ctrl-btn btn-down" onclick="movePlayer('down')"><i class="fa-solid fa-arrow-down"></i></div>
+        <div class="ctrl-btn btn-right" onclick="movePlayer('right')"><i class="fa-solid fa-arrow-right"></i></div>
+    </div>
+
+    <div class="modal-overlay" id="winModal">
+        <div class="win-box">
+            <div class="win-icon"><i class="fa-solid fa-trophy"></i></div>
+            <h2 style="margin-bottom: 5px;">عمل رائع!</h2>
+            <p style="color: #aaa; font-size: 14px;">لقد أكملت المستوى بنجاح.</p>
+            <div style="margin-top: 15px; font-size: 18px; font-weight: bold; color: var(--gold);">
+                +<span id="earnedCoins">20</span> عملة
+            </div>
+            <button class="btn-next" onclick="nextLevel()">المستوى التالي</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="loseModal">
+        <div class="win-box" style="border-color: #ff3b30; box-shadow: 0 0 30px rgba(255, 59, 48, 0.3);">
+            <div class="win-icon" style="color: #ff3b30;"><i class="fa-solid fa-skull-crossbones"></i></div>
+            <h2 style="margin-bottom: 5px;">انتهى الوقت!</h2>
+            <p style="color: #aaa; font-size: 14px;">لم تستطع الخروج في الوقت المحدد.</p>
+            <button class="btn-next" style="background: #ff3b30;" onclick="restartLevel()">إعادة المحاولة</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🎮 محرك اللعبة (Game Engine)
+        // ==========================================
+
+        const canvas = document.getElementById("mazeCanvas");
+        const ctx = canvas.getContext("2d");
+
+        // إعدادات اللعبة
+        let cols, rows;
+        let w; // عرض الخلية (Cell Width)
+        let grid = [];
+        let current;
+        let stack = [];
+        let player = { r: 0, c: 0 };
+        let goal = { r: 0, c: 0 };
+        
+        let level = 1;
+        let totalCoins = 0;
+        let timeLeft = 30;
+        let timerInterval;
+        let gameActive = false;
+
+        // دالة لضبط حجم الكانفاس ليتناسب مع شاشة الموبايل
+        function resizeCanvas() {
+            const container = document.querySelector('.canvas-container');
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            canvas.width = size;
+            canvas.height = size;
+        }
+
+        // ==========================================
+        // 🏗️ خوارزمية بناء المتاهة (DFS)
+        // ==========================================
+        class Cell {
+            constructor(r, c) {
+                this.r = r;
+                this.c = c;
+                this.walls = [true, true, true, true]; // أعلى، يمين، أسفل، يسار
+                this.visited = false;
+            }
+
+            draw() {
+                let x = this.c * w;
+                let y = this.r * w;
+                ctx.strokeStyle = "#333";
+                ctx.lineWidth = 2;
+                ctx.lineCap = "round";
+
+                if (this.walls[0]) { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + w, y); ctx.stroke(); } // أعلى
+                if (this.walls[1]) { ctx.beginPath(); ctx.moveTo(x + w, y); ctx.lineTo(x + w, y + w); ctx.stroke(); } // يمين
+                if (this.walls[2]) { ctx.beginPath(); ctx.moveTo(x + w, y + w); ctx.lineTo(x, y + w); ctx.stroke(); } // أسفل
+                if (this.walls[3]) { ctx.beginPath(); ctx.moveTo(x, y + w); ctx.lineTo(x, y); ctx.stroke(); } // يسار
+            }
+        }
+
+        function index(r, c) {
+            if (r < 0 || c < 0 || r > rows - 1 || c > cols - 1) return -1;
+            return c + r * cols;
+        }
+
+        function checkNeighbors(cell) {
+            let neighbors = [];
+            let top = grid[index(cell.r - 1, cell.c)];
+            let right = grid[index(cell.r, cell.c + 1)];
+            let bottom = grid[index(cell.r + 1, cell.c)];
+            let left = grid[index(cell.r, cell.c - 1)];
+
+            if (top && !top.visited) neighbors.push(top);
+            if (right && !right.visited) neighbors.push(right);
+            if (bottom && !bottom.visited) neighbors.push(bottom);
+            if (left && !left.visited) neighbors.push(left);
+
+            if (neighbors.length > 0) {
+                let r = Math.floor(Math.random() * neighbors.length);
+                return neighbors[r];
+            } else {
+                return undefined;
+            }
+        }
+
+        function removeWalls(a, b) {
+            let x = a.c - b.c;
+            if (x === 1) { a.walls[3] = false; b.walls[1] = false; }
+            else if (x === -1) { a.walls[1] = false; b.walls[3] = false; }
+            
+            let y = a.r - b.r;
+            if (y === 1) { a.walls[0] = false; b.walls[2] = false; }
+            else if (y === -1) { a.walls[2] = false; b.walls[0] = false; }
+        }
+
+        function generateMaze() {
+            grid = [];
+            stack = [];
+            // تصعيب اللعبة بزيادة المربعات
+            cols = 6 + (level * 2);
+            rows = 6 + (level * 2);
+            w = canvas.width / cols;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    grid.push(new Cell(r, c));
+                }
+            }
+
+            current = grid[0];
+            current.visited = true;
+
+            // التوليد الفوري للمتاهة (بدون انيميشن عشان اللاعب ميزهقش)
+            let isGenerating = true;
+            while (isGenerating) {
+                let next = checkNeighbors(current);
+                if (next) {
+                    next.visited = true;
+                    stack.push(current);
+                    removeWalls(current, next);
+                    current = next;
+                } else if (stack.length > 0) {
+                    current = stack.pop();
+                } else {
+                    isGenerating = false;
+                }
+            }
+
+            // إعداد اللاعب والهدف
+            player = { r: 0, c: 0 };
+            goal = { r: rows - 1, c: cols - 1 };
+        }
+
+        // ==========================================
+        // 🖌️ رسم العناصر (اللاعب، الهدف، المتاهة)
+        // ==========================================
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // رسم الجدران
+            for (let i = 0; i < grid.length; i++) {
+                grid[i].draw();
+            }
+
+            // رسم الهدف (مربع ذهبي)
+            let gx = goal.c * w + 4;
+            let gy = goal.r * w + 4;
+            ctx.fillStyle = "#FFD700";
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#FFD700";
+            ctx.fillRect(gx, gy, w - 8, w - 8);
+
+            // رسم اللاعب (دائرة نيون سماوي)
+            let px = player.c * w + (w / 2);
+            let py = player.r * w + (w / 2);
+            ctx.beginPath();
+            ctx.arc(px, py, (w / 2) - 4, 0, 2 * Math.PI);
+            ctx.fillStyle = "#00C6FF";
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = "#00C6FF";
+            ctx.fill();
+            ctx.shadowBlur = 0; // إعادة تعيين الظل عشان ميأثرش ع الجدران المرة الجاية
+        }
+
+        // ==========================================
+        // 🕹️ حركة اللاعب والتحكم
+        // ==========================================
+        function movePlayer(direction) {
+            if (!gameActive) return;
+
+            let currentCell = grid[index(player.r, player.c)];
+
+            if (direction === 'up' && !currentCell.walls[0]) player.r--;
+            else if (direction === 'right' && !currentCell.walls[1]) player.c++;
+            else if (direction === 'down' && !currentCell.walls[2]) player.r++;
+            else if (direction === 'left' && !currentCell.walls[3]) player.c--;
+
+            draw();
+            checkWin();
+        }
+
+        // دعم الكيبورد لو بيلعب من لابتوب
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp') movePlayer('up');
+            else if (e.key === 'ArrowDown') movePlayer('down');
+            else if (e.key === 'ArrowLeft') movePlayer('left');
+            else if (e.key === 'ArrowRight') movePlayer('right');
+        });
+
+        // ==========================================
+        // 🏆 منطق الفوز والخسارة
+        // ==========================================
+        function checkWin() {
+            if (player.r === goal.r && player.c === goal.c) {
+                gameActive = false;
+                clearInterval(timerInterval);
+                
+                // حساب المكافأة (أساسي + مكافأة على الوقت المتبقي)
+                let reward = (level * 10) + timeLeft;
+                totalCoins += reward;
+                document.getElementById('walletCoins').innerText = totalCoins;
+                document.getElementById('earnedCoins').innerText = reward;
+                
+                // حفظ الرصيد في قواعد البيانات الخاصة بك لاحقاً
+                // updateFirebaseWallet(totalCoins); 
+
+                setTimeout(() => {
+                    document.getElementById('winModal').style.display = 'flex';
+                }, 300);
+            }
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 20 + (level * 10); // زيادة الوقت مع زيادة المستوى
+            document.getElementById('timeDisplay').innerText = timeLeft;
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timeDisplay').innerText = timeLeft;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    gameActive = false;
+                    document.getElementById('loseModal').style.display = 'flex';
+                }
+            }, 1000);
+        }
+
+        // ==========================================
+        // 🔄 دورة اللعبة
+        // ==========================================
+        function initGame() {
+            document.getElementById('winModal').style.display = 'none';
+            document.getElementById('loseModal').style.display = 'none';
+            document.getElementById('levelDisplay').innerText = level;
+            
+            resizeCanvas();
+            generateMaze();
+            draw();
+            startTimer();
+            gameActive = true;
+        }
+
+        function nextLevel() {
+            level++;
+            initGame();
+        }
+
+        function restartLevel() {
+            initGame(); // يعيد نفس المستوى
+        }
+
+        // التشغيل عند فتح الصفحة
+        window.onload = () => {
+            // محاكاة جلب رصيد المستخدم من الداتابيز
+            totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+            document.getElementById('walletCoins').innerText = totalCoins;
+            initGame();
+        };
+
+        // ضبط الكانفاس عند تدوير الموبايل
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            w = canvas.width / cols;
+            draw();
+        });
+
+    </script>
+</body>
+</html>

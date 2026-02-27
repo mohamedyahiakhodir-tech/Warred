@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>كرة السلة - وريد</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-color: #00C6FF;  
+            --danger-color: #ff3366;
+            --success-color: #00e676;
+            --orange: #ff6a00;
+            --text-color: #eee;
+            --gold: #FFD700;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
+        body { background: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; flex-direction: column; overflow: hidden; touch-action: none; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05); z-index: 10;
+        }
+        .back-btn { font-size: 20px; color: var(--text-color); cursor: pointer; transition: 0.2s; }
+        .back-btn:active { transform: scale(0.9); }
+        .header-title { font-weight: 900; font-size: 18px; color: #fff; text-shadow: 0 0 10px rgba(0, 198, 255, 0.5); }
+        .wallet { color: var(--gold); font-weight: bold; font-size: 14px; background: rgba(255,215,0,0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid var(--gold); }
+
+        /* --- لوحة النتائج --- */
+        .scoreboard {
+            display: flex; justify-content: space-around; padding: 15px; background: #111;
+            border-bottom: 1px solid #333; z-index: 10;
+        }
+        .score-box { text-align: center; }
+        .score-title { font-size: 12px; color: #aaa; font-weight: bold; }
+        .score-value { font-size: 24px; font-weight: 900; color: #fff; }
+        .lives { color: var(--danger-color); font-size: 20px; letter-spacing: 2px; }
+
+        /* --- منطقة اللعب --- */
+        .game-area {
+            flex: 1; position: relative; background: radial-gradient(circle at center, #1a1a2e, #0d0d0f);
+            overflow: hidden; display: flex; justify-content: center; cursor: pointer;
+        }
+        
+        /* السلة */
+        .hoop-container {
+            position: absolute; top: 15%; left: 0; width: 80px; height: 10px;
+            background: #fff; border-radius: 5px; box-shadow: 0 0 15px #fff;
+            transform: translateX(0); z-index: 5;
+        }
+        .hoop-container::after {
+            content: ''; position: absolute; top: 10px; left: 10%; width: 80%; height: 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.5); border-top: none; border-radius: 0 0 10px 10px;
+        }
+        .backboard {
+            position: absolute; top: -30px; left: -10px; width: 100px; height: 30px;
+            border: 3px solid rgba(255, 0, 0, 0.7); border-radius: 5px; background: rgba(255,255,255,0.1);
+        }
+
+        /* الكرة */
+        .ball {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 50px; height: 50px; background: radial-gradient(circle at 30% 30%, #ff8c00, var(--orange));
+            border-radius: 50%; box-shadow: inset -5px -5px 15px rgba(0,0,0,0.5), 0 0 15px rgba(255, 106, 0, 0.8);
+            z-index: 6; display: flex; align-items: center; justify-content: center;
+        }
+        /* خطوط الكرة */
+        .ball::before, .ball::after {
+            content: ''; position: absolute; width: 100%; height: 2px; background: rgba(0,0,0,0.5);
+        }
+        .ball::before { transform: rotate(45deg); }
+        .ball::after { transform: rotate(-45deg); }
+
+        .instructions {
+            position: absolute; top: 50%; width: 100%; text-align: center;
+            color: rgba(255,255,255,0.3); font-size: 18px; font-weight: bold; pointer-events: none;
+        }
+
+        /* --- المودال (النتيجة) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: all; }
+        .modal-card {
+            background: #161616; border: 1px solid #333; border-radius: 20px;
+            padding: 30px 20px; width: 90%; max-width: 350px; text-align: center;
+            transform: translateY(20px); transition: 0.3s;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+        .modal-icon { font-size: 60px; margin-bottom: 10px; }
+        .modal-title { font-size: 28px; font-weight: 900; margin-bottom: 5px; color: var(--orange); }
+        .modal-reward { font-size: 18px; font-weight: bold; margin-bottom: 25px; color: var(--gold); }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--orange), #ff3300);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 12px;
+            font-size: 16px; font-weight: bold; cursor: pointer; width: 100%;
+            box-shadow: 0 5px 15px rgba(255, 106, 0, 0.4); transition: 0.2s;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        /* تأثير الهدف */
+        .goal-text {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 40px; font-weight: 900; color: var(--success-color);
+            text-shadow: 0 0 20px var(--success-color); opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        .goal-text.active { opacity: 1; transform: translate(-50%, -80%); }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div class="header-title">كرة السلة 🏀</div>
+        <div class="wallet"><i class="fa-solid fa-coins"></i> <span id="walletScore">1500</span></div>
+    </div>
+
+    <div class="scoreboard">
+        <div class="score-box">
+            <div class="score-title">النقاط</div>
+            <div class="score-value" id="scoreDisplay">0</div>
+        </div>
+        <div class="score-box">
+            <div class="score-title">المحاولات</div>
+            <div class="lives" id="livesDisplay">❤️❤️❤️</div>
+        </div>
+    </div>
+
+    <div class="game-area" id="gameArea" onmousedown="shootBall()" ontouchstart="shootBall(event)">
+        <div class="instructions" id="instructions">اضغط على الشاشة للتسديد</div>
+        
+        <div class="hoop-container" id="hoop">
+            <div class="backboard"></div>
+        </div>
+        
+        <div class="ball" id="ball"></div>
+        <div class="goal-text" id="goalText">+1</div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-card">
+            <div class="modal-icon">⏱️</div>
+            <div class="modal-title">انتهت المباراة!</div>
+            <p style="color: #aaa; margin-bottom: 10px;">سجلت <span id="finalScore" style="color:#fff; font-weight:bold;">0</span> أهداف</p>
+            <div class="modal-reward" id="modalReward">+0 عملة</div>
+            <button class="btn" onclick="initGame()">العب من جديد</button>
+        </div>
+    </div>
+
+    <script>
+        const gameArea = document.getElementById('gameArea');
+        const hoop = document.getElementById('hoop');
+        const ball = document.getElementById('ball');
+        const scoreDisplay = document.getElementById('scoreDisplay');
+        const livesDisplay = document.getElementById('livesDisplay');
+        const walletElement = document.getElementById('walletScore');
+        const instructions = document.getElementById('instructions');
+        const goalText = document.getElementById('goalText');
+
+        let score = 0;
+        let lives = 3;
+        let isShooting = false;
+        let isGameOver = false;
+        
+        // إعدادات الحركة
+        let hoopX = 0;
+        let hoopSpeed = 3;
+        let hoopDirection = 1;
+        let ballY = 20; // المسافة من الأسفل
+        let ballSpeed = 15;
+        let gameLoopId;
+
+        function initGame() {
+            document.getElementById('resultModal').classList.remove('active');
+            score = 0;
+            lives = 3;
+            hoopSpeed = 3;
+            isShooting = false;
+            isGameOver = false;
+            
+            scoreDisplay.innerText = score;
+            updateLives();
+            instructions.style.display = 'block';
+            
+            // إعادة الكرة لمكانها
+            ballY = 20;
+            ball.style.bottom = ballY + 'px';
+            ball.style.transform = 'translateX(-50%) scale(1)';
+            ball.style.opacity = '1';
+
+            cancelAnimationFrame(gameLoopId);
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (isGameOver) return;
+
+            const areaWidth = gameArea.clientWidth;
+            const areaHeight = gameArea.clientHeight;
+            const hoopWidth = hoop.clientWidth;
+            
+            // تحريك السلة يمين ويسار
+            hoopX += hoopSpeed * hoopDirection;
+            if (hoopX <= 0) {
+                hoopX = 0;
+                hoopDirection = 1;
+            } else if (hoopX >= areaWidth - hoopWidth) {
+                hoopX = areaWidth - hoopWidth;
+                hoopDirection = -1;
+            }
+            hoop.style.left = hoopX + 'px';
+
+            // تحريك الكرة إذا تم التسديد
+            if (isShooting) {
+                ballY += ballSpeed;
+                ball.style.bottom = ballY + 'px';
+                
+                // تصغير الكرة لتعطي إحساس بالعمق (3D Effect)
+                let scale = 1 - (ballY / areaHeight) * 0.5;
+                ball.style.transform = `translateX(-50%) scale(${scale})`;
+
+                // التحقق من التصادم (الهدف) - السلة في الـ 15% العلوية
+                let hoopTopY = areaHeight - (areaHeight * 0.15) - 20; // موقع السلة تقريباً
+                
+                if (ballY > hoopTopY && ballY < hoopTopY + 40) {
+                    let ballCenterX = areaWidth / 2;
+                    let hoopCenterX = hoopX + (hoopWidth / 2);
+                    
+                    // إذا كان مركز الكرة قريب من مركز السلة
+                    if (Math.abs(ballCenterX - hoopCenterX) < (hoopWidth / 2)) {
+                        handleGoal();
+                    }
+                }
+
+                // إذا الكرة طلعت بره الشاشة ولم تسجل
+                if (ballY > areaHeight) {
+                    handleMiss();
+                }
+            }
+
+            gameLoopId = requestAnimationFrame(gameLoop);
+        }
+
+        function shootBall(e) {
+            if (e) e.preventDefault(); // منع الزووم في الموبايل
+            if (isShooting || isGameOver) return;
+            
+            instructions.style.display = 'none';
+            isShooting = true;
+        }
+
+        function handleGoal() {
+            isShooting = false;
+            score++;
+            scoreDisplay.innerText = score;
+            
+            // زيادة الصعوبة (السرعة)
+            hoopSpeed += 0.5;
+
+            // إظهار نص الهدف
+            goalText.classList.add('active');
+            setTimeout(() => goalText.classList.remove('active'), 500);
+
+            // إخفاء الكرة مؤقتاً ثم إعادتها
+            ball.style.opacity = '0';
+            setTimeout(resetBall, 300);
+        }
+
+        function handleMiss() {
+            isShooting = false;
+            lives--;
+            updateLives();
+            
+            ball.style.opacity = '0';
+
+            // تأثير اهتزاز الشاشة
+            gameArea.style.transform = "translateX(-10px)";
+            setTimeout(() => gameArea.style.transform = "translateX(10px)", 50);
+            setTimeout(() => gameArea.style.transform = "translateX(0)", 100);
+
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                setTimeout(resetBall, 300);
+            }
+        }
+
+        function resetBall() {
+            ballY = 20;
+            ball.style.bottom = ballY + 'px';
+            ball.style.transform = 'translateX(-50%) scale(1)';
+            ball.style.opacity = '1';
+        }
+
+        function updateLives() {
+            livesDisplay.innerText = "❤️".repeat(lives) + "🖤".repeat(3 - lives);
+        }
+
+        function gameOver() {
+            isGameOver = true;
+            cancelAnimationFrame(gameLoopId);
+            
+            // حساب المكافأة (كل هدف بـ 2 عملة مثلاً)
+            let reward = score * 2;
+            
+            document.getElementById('finalScore').innerText = score;
+            document.getElementById('modalReward').innerText = `+${reward} عملة ذهبية`;
+            
+            // تحديث المحفظة
+            let currentWallet = parseInt(walletElement.innerText);
+            walletElement.innerText = currentWallet + reward;
+
+            setTimeout(() => {
+                document.getElementById('resultModal').classList.add('active');
+            }, 500);
+        }
+
+        // تشغيل اللعبة عند التحميل
+        window.onload = initGame;
+    </script>
+</body>
+</html>

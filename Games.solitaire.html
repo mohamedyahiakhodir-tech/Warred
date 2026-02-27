@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سوليتير نيون - Wareed</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #050510;
+            --primary-color: #00C6FF;  
+            --text-color: #eee;
+            --gold: #FFD700;
+            --danger: #ff0055;
+            --card-bg: #111;
+            --suit-red: #ff0055;
+            --suit-black: #00C6FF; /* بدلاً من الأسود جعلناه سماوي نيون */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; user-select: none; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+
+        /* --- الهيدر --- */
+        .game-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px 20px; background: rgba(13, 13, 15, 0.9);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            flex-shrink: 0;
+        }
+        .back-btn { font-size: 20px; cursor: pointer; color: #fff; }
+        .stats-box { background: rgba(255,215,0,0.1); border: 1px solid var(--gold); color: var(--gold); padding: 5px 12px; border-radius: 20px; font-weight: bold; font-size: 13px; transition: 0.3s; }
+        .pulse-wallet { transform: scale(1.2); color: #fff; box-shadow: 0 0 15px var(--gold); }
+
+        /* --- لوحة المعلومات --- */
+        .dashboard {
+            padding: 10px 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .cards-left { font-size: 14px; font-weight: bold; color: var(--secondary-text); }
+        .score-board { font-size: 18px; font-weight: 900; color: var(--primary-color); }
+
+        /* --- ساحة اللعب (الرقعة) --- */
+        .board-area {
+            flex: 1; display: flex; justify-content: center; align-items: center;
+            padding: 10px;
+        }
+        .cards-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+            width: 100%; max-width: 400px;
+        }
+
+        /* --- الورق (Cards) --- */
+        .card {
+            background: var(--card-bg); border: 2px solid #333; border-radius: 10px;
+            aspect-ratio: 2.5/3.5; display: flex; flex-direction: column; justify-content: space-between;
+            padding: 5px; cursor: pointer; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5); position: relative;
+        }
+        .card:active { transform: scale(0.9); }
+        .card.hidden { opacity: 0; pointer-events: none; transform: scale(0.5); }
+        
+        .card.suit-red { color: var(--suit-red); border-color: rgba(255, 0, 85, 0.3); text-shadow: 0 0 8px var(--suit-red); }
+        .card.suit-black { color: var(--suit-black); border-color: rgba(0, 198, 255, 0.3); text-shadow: 0 0 8px var(--suit-black); }
+
+        .card-top { font-size: 18px; font-weight: 900; text-align: left; line-height: 1; }
+        .card-center { font-size: 30px; text-align: center; }
+        .card-bottom { font-size: 18px; font-weight: 900; text-align: right; line-height: 1; transform: rotate(180deg); }
+
+        /* --- منطقة الأسفل (المجموعة والأساس) --- */
+        .footer-area {
+            display: flex; justify-content: center; gap: 30px; padding: 20px;
+            background: rgba(13, 13, 15, 0.9); border-top: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 40px; /* لرفعها عن حافة الموبايل */
+        }
+        
+        .deck-pile, .base-pile {
+            width: 70px; aspect-ratio: 2.5/3.5; border-radius: 10px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        
+        /* مجموعة السحب */
+        .deck-pile {
+            background: repeating-linear-gradient(45deg, #111, #111 10px, #222 10px, #222 20px);
+            border: 2px solid var(--primary-color); cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 198, 255, 0.3); transition: 0.2s;
+        }
+        .deck-pile:active { transform: scale(0.95); }
+        .deck-pile.empty { background: transparent; border: 2px dashed #444; box-shadow: none; pointer-events: none; }
+
+        /* --- نافذة النتيجة --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+        }
+        .result-box {
+            background: #111; border: 1px solid var(--primary-color); border-radius: 20px;
+            padding: 30px; text-align: center; width: 80%; max-width: 320px;
+            box-shadow: 0 0 40px rgba(0, 198, 255, 0.2); animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-icon { font-size: 50px; margin-bottom: 10px; }
+        .result-title { font-size: 24px; font-weight: 900; color: #fff; margin-bottom: 5px; }
+        .score-text { font-size: 14px; color: #aaa; margin-bottom: 15px; line-height: 1.5; }
+        .earned-coins { font-size: 22px; font-weight: 900; color: var(--gold); margin-bottom: 20px; }
+        
+        .btn-action {
+            background: linear-gradient(45deg, var(--primary-color), #0072FF);
+            color: #fff; border: none; padding: 12px 30px; border-radius: 25px;
+            font-weight: bold; font-size: 16px; width: 100%; cursor: pointer; transition: 0.2s;
+        }
+        .btn-action:active { transform: scale(0.95); }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* رسالة المساعدة */
+        .helper-text { text-align: center; color: #888; font-size: 11px; padding: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <i class="fa-solid fa-arrow-right back-btn" onclick="history.back()"></i>
+        <div style="font-weight: 900; font-size: 18px;"><i class="fa-solid fa-clone" style="color:var(--primary-color)"></i> سوليتير نيون</div>
+        <div class="stats-box" id="walletBox"><i class="fa-solid fa-coins"></i> <span id="walletCoins">0</span></div>
+    </div>
+
+    <div class="dashboard">
+        <div class="cards-left">بطاقات البورد: <span id="boardCountDisplay">12</span></div>
+        <div class="score-board">نقاط: <span id="scoreDisplay">0</span></div>
+    </div>
+
+    <div class="board-area">
+        <div class="cards-grid" id="boardGrid">
+            </div>
+    </div>
+
+    <div class="helper-text">اختر ورقة أكبر أو أصغر بـ 1 من ورقة الأساس 👇</div>
+
+    <div class="footer-area">
+        <div class="deck-pile" id="deckPile" onclick="drawCard()">
+            <span style="color:var(--primary-color); font-weight:bold;" id="deckCount">39</span>
+        </div>
+        
+        <div id="basePileContainer"></div>
+    </div>
+
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="result-box" id="resultBox">
+            <div class="result-icon" id="resultIcon">🏆</div>
+            <div class="result-title" id="resultTitle">رائع!</div>
+            <div class="score-text" id="resultDesc">لقد نظفت الرقعة بالكامل.</div>
+            <div class="earned-coins">+<span id="coinsEarned">0</span> عملة <i class="fa-solid fa-coins"></i></div>
+            <button class="btn-action" id="restartBtn" onclick="initGame()">لعب مجدداً</button>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🃏 إعدادات اللعبة وقاعدة بيانات الورق
+        // ==========================================
+        let totalCoins = parseInt(localStorage.getItem('wareed_coins') || '1500');
+        document.getElementById('walletCoins').innerText = totalCoins;
+
+        const suits = [
+            { name: 'hearts', icon: '♥', color: 'suit-red' },
+            { name: 'diamonds', icon: '♦', color: 'suit-red' },
+            { name: 'clubs', icon: '♣', color: 'suit-black' },
+            { name: 'spades', icon: '♠', color: 'suit-black' }
+        ];
+        
+        const ranks = [
+            { label: 'A', value: 1 }, { label: '2', value: 2 }, { label: '3', value: 3 },
+            { label: '4', value: 4 }, { label: '5', value: 5 }, { label: '6', value: 6 },
+            { label: '7', value: 7 }, { label: '8', value: 8 }, { label: '9', value: 9 },
+            { label: '10', value: 10 }, { label: 'J', value: 11 }, { label: 'Q', value: 12 },
+            { label: 'K', value: 13 }
+        ];
+
+        let deck = [];
+        let boardCards = [];
+        let baseCard = null;
+        let score = 0;
+        let gameActive = true;
+
+        // ==========================================
+        // 🔄 محرك الكوتشينة
+        // ==========================================
+        function createDeck() {
+            deck = [];
+            for (let s of suits) {
+                for (let r of ranks) {
+                    deck.push({ ...s, ...r, id: Math.random().toString(36).substr(2, 9) });
+                }
+            }
+            // خلط الورق (Fisher-Yates Shuffle)
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+        }
+
+        function createCardHTML(card, onClickAction = '') {
+            return `
+                <div class="card ${card.color}" onclick="${onClickAction}" id="card-${card.id}">
+                    <div class="card-top">${card.label}</div>
+                    <div class="card-center">${card.icon}</div>
+                    <div class="card-bottom">${card.label}</div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 🎮 بدء اللعبة
+        // ==========================================
+        function initGame() {
+            document.getElementById('gameOverModal').style.display = 'none';
+            score = 0;
+            gameActive = true;
+            document.getElementById('scoreDisplay').innerText = score;
+            
+            createDeck();
+
+            // توزيع 12 ورقة على الرقعة (البورد)
+            boardCards = deck.splice(0, 12);
+            renderBoard();
+
+            // وضع أول ورقة في الأساس
+            baseCard = deck.pop();
+            renderBaseCard();
+
+            updateDeckUI();
+        }
+
+        function renderBoard() {
+            const grid = document.getElementById('boardGrid');
+            grid.innerHTML = '';
+            
+            boardCards.forEach((card, index) => {
+                grid.innerHTML += createCardHTML(card, `playCard('${card.id}', ${index})`);
+            });
+            updateBoardCount();
+        }
+
+        function renderBaseCard() {
+            const container = document.getElementById('basePileContainer');
+            // نعطيها أنيميشن دخول صغير
+            container.innerHTML = createCardHTML(baseCard);
+            const cardEl = container.querySelector('.card');
+            cardEl.style.transform = 'scale(1.1)';
+            setTimeout(() => cardEl.style.transform = 'scale(1)', 150);
+        }
+
+        function updateDeckUI() {
+            const deckPile = document.getElementById('deckPile');
+            const deckCount = document.getElementById('deckCount');
+            
+            deckCount.innerText = deck.length;
+            if (deck.length === 0) {
+                deckPile.classList.add('empty');
+                deckCount.innerText = '';
+            } else {
+                deckPile.classList.remove('empty');
+            }
+        }
+
+        function updateBoardCount() {
+            const count = boardCards.filter(c => c !== null).length;
+            document.getElementById('boardCountDisplay').innerText = count;
+            
+            if (count === 0 && gameActive) {
+                endGame('win');
+            }
+        }
+
+        // ==========================================
+        // 🕹️ منطق اللعب (اختيار ورقة من البورد)
+        // ==========================================
+        function playCard(cardId, index) {
+            if (!gameActive) return;
+
+            const clickedCard = boardCards[index];
+            if (!clickedCard) return; // الورقة مأخوذة مسبقاً
+
+            // التحقق من صحة الحركة (أكبر بـ 1 أو أصغر بـ 1)
+            if (isValidMove(clickedCard.value, baseCard.value)) {
+                
+                // 1. إخفاء الورقة من البورد
+                const cardElement = document.getElementById(`card-${cardId}`);
+                cardElement.classList.add('hidden');
+                boardCards[index] = null; // تفريغ المكان
+                
+                // 2. تحديث ورقة الأساس لتصبح الورقة الجديدة
+                baseCard = clickedCard;
+                renderBaseCard();
+                
+                // 3. زيادة السكور
+                score += 10;
+                document.getElementById('scoreDisplay').innerText = score;
+                
+                if(navigator.vibrate) navigator.vibrate(20);
+                updateBoardCount();
+                
+                // فحص الخسارة (إذا علق اللاعب)
+                checkAutoLose();
+
+            } else {
+                // حركة خاطئة (نهز الورقة كتحذير)
+                const cardElement = document.getElementById(`card-${cardId}`);
+                cardElement.style.transform = 'translateX(5px)';
+                setTimeout(() => cardElement.style.transform = 'translateX(-5px)', 50);
+                setTimeout(() => cardElement.style.transform = 'scale(1)', 100);
+                if(navigator.vibrate) navigator.vibrate([50, 50]);
+            }
+        }
+
+        // القواعد: K يركب على A، والـ A يركب على K
+        function isValidMove(val1, val2) {
+            if (Math.abs(val1 - val2) === 1) return true;
+            if ((val1 === 1 && val2 === 13) || (val1 === 13 && val2 === 1)) return true;
+            return false;
+        }
+
+        // ==========================================
+        // 🎴 سحب ورقة جديدة من المجموعة
+        // ==========================================
+        function drawCard() {
+            if (!gameActive || deck.length === 0) return;
+
+            baseCard = deck.pop();
+            renderBaseCard();
+            updateDeckUI();
+            if(navigator.vibrate) navigator.vibrate(10);
+            
+            checkAutoLose();
+        }
+
+        // ==========================================
+        // 🛑 الفحص والنتائج
+        // ==========================================
+        function checkAutoLose() {
+            // اللاعب يخسر إذا: المجموعة فارغة + لا يوجد أي حركة متاحة على البورد
+            if (deck.length === 0) {
+                let hasMove = false;
+                for (let c of boardCards) {
+                    if (c !== null && isValidMove(c.value, baseCard.value)) {
+                        hasMove = true;
+                        break;
+                    }
+                }
+                
+                if (!hasMove) {
+                    setTimeout(() => endGame('lose'), 500); // تأخير بسيط ليدرك اللاعب
+                }
+            }
+        }
+
+        function endGame(result) {
+            gameActive = false;
+            const modal = document.getElementById('gameOverModal');
+            const icon = document.getElementById('resultIcon');
+            const title = document.getElementById('resultTitle');
+            const desc = document.getElementById('resultDesc');
+            const box = document.getElementById('resultBox');
+            const btn = document.getElementById('restartBtn');
+
+            let earned = 0;
+
+            if (result === 'win') {
+                earned = 50; // مكافأة تنظيف الرقعة بالكامل
+                icon.innerHTML = '🏆';
+                title.innerText = 'عبقري!';
+                desc.innerText = 'لقد نظفت الرقعة بالكامل.';
+                box.style.borderColor = 'var(--primary-color)';
+                box.style.boxShadow = '0 0 40px rgba(0,198,255,0.4)';
+                btn.style.background = 'linear-gradient(45deg, var(--primary-color), #0072FF)';
+            } else {
+                // يعطيه عملة 1 كترضية عن السكور اللي جمعه
+                earned = Math.floor(score / 50); 
+                icon.innerHTML = '🔒';
+                title.innerText = 'لا توجد حركات!';
+                desc.innerText = `نفذت الأوراق. تبقى ${boardCards.filter(c=>c!==null).length} بطاقات.`;
+                box.style.borderColor = 'var(--danger)';
+                box.style.boxShadow = '0 0 40px rgba(255,0,85,0.4)';
+                btn.style.background = 'linear-gradient(45deg, var(--danger), #ff5e62)';
+            }
+
+            // إضافة العملات
+            totalCoins += earned;
+            localStorage.setItem('wareed_coins', totalCoins);
+            document.getElementById('walletCoins').innerText = totalCoins;
+            document.getElementById('coinsEarned').innerText = earned;
+
+            modal.style.display = 'flex';
+        }
+
+        // تشغيل اللعبة
+        initGame();
+
+    </script>
+</body>
+</html>

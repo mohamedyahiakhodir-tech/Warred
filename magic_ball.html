@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>العرافة الشقراء الواقعية</title>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Tajawal:wght@300;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-deep: #020105;
+            
+            /* تعديل لون البشرة ليكون أفتح وأكثر إشراقاً */
+            --skin-base: #f3d1c6; 
+            --skin-shadow: #c99d91;
+            --skin-highlight: #ffeae3;
+            --skin-blush: #e6a8a8;
+            
+            /* ألوان الشعر الأشقر الذهبي */
+            --hair-base: #e6c76a;     /* ذهبي أساسي */
+            --hair-shadow: #b3934b;   /* ظل ذهبي غامق */
+            --hair-highlight: #f7e6a6; /* أشقر فاتح جداً */
+            --brow-color: #9e8257;    /* لون الحواجب الشقراء */
+
+            /* ألوان العباءة (بنفسجي ملكي داكن) */
+            --robe-base: #321647;
+            --robe-light: #582d7a;
+            --robe-dark: #1a0b26;
+            
+            /* ألوان العيون والشفاه */
+            --iris-color: #4c2882; /* عيون بنفسجية غامقة */
+            --lip-upper: #c76e6a;  /* لون شفاه وردي غامق */
+            --lip-lower: #db8581;  /* لون شفاه وردي فاتح */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--bg-deep);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: 'Tajawal', sans-serif;
+            background: radial-gradient(circle at 50% 100%, #1e0b36 0%, #000000 70%);
+        }
+
+        .dust-particles {
+            position: absolute; width: 100%; height: 100%; pointer-events: none;
+            background-image: 
+                radial-gradient(rgba(255,255,255,0.8) 1px, transparent 1px),
+                radial-gradient(rgba(247, 230, 166, 0.5) 1.5px, transparent 1.5px); /* غبار ذهبي */
+            background-size: 150px 150px, 90px 90px;
+            opacity: 0.4;
+            animation: floatDust 25s linear infinite;
+        }
+
+        .scene {
+            position: relative;
+            width: 450px;
+            height: 900px;
+            display: flex; justify-content: center;
+            margin-top: 20px;
+            filter: drop-shadow(0 0 80px rgba(0,0,0,0.9));
+            transform-style: preserve-3d;
+        }
+
+        /* --- العباءة والجسم (تعديل للشكل الكيرفي الرفيع) --- */
+        .robe-back {
+            position: absolute; top: 80px;
+            width: 300px; height: 350px; /* أضيق قليلاً */
+            background: var(--robe-dark);
+            border-radius: 150px 150px 20px 20px;
+            box-shadow: inset 0 0 50px #000;
+            z-index: 1;
+        }
+
+        .robe-body {
+            position: absolute; top: 250px;
+            width: 340px; height: 600px; /* جسم أرفع */
+            z-index: 2;
+            /* تعديل رسم العباءة لإبراز الخصر (شكل كيرفي) */
+            clip-path: path('M30,0 Q170,80 310,0 L340,600 Q170,500 0,600 Z');
+            background: linear-gradient(
+                95deg, 
+                var(--robe-dark) 0%,
+                var(--robe-base) 25%,
+                var(--robe-light) 45%, 
+                var(--robe-base) 65%,
+                var(--robe-dark) 100%
+            );
+            /* ظلال جانبية قوية لنحت الخصر */
+            box-shadow: inset 30px 0 40px rgba(0,0,0,0.6), inset -30px 0 40px rgba(0,0,0,0.6);
+        }
+
+        /* --- الشعر (أشقر ذهبي) --- */
+        .hair-back {
+            position: absolute; top: 60px; width: 260px; height: 450px; /* شعر أضيق ليتناسب مع الوجه الرفيع */
+            background: var(--hair-shadow);
+            border-radius: 120px 120px 40px 40px;
+            z-index: 3;
+            /* إضافة لمعة ذهبية للشعر الخلفي */
+            background-image: linear-gradient(to right, var(--hair-shadow), var(--hair-base), var(--hair-shadow));
+            box-shadow: inset 0 -50px 100px rgba(0,0,0,0.7);
+        }
+
+        /* --- الرأس والوجه (رفيع ومحدد الدقن) --- */
+        .head {
+            position: absolute; top: 90px;
+            width: 170px; height: 280px; /* وجه أرفع وأطول */
+            background: var(--skin-base);
+            border-radius: 60px 60px 100px 100px; /* زوايا سفلية أضيق لدقن محدد */
+            z-index: 10;
+            box-shadow: 
+                /* ظل قوي جداً أسفل الدقن لرسمه */
+                inset 0 -40px 50px rgba(70, 35, 30, 0.6), 
+                /* ظلال الجوانب لنحت الوجه */
+                inset 20px 0 30px rgba(120, 70, 60, 0.4),
+                inset -20px 0 30px rgba(120, 70, 60, 0.4),
+                inset 0 -5px 15px rgba(200, 150, 255, 0.3);
+            overflow: hidden;
+            animation: breatheHead 6s ease-in-out infinite;
+        }
+
+        .face-contour { position: absolute; width: 100%; height: 100%; }
+        /* كونتور للخدود */
+        .face-contour::before {
+            content: ''; position: absolute; top: 110px; left: 10px; width: 150px; height: 60px;
+            background: radial-gradient(ellipse at center, transparent 30%, rgba(140, 80, 70, 0.2) 100%);
+            filter: blur(5px);
+        }
+        /* أحمر خدود ناعم */
+        .face-contour::after {
+            content: ''; position: absolute; top: 160px; left: 10px; width: 150px; height: 40px;
+            background: radial-gradient(circle at 20% 50%, var(--skin-blush), transparent 50%),
+                        radial-gradient(circle at 80% 50%, var(--skin-blush), transparent 50%);
+            opacity: 0.4; filter: blur(8px);
+        }
+
+        /* الحواجب (شقراء وشيك) */
+        .eyebrow {
+            position: absolute; top: 105px; width: 55px; height: 10px;
+            background: transparent;
+            border-top: 4px solid var(--brow-color); /* أرفع ولون أشقر */
+            border-radius: 50% 50% 20% 20%; /* شكل أكثر تحديداً */
+            filter: blur(0.3px); z-index: 12;
+        }
+        /* زاوية حادة "شيك" */
+        .brow-left { left: 20px; transform: rotate(-12deg); }
+        .brow-right { right: 20px; transform: rotate(12deg); }
+
+        /* العيون */
+        .eye {
+            position: absolute; top: 130px; width: 46px; height: 26px; /* عيون أصغر قليلاً */
+            background: #e6e6e6;
+            border-radius: 75% 20%; 
+            overflow: hidden;
+            box-shadow: inset 2px 2px 4px rgba(0,0,0,0.4), inset -1px -1px 3px rgba(100,0,0,0.1), 0 0 5px rgba(0,0,0,0.2);
+            z-index: 11;
+        }
+        .eye-left { left: 32px; transform: rotate(-3deg); }
+        .eye-right { right: 32px; transform: rotate(3deg) scaleX(-1); }
+
+        .iris {
+            position: absolute; top: 0px; left: 11px; width: 24px; height: 24px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #2a104f, var(--iris-color), #1a0536, var(--iris-color), #2a104f);
+            box-shadow: inset 0 0 5px #000;
+        }
+        .pupil {
+            position: absolute; top: 50%; left: 50%; width: 9px; height: 9px;
+            background: #000; border-radius: 50%; transform: translate(-50%, -50%);
+        }
+        .reflection {
+            position: absolute; top: 5px; left: 5px; width: 5px; height: 5px;
+            background: rgba(255,255,255,0.95); border-radius: 50%; filter: blur(0.3px);
+        }
+
+        .eyelid-upper { position: absolute; top: 0; left: 0; width: 100%; height: 0%; background: var(--skin-shadow); z-index: 15; transition: height 0.1s; }
+
+        /* الأنف (رفيع ومحدد) */
+        .nose {
+            position: absolute; top: 135px; left: 50%; transform: translateX(-50%);
+            width: 18px; height: 60px; /* أرفع */
+            z-index: 10;
+        }
+        .nose::before { /* جسر الأنف */
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 6px; height: 45px;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.2));
+            filter: blur(1px);
+        }
+        .nose::after { /* أرنبة الأنف */
+            content: ''; position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%);
+            width: 22px; height: 14px; /* أصغر وأكثر تحديداً */
+            background: radial-gradient(circle at 50% 100%, rgba(140, 80, 70, 0.2), transparent);
+            border-radius: 15px;
+            box-shadow: -6px -2px 8px rgba(140, 94, 85, 0.4), 8px -2px 8px rgba(140, 94, 85, 0.4);
+        }
+
+        /* الفم والشفاه (ممتلئة وجميلة) */
+        .mouth {
+            position: absolute; bottom: 55px; left: 50%; transform: translateX(-50%);
+            width: 44px; height: 22px; z-index: 10;
+        }
+        .upper-lip {
+            position: absolute; top: 1px; left: 50%; transform: translateX(-50%);
+            width: 40px; height: 10px;
+            background: var(--lip-upper);
+            border-radius: 20px 20px 50% 50%;
+            /* قوس كيوبيد محدد */
+            clip-path: polygon(0% 100%, 100% 100%, 100% 30%, 60% 0%, 50% 25%, 40% 0%, 0% 30%);
+        }
+        .lower-lip {
+            position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+            width: 36px; height: 12px;
+            background: var(--lip-lower);
+            border-radius: 0 0 25px 25px;
+            box-shadow: inset 0 -2px 3px rgba(0,0,0,0.1);
+        }
+        /* لمعة الشفاه السفلية */
+        .lower-lip::after {
+            content: ''; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+            width: 12px; height: 4px; background: rgba(255,255,255,0.4); border-radius: 50%; filter: blur(0.5px);
+        }
+
+        /* خصلات الشعر الجانبية (شقراء ذهبية) */
+        .hair-strands {
+            position: absolute; top: 70px; width: 190px; /* أضيق ليتناسب مع الوجه */ height: 350px;
+            left: 50%; transform: translateX(-50%); z-index: 15; pointer-events: none;
+        }
+        .strand {
+            position: absolute; 
+            /* تدرج لوني ذهبي واقعي */
+            background: linear-gradient(to bottom, var(--hair-highlight), var(--hair-base), var(--hair-shadow));
+            width: 35px; height: 300px;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+        }
+        .strand-left {
+            left: -25px; border-radius: 100px 0 50% 100px;
+            transform: rotate(4deg);
+        }
+        .strand-right {
+            right: -25px; border-radius: 0 100px 100px 50%;
+            transform: rotate(-4deg);
+        }
+
+        /* الوشاح الأمامي (أضيق ليتناسب مع الجسم الرفيع) */
+        .hood-front {
+            position: absolute; top: 60px; width: 300px; height: 450px;
+            z-index: 20; pointer-events: none;
+        }
+        .hood-side {
+            position: absolute; top: 50px; width: 80px; height: 450px;
+            background: linear-gradient(to bottom, var(--robe-base), var(--robe-dark));
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .hood-left { left: 20px; border-radius: 50px 0 0 100px; transform: rotate(3deg); }
+        .hood-right { right: 20px; border-radius: 0 50px 100px 0; transform: rotate(-3deg); }
+
+        /* الأيدي */
+        .hands-wrap {
+            position: absolute; top: 440px; width: 100%;
+            display: flex; justify-content: center; gap: 110px; z-index: 25;
+        }
+        .hand {
+            width: 50px; height: 75px;
+            background: var(--skin-shadow);
+            border-radius: 30px;
+            box-shadow: inset 0 -5px 15px rgba(0,0,0,0.3);
+        }
+        .hand::before {
+            content: ''; position: absolute; width: 100%; height: 100%;
+            border-radius: 30px;
+            background: linear-gradient(90deg, transparent 20%, rgba(0,0,0,0.1) 25%, transparent 30%, transparent 45%, rgba(0,0,0,0.1) 50%, transparent 55%, transparent 70%, rgba(0,0,0,0.1) 75%, transparent 80%);
+        }
+        .hand-l { transform: rotate(25deg); }
+        .hand-r { transform: rotate(-25deg); }
+
+        /* الكرة الكريستالية */
+        .crystal-ball {
+            position: absolute; top: 380px; left: 50%; transform: translateX(-50%);
+            width: 150px; height: 150px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.1), transparent 30%),
+                        radial-gradient(circle at 50% 50%, rgba(109, 40, 217, 0.1) 0%, rgba(0,0,0,0.9) 100%);
+            box-shadow: 
+                0 0 30px rgba(124, 58, 237, 0.4),
+                inset 0 0 20px rgba(255,255,255,0.2),
+                inset 0 -10px 40px rgba(109, 40, 217, 0.6);
+            z-index: 30;
+            backdrop-filter: blur(4px) contrast(1.2);
+            border: 1px solid rgba(255,255,255,0.15);
+            overflow: hidden;
+            animation: levitateBall 4s ease-in-out infinite alternate;
+        }
+
+        .fog {
+            position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: conic-gradient(from 180deg, transparent, rgba(167, 139, 250, 0.4), transparent);
+            animation: spinFog 8s linear infinite;
+            filter: blur(20px);
+            mix-blend-mode: screen;
+        }
+
+        /* واجهة المستخدم */
+        .ui-container {
+            position: absolute; bottom: 30px; width: 100%;
+            display: flex; flex-direction: column; align-items: center; z-index: 100;
+        }
+        .response-text {
+            font-family: 'Amiri', serif; font-size: 26px; color: #e9d5ff;
+            text-shadow: 0 0 10px #7c3aed, 0 0 20px #4c1d95;
+            min-height: 50px; margin-bottom: 20px; opacity: 0; transition: opacity 1s; text-align: center;
+        }
+        .response-text.visible { opacity: 1; }
+        
+        .input-box {
+            position: relative; width: 90%; max-width: 400px;
+            background: rgba(20, 10, 35, 0.85);
+            border: 1px solid #5b21b6;
+            border-radius: 40px; display: flex; padding: 5px;
+            box-shadow: 0 0 30px rgba(91, 33, 182, 0.3);
+            transition: 0.3s;
+        }
+        .input-box:focus-within { box-shadow: 0 0 50px rgba(124, 58, 237, 0.6); border-color: #7c3aed; }
+        
+        input {
+            flex: 1; background: transparent; border: none; padding: 15px;
+            color: #fff; font-family: 'Tajawal', sans-serif; font-size: 16px; text-align: right; outline: none;
+        }
+        button {
+            background: linear-gradient(135deg, #6d28d9, #4c1d95);
+            color: white; border: none; padding: 0 35px; border-radius: 35px;
+            font-family: 'Amiri', serif; font-size: 18px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: 0.3s;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(109, 40, 217, 0.5); }
+        button:active { transform: translateY(0); }
+        button:disabled { background: #333; cursor: wait; transform: none; }
+
+        /* Animations */
+        @keyframes breatheHead { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+        @keyframes levitateBall { 0% { transform: translate(-50%, 0); box-shadow: 0 0 30px rgba(124, 58, 237, 0.4); } 100% { transform: translate(-50%, -10px); box-shadow: 0 0 60px rgba(167, 139, 250, 0.6); } }
+        @keyframes spinFog { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes floatDust { 0% { background-position: 0 0; } 100% { background-position: 100px 100px; } }
+
+        .trance .head { animation: shake 0.1s infinite; }
+        .trance .eye { height: 3px; border-radius: 5px; margin-top: 12px; }
+        .trance .iris { opacity: 0; }
+        .trance .fog { animation: spinFog 0.5s linear infinite; opacity: 0.8; }
+        .trance .crystal-ball { background: #fff; box-shadow: 0 0 150px #fff; }
+        @keyframes shake { 0% { transform: translate(0.5px, 0.5px); } 100% { transform: translate(-0.5px, -0.5px); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="dust-particles"></div>
+
+    <div class="scene" id="scene">
+        <div class="robe-back"></div>
+        <div class="hair-back"></div>
+        <div class="robe-body"></div>
+
+        <div class="head">
+            <div class="face-contour"></div>
+            
+            <div class="eyebrow brow-left"></div>
+            <div class="eyebrow brow-right"></div>
+            
+            <div class="eye eye-left">
+                <div class="iris"><div class="pupil"></div><div class="reflection"></div></div>
+                <div class="eyelid-upper" id="lidLeft"></div>
+            </div>
+            
+            <div class="eye eye-right">
+                <div class="iris"><div class="pupil"></div><div class="reflection"></div></div>
+                <div class="eyelid-upper" id="lidRight"></div>
+            </div>
+
+            <div class="nose"></div>
+
+            <div class="mouth">
+                <div class="upper-lip"></div>
+                <div class="lower-lip"></div>
+            </div>
+        </div>
+
+        <div class="hair-strands">
+            <div class="strand strand-left"></div>
+            <div class="strand strand-right"></div>
+        </div>
+
+        <div class="hood-front">
+            <div class="hood-side hood-left"></div>
+            <div class="hood-side hood-right"></div>
+        </div>
+
+        <div class="hands-wrap">
+            <div class="hand hand-l"></div>
+            <div class="hand hand-r"></div>
+        </div>
+
+        <div class="crystal-ball">
+            <div class="fog"></div>
+        </div>
+    </div>
+
+    <div class="ui-container">
+        <div class="response-text" id="response"></div>
+        <div class="input-box">
+            <button onclick="askOracle()" id="btn">اسأل</button>
+            <input type="text" id="qInput" placeholder="اكتب سؤالك للنجوم..." autocomplete="off">
+        </div>
+    </div>
+
+    <script>
+        function blink() {
+            const l = document.getElementById('lidLeft');
+            const r = document.getElementById('lidRight');
+            l.style.height = '100%';
+            r.style.height = '100%';
+            setTimeout(() => {
+                l.style.height = '0%';
+                r.style.height = '0%';
+            }, 180);
+            setTimeout(blink, Math.random() * 4000 + 3000);
+        }
+        blink();
+
+        const answers = [
+            "النجوم تنير طريق الموافقة.", "الضباب كثيف.. حاول لاحقاً.", "احذر، فالطريق ليس كما يبدو.",
+            "قلبك يعرف الإجابة بالفعل.", "نعم، ولكن كن مستعداً للعواقب.", "لا، وهذا لخيرك.",
+            "شخص غريب سيغير النتيجة.", "المستقبل مشرق جداً."
+        ];
+
+        function askOracle() {
+            const input = document.getElementById('qInput');
+            const txt = document.getElementById('response');
+            const scene = document.getElementById('scene');
+            const btn = document.getElementById('btn');
+
+            if(!input.value.trim()) return;
+
+            btn.disabled = true;
+            txt.classList.remove('visible');
+            scene.classList.add('trance');
+
+            setTimeout(() => {
+                scene.classList.remove('trance');
+                const rand = answers[Math.floor(Math.random() * answers.length)];
+                txt.innerText = rand;
+                txt.classList.add('visible');
+                
+                setTimeout(() => {
+                    btn.disabled = false;
+                    input.value = '';
+                    input.focus();
+                }, 3000);
+            }, 2500);
+        }
+
+        document.getElementById('qInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') askOracle();
+        });
+    </script>
+</body>
+</html>
