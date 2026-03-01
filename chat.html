@@ -7312,7 +7312,69 @@ if (msg.type === 'image' || msg.type === 'video') {
 
 
     
-   else if (msg.type === 'text') { content = formatText(msg.text); }
+       // ============================================================
+    // 🔥 إصلاح نظام الروابط ومشاركة المنشورات (Link & Post Preview)
+    // ============================================================
+    else if (msg.type === 'text') { 
+        // فحص هل النص عبارة عن رابط فقط؟
+        const isLink = /^(https?:\/\/[^\s]+)$/.test(msg.text.trim());
+        
+        if (isLink) {
+            const url = msg.text.trim();
+            let displayUrl = url;
+            try { displayUrl = new URL(url).hostname; } catch(e){}
+            
+            // تخصيص الشكل لو كان الرابط عبارة عن "منشور مشارك"
+            let cardTitle = "رابط خارجي";
+            let cardIcon = '<i class="fa-solid fa-link"></i>';
+            let cardBg = "rgba(0, 229, 255, 0.1)";
+            let iconColor = "#00e5ff";
+            let domainText = "اضغط للفتح 🔗";
+
+            if (url.includes('post=')) {
+                cardTitle = "منشور مشارك";
+                cardIcon = '<i class="fa-solid fa-newspaper"></i>';
+                cardBg = "rgba(255, 215, 0, 0.1)";
+                iconColor = "#FFD700";
+                domainText = "Wareed Post";
+            }
+
+            content = `
+            <div class="link-preview-card" onclick="window.location.href='${url}'">
+                <div class="lp-icon" style="background: ${cardBg}; color: ${iconColor};">
+                    ${cardIcon}
+                </div>
+                <div class="lp-content">
+                    <div class="lp-title">${cardTitle}</div>
+                    <div class="lp-desc">اضغط لعرض المحتوى</div>
+                    <div class="lp-domain" style="color: ${iconColor};">${domainText}</div>
+                </div>
+            </div>`;
+            
+            // جعل فقاعة الرسالة شفافة حتى يظهر الكارت بشكله الاحترافي
+            bubbleClass += " transparent-bubble"; 
+        } else {
+            // لو كان نص عادي
+            content = formatText(msg.text); 
+        }
+    }
+    
+    // دعم صريح لنوع post_share (احتياطياً لو تم إرساله بهذا النوع)
+    else if (msg.type === 'post_share') {
+        const pLink = msg.text || `home.html?post=${msg.postId}`;
+        content = `
+        <div class="link-preview-card" onclick="window.location.href='${pLink}'">
+            <div class="lp-icon" style="background: rgba(255, 215, 0, 0.1); color: #FFD700;">
+                <i class="fa-solid fa-newspaper"></i>
+            </div>
+            <div class="lp-content">
+                <div class="lp-title">منشور مشارك</div>
+                <div class="lp-desc">اضغط لعرض المنشور</div>
+                <div class="lp-domain" style="color: #FFD700;">Wareed Post</div>
+            </div>
+        </div>`;
+        bubbleClass += " transparent-bubble";
+    }
     else if (msg.type === 'image') { content = `<div class="media-container"><img src="${msg.text}" class="msg-image" onclick="openLb('${msg.text}')"></div>`; } 
     // ================= انسخ هذا الكود وضعه داخل loadMessages مكان كود الفيديو القديم =================
 // ابحث عن جزء الفيديو في loadMessages واستبدله بده

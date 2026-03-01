@@ -2970,9 +2970,10 @@ html {
 .ambient-bg {
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background: #0d0d0f;
+    background: var(--app-main-bg) !important; /* 🔥 يقرأ لون السمة المختار */
     z-index: -1;
     overflow: hidden;
+    transition: background 0.5s ease; /* 🔥 يتغير بنعومة سينمائية بدون تقطيع */
 }
 .ambient-blob {
     position: absolute;
@@ -8325,6 +8326,84 @@ html, body {
     max-width: 100%;
 }
 
+/* --- ستايل الكبسولات داخل مربع الكتابة --- */
+.mention-tags-overlay {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    padding: 10px 15px 0 15px; /* مسافة من فوق ومن الجناب */
+    direction: rtl;
+}
+
+/* لما المربع يكون فيه كبسولات، نخليه عمودي (دورين) */
+.smart-input-wrapper.has-mentions {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+/* تقليل المسافة العلوية للنص عشان الكبسولة خدت المساحة */
+.smart-input-wrapper.has-mentions .smart-textarea {
+    padding-top: 5px !important; 
+}
+
+:root {
+    --bg-color: #0d0d0f;
+    --card-color: #161616;
+    
+    --primary-color: #00C6FF;  
+    --primary-solid: #0072FF;  
+    
+    --text-color: #eee;
+    --secondary-text: #aaa;
+    --border-color: #222;
+    --danger-color: #ff3b30;
+    --success-color: #34c759;
+    --input-bg: #1f1f1f;
+    --header-bg: rgba(22, 22, 22, 0.98);
+    --sheet-bg: #1e1e1e;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+
+    /* 🔥 المتغيرات الجديدة لنظام السمات الشامل 🔥 */
+    --app-main-bg: #0d0d0f; 
+    --post-main-bg: linear-gradient(135deg, #0f0c29 0%, #302b63 100%); 
+    --post-border-color: rgba(255, 215, 0, 0.6); 
+    --post-shadow-effect: 0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 20px rgba(255, 215, 0, 0.1); 
+    --post-line-color: #FFD700; 
+}
+body { 
+    background: var(--app-main-bg) !important; 
+    color: var(--text-color); 
+    padding-bottom: 80px; 
+    overflow-x: hidden; 
+    transition: background 0.5s ease, color 0.3s; 
+    user-select: none; 
+}
+
+.post {
+    background: var(--post-main-bg) !important;
+    border: 1px solid var(--post-border-color) !important; 
+    box-shadow: var(--post-shadow-effect) !important; 
+    border-radius: 24px !important;
+    margin: 15px 10px !important;
+    position: relative !important;
+    overflow: visible !important;
+    padding-bottom: 10px !important;
+    transition: background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease;
+}
+
+.post::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2.5px !important;
+    background: linear-gradient(90deg, transparent, var(--post-line-color), transparent) !important;
+    box-shadow: 0 0 15px var(--post-line-color) !important;
+    opacity: 0.9 !important;
+    z-index: 1;
+    transition: background 0.5s ease, box-shadow 0.5s ease;
+}
 
 </style>
     
@@ -8622,17 +8701,60 @@ html, body {
 
   
 
-     <div class="custom-modal" id="themeModal">
-    <div class="modal-box">
-        <h3 data-i18n="theme_title" style="margin-bottom:5px;">🎨 تخصيص المظهر</h3>
-        <p data-i18n="theme_desc" style="color:var(--secondary-text); font-size:13px; margin-bottom: 10px;">اختر لونك المفضل أو اختر لون مخصص</p>
+   <div class="custom-modal" id="themeModal" style="z-index: 60000 !important;">
+    <div class="modal-box" style="max-width: 400px; padding: 20px; background: #111; border-radius: 24px; border: 1px solid #333;">
+        <h3 data-i18n="theme_title" style="color: #fff; margin-bottom: 5px; font-weight: 800;">🎨 عالم السمات</h3>
+        <p data-i18n="theme_desc" style="color: #aaa; font-size: 13px; margin-bottom: 20px;">اختر المظهر الذي يعكس شخصيتك</p>
         
-        <div class="colors-grid" id="colorsContainer"></div>
-        
-        <button class="btn btn-secondary" onclick="document.getElementById('themeModal').style.display='none'" style="margin-top:15px; width:100%" data-i18n="btn_close">إغلاق</button>
+        <div class="themes-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-height: 400px; overflow-y: auto; padding: 5px;">
+            
+            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('cosmic')" onmouseover="this.style.borderColor='#FFD700'" onmouseout="this.style.borderColor='transparent'">
+                <div style="height: 60px; background: linear-gradient(to bottom, #0f0c29, #302b63);">
+                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #0f0c29, #302b63); border: 1px solid #FFD700;"></div>
+                </div>
+                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#FFD700;">الكوني (الذهبي)</div>
+            </div>
+
+            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('blood')" onmouseover="this.style.borderColor='#ff416c'" onmouseout="this.style.borderColor='transparent'">
+                <div style="height: 60px; background: #1a0505;">
+                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #4a0e17, #1a0505); border: 1px solid rgba(255, 65, 108, 0.6);"></div>
+                </div>
+                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#ff416c;">نبيتي ناري</div>
+            </div>
+
+            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('ocean')" onmouseover="this.style.borderColor='#00c6ff'" onmouseout="this.style.borderColor='transparent'">
+                <div style="height: 60px; background: #05131f;">
+                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #001f3f, #05131f); border: 1px solid rgba(0, 198, 255, 0.6);"></div>
+                </div>
+                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#00c6ff;">أعماق المحيط</div>
+            </div>
+
+            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('nature')" onmouseover="this.style.borderColor='#38ef7d'" onmouseout="this.style.borderColor='transparent'">
+                <div style="height: 60px; background: #0a140d;">
+                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #0f2b18, #0a140d); border: 1px solid rgba(56, 239, 125, 0.6);"></div>
+                </div>
+                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#38ef7d;">عصب الغابة</div>
+            </div>
+
+            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('cyber')" onmouseover="this.style.borderColor='#fc00ff'" onmouseout="this.style.borderColor='transparent'">
+                <div style="height: 60px; background: #12041f;">
+                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #2b0845, #12041f); border: 1px solid rgba(252, 0, 255, 0.6);"></div>
+                </div>
+                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#fc00ff;">سايبر بانك</div>
+            </div>
+            
+            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('default')" onmouseover="this.style.borderColor='#00C6FF'" onmouseout="this.style.borderColor='transparent'">
+                <div style="height: 60px; background: #0d0d0f;">
+                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: #161616; border: 1px solid #2a2a2a;"></div>
+                </div>
+                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#00C6FF;">الافتراضي</div>
+            </div>
+
+        </div>
+
+        <button style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); color: #aaa; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('themeModal').style.display='none'" data-i18n="btn_close">إغلاق</button>
     </div>
 </div>
-
 
 
     <div class="custom-modal" id="logoutModal">
@@ -9237,9 +9359,7 @@ const bottomAvatar = document.getElementById('bottomNavAvatar');
     // 🔥 تشغيل نظام "أنا موجود" عشان السيرفر يعرف إنك فاتح
     if(typeof startPresenceSystem === 'function') startPresenceSystem(user.uid);
 
-    // تحميل البوستات واللون المفضل
-    const savedColor = localStorage.getItem('themeColor');
-    if(savedColor) changeTheme(savedColor, false);
+   
     
     loadPosts();
 
@@ -9721,12 +9841,91 @@ function switchSearchTab(tab) {
     closeAllSheets(); // إغلاق القوائم الأخرى
     document.getElementById('themeModal').style.display = 'flex'; 
 }
-        function changeTheme(color, play=true) {
-            document.documentElement.style.setProperty('--primary-color', color);
-            localStorage.setItem('themeColor', color);
-            if(play) playSound('success');
-            document.getElementById('themeModal').style.display = 'none';
-        }
+        // =========================================
+// 🎨 محرك السمات الشامل (Full Theme Engine) - للرئيسية
+// =========================================
+
+// 1. قاعدة بيانات السمات
+const appThemesConfig = {
+    'cosmic': {
+        primary: '#FFD700',
+        appBg: 'linear-gradient(to bottom, #0f0c29, #302b63, #0f0c29)',
+        postBg: 'linear-gradient(135deg, #0f0c29 0%, #302b63 100%)',
+        postBorder: 'rgba(255, 215, 0, 0.6)',
+        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 20px rgba(255, 215, 0, 0.1)',
+        postLine: '#FFD700'
+    },
+    'default': {
+        primary: '#00C6FF', // السماوي المميز للتطبيق
+        appBg: '#0d0d0f',
+        postBg: '#161616', // لون كارت المنشور الافتراضي
+        postBorder: '#2a2a2a',
+        postShadow: '0 10px 20px rgba(0,0,0,0.3)',
+        postLine: 'transparent'
+    },
+    'blood': {
+        primary: '#ff416c',
+        appBg: '#1a0505',
+        postBg: 'linear-gradient(135deg, #380710 0%, #1a0505 100%)',
+        postBorder: 'rgba(255, 65, 108, 0.5)',
+        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 65, 108, 0.2)',
+        postLine: '#ff416c'
+    },
+    'ocean': {
+        primary: '#00c6ff',
+        appBg: '#05131f',
+        postBg: 'linear-gradient(135deg, #001f3f 0%, #05131f 100%)',
+        postBorder: 'rgba(0, 198, 255, 0.5)',
+        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 198, 255, 0.2)',
+        postLine: '#00c6ff'
+    },
+    'nature': {
+        primary: '#38ef7d',
+        appBg: '#0a140d',
+        postBg: 'linear-gradient(135deg, #0f2b18 0%, #0a140d 100%)',
+        postBorder: 'rgba(56, 239, 125, 0.5)',
+        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 239, 125, 0.15)',
+        postLine: '#38ef7d'
+    },
+    'cyber': {
+        primary: '#fc00ff',
+        appBg: '#12041f',
+        postBg: 'linear-gradient(135deg, #2b0845 0%, #12041f 100%)',
+        postBorder: 'rgba(252, 0, 255, 0.5)',
+        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(252, 0, 255, 0.25)',
+        postLine: '#fc00ff'
+    }
+};
+
+// 2. دالة تطبيق السمة
+window.applyFullTheme = function(themeName, save = true) {
+    const theme = appThemesConfig[themeName] || appThemesConfig['cosmic']; // الكوني هو الأساسي لو مفيش
+    const root = document.documentElement;
+
+    // حقن المتغيرات في الـ CSS
+    root.style.setProperty('--primary-color', theme.primary); // مهم جداً للرئيسية
+    root.style.setProperty('--primary-solid', theme.primary); // لضمان التوافق
+    root.style.setProperty('--app-main-bg', theme.appBg);
+    root.style.setProperty('--post-main-bg', theme.postBg);
+    root.style.setProperty('--post-border-color', theme.postBorder);
+    root.style.setProperty('--post-shadow-effect', theme.postShadow);
+    root.style.setProperty('--post-line-color', theme.postLine);
+
+    if (save) {
+        localStorage.setItem('nabd_active_theme', themeName);
+        if(typeof playSound === 'function') playSound('success');
+        if(typeof showToast === 'function') showToast("تم تطبيق السمة بنجاح 🎨");
+        document.getElementById('themeModal').style.display='none';
+    }
+};
+
+// 3. تهيئة السمة عند فتح التطبيق (مهم جداً للتحميل التلقائي)
+document.addEventListener("DOMContentLoaded", () => {
+    // في الصفحة الرئيسية، السمة الافتراضية المفضلة هي cosmic بناءً على تصميمك
+    const savedTheme = localStorage.getItem('nabd_active_theme') || 'cosmic';
+    window.applyFullTheme(savedTheme, false);
+});
+
 
         function openLogoutModal() { playSound('click'); closeAllSheets(); document.getElementById('logoutModal').style.display = 'flex'; }
         function confirmLogout() { playSound('click'); firebase.auth().signOut().then(() => location.href="index.html"); }
@@ -9870,11 +10069,26 @@ async function loadPosts(more = false) {
 
 // دالة لتحديد أيقونة الخصوصية بناءً على الحالة
     async function renderPost(p) {
-        // ---------------------------------------------------------
-        // 1. بوابة الخصوصية
-        // ---------------------------------------------------------
-        if (p.privacy === 'private' && p.uid !== currentUser.uid) {
-            return; 
+        const postPrivacy = p.privacy || p.visibility || 'public';
+
+        // =========================================================
+        // 🛑 1. جدار حماية الخصوصية الصارم (Privacy Gatekeeper) 🛑
+        // =========================================================
+        if (p.uid !== currentUser.uid) { // لو المنشور ليس ملكي
+            
+            // أ) المنشور خاص (أنا فقط) -> امنع الظهور
+            if (postPrivacy === 'private') return; 
+            
+            // ب) المنشور للأصدقاء -> افحص الداتابيز
+            if (postPrivacy === 'friends') {
+                try {
+                    // هل صاحب المنشور موجود في قائمة أصدقائي؟
+                    const friendCheck = await db.collection("users").doc(currentUser.uid).collection("friends").doc(p.uid).get();
+                    if (!friendCheck.exists) return; // ليسوا أصدقاء -> امنع الظهور
+                } catch(e) {
+                    return; // لو حصل خطأ في الاتصال، امنع الظهور كإجراء أمني
+                }
+            }
         }
     
         // ---------------------------------------------------------
@@ -10235,12 +10449,17 @@ const safeTextForBtn = encodeURIComponent(p.text || '');
                                 ${followBtnHtml}
                             </div>
                             
-                            <div style="display:flex; align-items:center; gap:6px; color:var(--secondary-text); font-size:11px; margin-top:2px;">
-                                <span>${moment(p.createdAt?.toDate()).fromNow()}</span>
-                                <span style="font-size:6px; opacity:0.6">•</span>
-                                ${getPrivacyIcon(p.privacy)}
-                                ${rankHtml ? `<span style="margin-right:5px">${rankHtml}</span>` : ''}
-                            </div>
+                                <div style="display:flex; align-items:center; gap:6px; color:var(--secondary-text); font-size:11px; margin-top:2px;">
+        <span>${moment(p.createdAt?.toDate()).fromNow()}</span>
+        <span style="font-size:6px; opacity:0.6">•</span>
+        
+        <span id="privacy-icon-${p.id}">
+            ${getPrivacyIcon(postPrivacy)}
+        </span>
+        
+        ${rankHtml ? `<span style="margin-right:5px">${rankHtml}</span>` : ''}
+    </div>
+
                         </div>
                     </div>
         
@@ -11017,9 +11236,29 @@ window.tempMentionList = [];
 
 async function handleCommentAction(stickerContent = null, isSticker = false, giftData = null) {
     const inp = document.getElementById('cmInput');
-    const txt = stickerContent || inp.value.trim();
     
-    // لو مفيش نص ولا ميديا معلقة ولا استيكر، اخرج
+    // 🔥 تجميع المنشنات (الكبسولات) وتحويلها لنص يفهمه الفايربيس
+    let mentionString = "";
+    if (window.tempMentionList && window.tempMentionList.length > 0) {
+        mentionString = window.tempMentionList.map(m => "@" + m.name).join(" ");
+    }
+    
+    let textValue = inp ? inp.value.trim() : "";
+    let txt = "";
+    
+    if (stickerContent) {
+        txt = stickerContent;
+    } else {
+        // لو في منشن ونص، افصلهم بسطرين.. لو منشن بس ابعته لوحده
+                        if (mentionString) {
+            txt = textValue ? (mentionString + " " + textValue) : mentionString;
+        } else {
+            txt = textValue;
+        }
+
+}
+
+    // إيقاف التنفيذ لو مفيش نص ولا ستيكر ولا هدية ولا ميديا معلقة
     if(!txt && !isSticker && !giftData && !pendingCommentFile) return;
 
     if(typeof playSound === 'function') playSound('click'); 
@@ -11028,9 +11267,10 @@ async function handleCommentAction(stickerContent = null, isSticker = false, gif
         const uDoc = await db.collection('users').doc(currentUser.uid).get();
         const uData = uDoc.data();
 
+        // 🔥 نأخذ قائمة المنشنات المحددة بالكبسولات كما هي
         let finalMentionsList = [];
         if (window.tempMentionList && Array.isArray(window.tempMentionList)) {
-            finalMentionsList = window.tempMentionList.filter(m => txt.includes(m.name));
+            finalMentionsList = [...window.tempMentionList];
         }
 
         let mediaUrl = null;
@@ -11039,11 +11279,14 @@ async function handleCommentAction(stickerContent = null, isSticker = false, gif
 
         // 🔥 1. رفع الميديا إذا كانت موجودة في المعاينة 🔥
         if (pendingCommentFile) {
-            showToast(`جاري رفع ${pendingCommentFileType === 'image' ? 'الصورة' : 'الفيديو'}... ⏳`);
+            if(typeof showToast === 'function') showToast(`جاري رفع ${pendingCommentFileType === 'image' ? 'الصورة' : 'الفيديو'}... ⏳`);
             
             // قفل زر الإرسال عشان ميبعتش مرتين
             const sendBtn = document.getElementById('dynamicActionBtn');
-            sendBtn.style.pointerEvents = 'none'; sendBtn.style.opacity = '0.5';
+            if (sendBtn) {
+                sendBtn.style.pointerEvents = 'none'; 
+                sendBtn.style.opacity = '0.5';
+            }
 
             const safeName = Date.now() + '_' + Math.floor(Math.random() * 10000);
             const extension = pendingCommentFile.name.split('.').pop();
@@ -11058,13 +11301,12 @@ async function handleCommentAction(stickerContent = null, isSticker = false, gif
             isVideo = pendingCommentFileType === 'video';
 
             // تنظيف المعاينة وفتح الزر
-            removePendingMedia();
-            sendBtn.style.pointerEvents = 'auto'; sendBtn.style.opacity = '1';
+            if (typeof removePendingMedia === 'function') removePendingMedia();
+            if (sendBtn) {
+                sendBtn.style.pointerEvents = 'auto'; 
+                sendBtn.style.opacity = '1';
+            }
         }
-
-        // تفريغ خانة الكتابة
-        inp.value = "";
-        if(typeof handleInputTyping === 'function') handleInputTyping(inp);
 
         // 🔥 2. إنشاء التعليق في فايربيس 🔥
         const commentData = {
@@ -11088,20 +11330,53 @@ async function handleCommentAction(stickerContent = null, isSticker = false, gif
 
         const newCommentRef = await db.collection('posts').doc(currentPostId).collection('comments').add(commentData);
         
+        // تحديث العدادات
         await db.collection('posts').doc(currentPostId).update({ commentsCount: firebase.firestore.FieldValue.increment(1) });
-updatePostCommentCountUI(currentPostId, 1); // 👈 التحديث الفوري
-window.tempMentionList = [];
+        if(typeof updatePostCommentCountUI === 'function') updatePostCommentCountUI(currentPostId, 1); 
 
-        showToast(t('toast_sent'));
+        if(typeof showToast === 'function') showToast(t('toast_sent') || 'تم الإرسال ✅');
         if(typeof playSound === 'function') playSound('sent'); 
 
     } catch (e) {
         console.error("Error sending comment:", e);
-        showToast("فشل الإرسال: " + e.message);
-        document.getElementById('dynamicActionBtn').style.pointerEvents = 'auto';
+        if(typeof showToast === 'function') showToast("فشل الإرسال: " + e.message);
+        const sendBtn = document.getElementById('dynamicActionBtn');
+        if (sendBtn) sendBtn.style.pointerEvents = 'auto';
     }
-}
 
+    // ==========================================
+    // 🧹 3. تنظيف الواجهة وإرجاع المربع لشكله الطبيعي (بعد الكبسولات)
+    // ==========================================
+    if (inp) {
+        inp.value = ""; 
+        inp.blur(); 
+        
+        // إرجاع مساحة الكتابة للحجم الطبيعي
+        inp.style.paddingTop = '12px';   
+        inp.style.paddingRight = '15px'; 
+        inp.style.height = '45px';
+        
+        // تحديث شكل أزرار المايك/الإرسال
+        if(typeof handleInputTyping === 'function') handleInputTyping(inp); 
+    }
+    
+    // مسح الكبسولات من الذاكرة ومن الشاشة
+    window.tempMentionList = [];
+    if (typeof renderMentionTags === 'function' && inp) {
+        renderMentionTags(inp.id); 
+    } else {
+        document.querySelectorAll('.mention-tags-overlay').forEach(el => el.innerHTML = '');
+    }
+
+    // إظهار الأزرار الخارجية (الصور والهدايا)
+    const cmContainer = document.querySelector('#cmSheet .input-area-container');
+    const cmFooter = document.getElementById('commentFooter');
+    if(cmContainer) cmContainer.classList.remove('focused');
+    if(cmFooter) cmFooter.classList.remove('expanded');
+
+    if (typeof cancelReplyTarget === 'function') cancelReplyTarget();
+    if (typeof replyToData !== 'undefined') replyToData = null;
+}
 
 // 1. دالة إيقاف التسجيل ورفعه (بيتم استدعاؤها من زر الإرسال)
 function stopRecordingProcess() {
@@ -12034,12 +12309,31 @@ function handleReplyInputTyping(textarea) {
 
 
       async function sendReplyToComment(sticker = null, isSticker = false, giftData = null) {
-    const inp = document.getElementById('replyInput');
-    let txt = sticker || inp.value.trim();
+        const inp = document.getElementById('cmInput'); // (خليها 'replyInput' لو بتعدل دالة الردود)
     
-    // لو مفيش نص ومفيش ستيكر ومفيش هدية، اخرج
-    if ((!txt && !sticker && !giftData) || !currentParentComment) return;
+    // 🔥 تجميع المنشنات وإضافة "سطر جديد"
+    let mentionString = "";
+    if (window.tempMentionList && window.tempMentionList.length > 0) {
+        mentionString = window.tempMentionList.map(m => "@" + m.name).join(" ");
+    }
     
+    let textValue = inp ? inp.value.trim() : "";
+    let txt = "";
+    
+    if (stickerContent) {
+        txt = stickerContent;
+    } else {
+        // لو في منشن ونص، افصلهم بسطرين.. لو منشن بس ابعته
+                if (mentionString) {
+            txt = textValue ? (mentionString + " " + textValue) : mentionString;
+        } else {
+            txt = textValue;
+        }
+
+    }
+
+    if(!txt && !isSticker && !giftData) return;
+
     if (typeof playSound === 'function') playSound('sent'); 
     
     // منطق الرد المباشر القديم (Reply To) للحفاظ على شجرة الردود
@@ -12160,16 +12454,21 @@ function handleReplyInputTyping(textarea) {
         console.error("Error sending reply:", e);
         if (typeof showToast === 'function') showToast(t('error_reply_failed'));
     }
-
-    // تنظيف الخانة وإغلاق وضع الرد المخصص
-    inp.value = "";
-    if (typeof cancelReplyTarget === 'function') cancelReplyTarget();
+    // 🧹 تنظيف الواجهة وإرجاعها لطبيعتها
+    if (inp) {
+        inp.value = ""; 
+        inp.blur(); 
+    }
     
-    // 👇 السطر السحري اللي هيرجع المربع لحجمه الطبيعي ويظهر المايك تاني 👇
-    if (typeof handleReplyInputTyping === 'function') handleReplyInputTyping(inp);
-}
+    // 🔥 تفريغ قائمة المنشن ورسم المربع تاني عشان يقفل الدورين
+    window.tempMentionList = [];
+    if(inp) renderMentionTags(inp.id);
+    
+    // استعادة شكل الأزرار (المايك)
+    if(inp && inp.id === 'cmInput' && typeof handleInputTyping === 'function') handleInputTyping(inp);
+    if(inp && inp.id === 'replyInput' && typeof handleReplyInputTyping === 'function') handleReplyInputTyping(inp);
 
-        
+      } 
 
         // 1. دالة فتح خيارات التعليق
 function openCommentOptions(c) {
@@ -14834,21 +15133,6 @@ function openFilterSheet() {
 
 
 
-
-// --- نظام الألوان الجديد (30+ لون) ---
-const appColors = [
-    // 💜 بنفسجي ووردي
-    "#5D5FEF", "#8e44ad", "#9b59b6", "#bf5af2", "#ac00e6", "#ff00ff", "#ff416c", "#e91e63", "#ff7eb3",
-    // 💙 أزرق وسماوي
-    "#2979ff", "#00eaff", "#00d2ff", "#1877f2", "#3498db", "#0984e3", "#74b9ff", "#341f97",
-    // 💚 أخضر
-    "#34c759", "#00ff00", "#11998e", "#2ecc71", "#00b894", "#55efc4", "#badc58", "#6ab04c",
-    // 🧡 ناري (أحمر وأصفر)
-    "#ff3b30", "#ff0000", "#e74c3c", "#d35400", "#ff9f0a", "#f7971e", "#ffeb3b", "#f1c40f",
-    // 🖤 ألوان خاصة
-    "#ffd700", "#c0c0c0", "#304352", "#636e72"
-];
-
 function renderThemeColors() {
     const container = document.getElementById('colorsContainer');
     if(!container) return;
@@ -14876,10 +15160,6 @@ function renderThemeColors() {
     });
 }
 
-// تشغيل الدالة أول ما الموقع يفتح
-document.addEventListener('DOMContentLoaded', renderThemeColors);
-// دالة إظهار الرسائل (حطها في مكان عام في الملف)
-// متغير لحفظ العداد خارج الدالة (عشان نتحكم فيه)
 let toastTimer = null;
 
 function showToast(message) {
@@ -14941,38 +15221,34 @@ function selectAudience(val) {
 async function saveAudienceChange() {
     const pid = window.currentPostId || currentPostId;
     
-        // تم تعديل حرف I الكبير إلى i صغير لأن الجافاسكريبت لا تقبلها وتعتبرها خطأ
     if(!pid) {
-        // استخدام المفتاح المترجم لرسالة خطأ عدم تحديد المنشور
         showToast(t('err_no_post_selected'));
         return;
     }
     
     playSound('success');
     document.getElementById('audienceModal').style.display = 'none';
-    // استخدام المفتاح المترجم لرسالة جاري التحديث
     showToast(t('toast_updating'));
 
     try {
+        // 1. تحديث الداتابيز
         await db.collection('posts').doc(pid).update({
             privacy: tempPrivacySelection
         });
         
+        // 2. تحديث المتغيرات
+        currentPostPrivacy = tempPrivacySelection;
+        window.currentPostPrivacy = tempPrivacySelection;
+        
+        // 3. 🔥 التحديث الفوري للأيقونة في الواجهة (السر هنا) 🔥
+        const iconContainer = document.getElementById(`privacy-icon-${pid}`);
+        if(iconContainer) {
+            iconContainer.innerHTML = getPrivacyIcon(tempPrivacySelection);
+        }
+
+        // 4. تحديث زر الخيارات ليحمل القيمة الجديدة
         const postCard = document.getElementById(`post-${pid}`);
         if(postCard) {
-            const detailsDiv = postCard.querySelector('.user-details');
-            if(detailsDiv) {
-                const timeDiv = detailsDiv.querySelector('div:last-child');
-                if(timeDiv) {
-                    const timeText = timeDiv.querySelector('span')?.innerText || 'الآن';
-                    timeDiv.innerHTML = `
-                        <span>${timeText}</span>
-                        <span style="font-size:6px; opacity:0.6">•</span>
-                        ${getPrivacyIcon(tempPrivacySelection)}
-                    `;
-                }
-            }
-            
             const optBtn = postCard.querySelector('.fa-ellipsis');
             if(optBtn) {
                 const safeText = (currentPostText || "").replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
@@ -14981,15 +15257,10 @@ async function saveAudienceChange() {
             }
         }
         
-        currentPostPrivacy = tempPrivacySelection;
-        window.currentPostPrivacy = tempPrivacySelection;
-        
-                // تم تعديل حرف S الكبير إلى s صغير لضمان عمل الدالة بدون أخطاء
         showToast(t('toast_audience_updated'));
         
     } catch(e) {
         console.error("Error updating audience:", e);
-        // استخدام المفتاح المترجم لرسالة الخطأ
         showToast(t('toast_update_error'));
     }
 }
@@ -15897,10 +16168,11 @@ function processPostText(text, mentionsList = [], mentionPosition = 'bottom') {
     });
 
     // 🔥 النظام الذكي: لو طلبنا المنشن فوق (في التعليقات) نحطه قبل النص، ولو تحت (في المنشورات) نحطه بعد النص
+        // 🔥 النظام الذكي: ترتيب المنشن والنص مع فاصل هادئ جداً (سطر واحد)
     if (mentionPosition === 'top') {
-        return mentionContainerHTML + `<div style="display: block; width: 100%; text-align: right;">${processed}</div>`;
+        return mentionContainerHTML + `<div style="display: block; width: 100%; text-align: right; margin-top: 4px;">${processed.trim()}</div>`;
     } else {
-        return `<div style="display: block; width: 100%; text-align: right;">${processed}</div>` + mentionContainerHTML;
+        return `<div style="display: block; width: 100%; text-align: right; margin-bottom: 4px;">${processed.trim()}</div>` + mentionContainerHTML;
     }
 }
 
@@ -17640,6 +17912,7 @@ const clickAction = `window.insertSuggestion('${inp.id}', '${fullWord}', '@${saf
 }
 
 // 3. دالة وضع الاسم المختار داخل المربع (المصححة والمنقذة)
+// دالة وضع الاسم المختار داخل المربع (النسخة المدمجة مع نظام الكبسولات)
 window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
     const inp = document.getElementById(inputId);
     if (!inp) return;
@@ -17655,8 +17928,10 @@ window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
     // التأكد من الصورة
     const finalPic = (pic && pic !== "undefined") ? pic : "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-    // إضافة البيانات للمصفوفة
-    window.tempMentionList.push({ uid: uid, name: safeName, pic: finalPic });
+    // 🔥 الإضافة الجديدة: إضافة البيانات للمصفوفة مع منع التكرار لو الشخص متضاف قبل كده
+    if(!window.tempMentionList.find(m => m.uid === uid)) {
+        window.tempMentionList.push({ uid: uid, name: safeName, pic: finalPic });
+    }
 
     // استبدال النص في المربع
     const val = inp.value;
@@ -17664,11 +17939,16 @@ window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
     const before = val.substring(0, cursorPos);
     const after = val.substring(cursorPos);
     
-    // استبدال الكلمة القديمة بالجديدة
-    const newBefore = before.replace(new RegExp(oldWord + "$"), '@' + safeName + " ");
+    // 🔥 الإضافة الجديدة: مسح الكلمة القديمة (الـ @ والاسم) عشان الكبسولة هتحل مكانها
+    const newBefore = before.replace(new RegExp(oldWord + "$"), ''); 
     
     inp.value = newBefore + after;
     
+    // 🔥 الإضافة الجديدة: استدعاء دالة رسم الكبسولات وتكبير المربع
+    if (typeof renderMentionTags === 'function') {
+        renderMentionTags(inputId);
+    }
+
     // إخفاء القائمة
     const drop = document.querySelector('.mention-dropdown.active');
     if (drop) drop.classList.remove('active');
@@ -17676,7 +17956,7 @@ window.insertSuggestion = function(inputId, oldWord, newWord, uid, pic) {
     inp.focus();
     
     // 🔥 3. حل مشكلة (Cannot read properties of null)
-    // بنشوف الـ ID بتاع المربع ايه، وبناء عليه ننادي الدالة المناسبة بس
+    // بنشوف الـ ID بتاع المربع ايه، وبناء عليه ننادي الدالة المناسبة بس لظهور زر الإرسال
     if (inputId === 'replyInput') {
         if(typeof handleReplyInputTyping === 'function') handleReplyInputTyping(inp);
     } else {
@@ -23753,7 +24033,6 @@ async function executeUniversalTranslation(id, langCode, langName) {
     const sheet = document.getElementById('languageSheet');
     if(sheet) sheet.classList.remove('active');
     
-    // 🔥 التعديل هنا: قفل الطبقة الشفافة العلوية
     const backdrop = document.getElementById('optionsBackdrop');
     if(backdrop && !document.querySelector('.bottom-sheet.active:not(#languageSheet):not(#cmSheet):not(#repliesSheet)')) {
         backdrop.style.display = 'none';
@@ -23762,12 +24041,10 @@ async function executeUniversalTranslation(id, langCode, langName) {
     const type = window.currentTransType || 'post';
     const prefix = type === 'post' ? 'post-' : '';
     
-    // ... باقي الكود زي ما هو بدون تغيير ...
-
     const btn = document.getElementById(`${prefix}trans-btn-${id}`);
     const transBlock = document.getElementById(`${prefix}trans-block-${id}`);
     
-    if (!btn || !transBlock) return;
+    if (!btn || !transBlock) return; 
 
     // تحديد النص اللي هيتترجم
     let originalText = window.currentTransText;
@@ -23780,9 +24057,9 @@ async function executeUniversalTranslation(id, langCode, langName) {
 
     const cacheKey = id + "_" + langCode;
 
-    // لو الترجمة محفوظة في الذاكرة
-    if (postTranslationsCache[cacheKey] || translationsCache[cacheKey]) {
-        const cachedText = postTranslationsCache[cacheKey] || translationsCache[cacheKey];
+    // 🔥 التصحيح هنا: استخدام postTranslationsCache فقط 🔥
+    if (postTranslationsCache[cacheKey]) {
+        const cachedText = postTranslationsCache[cacheKey];
         transBlock.innerHTML = `<div class="translation-header-text"><i class="fa-solid fa-language"></i> ${t('text_translated_to')} ${langName}:</div>` + cachedText;
         transBlock.style.display = 'block';
         btn.innerHTML = `<i class="fa-solid fa-eye-slash"></i> <span>${t('text_translate_hide') || 'إخفاء'}</span>`;
@@ -23804,9 +24081,8 @@ async function executeUniversalTranslation(id, langCode, langName) {
         let translatedText = "";
         data[0].forEach(item => { translatedText += item[0]; });
 
-        // حفظ في الذاكرة
+        // 🔥 التصحيح هنا: حفظ الترجمة في الذاكرة الصحيحة 🔥
         postTranslationsCache[cacheKey] = translatedText;
-        translationsCache[cacheKey] = translatedText;
 
         transBlock.innerHTML = `<div class="translation-header-text"><i class="fa-solid fa-language"></i> ${t('text_translated_to')} ${langName}:</div>` + translatedText;
         transBlock.style.display = 'block';
@@ -23825,7 +24101,6 @@ async function executeUniversalTranslation(id, langCode, langName) {
         }, 2000);
     }
 }
-
 
 // دالة إغلاق قائمة اللغات والعودة للتعليقات/الردود
 function closeTranslationMenu() {
@@ -23912,6 +24187,146 @@ function renderTempComment(tempId, type, localUrl, duration = "00:00", caption =
     list.appendChild(div);
     list.scrollTo({ top: list.scrollHeight, behavior: 'smooth' });
 }
+
+
+// 1. دالة رسم الكبسولات جوه المربع (للكومنتات والردود)
+function renderMentionTags(inputId) {
+    const inp = document.getElementById(inputId);
+    if (!inp) return;
+    const wrapper = inp.closest('.smart-input-wrapper');
+    
+    // إنشاء الحاوية لو مش موجودة
+    let tagsOverlay = wrapper.querySelector('.mention-tags-overlay');
+    if (!tagsOverlay) {
+        tagsOverlay = document.createElement('div');
+        tagsOverlay.className = 'mention-tags-overlay';
+        // بنحطها "قبل" مربع الكتابة عشان تبقى في الدور اللي فوق
+        wrapper.insertBefore(tagsOverlay, inp); 
+    }
+
+    const mentions = window.tempMentionList || [];
+    
+    // لو مفيش منشن، نرجع المربع لشكله العادي
+    if (mentions.length === 0) {
+        tagsOverlay.style.display = 'none';
+        tagsOverlay.innerHTML = '';
+        wrapper.classList.remove('has-mentions');
+        inp.style.height = '45px'; // نرجع الطول الطبيعي
+        return;
+    }
+
+    // لو فيه منشن، نفعل وضع الدورين
+    wrapper.classList.add('has-mentions');
+    tagsOverlay.style.display = 'flex';
+
+    // رسم أول شخص
+    const firstUser = mentions[0];
+    const firstName = firstUser.name.split('_')[0]; 
+    
+    let html = `
+        <div class="mention-chip" style="margin:0; cursor:pointer;" onclick="openSelectedMentionsModal('${inputId}')">
+            <img src="${firstUser.pic}" class="mention-chip-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+            <span class="mention-chip-name">${firstName}</span>
+        </div>
+    `;
+
+    // رسم العداد (+1, +2)
+    if (mentions.length > 1) {
+        html += `
+        <div class="mention-counter" style="margin:0; cursor:pointer; font-size: 12px; height: 26px;" onclick="openSelectedMentionsModal('${inputId}')">
+            +${mentions.length - 1}
+        </div>
+        `;
+    }
+
+    tagsOverlay.innerHTML = html;
+
+    // تمديد المربع أوتوماتيك لأسفل
+    setTimeout(() => {
+        inp.style.height = 'auto';
+        inp.style.height = Math.min(inp.scrollHeight, 120) + 'px';
+        inp.focus();
+    }, 10);
+}
+
+// 2. دالة فتح نافذة الإلغاء
+function openSelectedMentionsModal(inputId) {
+    if(typeof playSound === 'function') playSound('click');
+    let modal = document.getElementById('manageMentionsModal');
+    
+    if (!modal) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="custom-modal" id="manageMentionsModal" style="z-index: 40000;">
+                <div class="modal-box" style="width: 100%; max-width: 400px; padding: 0; overflow: hidden; border-radius: 24px;">
+                    <div style="padding: 15px 20px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; background: #1a1a1a;">
+                        <b style="color: #fff; font-size: 16px;">الإشارات المحددة</b>
+                        <i class="fa-solid fa-xmark" style="cursor: pointer; color: #ff3b30; font-size: 18px; padding: 5px;" onclick="document.getElementById('manageMentionsModal').style.display='none'"></i>
+                    </div>
+                    <div id="manageMentionsList" style="max-height: 300px; overflow-y: auto; background: #0d0d0f;"></div>
+                </div>
+            </div>
+        `);
+        modal = document.getElementById('manageMentionsModal');
+    }
+
+    renderManageMentionsList(inputId);
+    modal.style.display = 'flex';
+}
+
+// 3. رسم قائمة الأشخاص عشان تلغيهم
+function renderManageMentionsList(inputId) {
+    const list = document.getElementById('manageMentionsList');
+    const mentions = window.tempMentionList || [];
+    
+    if (mentions.length === 0) {
+        document.getElementById('manageMentionsModal').style.display = 'none';
+        return;
+    }
+
+    let html = '';
+    mentions.forEach((m, idx) => {
+        html += `
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-bottom: 1px solid #222;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="${m.pic}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid #333;" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                <span style="font-weight: 800; color: #fff;">${m.name.replace(/_/g, ' ')}</span>
+            </div>
+            <button style="background: rgba(255, 59, 48, 0.1); color: #ff3b30; border: none; padding: 6px 12px; border-radius: 12px; font-weight: bold; cursor: pointer;" onclick="removeSelectedMention(${idx}, '${inputId}')">
+                إلغاء
+            </button>
+        </div>
+        `;
+    });
+    list.innerHTML = html;
+}
+
+// 4. دالة حذف شخص من القائمة
+window.removeSelectedMention = function(idx, inputId) {
+    if(typeof playSound === 'function') playSound('click');
+    window.tempMentionList.splice(idx, 1); 
+    
+    // جلب العنصر لتحديثه
+    let inp = document.getElementById(inputId);
+    if (!inp) {
+        document.querySelectorAll('.smart-textarea').forEach(el => {
+            if (el.closest('.bottom-sheet.active')) inp = el;
+        });
+    }
+
+    if (inp) {
+        renderMentionTags(inp); 
+        renderManageMentionsList(inputId); 
+        
+        if (inp.id === 'replyInput' && typeof handleReplyInputTyping === 'function') {
+            handleReplyInputTyping(inp);
+        } else if (typeof handleInputTyping === 'function') {
+            handleInputTyping(inp);
+        }
+    }
+}; // <--- تأكد أن هذا السطر موجود
+
+// هنا ينتهي كود الجافاسكربت
+
 
 
     </script>

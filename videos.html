@@ -3325,13 +3325,16 @@ auth.onAuthStateChanged(async user => {
 
 
         // --- 4. منطق الفيديو (Feed Logic) ---
-      async function loadVideos(isInitial = false) {
+      // ==========================================
+// 🚀 دالة جلب الفيديوهات المصححة والمحسنة (Feed Logic)
+// ==========================================
+async function loadVideos(isInitial = false) {
     if (isLoading) return;
     isLoading = true;
 
     const feed = document.getElementById('feed');
     
-    // 🔥 رجعنا القلب النابض هنا
+    // إظهار لودر عند التحميل الأول
     if(isInitial) {
         feed.innerHTML = `
         <div style="height:100vh; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; background:#000;">
@@ -3342,23 +3345,40 @@ auth.onAuthStateChanged(async user => {
 
     let query = db.collection('posts');
 
+    // 1. تحديد نوع الفلترة بناءً على التبويب النشط
     if (currentFeedTab === 'popular') {
-        query = query.orderBy('commentsCount', 'desc');
+        query = query.orderBy('views', 'desc').orderBy('createdAt', 'desc'); // الأفضل ترتيبها بالمشاهدات أو اللايكات
     } 
     else if (currentFeedTab === 'friends') {
         if (!currentUser) {
-            feed.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#aaa;">يجب تسجيل الدخول لرؤية منشورات الأصدقاء</div>';
+            feed.innerHTML = '<div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#aaa;"><i class="fa-solid fa-user-lock" style="font-size:40px; margin-bottom:10px;"></i><p>يجب تسجيل الدخول لرؤية فيديوهات الأصدقاء</p></div>';
             isLoading = false; 
             return;
         }
-        query = query.orderBy('createdAt', 'desc'); 
+        
+        // جلب قائمة الأصدقاء (Following) أولاً
+        try {
+            if (!currentUserData || !currentUserData.following || currentUserData.following.length === 0) {
+                feed.innerHTML = '<div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#aaa;"><i class="fa-solid fa-user-plus" style="font-size:40px; margin-bottom:10px;"></i><p>أنت لا تتابع أحداً بعد</p></div>';
+                isLoading = false;
+                return;
+            }
+            
+            // استخدام "in" للبحث في قائمة المتابعين (ملاحظة: Firebase يدعم حتى 10 عناصر فقط في الـ in، لذا يفضل استخدام orderBy عادي وفلترتها يدوياً إذا كان العدد كبيراً)
+            query = query.orderBy('createdAt', 'desc');
+        } catch (err) {
+            console.error(err);
+        }
     } 
     else {
+        // العالم (World) الافتراضي
         query = query.orderBy('createdAt', 'desc');
     }
 
+    // تحديد العدد
     query = query.limit(15);
     
+    // جلب الصفحة التالية إذا لم يكن التحميل الأولي
     if (!isInitial && lastDoc) {
         query = query.startAfter(lastDoc);
     }
@@ -3369,67 +3389,109 @@ auth.onAuthStateChanged(async user => {
         if(isInitial) feed.innerHTML = ''; // تنظيف اللودر
 
         if (snapshot.empty) {
-            if(isInitial) feed.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#aaa;">لا توجد فيديوهات</div>';
+            if(isInitial) feed.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; color:#aaa;">لا توجد فيديوهات حالياً</div>';
             isLoading = false;
             return;
         }
 
         lastDoc = snapshot.docs[snapshot.docs.length - 1];
         const fragment = document.createDocumentFragment();
-        const tempDiv = document.createElement('div');
 
+        // 2. معالجة كل فيديو في النتيجة
         for (const doc of snapshot.docs) {
             const data = doc.data();
-            if (blockedUsersSet.has(data.uid)) continue; 
+            
+            // فحص الحظر
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(data.uid)) continue; 
+            
+            // فلترة الأصدقاء (إذا كنا في تبويب الأصدقاء وكان العدد كبيراً)
+            if (currentFeedTab === 'friends' && currentUserData && currentUserData.following) {
+                if (!currentUserData.following.includes(data.uid)) continue;
+            }
 
+            // التأكد أن البوست يحتوي على فيديو
             const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
             
             if (videoMedia) {
                 let uName = "مستخدم";
-let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
-let isVerified = false;
-let isOnline = false; // 🔥 متغير جديد
+                let uPic = "https://cdn-icons-png.flaticon.com/512/847/847969.png";
+                let isVerified = false;
+                let isOnline = false;
 
-try {
-    const userSnap = await db.collection('users').doc(data.uid).get();
-    if (userSnap.exists) {
-        const userData = userSnap.data();
-        uName = userData.name || uName;
-        uPic = userData.profilePic || userData.pic || uPic;
-        isVerified = userData.isVerified || false;
-        
-        // 🔥 حساب حالة الأونلاين هنا
-        isOnline = checkFriendOnlineStatus(userData, data.uid);
-    }
-} catch (err) { console.log("Error fetching user data", err); }
+                // جلب بيانات ناشر الفيديو
+                try {
+                    const userSnap = await db.collection('users').doc(data.uid).get();
+                    if (userSnap.exists) {
+                        const userData = userSnap.data();
+                        uName = userData.name || uName;
+                        uPic = userData.profilePic || userData.pic || uPic;
+                        isVerified = userData.isVerified || false;
+                        
+                        if (typeof checkFriendOnlineStatus === 'function') {
+                            isOnline = checkFriendOnlineStatus(userData, data.uid);
+                        }
+                    }
+                } catch (err) { console.log("Error fetching user data", err); }
 
-// 🔥 تمرير isOnline للدالة
-const tempDiv = document.createElement('div');
-tempDiv.innerHTML = cardHTML;
-const newSlide = tempDiv.firstElementChild;
+                // 🔥🔥🔥 الإصلاح: هنا يتم توليد الـ HTML باستخدام الدالة 🔥🔥🔥
+                const cardHTML = createVideoCard(
+                    doc.id, 
+                    { ...data, isVerified: isVerified }, 
+                    videoMedia.url, 
+                    uName, 
+                    uPic, 
+                    data.uid, 
+                    isOnline
+                );
+
+                // تحويل النص إلى عنصر حقيقي
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = cardHTML;
+                const newSlide = tempDiv.firstElementChild;
+                
                 if (newSlide) {
-                    enableSwipeForProfile(newSlide, data.uid);
+                    // تفعيل السحب لفتح البروفايل
+                    if (typeof enableSwipeForProfile === 'function') {
+                        enableSwipeForProfile(newSlide, data.uid);
+                    }
+                    // تفعيل مراقب التشغيل التلقائي
                     if (typeof observer !== 'undefined') observer.observe(newSlide);
+                    
                     fragment.appendChild(newSlide);
                 }
             }
         }
+        
+        // رسم كل الفيديوهات دفعة واحدة
         feed.appendChild(fragment);
 
-        // تحديث المفضلة
+        // 3. تحديث الفيديوهات المحفوظة في المفضلة
         if (currentUser) {
-            const favSnapshot = await db.collection('users').doc(currentUser.uid).collection('favorites').get();
-            favSnapshot.forEach(favDoc => {
-                const icon = document.getElementById(`save-icon-${favDoc.id}`);
-                const text = document.getElementById(`save-text-${favDoc.id}`);
-                if (icon) { icon.classList.add('active-save'); icon.style.color = "#FFD700"; }
-                if (text) { text.innerText = "محفوظ"; }
-            });
+            try {
+                const favSnapshot = await db.collection('users').doc(currentUser.uid).collection('saved_posts').get();
+                favSnapshot.forEach(favDoc => {
+                    const icon = document.getElementById(`save-icon-${favDoc.id}`);
+                    const text = document.getElementById(`save-text-${favDoc.id}`);
+                    if (icon) { icon.classList.remove('fa-regular'); icon.classList.add('fa-solid', 'active-save'); icon.style.color = "#FFD700"; }
+                    // لو في نص للحفظ ممكن نحدثه هنا
+                });
+            } catch(e) { console.log("Fav fetch error", e); }
+        }
+        
+        // تشغيل أول فيديو تلقائياً عند فتح التطبيق
+        if (isInitial) {
+            setTimeout(() => {
+                const firstVideo = document.querySelector('.video-slide video');
+                if (firstVideo && typeof playVideo === 'function') {
+                    // فك الكتم الإجباري إن أردت (اختياري)
+                    playVideo(firstVideo, firstVideo.id.replace('vid-', ''));
+                }
+            }, 300);
         }
 
     } catch (e) {
         console.error("Error loading videos:", e);
-        if(isInitial) feed.innerHTML = '<div style="text-align:center; color:red; padding:20px;">حدث خطأ في التحميل</div>';
+        if(isInitial) feed.innerHTML = '<div style="text-align:center; color:red; padding:20px;">حدث خطأ في جلب البيانات، يرجى التحقق من اتصالك بالإنترنت.</div>';
     }
 
     isLoading = false;
