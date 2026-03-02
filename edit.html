@@ -28,6 +28,7 @@
             background: var(--bg-dark);
             color: #fff;
             overflow-x: hidden;
+            padding-bottom: 50px;
         }
 
         /* الهيدر */
@@ -172,6 +173,33 @@
             resize: none;
         }
 
+        /* تصميم قسم البصمة الصوتية */
+        .voice-section {
+            background: rgba(255,255,255,0.02);
+            border: 1px solid #2a2a30;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .rec-btn {
+            width: 100%; padding: 12px; border-radius: 12px; font-weight: bold;
+            cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px;
+            border: 1px dashed var(--primary-color); color: var(--primary-color); background: rgba(124, 58, 237, 0.1);
+        }
+
+        .rec-btn:hover { background: rgba(124, 58, 237, 0.2); }
+
+        .rec-active-ui {
+            display: none; align-items: center; justify-content: space-between;
+            background: rgba(255, 59, 48, 0.1); border: 1px solid #ff3b30;
+            padding: 10px 15px; border-radius: 12px; margin-top: 10px;
+        }
+
+        .preview-ui {
+            display: none; flex-direction: column; gap: 15px; margin-top: 15px;
+        }
+
         /* الأزرار */
         .save-btn {
             width: 100%;
@@ -267,12 +295,48 @@
 
         <div class="form-group">
             <label>اسم المستخدم</label>
-            <input type="text" id="usernameInput" placeholder="مثال: user123">
+            <input type="text" id="usernameInput" placeholder="مثال: user123" dir="ltr" style="text-align: right;">
         </div>
 
         <div class="form-group">
             <label>النبذة (Bio)</label>
             <textarea id="bioInput" placeholder="أخبرنا عن نفسك..."></textarea>
+        </div>
+
+        <div class="voice-section">
+            <label style="display: block; margin-bottom: 10px; color: #888; font-weight: 600; font-size: 13px;">
+                <i class="fa-solid fa-microphone-lines" style="color: var(--primary-color);"></i> البصمة الصوتية
+            </label>
+            <p style="font-size: 11px; color: #666; margin-bottom: 15px;">سجل رسالة ترحيب قصيرة لزوار بروفايلك (10 ثواني كحد أقصى)</p>
+
+            <button id="startBioRecBtn" class="rec-btn" onclick="startBioRecording()">
+                <i class="fa-solid fa-microphone"></i> اضغط لبدء التسجيل
+            </button>
+
+            <div id="recordingBioUI" class="rec-active-ui">
+                <div style="display: flex; align-items: center; gap: 10px; color: #ff3b30; font-weight: bold;">
+                    <i class="fa-solid fa-circle fa-fade" style="font-size: 10px;"></i> 
+                    <span id="bioRecTimer">00:00</span>
+                </div>
+                <button onclick="stopBioRecording()" style="background: #ff3b30; color: #fff; border: none; padding: 6px 15px; border-radius: 8px; font-weight: bold; cursor: pointer;">
+                    <i class="fa-solid fa-stop"></i> إيقاف
+                </button>
+            </div>
+
+            <div id="previewBioUI" class="preview-ui">
+                <audio id="bioAudioPreview" controls style="width: 100%; height: 35px;"></audio>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="deleteBioRecord()" style="flex: 1; padding: 10px; background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); color: #ff3b30; border-radius: 10px; cursor: pointer; font-weight: bold;">حذف</button>
+                    <button id="uploadBioBtn" onclick="uploadVoiceBio()" style="flex: 2; padding: 10px; background: var(--primary-color); border: none; color: #fff; border-radius: 10px; cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(124, 58, 237, 0.3);">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> حفظ كبصمة
+                    </button>
+                </div>
+            </div>
+            
+            <div id="existingBioUi" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #333; text-align: center;">
+                <span style="font-size: 12px; color: var(--uranium-green);"><i class="fa-solid fa-check-circle"></i> لديك بصمة صوتية مسجلة</span>
+                <button onclick="removeExistingBio()" style="display: block; width: 100%; margin-top: 10px; background: transparent; border: 1px dashed #ff3b30; color: #ff3b30; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 12px; font-weight: bold;">إزالة البصمة الحالية</button>
+            </div>
         </div>
 
         <div class="form-group">
@@ -292,8 +356,9 @@
 
         <div class="form-group">
             <label><i class="fa-solid fa-link"></i> رابط أو موقع</label>
-            <input type="text" id="webInput" placeholder="رابط موقعك أو حساب آخر">
+            <input type="text" id="webInput" placeholder="رابط موقعك أو حساب آخر" dir="ltr" style="text-align: right;">
         </div>
+        
         <button class="save-btn" id="saveBtn" onclick="saveProfile()">
             حفظ التعديلات
         </button>
@@ -328,12 +393,9 @@ const fileInput = document.getElementById("fileInput");
 const statusMessage = document.getElementById("statusMessage");
 const saveBtn = document.getElementById("saveBtn");
 
-// تعريف الحقول الأساسية
 const nameInput = document.getElementById("nameInput");
 const usernameInput = document.getElementById("usernameInput");
 const bioInput = document.getElementById("bioInput");
-
-// تعريف الحقول الجديدة في الجافاسكريبت
 const workInput = document.getElementById("workInput");
 const eduInput = document.getElementById("eduInput");
 const locInput = document.getElementById("locInput");
@@ -341,6 +403,7 @@ const webInput = document.getElementById("webInput");
 
 let currentUser = null;
 let uploadedImageUrl = null;
+let currentProfileData = null; // للاحتفاظ بالبيانات
 
 auth.onAuthStateChanged(user => {
     if (!user) {
@@ -366,13 +429,11 @@ async function loadProfile() {
         }
 
         const data = doc.data();
+        currentProfileData = data;
         
-        // تعبئة البيانات الأساسية
         nameInput.value = data.name || "";
         usernameInput.value = data.username || "";
         bioInput.value = data.bio || "";
-
-        // تعبئة البيانات الجديدة إذا وجدت
         workInput.value = data.work || "";
         eduInput.value = data.education || "";
         locInput.value = data.location || "";
@@ -385,6 +446,13 @@ async function loadProfile() {
         } else {
             avatarEdit.innerText = (data.name || "U")[0].toUpperCase();
         }
+
+        // فحص ما إذا كان لديه بصمة صوتية مسبقاً
+        if (data.voiceBioUrl) {
+            document.getElementById('existingBioUi').style.display = 'block';
+            document.getElementById('startBioRecBtn').innerHTML = '<i class="fa-solid fa-microphone"></i> تسجيل بصمة جديدة';
+        }
+
     } catch (error) {
         console.error("Load error:", error);
         showMsg("خطأ في تحميل البيانات", "error");
@@ -392,10 +460,7 @@ async function loadProfile() {
 }
 
 avatarEdit.onclick = () => {
-    if (!currentUser) {
-        showMsg("يجب تسجيل الدخول ❌", "error");
-        return;
-    }
+    if (!currentUser) return;
     fileInput.click();
 };
 
@@ -438,13 +503,186 @@ fileInput.onchange = async () => {
     }
 };
 
+// ==================================================
+// 🎙️ محرك البصمة الصوتية (Voice Bio)
+// ==================================================
+let bioMediaRecorder;
+let bioAudioChunks = [];
+let bioTimerInterval;
+let bioSeconds = 0;
+let bioBlob = null;
+let bioDurationText = "00:00";
+
+async function startBioRecording() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        bioMediaRecorder = new MediaRecorder(stream);
+        bioAudioChunks = [];
+
+        document.getElementById('startBioRecBtn').style.display = 'none';
+        document.getElementById('existingBioUi').style.display = 'none'; // إخفاء القديم لو بيسجل جديد
+        document.getElementById('recordingBioUI').style.display = 'flex';
+        
+        bioSeconds = 0;
+        document.getElementById('bioRecTimer').innerText = "00:00";
+        
+        bioTimerInterval = setInterval(() => {
+            bioSeconds++;
+            const s = (bioSeconds % 60).toString().padStart(2, '0');
+            bioDurationText = `00:${s}`;
+            document.getElementById('bioRecTimer').innerText = bioDurationText;
+            
+            // إيقاف تلقائي بعد 10 ثواني
+            if (bioSeconds >= 10) stopBioRecording();
+        }, 1000);
+
+        bioMediaRecorder.ondataavailable = e => { if (e.data.size > 0) bioAudioChunks.push(e.data); };
+        bioMediaRecorder.start();
+
+    } catch (e) {
+        alert("الرجاء السماح بصلاحية المايكروفون!");
+    }
+}
+
+function stopBioRecording() {
+    if (!bioMediaRecorder || bioMediaRecorder.state === "inactive") return;
+
+    bioMediaRecorder.onstop = () => {
+        clearInterval(bioTimerInterval);
+        document.getElementById('recordingBioUI').style.display = 'none';
+        document.getElementById('previewBioUI').style.display = 'flex';
+
+        // إنشاء الملف الصوتي للمعاينة
+        bioBlob = new Blob(bioAudioChunks, { type: 'audio/webm' });
+        const audioUrl = URL.createObjectURL(bioBlob);
+        document.getElementById('bioAudioPreview').src = audioUrl;
+
+        bioMediaRecorder.stream.getTracks().forEach(track => track.stop()); // قفل اللمبة بتاعت المايك
+    };
+    bioMediaRecorder.stop();
+}
+
+function deleteBioRecord() {
+    bioBlob = null;
+    bioAudioChunks = [];
+    document.getElementById('previewBioUI').style.display = 'none';
+    document.getElementById('startBioRecBtn').style.display = 'block';
+    
+    // لو كان عنده بصمة قديمة ومسح التسجيل الجديد، نرجع نظهرله الأوبشن القديم
+    if(currentProfileData && currentProfileData.voiceBioUrl) {
+        document.getElementById('existingBioUi').style.display = 'block';
+    }
+}
+
+async function uploadVoiceBio() {
+    if (!bioBlob || !currentUser) return;
+
+    const btn = document.getElementById('uploadBioBtn');
+    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الرفع...';
+    btn.disabled = true;
+    saveBtn.disabled = true; // تعطيل زرار الحفظ الرئيسي مؤقتاً
+
+    try {
+        const ext = 'webm';
+        const storagePath = `voice_bios/${currentUser.uid}/bio_${Date.now()}.${ext}`;
+        const storageRef = firebase.storage().ref().child(storagePath);
+        
+        // الرفع للستوريدج
+        const snapshot = await storageRef.put(bioBlob);
+        const downloadUrl = await snapshot.ref.getDownloadURL();
+        
+        // الحفظ في بيانات المستخدم في Firestore
+        await db.collection("users").doc(currentUser.uid).update({
+            voiceBioUrl: downloadUrl,
+            voiceBioDuration: bioDurationText
+        });
+
+        // تحديث المتغير المحلي
+        currentProfileData.voiceBioUrl = downloadUrl;
+
+        showMsg("تم حفظ البصمة الصوتية بنجاح 🎙️✅", "success");
+        
+        // إرجاع الواجهة لزرار "مسح" أو "تسجيل جديد"
+        document.getElementById('previewBioUI').style.display = 'none';
+        document.getElementById('startBioRecBtn').style.display = 'block';
+        document.getElementById('startBioRecBtn').innerHTML = '<i class="fa-solid fa-microphone"></i> تسجيل بصمة جديدة';
+        document.getElementById('existingBioUi').style.display = 'block';
+        
+    } catch (e) {
+        console.error(e);
+        showMsg("❌ حدث خطأ أثناء الرفع.", "error");
+    } finally {
+        btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> حفظ كبصمة';
+        btn.disabled = false;
+        saveBtn.disabled = false;
+    }
+}
+
+// دالة لمسح البصمة القديمة
+// ==================================================
+// 🧠 محرك الرسائل الاحترافية (Chic Confirm)
+// ==================================================
+let pendingConfirmAction = null;
+
+function showChicConfirm(title, message, iconHTML, actionCallback) {
+    document.getElementById('chicTitle').innerText = title;
+    document.getElementById('chicMessage').innerText = message;
+    document.getElementById('chicIcon').innerHTML = iconHTML;
+    pendingConfirmAction = actionCallback;
+    document.getElementById('chicConfirmModal').style.display = 'flex';
+}
+
+function closeChicModal() {
+    document.getElementById('chicConfirmModal').style.display = 'none';
+    pendingConfirmAction = null;
+}
+
+// ربط زر التأكيد بالدالة
+document.getElementById('chicConfirmBtn').onclick = function() {
+    if(pendingConfirmAction) pendingConfirmAction();
+    closeChicModal();
+};
+
+// ==================================================
+// 🗑️ دالة حذف البصمة الصوتية (بالشكل الجديد)
+// ==================================================
+function removeExistingBio() {
+    // تشغيل الرسالة الاحترافية بدل confirm() العادية
+    showChicConfirm(
+        "حذف البصمة الصوتية؟",
+        "هل أنت متأكد من مسح بصمتك الصوتية الحالية؟ لا يمكن التراجع عن هذا الإجراء.",
+        '<i class="fa-solid fa-trash-can" style="color: #ff3b30; filter: drop-shadow(0 4px 10px rgba(255, 59, 48, 0.3));"></i>',
+        async function() {
+            // الكود اللي هيتنفذ لو المستخدم ضغط "تأكيد"
+            showMsg("جاري الحذف...", "loading");
+            try {
+                // حذف من الداتابيز
+                await db.collection("users").doc(currentUser.uid).update({
+                    voiceBioUrl: firebase.firestore.FieldValue.delete(),
+                    voiceBioDuration: firebase.firestore.FieldValue.delete()
+                });
+                
+                // تحديث الواجهة
+                document.getElementById('existingBioUi').style.display = 'none';
+                document.getElementById('startBioRecBtn').innerHTML = '<i class="fa-solid fa-microphone"></i> اضغط لبدء التسجيل';
+                currentProfileData.voiceBioUrl = null;
+                
+                showMsg("تم حذف البصمة بنجاح 🗑️", "success");
+            } catch(e) {
+                showMsg("فشل الحذف", "error");
+            }
+        }
+    );
+}
+// ==================================================
+// حفظ باقي البيانات (الاسم، البايو، الخ)
+// ==================================================
 async function saveProfile() {
     if (!currentUser) {
         showMsg("يجب تسجيل الدخول ❌", "error");
         return;
     }
     
-    // جلب القيم من جميع الحقول
     const name = nameInput.value.trim();
     const username = usernameInput.value.trim();
     const bio = bioInput.value.trim();
@@ -471,7 +709,6 @@ async function saveProfile() {
         name: name,
         username: username || "",
         bio: bio || "",
-        // إضافة الحقول الجديدة للكائن الذي سيتم حفظه
         work: work,
         education: education,
         location: location,
@@ -484,7 +721,6 @@ async function saveProfile() {
     }
 
     try {
-        // الحفظ في قاعدة البيانات
         await db.collection("users").doc(currentUser.uid).set(data, { merge: true });
         showMsg("تم الحفظ بنجاح ✅", "success");
         setTimeout(() => window.location.href = "profile.html", 1500);
@@ -507,6 +743,26 @@ function showMsg(msg, type) {
     }
 }
 </script>
+
+<style>
+    @keyframes popInModal {
+        0% { opacity: 0; transform: scale(0.8); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+</style>
+<div id="chicConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div style="background: var(--card-bg, #16161a); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 25px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); animation: popInModal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+        
+        <div id="chicIcon" style="font-size: 45px; margin-bottom: 15px;"></div>
+        <h3 id="chicTitle" style="color: #fff; font-weight: 800; margin-bottom: 10px; font-size: 18px;">تأكيد</h3>
+        <p id="chicMessage" style="color: #aaa; font-size: 13px; margin-bottom: 25px; line-height: 1.6;"></p>
+        
+        <div style="display: flex; gap: 10px; margin-top: 15px;">
+            <button onclick="closeChicModal()" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(255,255,255,0.05); color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s;">إلغاء</button>
+            <button id="chicConfirmBtn" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: #ff3b30; color: #fff; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); transition: 0.2s;">تأكيد</button>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
