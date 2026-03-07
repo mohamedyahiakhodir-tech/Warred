@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="أداة احترافية لتوليد وقراءة رموز QR المشفرة">
+    <title>الرسائل المشفرة (QR)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #00C6FF;
+            --bg-color: #0d0d0f;
+            --success-color: #00e676;
+            --error-color: #ff4757;
+            --glass-bg: rgba(20, 20, 20, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Cairo', sans-serif; outline: none; -webkit-tap-highlight-color: transparent; }
+        
+        body { background-color: var(--bg-color); color: #fff; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+
+        .back-btn { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; cursor: pointer; text-decoration: none; transition: 0.3s;}
+        .back-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+        .qr-box { background: var(--glass-bg); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; padding: 25px; width: 100%; max-width: 420px; box-shadow: 0 15px 40px rgba(0,0,0,0.5); position: relative; }
+
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 12px; background: rgba(255,255,255,0.05); border: none; color: #888; border-radius: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        .tab-btn.active { background: var(--primary-color); color: #0d0d0f; box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3); }
+
+        .input-wrapper { position: relative; margin-bottom: 15px; }
+        .input-area { width: 100%; background: #1a1a1a; border: 1px solid #333; border-radius: 16px; padding: 15px; padding-bottom: 35px; color: #fff; min-height: 130px; resize: none; transition: 0.3s;}
+        .input-area:focus { border-color: var(--primary-color); }
+        .clear-btn { position: absolute; bottom: 10px; left: 10px; background: none; border: none; color: #888; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        .clear-btn:hover { color: var(--error-color); }
+
+        .tools-row { display: flex; align-items: center; justify-content: space-between; background: #1a1a1a; padding: 12px 15px; border-radius: 16px; border: 1px solid #333; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .color-group { display: flex; align-items: center; gap: 10px; }
+        .color-group label { color: #aaa; font-size: 13px; font-weight: bold;}
+        .color-picker { background: none; border: none; width: 30px; height: 30px; cursor: pointer; border-radius: 50%; overflow: hidden; }
+        .color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+        .color-picker::-webkit-color-swatch { border: none; border-radius: 50%; }
+
+        .action-btn { width: 100%; padding: 14px; border-radius: 16px; border: none; font-weight: bold; cursor: pointer; background: var(--primary-color); color: #0d0d0f; font-size: 15px; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        .action-btn:active { transform: scale(0.96); }
+        .action-btn.danger { background: rgba(255, 71, 87, 0.1); color: var(--error-color); border: 1px solid var(--error-color); margin-top: 10px; }
+
+        .qr-result { margin-top: 20px; background: #fff; padding: 20px; border-radius: 16px; display: none; text-align: center; }
+        #qrcode-container { display: flex; justify-content: center; margin-bottom: 15px; }
+        
+        .download-btn { background: #1a1a1a; color: #fff; border: 1px solid #333; width: 100%; padding: 10px; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.3s;}
+        .download-btn:hover { background: #2a2a2a; }
+
+        .upload-btn { background: #1a1a1a; color: #fff; border: 1px solid #333; width: 100%; padding: 12px; border-radius: 16px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-bottom: 15px; display: flex; justify-content: center; align-items: center; gap: 8px;}
+        .upload-btn:hover { border-color: var(--primary-color); }
+        
+        /* تحسين شكل مكتبة الكاميرا الافتراضي */
+        #reader { border-radius: 16px; overflow: hidden; border: 2px solid #333; background: #1a1a1a; }
+        #reader img { display: none !important; } /* إخفاء أيقونة الكاميرا الافتراضية المزعجة */
+        #reader button { background: var(--primary-color); color: #0d0d0f; border: none; padding: 8px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        #reader a { color: var(--primary-color); text-decoration: none; }
+        
+        .scan-result-box { margin-top: 15px; background: #1a1a1a; padding: 15px; border-radius: 16px; border: 1px solid #333; display: none; }
+        .scan-result-box h4 { color: var(--primary-color); margin-bottom: 5px; }
+
+        .fade-in { animation: fadeIn 0.4s ease-in-out forwards; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 12px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 30px; transform: translateX(-50%); box-shadow: 0 5px 20px rgba(0,0,0,0.5); font-weight: bold; opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+        #toast.success { background-color: var(--success-color); color: #0d0d0f; }
+        #toast.error { background-color: var(--error-color); color: #fff; }
+        #toast.info { background-color: var(--primary-color); color: #0d0d0f; }
+    </style>
+</head>
+<body>
+
+    <div id="toast"></div>
+
+    <a href="home.html" class="back-btn" aria-label="العودة للصفحة الرئيسية"><i class="fa-solid fa-arrow-right"></i></a>
+
+    <div class="qr-box">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('create')">تشفير <i class="fa-solid fa-qrcode"></i></button>
+            <button class="tab-btn" onclick="switchTab('scan')">قراءة <i class="fa-solid fa-camera"></i></button>
+        </div>
+
+        <div id="createSection">
+            <div class="input-wrapper">
+                <textarea id="textInput" class="input-area" placeholder="اكتب رسالتك هنا لتحويلها لرمز QR سري..."></textarea>
+                <button class="clear-btn" onclick="clearText()" title="مسح النص"><i class="fa-solid fa-trash-can"></i></button>
+            </div>
+            
+            <div class="tools-row">
+                <div class="color-group">
+                    <label for="qrColor">لون الرمز:</label>
+                    <input type="color" id="qrColor" class="color-picker" value="#000000">
+                </div>
+                <div class="color-group">
+                    <label for="qrBgColor">لون الخلفية:</label>
+                    <input type="color" id="qrBgColor" class="color-picker" value="#ffffff">
+                </div>
+            </div>
+
+            <button class="action-btn" onclick="generateQR()"><i class="fa-solid fa-wand-magic-sparkles"></i> تحويل لـ QR</button>
+            
+            <div id="qrResult" class="qr-result">
+                <div id="qrcode-container">
+                    <canvas id="qrCanvas" style="border-radius: 10px;"></canvas>
+                </div>
+                <button class="download-btn" onclick="downloadQR()"><i class="fa-solid fa-download"></i> حفظ الرمز كصورة</button>
+            </div>
+        </div>
+
+        <div id="scanSection" style="display: none;">
+            <input type="file" id="qrImageUpload" accept="image/*" style="display: none;" onchange="handleImageUpload(event)">
+            <button class="upload-btn" onclick="document.getElementById('qrImageUpload').click()">
+                <i class="fa-regular fa-image"></i> قراءة من صورة في الجهاز
+            </button>
+
+            <div id="reader"></div>
+            <button id="stopCameraBtn" class="action-btn danger" style="display: none;" onclick="stopScanner()">
+                <i class="fa-solid fa-video-slash"></i> إيقاف الكاميرا
+            </button>
+            
+            <div id="fileReader" style="display: none;"></div>
+
+            <div id="scanResultBox" class="scan-result-box">
+                <h4><i class="fa-solid fa-unlock-keyhole"></i> محتوى الرسالة:</h4>
+                <p id="scanResultText" style="color: #fff; word-wrap: break-word; line-height: 1.6; padding: 10px 0;"></p>
+                <button class="action-btn" style="margin-top: 10px; background: #333; color: #fff;" onclick="copyText()">
+                    <i class="fa-regular fa-copy"></i> نسخ النص
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let scanner;
+        let qrInstance = null; 
+        const fileScanner = new Html5Qrcode("fileReader"); 
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById("toast");
+            toast.innerText = message;
+            toast.className = "show " + type;
+            setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function encodeUTF8(text) {
+            return unescape(encodeURIComponent(text)); // طريقة أسرع وأكثر موثوقية لدعم اللغة العربية
+        }
+
+        function clearText() {
+            document.getElementById("textInput").value = "";
+            document.getElementById("textInput").focus();
+        }
+
+        function stopScanner() {
+            if(scanner) {
+                scanner.clear().then(() => {
+                    document.getElementById("stopCameraBtn").style.display = "none";
+                    showToast("تم إيقاف الكاميرا", "info");
+                }).catch(err => console.error("Failed to clear scanner", err));
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            const createSec = document.getElementById('createSection');
+            const scanSec = document.getElementById('scanSection');
+            
+            if(tab === 'create') {
+                createSec.style.display = 'block';
+                scanSec.style.display = 'none';
+                document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+                stopScanner(); // إغلاق الكاميرا لتوفير الموارد
+                document.getElementById("scanResultBox").style.display = "none";
+            } else {
+                createSec.style.display = 'none';
+                scanSec.style.display = 'block';
+                document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+                startScanner(); 
+            }
+        }
+
+        function generateQR() {
+            const text = document.getElementById("textInput").value.trim();
+            const color = document.getElementById("qrColor").value;
+            const bgColor = document.getElementById("qrBgColor").value;
+
+            if(!text) return showToast("اكتب رسالة أولاً لتشفيرها!", "error");
+            
+            const arabicFixedText = encodeUTF8(text);
+            const qrBox = document.getElementById("qrResult");
+            
+            // لتحديث الخلفية البيضاء للمربع المحيط بالـ QR حتى يتناسق مع اختيارات المستخدم
+            qrBox.style.background = bgColor; 
+            qrBox.style.display = "block";
+            qrBox.classList.remove("fade-in"); 
+            void qrBox.offsetWidth; 
+            qrBox.classList.add("fade-in");
+            
+            if (!qrInstance) {
+                qrInstance = new QRious({
+                    element: document.getElementById('qrCanvas'),
+                    value: arabicFixedText,
+                    size: 220,
+                    background: bgColor,
+                    foreground: color
+                });
+            } else {
+                qrInstance.set({
+                    value: arabicFixedText,
+                    background: bgColor,
+                    foreground: color
+                });
+            }
+            showToast("تم إنشاء الرمز السري بنجاح!", "success");
+        }
+
+        function downloadQR() {
+            const canvas = document.getElementById("qrCanvas");
+            if(canvas) {
+                const link = document.createElement("a");
+                link.href = canvas.toDataURL("image/png");
+                link.download = "SecretMessage.png";
+                link.click();
+                showToast("تم حفظ الصورة في جهازك!", "success");
+            }
+        }
+
+        function startScanner() {
+            document.getElementById("scanResultBox").style.display = "none";
+            
+            if(scanner) {
+                try { scanner.clear(); } catch(e) {}
+            }
+            
+            document.getElementById("stopCameraBtn").style.display = "flex";
+
+            scanner = new Html5QrcodeScanner("reader", { fps: 10, qrbox: {width: 250, height: 250} });
+            scanner.render((decodedText) => {
+                stopScanner(); // إيقاف الكاميرا فور التقاط الرمز
+                showResult(decodeURIComponent(escape(decodedText))); // فك تشفير الحروف العربية
+            }, (error) => {});
+        }
+
+        function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showToast("جاري فحص الصورة...", "info");
+
+            fileScanner.scanFile(file, true)
+            .then(decodedText => {
+                stopScanner(); 
+                document.getElementById("reader").innerHTML = ""; 
+                showResult(decodeURIComponent(escape(decodedText))); // فك تشفير الحروف العربية
+                event.target.value = ''; 
+            })
+            .catch(err => {
+                showToast("لم يتم العثور على رمز QR واضح في الصورة.", "error");
+                event.target.value = '';
+            });
+        }
+
+        function showResult(text) {
+            const resultBox = document.getElementById("scanResultBox");
+            resultBox.style.display = "block";
+            resultBox.classList.remove("fade-in");
+            void resultBox.offsetWidth; 
+            resultBox.classList.add("fade-in");
+            document.getElementById("scanResultText").innerText = text;
+            showToast("تم فك الشفرة بنجاح!", "success");
+        }
+
+        async function copyText() {
+            const text = document.getElementById("scanResultText").innerText;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast("تم نسخ الرسالة بنجاح!", "success");
+            } catch (err) {
+                // Fallback للمتصفحات القديمة
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast("تم نسخ الرسالة بنجاح!", "success");
+            }
+        }
+    </script>
+</body>
+</html>

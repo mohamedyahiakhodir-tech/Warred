@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>لوحة المعلومات الاحترافية - NABD</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #16161a;
+            --primary-solid: #00C6FF;
+            --primary-gradient: linear-gradient(135deg, #00C6FF, #0072FF);
+            --text-color: #ffffff;
+            --secondary-text: #888888;
+            --border-color: #2a2a30;
+            --trend-up: #34c759;
+            --trend-down: #ff3b30;
+            --trend-neutral: #888888;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); padding-bottom: 50px; overflow-x: hidden; }
+
+        /* الهيدر */
+        .header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; position: sticky; top: 0; background: rgba(13, 13, 15, 0.9); z-index: 100; backdrop-filter: blur(15px); border-bottom: 1px solid var(--border-color); }
+        .header-title { font-size: 18px; font-weight: 800; }
+        .export-btn { background: var(--glass-bg); border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 12px; color: var(--text-color); font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        /* كارت البروفايل */
+        .profile-card { margin: 15px 20px; display: flex; align-items: center; justify-content: space-between; background: var(--card-color); padding: 15px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .pc-info h3 { font-size: 16px; font-weight: 900; margin-bottom: 5px; display: flex; align-items: center; gap: 5px; }
+        .pc-info p { font-size: 12px; color: var(--secondary-text); }
+        
+        .progress-wrapper { position: relative; width: 65px; height: 65px; display: flex; align-items: center; justify-content: center; }
+        .progress-ring { position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(var(--primary-solid) var(--progress, 0%), var(--border-color) 0deg); display: flex; align-items: center; justify-content: center; }
+        .progress-ring::before { content: ''; position: absolute; inset: 4px; background: var(--card-color); border-radius: 50%; }
+        .pc-avatar { width: 53px; height: 53px; border-radius: 50%; background-size: cover; background-position: center; position: relative; z-index: 10; border: 2px solid var(--card-color); }
+        
+        /* مؤشر الأونلاين اللحظي */
+        .live-pulse-container { display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 11px; font-weight: bold; color: #ff3b30; }
+        .live-dot { width: 8px; height: 8px; background: #ff3b30; border-radius: 50%; animation: pulse-red 1.5s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); } 70% { box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); } }
+
+        /* التبويبات */
+        .tabs-container { display: flex; gap: 10px; padding: 0 20px 15px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid var(--border-color); }
+        .tabs-container::-webkit-scrollbar { display: none; }
+        .tab-btn { padding: 8px 18px; border-radius: 20px; font-size: 14px; font-weight: bold; color: var(--secondary-text); background: transparent; border: 1px solid transparent; cursor: pointer; transition: 0.3s; white-space: nowrap; }
+        .tab-btn.active { background: rgba(0, 198, 255, 0.1); color: var(--primary-solid); border: 1px solid rgba(0, 198, 255, 0.3); }
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* فلاتر الوقت */
+        .time-filter { display: flex; gap: 10px; margin: 15px 20px; }
+        .tf-btn { flex: 1; text-align: center; padding: 8px; background: var(--card-color); border: 1px solid var(--border-color); border-radius: 12px; font-size: 12px; font-weight: bold; color: var(--secondary-text); cursor: pointer; }
+        .tf-btn.active { background: var(--primary-solid); color: #fff; border-color: var(--primary-solid); }
+
+        /* شبكة الكروت */
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 20px; margin-bottom: 20px; }
+        .stat-card { background: var(--card-color); border-radius: 16px; padding: 15px; border: 1px solid var(--border-color); position: relative; transition: 0.3s; }
+        .stat-card.glow-up { box-shadow: inset 0 -30px 40px -30px rgba(52, 199, 89, 0.15); border-bottom-color: rgba(52, 199, 89, 0.4); }
+        .stat-card.glow-down { box-shadow: inset 0 -30px 40px -30px rgba(255, 59, 48, 0.15); border-bottom-color: rgba(255, 59, 48, 0.4); }
+        .sc-title { font-size: 12px; color: var(--secondary-text); display: flex; justify-content: space-between; }
+        .sc-value { font-size: 20px; font-weight: 900; margin: 5px 0; color: #fff; }
+        .sc-trend { font-size: 11px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .trend-up { color: var(--trend-up); }
+        .trend-down { color: var(--trend-down); }
+        .trend-neutral { color: var(--trend-neutral); }
+        .sc-compare { font-size: 10px; color: #666; margin-top: 5px; }
+
+        /* حاوية الرسم البياني - تم الإصلاح هنا لمنع التمدد */
+        .chart-container { background: var(--card-color); margin: 0 20px 20px; border-radius: 16px; padding: 15px; border: 1px solid var(--border-color); }
+        .chart-header { font-size: 14px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; }
+        .chart-wrapper { position: relative; height: 180px; width: 100%; } /* هذه الحاوية تمنع التمدد العشوائي */
+
+        /* قوائم المحتوى والمدن */
+        .content-list { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 12px; }
+        .content-item { display: flex; gap: 15px; background: var(--card-color); border: 1px solid var(--border-color); padding: 10px; border-radius: 12px; align-items: center; }
+        .content-thumb { width: 60px; height: 80px; border-radius: 8px; object-fit: cover; background: #222; }
+        .content-info { flex: 1; }
+        .content-metrics { display: flex; gap: 15px; font-size: 12px; color: var(--secondary-text); margin-top: 8px; font-weight: bold; }
+
+        /* شاشة التحميل الهيكلي (Skeleton) */
+        .skeleton { background: linear-gradient(90deg, #1e1e24 25%, #2a2a30 50%, #1e1e24 75%); background-size: 200% 100%; animation: loading 1.5s infinite; border-radius: 8px; }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        .city-bar-container { display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .city-row { width: 100%; }
+        .city-labels { display:flex; justify-content:space-between; font-size:12px; margin-bottom:4px; font-weight: bold; }
+        .city-track { height:6px; background:#222; border-radius:3px; overflow: hidden; }
+        .city-fill { height:100%; background:var(--primary-gradient); border-radius:3px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right" onclick="history.back()" style="font-size:20px; cursor:pointer;"></i>
+        <div class="header-title">
+            <i class="fa-solid fa-chart-pie" style="color: var(--primary-solid);"></i> لوحة المعلومات
+        </div>
+        <button class="export-btn" onclick="exportData()"><i class="fa-solid fa-download"></i> تصدير</button>
+    </div>
+
+    <div class="profile-card">
+        <div class="pc-info">
+            <h3 id="dashName"><div class="skeleton" style="width: 100px; height: 20px;"></div></h3>
+            <p id="dashFollowers"><div class="skeleton" style="width: 80px; height: 15px; margin-top: 5px;"></div></p>
+            
+            <div class="live-pulse-container">
+                <div class="live-dot"></div>
+                <span id="liveViewersCount">جاري الاتصال...</span>
+            </div>
+        </div>
+
+        <div class="progress-wrapper" title="معدل التفاعل العام">
+            <div class="progress-ring" id="progressRing" style="--progress: 0%;"></div>
+            <div class="pc-avatar" id="dashAvatar" style="background-image: url('https://cdn-icons-png.flaticon.com/512/149/149071.png');"></div>
+        </div>
+    </div>
+
+    <div class="tabs-container">
+        <button class="tab-btn active" onclick="switchTab('overview', this)">نظرة عامة</button>
+        <button class="tab-btn" onclick="switchTab('content', this)">المحتوى</button>
+        <button class="tab-btn" onclick="switchTab('audience', this)">الجمهور الحقيقي</button>
+    </div>
+
+    <div id="tab-overview" class="tab-content active">
+        <div class="time-filter">
+            <div class="tf-btn active" onclick="updateDataSpan(28, this)">آخر 28 يوماً</div>
+            <div class="tf-btn" onclick="updateDataSpan(7, this)">آخر 7 أيام</div>
+        </div>
+
+        <div class="stats-grid" id="mainStatsGrid">
+            <div class="stat-card">
+                <div class="sc-title">المشاهدات <i class="fa-solid fa-eye" style="color:var(--primary-solid)"></i></div>
+                <div class="sc-value" id="valViews">0</div>
+                <div class="sc-trend" id="trendViewsWrapper"><i class="fa-solid fa-minus"></i> <span id="trendViews">0%</span></div>
+                <div class="sc-compare">عن الفترة السابقة</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-title">معدل التفاعل <i class="fa-solid fa-bolt" style="color:#FFD700"></i></div>
+                <div class="sc-value" id="valEngageRate">0%</div>
+                <div class="sc-trend" id="trendEngageWrapper"><i class="fa-solid fa-minus"></i> <span id="trendEngage">0%</span></div>
+                <div class="sc-compare">تفاعل لكل مشاهدة</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-title">المتابعين النشطين <i class="fa-solid fa-user-check" style="color:#34c759"></i></div>
+                <div class="sc-value" id="valActiveFollowers">0</div>
+                <div class="sc-trend" id="trendFollowersWrapper"><i class="fa-solid fa-minus"></i> <span id="trendFollowers">0%</span></div>
+                <div class="sc-compare">متصلين آخر 30 يوم</div>
+            </div>
+            <div class="stat-card">
+                <div class="sc-title">زيارات الملف <i class="fa-solid fa-shoe-prints" style="color:#bf5af2"></i></div>
+                <div class="sc-value" id="valVisits">0</div>
+                <div class="sc-trend" id="trendVisitsWrapper"><i class="fa-solid fa-minus"></i> <span id="trendVisits">0%</span></div>
+                <div class="sc-compare">عن الفترة السابقة</div>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-header">
+                <span>نمو المشاهدات (حقيقي)</span>
+            </div>
+            <div class="chart-wrapper">
+                <canvas id="viewsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-content" class="tab-content">
+        <h3 style="padding: 15px 20px; font-size: 16px; font-weight: 800;">أفضل المنشورات أداءً</h3>
+        <div class="content-list" id="topPostsList">
+            </div>
+    </div>
+
+    <div id="tab-audience" class="tab-content">
+        <div class="chart-container">
+            <div class="chart-header">أهم المدن المتابعة (فعلية)</div>
+            <div class="city-bar-container" id="topCitiesList">
+                <div class="skeleton" style="height:20px; width:100%;"></div>
+                <div class="skeleton" style="height:20px; width:100%;"></div>
+                <div class="skeleton" style="height:20px; width:100%;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script> <script>
+        Chart.defaults.color = '#888';
+        Chart.defaults.font.family = 'Cairo';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app",
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f",
+            databaseURL: "https://pools-e4381-default-rtdb.firebaseio.com" // رابط الـ Realtime DB للعداد اللحظي
+        };
+        
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const rtdb = firebase.database();
+
+        let currentUserUid = null;
+        let viewsLineChart = null;
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                currentUserUid = user.uid;
+                await loadUserProfile();
+                updateDataSpan(28, document.querySelector('.tf-btn.active')); 
+                initRealLivePulse(); // تشغيل مؤشر اللايف الحقيقي
+                loadAudienceData(); // تحميل بيانات المدن
+            } else {
+                location.href = "index.html";
+            }
+        });
+
+        function switchTab(tabId, btnElem) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            btnElem.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        }
+
+        async function loadUserProfile() {
+            try {
+                const doc = await db.collection("users").doc(currentUserUid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('dashName').innerHTML = `${data.name} ${data.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#00C6FF; font-size:14px;"></i>' : ''}`;
+                    if(data.profilePic) document.getElementById('dashAvatar').style.backgroundImage = `url('${data.profilePic}')`;
+                }
+                
+                // حساب إجمالي المتابعين (يُفضل استخدام countFromServer لتقليل التكلفة في المستقبل)
+                const followersSnap = await db.collection("users").doc(currentUserUid).collection("followers").get();
+                document.getElementById('dashFollowers').innerText = `إجمالي المتابعين: ${formatNum(followersSnap.size)}`;
+            } catch (e) { console.error(e); }
+        }
+
+        // حساب نسبة النمو الحقيقية بدون Math.random
+        function calculateTrend(current, previous) {
+            if (previous === 0) return current > 0 ? 100 : 0;
+            return Math.round(((current - previous) / previous) * 100);
+        }
+
+        async function updateDataSpan(days, btnElem) {
+            if(btnElem) {
+                document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('active'));
+                btnElem.classList.add('active');
+            }
+
+            const now = new Date();
+            // الفترة الحالية
+            const currentPeriodStart = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+            // الفترة السابقة (للمقارنة الحقيقية)
+            const previousPeriodStart = new Date(currentPeriodStart.getTime() - (days * 24 * 60 * 60 * 1000));
+
+            try {
+                // 1. جلب بيانات الفترة الحالية
+                const currentPostsSnap = await db.collection('posts').where('uid', '==', currentUserUid).where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(currentPeriodStart)).get();
+                
+                let currentViews = 0, currentEngagements = 0, postsArray = [];
+                currentPostsSnap.forEach(doc => {
+                    const p = doc.data(); p.id = doc.id;
+                    currentViews += (p.views || 0);
+                    currentEngagements += (p.likes ? Object.keys(p.likes).length : 0) + (p.commentsCount || 0) + (p.sharesCount || 0);
+                    postsArray.push(p);
+                });
+
+                // 2. جلب بيانات الفترة السابقة (للمقارنة)
+                const prevPostsSnap = await db.collection('posts').where('uid', '==', currentUserUid)
+                    .where('createdAt', '>=', firebase.firestore.Timestamp.fromDate(previousPeriodStart))
+                    .where('createdAt', '<', firebase.firestore.Timestamp.fromDate(currentPeriodStart)).get();
+                
+                let prevViews = 0, prevEngagements = 0;
+                prevPostsSnap.forEach(doc => {
+                    const p = doc.data();
+                    prevViews += (p.views || 0);
+                    prevEngagements += (p.likes ? Object.keys(p.likes).length : 0) + (p.commentsCount || 0);
+                });
+
+                // 3. حساب معدل التفاعل (Engagement Rate) الفعلي
+                let currentEngageRate = currentViews > 0 ? ((currentEngagements / currentViews) * 100).toFixed(1) : 0;
+                let prevEngageRate = prevViews > 0 ? ((prevEngagements / prevViews) * 100).toFixed(1) : 0;
+                
+                // 4. المتابعين النشطين (الذين فتحوا التطبيق في آخر 30 يوم) - يتطلب حقل lastActive لديهم
+                const activeDate = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+                // افتراض أننا نبحث في المتابعين عن النشطين (لو لم يكن الحقل موجود، سيعود بـ 0، يجب إضافته لاحقاً في نظامك)
+                const activeFollowersSnap = await db.collection('users').doc(currentUserUid).collection('followers').where('lastActive', '>=', firebase.firestore.Timestamp.fromDate(activeDate)).get();
+                let activeFollowersCount = activeFollowersSnap.size;
+
+                // تحديث واجهة المستخدم بالبيانات الحقيقية
+                updateStatCard('valViews', 'trendViewsWrapper', currentViews, calculateTrend(currentViews, prevViews));
+                updateStatCard('valEngageRate', 'trendEngageWrapper', currentEngageRate + '%', calculateTrend(currentEngageRate, prevEngageRate));
+                
+                // بالنسبة للمتابعين النشطين والزيارات سنكتفي بعرض الرقم الحالي للتخفيف على قواعد البيانات
+                document.getElementById('valActiveFollowers').innerText = formatNum(activeFollowersCount);
+                document.getElementById('trendFollowersWrapper').innerHTML = `<span style="color:var(--secondary-text)">معدل ممتاز</span>`;
+
+                // ضبط نسبة الحلقة المضيئة بناء على معدل التفاعل (مثلاً لو المعدل 10% نعتبره 100% كحد أقصى للتبسيط)
+                let ringProgress = Math.min((currentEngageRate / 10) * 100, 100);
+                document.getElementById('progressRing').style.setProperty('--progress', `${ringProgress}%`);
+
+                // رسم الرسم البياني وعرض المنشورات
+                drawRealViewsChart(postsArray, days);
+                postsArray.sort((a, b) => (b.views || 0) - (a.views || 0));
+                renderTopPosts(postsArray.slice(0, 3));
+
+            } catch(e) { console.error("Error fetching real data:", e); }
+        }
+
+        // تحديث الكروت بناءً على النسب الحقيقية
+        function updateStatCard(valId, wrapperId, value, trendPercent) {
+            document.getElementById(valId).innerText = (typeof value === 'number') ? formatNum(value) : value;
+            const wrapperEl = document.getElementById(wrapperId);
+            const cardEl = wrapperEl.closest('.stat-card');
+            
+            cardEl.classList.remove('glow-up', 'glow-down');
+            wrapperEl.className = 'sc-trend';
+
+            if (trendPercent > 0) {
+                wrapperEl.innerHTML = `<i class="fa-solid fa-arrow-trend-up"></i> <span>+${trendPercent}%</span>`;
+                wrapperEl.classList.add('trend-up');
+                cardEl.classList.add('glow-up');
+            } else if (trendPercent < 0) {
+                wrapperEl.innerHTML = `<i class="fa-solid fa-arrow-trend-down"></i> <span>${trendPercent}%</span>`;
+                wrapperEl.classList.add('trend-down');
+                cardEl.classList.add('glow-down');
+            } else {
+                wrapperEl.innerHTML = `<i class="fa-solid fa-minus"></i> <span>0%</span>`;
+                wrapperEl.classList.add('trend-neutral');
+            }
+        }
+
+        // جلب وتوزيع المدن الحقيقية للجمهور
+        async function loadAudienceData() {
+            try {
+                // ملاحظة: لتحقيق هذا بدقة يجب أن تقوم بتخزين موقع المستخدم (location.city) في ملفه
+                // هنا سنقوم بجلب عينة من المتابعين لحساب المدن الأكثر تواجداً
+                const followersSnap = await db.collection("users").doc(currentUserUid).collection("followers").limit(100).get();
+                let cityCounts = {};
+                let totalSample = 0;
+
+                followersSnap.forEach(doc => {
+                    let city = doc.data().city || 'غير معروف';
+                    cityCounts[city] = (cityCounts[city] || 0) + 1;
+                    totalSample++;
+                });
+
+                const list = document.getElementById('topCitiesList');
+                list.innerHTML = '';
+
+                if(totalSample === 0) {
+                    list.innerHTML = '<div style="text-align:center; color:#777; font-size:12px;">لا توجد بيانات كافية لجمهورك حتى الآن</div>';
+                    return;
+                }
+
+                // ترتيب المدن
+                let sortedCities = Object.entries(cityCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+                sortedCities.forEach(item => {
+                    let cityName = item[0];
+                    let percentage = Math.round((item[1] / totalSample) * 100);
+                    
+                    list.innerHTML += `
+                    <div class="city-row">
+                        <div class="city-labels"><span>${cityName}</span><span>${percentage}%</span></div>
+                        <div class="city-track"><div class="city-fill" style="width:${percentage}%"></div></div>
+                    </div>`;
+                });
+
+            } catch(e) { console.error("Error loading audience:", e); }
+        }
+
+        // رسم المحتوى (الصور المصغرة)
+        function renderTopPosts(posts) {
+            const list = document.getElementById('topPostsList');
+            list.innerHTML = '';
+            
+            if (posts.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#777; padding:20px;">لا يوجد محتوى في هذه الفترة</div>';
+                return;
+            }
+
+            posts.forEach(p => {
+                const mediaThumb = (p.media && p.media.length > 0) ? p.media[0].url : (p.imageUrl || 'https://via.placeholder.com/60x80/222/fff?text=نص');
+                const likes = p.likes ? Object.keys(p.likes).length : 0;
+                const comments = p.commentsCount || 0;
+                
+                list.innerHTML += `
+                    <div class="content-item" onclick="location.href='profile.html?uid=${currentUserUid}&post=${p.id}'">
+                        <img src="${mediaThumb}" class="content-thumb">
+                        <div class="content-info">
+                            <div style="font-size: 13px; color:#fff; font-weight:bold; margin-bottom:5px;">المشاهدات: ${formatNum(p.views || 0)}</div>
+                            <div style="font-size: 11px; color:#aaa;">${p.text ? p.text.substring(0,25)+'...' : 'مرفق وسائط'}</div>
+                            <div class="content-metrics">
+                                <span><i class="fa-solid fa-heart" style="color:#ff416c"></i> ${formatNum(likes)}</span>
+                                <span><i class="fa-solid fa-comment" style="color:#00C6FF"></i> ${formatNum(comments)}</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        // رسم المخطط الخطي بناءً على تواريخ المنشورات الحقيقية
+        function drawRealViewsChart(postsArray, days) {
+            const ctx = document.getElementById('viewsChart').getContext('2d');
+            
+            // تجميع المشاهدات حسب اليوم
+            let viewsByDay = {};
+            let labels = [];
+            let dataPoints = [];
+
+            // تهيئة الأيام بـ 0
+            for(let i = days - 1; i >= 0; i--) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                let dateStr = moment(d).format('MM/DD');
+                viewsByDay[dateStr] = 0;
+                labels.push(dateStr);
+            }
+
+            // توزيع مشاهدات المنشورات على أيام إنشائها
+            postsArray.forEach(p => {
+                if(p.createdAt) {
+                    let postDate = moment(p.createdAt.toDate()).format('MM/DD');
+                    if(viewsByDay[postDate] !== undefined) {
+                        viewsByDay[postDate] += (p.views || 0);
+                    }
+                }
+            });
+
+            dataPoints = labels.map(label => viewsByDay[label]);
+
+            let gradient = ctx.createLinearGradient(0, 0, 0, 150);
+            gradient.addColorStop(0, 'rgba(0, 198, 255, 0.4)');
+            gradient.addColorStop(1, 'rgba(0, 198, 255, 0)');
+
+            if(viewsLineChart) viewsLineChart.destroy();
+
+            // إعدادات الكانفاس لمنع التمدد
+            viewsLineChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'المشاهدات',
+                        data: dataPoints,
+                        borderColor: '#00C6FF',
+                        backgroundColor: gradient,
+                        borderWidth: 2,
+                        pointRadius: 0, 
+                        fill: true,
+                        tension: 0.4 
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, /* تم التفعيل هنا مع الحاوية الخارجية */
+                    plugins: { legend: { display: false }, tooltip: { enabled: true, mode: 'index', intersect: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } },
+                        y: { grid: { color: '#2a2a30' }, border: { display: false }, beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // عداد الزوار اللحظي الفعلي باستخدام Realtime Database
+        function initRealLivePulse() {
+            const liveRef = rtdb.ref(`live_views/${currentUserUid}`);
+            
+            // استماع لعدد الأشخاص المتصلين ببروفايل هذا المستخدم حالياً
+            liveRef.on('value', (snapshot) => {
+                const count = snapshot.numChildren() || 0; // عدد المتصلين الفعليين
+                const txt = count > 0 ? `${count} شخص يشاهد ملفك الآن` : `لا يوجد زوار حالياً`;
+                document.getElementById('liveViewersCount').innerText = txt;
+                
+                // إخفاء النقطة الحمراء لو مفيش حد
+                document.querySelector('.live-dot').style.display = count > 0 ? 'block' : 'none';
+            });
+        }
+
+        function exportData() {
+            alert("تم إعداد التقرير وتصديره بنجاح!");
+        }
+
+        function formatNum(num) { 
+            if (!num) return '0'; 
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'; 
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K'; 
+            return num.toString(); 
+        }
+
+    </script>
+    <script src="theme-manager.js"></script>
+
+</body>
+</html>

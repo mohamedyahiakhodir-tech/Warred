@@ -68,12 +68,16 @@
         .logo-icon { color: var(--primary-color); filter: drop-shadow(0 0 10px rgba(0, 198, 255, 0.5)); }
         h2 { margin-bottom: 10px; font-weight: 800; }
         p { color: var(--secondary-text); font-size: 14px; margin-bottom: 30px; }
+        
         .input-group { position: relative; margin-bottom: 15px; text-align: right; }
-        .custom-input { width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); padding: 14px 45px 14px 45px; border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: 0.3s; }
+        .custom-input, .custom-select { width: 100%; background: var(--input-bg); border: 1px solid var(--border-color); padding: 14px 45px 14px 45px; border-radius: 12px; color: #fff; font-size: 15px; outline: none; transition: 0.3s; }
+        /* تعديل للمربع اللي ملوش ايقونة على الشمال */
+        .custom-select { padding: 14px 15px 14px 45px; cursor: pointer; appearance: none; }
+        
         .custom-input.valid { border-color: var(--success-color); } .custom-input.invalid { border-color: var(--error-color); }
-        .custom-input:focus { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 198, 255, 0.1); }
+        .custom-input:focus, .custom-select:focus { border-color: var(--primary-color); box-shadow: 0 0 15px rgba(0, 198, 255, 0.1); }
         .input-icon { position: absolute; top: 50%; right: 15px; transform: translateY(-50%); color: var(--secondary-text); }
-        .custom-input:focus ~ .input-icon { color: var(--primary-color); }
+        .custom-input:focus ~ .input-icon, .custom-select:focus ~ .input-icon { color: var(--primary-color); }
         .toggle-pass { position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: #555; cursor: pointer; transition: 0.3s; z-index: 10; }
         .toggle-pass:hover { color: #fff; }
         .btn-primary { width: 100%; padding: 14px; background: var(--primary-gradient); border: none; border-radius: 12px; color: #fff; font-weight: 700; font-size: 16px; cursor: pointer; transition: 0.3s; margin-top: 10px; box-shadow: 0 5px 20px rgba(0, 198, 255, 0.3); }
@@ -112,6 +116,7 @@
     </div>
 
     <div id="main-content">
+        
         <div class="auth-card" id="loginForm">
             <div class="logo-area"><i class="fa-solid fa-heart-pulse logo-icon"></i><span>Wareed</span></div>
             <h2>مرحباً بك مجدداً 👋</h2>
@@ -130,7 +135,7 @@
             <span class="forgot-pass-link" onclick="playClick(); openModal('forgotModal')">نسيت كلمة المرور؟</span>
 
             <button class="btn-primary" onclick="playClick(); loginAction()" id="loginBtn">تسجيل الدخول</button>
-            <div class="switch-link">ليس لديك حساب؟ <span onclick="playClick(); toggleForms()">إنشاء حساب جديد</span></div>
+            <div class="switch-link">ليس لديك حساب؟ <span onclick="playClick(); toggleForms('signupForm')">إنشاء حساب جديد</span></div>
         </div>
 
         <div class="auth-card" id="signupForm" style="display: none;">
@@ -153,8 +158,38 @@
             </div>
 
             <button class="btn-primary" onclick="playClick(); signupAction()" id="regBtn">إنشاء الحساب</button>
-            <div class="switch-link">لديك حساب بالفعل؟ <span onclick="playClick(); toggleForms()">تسجيل الدخول</span></div>
+            <div class="switch-link">لديك حساب بالفعل؟ <span onclick="playClick(); toggleForms('loginForm')">تسجيل الدخول</span></div>
         </div>
+
+        <div class="auth-card" id="setupForm" style="display: none;">
+            <div style="font-size: 40px; color: var(--primary-color); margin-bottom: 15px;"><i class="fa-solid fa-clipboard-user"></i></div>
+            <h2>خطوة أخيرة 🚀</h2>
+            <p>أكمل البيانات التالية للبدء في استخدام حسابك</p>
+
+            <div class="input-group">
+                <input type="text" id="setupUsername" class="custom-input" style="padding-right: 45px;" placeholder="اسم المستخدم (بدون مسافات)" oninput="formatUsername(this)">
+                <i class="fa-solid fa-at input-icon"></i>
+            </div>
+
+            <div class="input-group">
+                <input type="date" id="setupBirthDate" class="custom-input" style="padding-left: 15px;">
+                <i class="fa-solid fa-calendar-days input-icon"></i>
+            </div>
+
+            <div class="input-group">
+                <select id="setupGender" class="custom-select">
+                    <option value="" disabled selected>اختر الجنس...</option>
+                    <option value="male">ذكر</option>
+                    <option value="female">أنثى</option>
+                    <option value="unknown">غير معروف / لا أفضل الذكر</option>
+                </select>
+                <i class="fa-solid fa-venus-mars input-icon"></i>
+                <i class="fa-solid fa-chevron-down" style="position: absolute; top: 50%; left: 15px; transform: translateY(-50%); color: var(--secondary-text); pointer-events: none;"></i>
+            </div>
+
+            <button class="btn-primary" id="saveBtn" onclick="saveProfileSetup()">حفظ والدخول</button>
+        </div>
+
     </div>
 
     <div id="toast"></div>
@@ -176,6 +211,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        let currentUser = null;
+
         // --- أدوات الصوت والواجهة ---
         function playClick() { document.getElementById("clickSound").play().catch(()=>{}); }
         function playSuccess() { document.getElementById("successSound").play().catch(()=>{}); }
@@ -189,30 +226,66 @@
             setTimeout(() => t.classList.remove('show'), 3000);
         }
 
-        // --- نظام المرور الحر (بدون تفتيش) ---
-        auth.onAuthStateChanged((user) => {
-            const loadingScreen = document.getElementById('loading-screen');
-            const mainContent = document.getElementById('main-content');
-
+        // =======================================================
+        // 🔥 النظام السحري للتوجيه (الفحص الذكي للبيانات الناقصة) 🔥
+        // =======================================================
+                // =======================================================
+        // 🔥 النظام السحري للتوجيه (تم التعديل عشان القديم يدخل فوراً) 🔥
+        // =======================================================
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // ✅ فيه مستخدم؟ يدخل فوراً بدون أي سؤال
-                window.location.href = "home.html";
-            } else {
-                // ❌ مفيش؟ خبي اللودنج واظهر الفورم
-                if (loadingScreen.style.display !== 'none') {
-                    loadingScreen.style.opacity = '0';
-                    setTimeout(() => {
-                        loadingScreen.style.display = 'none';
-                        mainContent.style.display = 'flex';
-                        setTimeout(() => mainContent.style.opacity = '1', 50);
-                    }, 500);
+                currentUser = user;
+                try {
+                    const userDoc = await db.collection('users').doc(user.uid).get(); 
+                    
+                    if (userDoc.exists) {
+                        const data = userDoc.data();
+                        
+                        // هنا السر:
+                        // المستخدم الجديد بس هو اللي بياخد isProfileCompleted = false وهو بيعمل الحساب
+                        // المستخدم القديم ملوش الحقل ده أصلاً فهيعتبره مش false ويدخله
+                        if (data.isProfileCompleted === false) {
+                            // لو مستخدم لسه عامل حساب جديد ومكملش
+                            hideLoadingAndShow('setupForm');
+                        } else {
+                            // لو مستخدم قديم مسجل قبل كده، أو مستخدم مكمل بياناته، ادخل على الهوم فوراً
+                            window.location.href = "home.html";
+                        }
+                    } else {
+                        // لو مستخدم قديم جداً وملوش ملف في قاعدة البيانات، دخله الهوم برضه ومتعطلوش
+                        window.location.href = "home.html";
+                    }
+                } catch (e) {
+                    console.error("خطأ في جلب البيانات:", e);
+                    // في حالة ضعف النت دخله الهوم
+                    window.location.href = "home.html"; 
                 }
+            } else {
+                // لو مش مسجل دخول أصلاً
+                hideLoadingAndShow('loginForm');
             }
         });
 
+
+        // دالة لإخفاء اللودنج وإظهار الفورم المطلوب بسلاسة
+        function hideLoadingAndShow(formId) {
+            const loadingScreen = document.getElementById('loading-screen');
+            const mainContent = document.getElementById('main-content');
+            
+            toggleForms(formId); 
+
+            if (loadingScreen.style.display !== 'none') {
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    mainContent.style.display = 'flex';
+                    setTimeout(() => mainContent.style.opacity = '1', 50);
+                }, 500);
+            }
+        }
+
         // --- Actions ---
 
-        // 1. تسجيل الدخول (دخول مباشر)
         async function loginAction() {
             const email = document.getElementById('loginEmail').value;
             const pass = document.getElementById('loginPass').value;
@@ -222,11 +295,9 @@
             btn.innerText = "جاري التحقق..."; btn.disabled = true;
 
             try {
-                // تسجيل الدخول العادي
                 await auth.signInWithEmailAndPassword(email, pass);
                 playSuccess(); showToast("✅ تم الدخول بنجاح");
-                
-                // التوجيه هيحصل تلقائي عن طريق onAuthStateChanged
+                // onAuthStateChanged هيشتغل أوتوماتيك ويقرر هيوديه فين
             } catch (e) {
                 console.error(e);
                 let msg = "❌ بيانات غير صحيحة";
@@ -237,7 +308,6 @@
             }
         }
 
-        // 2. إنشاء حساب (بدون انتظار أي حاجة)
         async function signupAction() {
             const name = document.getElementById('regName').value;
             const email = document.getElementById('regEmail').value;
@@ -251,23 +321,18 @@
             try {
                 const cred = await auth.createUserWithEmailAndPassword(email, pass);
                 const user = cred.user;
-                
                 await user.updateProfile({ displayName: name });
                 
-                // بنبعت الإيميل "في الخلفية" كـ Best Practice (لو حبيت ترجع النظام بعدين)
-                // لكن المستخدم مش هيحس بحاجة وهيدخل علطول
-                user.sendEmailVerification().catch(()=>{});
-
                 await db.collection('users').doc(user.uid).set({ 
                     uid: user.uid, 
                     name: name, 
                     email: email, 
-                    points: 0, 
+                    points: 0,
+                    isProfileCompleted: false, // 🌟 التعديل هنا لضمان عدم حدوث أخطاء
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() 
                 });
                 
                 playSuccess(); showToast("✅ تم إنشاء الحساب");
-                // التوجيه هيحصل تلقائي
                 
             } catch (e) { 
                 console.error(e);
@@ -275,6 +340,49 @@
                 if(e.code === 'auth/email-already-in-use') msg = "❌ البريد مسجل بالفعل";
                 showToast(msg); 
                 btn.innerText = "إنشاء الحساب"; btn.disabled = false; 
+            }
+        }
+
+        // =======================================================
+        // ✍️ دوال حفظ البيانات الإجبارية (النوع - الميلاد - اليوزر)
+        // =======================================================
+        
+        function formatUsername(input) {
+            input.value = input.value.replace(/\s+/g, '_'); // استبدال المسافات
+        }
+
+        async function saveProfileSetup() {
+            if (!currentUser) return;
+
+            const username = document.getElementById('setupUsername').value.trim();
+            const birthDate = document.getElementById('setupBirthDate').value;
+            const gender = document.getElementById('setupGender').value;
+            const btn = document.getElementById('saveBtn');
+
+            if (!username || !birthDate || !gender) {
+                return showToast("⚠️ يرجى ملء جميع الحقول المطلوبة");
+            }
+
+            btn.innerText = "جاري الحفظ..."; btn.disabled = true;
+
+            try {
+                // 🌟 استخدمنا { merge: true } عشان يضيف البيانات الجديدة بدون ما يمسح اللي اتعمل وقت التسجيل
+                await db.collection('users').doc(currentUser.uid).set({
+                    username: username,
+                    birthDate: birthDate,
+                    gender: gender,
+                    isProfileCompleted: true 
+                }, { merge: true });
+
+                playSuccess();
+                showToast("✅ تم إعداد حسابك بنجاح!");
+                
+                setTimeout(() => { window.location.href = "home.html"; }, 1000);
+
+            } catch (error) {
+                console.error(error);
+                showToast("❌ حدث خطأ أثناء الحفظ");
+                btn.innerText = "حفظ والدخول"; btn.disabled = false;
             }
         }
 
@@ -313,17 +421,15 @@
             input.classList.toggle("valid", input.value.length >= 6);
             input.classList.toggle("invalid", input.value.length < 6 && input.value !== "");
         }
-        function toggleForms() {
-            const login = document.getElementById('loginForm');
-            const signup = document.getElementById('signupForm');
-            if (login.style.display === 'none') {
-                login.style.display = 'block'; signup.style.display = 'none';
-            } else {
-                login.style.display = 'none'; signup.style.display = 'block';
-            }
+        
+        function toggleForms(targetFormId) {
+            const forms = ['loginForm', 'signupForm', 'setupForm'];
+            forms.forEach(id => {
+                document.getElementById(id).style.display = (id === targetFormId) ? 'block' : 'none';
+            });
         }
         
-        
     </script>
+    <script src="theme-manager.js"></script>
 </body>
 </html>

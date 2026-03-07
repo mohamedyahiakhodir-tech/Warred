@@ -164,6 +164,7 @@
         <div class="nav-item" onclick="location.href='profile.html'"><i class="fa-regular fa-user"></i></div>
     </div>
 
+
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -195,6 +196,10 @@
 
         auth.onAuthStateChanged(user => {
             if (user) { 
+                // 🛡️ تهيئة نظام الحظر أولاً
+                if (typeof initBlockSystem === 'function') {
+                    initBlockSystem(user);
+                }
                 loadNotifications(user.uid);
                 clearHomeBadgeOnly();
             } else { 
@@ -268,6 +273,12 @@ function loadNotifications(uid) {
             
             snapshot.forEach(doc => {
                 const notif = doc.data();
+                
+                // 🛑 جدار الحماية: لو مرسل الإشعار محظور، إخفاء الإشعار تماماً كأنه لم يكن
+                if (notif.senderUid && typeof isUserBlocked === 'function' && isUserBlocked(notif.senderUid)) {
+                    return; // تخطي هذا الإشعار تماماً وعدم رسمه
+                }
+
                 const id = doc.id;
                 const isOpened = notif.opened === true;
                 
@@ -449,7 +460,10 @@ function loadNotifications(uid) {
             } catch (error) { btn.innerHTML = 'خطأ'; }
         }
     </script>
-            <script src="global-call.js"></script>
-
+      
+      <script src="block-manager.js"></script>
+<script src="global-call.js"></script>
+<script src="theme-manager.js"></script>
+          
 </body>
 </html>

@@ -325,6 +325,9 @@ let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (ي
         let currentUserUid = null;
         let friendsData = []; 
         let currentFilter = 'all'; 
+        // متغيرات الحظر (لمنع ظهور المحظورين)
+        let blockedUsersSet = new Set();
+        let theyBlockedMeSet = new Set();
 
         // Sheet Vars
         let selectedFriendUid = null;
@@ -347,26 +350,19 @@ let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (ي
         auth.onAuthStateChanged(async user => {
     if (user) {
         currentUserUid = user.uid;
-        
-        // لو فيه رقم في الرابط، يبقى هنعرض أصدقاء الشخص ده، غير كدة هنعرض أصدقائي أنا
         viewUid = targetUid || currentUserUid; 
 
-        // لو بنعرض أصدقاء حد تاني
+        // 🔥 جلب قائمة المحظورين أولاً قبل تحميل الأصدقاء
+        await fetchBlockedUsersList();
+
         if (targetUid && targetUid !== currentUserUid) {
-            // 1. نغير عنوان الصفحة باسمه
             db.collection('users').doc(targetUid).get().then(doc => {
                 if(doc.exists) document.querySelector('.header h2').innerText = `أصدقاء ${doc.data().name}`;
             });
-            
-            // 2. نخفي فلاتر (المفضلة والأونلاين) لأنها مش منطقية عند حد تاني
             document.querySelector('.filter-chips').style.display = 'none';
-            document.getElementById('pullIndicator').style.display = 'none'; // إلغاء السحب للتحديث
-            
-            // 3. نحمل القائمة مباشرة (بدون كاش)
+            document.getElementById('pullIndicator').style.display = 'none'; 
             loadFriends();
-            
         } else {
-            // لو أنا في صفحتي العادية (أصدقائي أنا)
             loadFromCache();
             loadFriends(); 
             startPresenceSystem();
@@ -374,12 +370,32 @@ let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (ي
             startNotificationListener(); 
             setInterval(() => renderFriends(), 60000);
         }
-
     } else {
         location.href = "index.html";
     }
 });
 
+// 🔥 دالة جلب المحظورين
+async function fetchBlockedUsersList() {
+    if (!currentUserUid) return;
+    blockedUsersSet.clear(); 
+    theyBlockedMeSet.clear(); 
+    try {
+        const snapshot = await db.collection('chats').where('users', 'array-contains', currentUserUid).get();
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.blockedBy && data.blockedBy.length > 0) {
+                const otherUid = data.users.find(u => u !== currentUserUid);
+                if (otherUid) {
+                    blockedUsersSet.add(otherUid); 
+                    if (data.blockedBy.includes(otherUid)) {
+                        theyBlockedMeSet.add(otherUid);
+                    }
+                }
+            }
+        });
+    } catch (e) { console.error(e); }
+}
 
         // === Caching System ===
         function loadFromCache() {
@@ -414,6 +430,12 @@ let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (ي
             
             const promises = snapshot.docs.map(async (doc) => {
                 const fid = doc.id;
+                
+                // 🛑 جدار الحماية: لو الشخص ده بيني وبينه حظر، متجيبوش في القائمة نهائياً
+                if (blockedUsersSet.has(fid) || theyBlockedMeSet.has(fid)) {
+                    return null; 
+                }
+
                 const relData = doc.data();
                 
                 // جلب بيانات الصديق
@@ -433,7 +455,8 @@ let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (ي
             });
 
             tempFriends = await Promise.all(promises);
-            friendsData = tempFriends;
+            // فلترة أي قيمة null نتجت عن جدار الحماية
+            friendsData = tempFriends.filter(f => f !== null); 
 
             // حفظ في الكاش "فقط" لو دي صفحتي أنا
             if (!targetUid) {
@@ -772,6 +795,6 @@ let viewUid = null; // ده الرقم اللي هنحمل بناء عليه (ي
 
     </script>
 <audio id="notificationSound" src="https://assets.mixkit.co/sfx/preview/mixkit-software-interface-start-2574.mp3" preload="auto"></audio>
-
+<script src="theme-manager.js"></script>
 </body>
 </html>

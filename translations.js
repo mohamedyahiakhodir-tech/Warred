@@ -44,6 +44,7 @@ const appTranslations = {
         search_history_title: "🕒 أحدث عمليات البحث", search_clear: "مسح السجل", search_trending: "الأكثر بحثاً (Trending)",
         filter_title: "تصفية البحث", filter_sort_title: "ترتيب النتائج", filter_sort_rel: "الصلة", filter_sort_likes: "الأكثر إعجاباً", filter_sort_new: "الأحدث",
         filter_time_title: "الفترة الزمنية", filter_time_all: "الكل", filter_time_24h: "آخر 24 ساعة", filter_time_week: "هذا الأسبوع", filter_time_month: "هذا الشهر", filter_time_specific: "أو اختر يوماً محدداً:", filter_apply: "تطبيق الفلاتر",
+comments_are_disabled: "التعليقات مغلقة لهذا المنشور",
 
         // --- التعليقات، الردود، المتفاعلين ---
         cm_title: "التعليقات", cm_placeholder: "اكتب تعليقاً...", media_preview_title: "معاينة المرفق", media_preview_placeholder: "اكتب تعليقاً مع المرفق... (اختياري)", btn_send: "إرسال",
@@ -889,7 +890,9 @@ author_label: "المؤلف",
         text_login_to_share: "Log in to share",
         text_no_recent_chats: "No recent chats",
         toast_pin_failed: "Couldn't pin comment",
-        err_comments_offline: "You're offline. Can't load comments."
+        err_comments_offline: "You're offline. Can't load comments.",
+        comments_are_disabled: "Comments are disabled for this post",
+
     },
 
         fr: {
@@ -902,6 +905,8 @@ author_label: "المؤلف",
         menu_comm: "Réseau", // بدل Communication الطويلة
         menu_tools: "Boîte à outils", // أشيك من Mes Outils
         menu_wallet: "Mon Portefeuille", 
+        comments_are_disabled: "Les commentaires sont désactivés",
+
         menu_store: "Boutique", 
         menu_magic: "Boule de Cristal", 
         menu_auction: "Salle des Enchères", 
@@ -1354,6 +1359,8 @@ author_label: "المؤلف",
         menu_auction: "Auktionshalle", 
         menu_blackhole: "Schwarzes Loch",
         menu_stock: "Börse", 
+        comments_are_disabled: "Kommentare sind deaktiviert",
+
         menu_pulse: "Aufwachraum", 
         menu_voice: "Stimm-Zwilling", 
         menu_capsule: "Zeitkapsel", 

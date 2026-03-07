@@ -267,6 +267,100 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ========================================= */
+        /* 🌟 نظام اختيار المواهب المتقدم (قائمة ثابتة) */
+        /* ========================================= */
+        .selected-tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px;
+            background: var(--input-bg);
+            border: 1px solid #2a2a30;
+            border-radius: 14px;
+            min-height: 55px;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .selected-tag-chip {
+            background: rgba(124, 58, 237, 0.2);
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(124, 58, 237, 0.5);
+        }
+
+        .open-selector-btn {
+            background: transparent;
+            border: 1px dashed var(--primary-color);
+            color: var(--primary-color);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .open-selector-btn:hover { background: rgba(124, 58, 237, 0.1); }
+
+        /* تصميم نافذة الاختيار */
+        .interest-category-title {
+            font-size: 13px;
+            color: var(--uranium-green);
+            margin: 15px 0 10px 0;
+            font-weight: 800;
+            text-align: right;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            direction: rtl;
+        }
+
+        .option-chip {
+            background: #25252b;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            user-select: none;
+        }
+
+        .option-chip.selected {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
+        }
+
+        /* نافذة المودال الأساسية */
+        .custom-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100000;
+            display: none; align-items: center; justify-content: center; backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: var(--card-bg, #16161a); border: 1px solid rgba(255,255,255,0.05); 
+            border-radius: 24px; padding: 25px; width: 85%; max-width: 320px; 
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        @keyframes popInModal {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
     </style>
 </head>
 
@@ -359,6 +453,22 @@
             <input type="text" id="webInput" placeholder="رابط موقعك أو حساب آخر" dir="ltr" style="text-align: right;">
         </div>
         
+        <div class="form-group" style="border-top: 1px solid #2a2a30; padding-top: 20px; margin-top: 20px;">
+            <label><i class="fa-solid fa-star" style="color: #FFD700;"></i> المواهب والاهتمامات</label>
+            <p style="font-size: 11px; color: #888; margin-bottom: 10px;">اختر من القائمة ما يعبر عنك (بحد أقصى 5)</p>
+            
+            <div id="selectedTagsArea" class="selected-tags-container" onclick="openInterestsSelector(event)">
+                <button class="open-selector-btn" id="openSelectorBtn">+ اضغط لاختيار مواهبك</button>
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 20px;">
+            <label><i class="fa-solid fa-link" style="color: var(--primary-color);"></i> روابط التواصل</label>
+            <input type="url" id="fbInput" placeholder="رابط فيسبوك" dir="ltr" style="text-align: right; margin-bottom: 8px;">
+            <input type="url" id="instaInput" placeholder="رابط إنستجرام" dir="ltr" style="text-align: right; margin-bottom: 8px;">
+            <input type="url" id="tiktokInput" placeholder="رابط تيك توك" dir="ltr" style="text-align: right;">
+        </div>
+
         <button class="save-btn" id="saveBtn" onclick="saveProfile()">
             حفظ التعديلات
         </button>
@@ -388,6 +498,9 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
+// ==========================================
+// 🌟 تعريف كل المتغيرات (مرة واحدة فقط)
+// ==========================================
 const avatarEdit = document.getElementById("avatarEdit");
 const fileInput = document.getElementById("fileInput");
 const statusMessage = document.getElementById("statusMessage");
@@ -401,10 +514,109 @@ const eduInput = document.getElementById("eduInput");
 const locInput = document.getElementById("locInput");
 const webInput = document.getElementById("webInput");
 
+const fbInput = document.getElementById("fbInput");
+const instaInput = document.getElementById("instaInput");
+const tiktokInput = document.getElementById("tiktokInput");
+
 let currentUser = null;
 let uploadedImageUrl = null;
-let currentProfileData = null; // للاحتفاظ بالبيانات
+let currentProfileData = null; 
 
+// ==========================================
+// 🌟 محرك اختيار المواهب والاهتمامات
+// ==========================================
+let userInterestsArray = [];
+
+const interestsDictionary = {
+    "💻 تكنولوجيا وبرمجة": ["تطوير ويب", "تطوير تطبيقات", "ذكاء اصطناعي", "أمن سيبراني", "تحليل بيانات", "تصميم UI/UX", "هندسة برمجيات", "شبكات"],
+    "🎨 فنون وإبداع": ["رسم رقمي", "تصميم جرافيك", "تصوير فوتوغرافي", "مونتاج فيديو", "كتابة محتوى", "شعر وأدب", "تمثيل", "تعليق صوتي", "خط عربي"],
+    "💼 أعمال ومهن": ["ريادة أعمال", "تسويق رقمي", "إدارة مشاريع", "مبيعات", "موارد بشرية", "محاسبة", "هندسة معمارية", "طب وصحة", "تدريس", "قانون"],
+    "⚽ رياضة ولياقة": ["كرة قدم", "كرة سلة", "كمال أجسام", "سباحة", "فنون قتالية", "جري", "يوغا", "تنس", "شطرنج"],
+    "🎮 ترفيه وهوايات": ["جيمنج (Gaming)", "مشاهدة أفلام", "أنمي ومانجا", "قراءة", "سفر وترحال", "طبخ", "عزف موسيقى", "غناء", "سيارات"]
+};
+
+function renderSelectedTagsUI() {
+    const area = document.getElementById('selectedTagsArea');
+    if (!area) return;
+    area.innerHTML = ''; 
+
+    if (userInterestsArray.length === 0) {
+        area.innerHTML = '<button class="open-selector-btn" id="openSelectorBtn" onclick="openInterestsSelector(event)">+ اضغط لاختيار مواهبك</button>';
+        return;
+    }
+
+    userInterestsArray.forEach(tag => {
+        area.innerHTML += `<div class="selected-tag-chip">${tag}</div>`;
+    });
+
+    // زر إضافة المزيد سيختفي لو وصل العدد لـ 5
+    if (userInterestsArray.length < 5) {
+        area.innerHTML += `<button class="open-selector-btn" id="openSelectorBtn" onclick="openInterestsSelector(event)" style="padding: 6px 10px; border-radius: 50%;"><i class="fa-solid fa-plus"></i></button>`;
+    }
+}
+
+
+window.openInterestsSelector = function(e) {
+    if(e) e.stopPropagation();
+    if(typeof playSound === 'function') playSound('click');
+    document.getElementById('interestsSelectorModal').style.display = 'flex';
+    document.getElementById('interestSearchInput').value = ""; 
+    drawDictionary(); 
+};
+
+function drawDictionary(searchQuery = "") {
+    const container = document.getElementById('interestsDictionary');
+    if (!container) return;
+    container.innerHTML = "";
+
+    for (const [category, tags] of Object.entries(interestsDictionary)) {
+        const filteredTags = tags.filter(tag => tag.includes(searchQuery));
+        
+        if (filteredTags.length > 0) {
+            container.innerHTML += `<div class="interest-category-title">${category}</div>`;
+            
+            let chipsHtml = '<div class="options-grid">';
+            filteredTags.forEach(tag => {
+                const isSelected = userInterestsArray.includes(tag) ? 'selected' : '';
+                chipsHtml += `<div class="option-chip ${isSelected}" onclick="toggleInterestSelection('${tag}')">${tag}</div>`;
+            });
+            chipsHtml += '</div>';
+            container.innerHTML += chipsHtml;
+        }
+    }
+
+    if (container.innerHTML === "") {
+        container.innerHTML = '<div style="text-align:center; color:#777; margin-top:30px;">لم يتم العثور على نتائج</div>';
+    }
+}
+
+window.toggleInterestSelection = function(tag) {
+    if(typeof playSound === 'function') playSound('click');
+    const index = userInterestsArray.indexOf(tag);
+    
+    if (index > -1) {
+        userInterestsArray.splice(index, 1); // لو اختارها قبل كده هيمسحها عادي
+    } else {
+        // لو بيحاول يضيف ومجموعهم 5 أو أكتر، هيوقفه
+        if (userInterestsArray.length >= 5) {
+            showMsg("الحد الأقصى 5 اهتمامات فقط ⚠️", "error");
+            return;
+        }
+        userInterestsArray.push(tag);
+    }
+
+    drawDictionary(document.getElementById('interestSearchInput').value); 
+    renderSelectedTagsUI();
+};
+
+window.filterInterests = function() {
+    const query = document.getElementById('interestSearchInput').value.trim();
+    drawDictionary(query);
+};
+
+// ==========================================
+// 🌟 تحميل وحفظ البيانات
+// ==========================================
 auth.onAuthStateChanged(user => {
     if (!user) {
         showMsg("يجب تسجيل الدخول أولاً ❌", "error");
@@ -439,6 +651,16 @@ async function loadProfile() {
         locInput.value = data.location || "";
         webInput.value = data.website || "";
 
+        // جلب الاهتمامات ورسمها
+        userInterestsArray = data.interests || [];
+        renderSelectedTagsUI();
+        
+        // جلب الروابط
+        const links = data.socialLinks || {};
+        fbInput.value = links.facebook || "";
+        instaInput.value = links.instagram || "";
+        tiktokInput.value = links.tiktok || "";
+
         if (data.profilePic) {
             avatarEdit.style.backgroundImage = `url('${data.profilePic}')`;
             avatarEdit.innerText = "";
@@ -447,7 +669,6 @@ async function loadProfile() {
             avatarEdit.innerText = (data.name || "U")[0].toUpperCase();
         }
 
-        // فحص ما إذا كان لديه بصمة صوتية مسبقاً
         if (data.voiceBioUrl) {
             document.getElementById('existingBioUi').style.display = 'block';
             document.getElementById('startBioRecBtn').innerHTML = '<i class="fa-solid fa-microphone"></i> تسجيل بصمة جديدة';
@@ -456,6 +677,71 @@ async function loadProfile() {
     } catch (error) {
         console.error("Load error:", error);
         showMsg("خطأ في تحميل البيانات", "error");
+    }
+}
+
+async function saveProfile() {
+    if (!currentUser) {
+        showMsg("يجب تسجيل الدخول ❌", "error");
+        return;
+    }
+    
+    const name = nameInput.value.trim();
+    const username = usernameInput.value.trim();
+    const bio = bioInput.value.trim();
+    const work = workInput.value.trim();
+    const education = eduInput.value.trim();
+    const location = locInput.value.trim();
+    const website = webInput.value.trim();
+
+    // تجميع السوشيال ميديا
+    const socialLinks = {};
+    const fb = fbInput.value.trim();
+    const insta = instaInput.value.trim();
+    const tiktok = tiktokInput.value.trim();
+    if(fb) socialLinks.facebook = fb;
+    if(insta) socialLinks.instagram = insta;
+    if(tiktok) socialLinks.tiktok = tiktok;
+
+    if (!name) {
+        showMsg("أدخل الاسم", "error");
+        nameInput.focus();
+        return;
+    }
+    if (name.length < 2) {
+        showMsg("الاسم قصير جداً", "error");
+        nameInput.focus();
+        return;
+    }
+
+    saveBtn.disabled = true;
+    showMsg("جاري الحفظ...", "loading");
+
+    const data = {
+        name: name,
+        username: username || "",
+        bio: bio || "",
+        work: work,
+        education: education,
+        location: location,
+        website: website,
+        socialLinks: socialLinks,           
+        interests: userInterestsArray,      
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    if (uploadedImageUrl) {
+        data.profilePic = uploadedImageUrl;
+    }
+
+    try {
+        await db.collection("users").doc(currentUser.uid).set(data, { merge: true });
+        showMsg("تم الحفظ بنجاح ✅", "success");
+        setTimeout(() => window.location.href = "profile.html", 1500);
+    } catch (error) {
+        console.error("Save error:", error);
+        showMsg("فشل الحفظ: " + error.message, "error");
+        saveBtn.disabled = false;
     }
 }
 
@@ -504,7 +790,7 @@ fileInput.onchange = async () => {
 };
 
 // ==================================================
-// 🎙️ محرك البصمة الصوتية (Voice Bio)
+// 🎙️ محرك البصمة الصوتية ومسحها
 // ==================================================
 let bioMediaRecorder;
 let bioAudioChunks = [];
@@ -520,7 +806,7 @@ async function startBioRecording() {
         bioAudioChunks = [];
 
         document.getElementById('startBioRecBtn').style.display = 'none';
-        document.getElementById('existingBioUi').style.display = 'none'; // إخفاء القديم لو بيسجل جديد
+        document.getElementById('existingBioUi').style.display = 'none'; 
         document.getElementById('recordingBioUI').style.display = 'flex';
         
         bioSeconds = 0;
@@ -531,8 +817,6 @@ async function startBioRecording() {
             const s = (bioSeconds % 60).toString().padStart(2, '0');
             bioDurationText = `00:${s}`;
             document.getElementById('bioRecTimer').innerText = bioDurationText;
-            
-            // إيقاف تلقائي بعد 10 ثواني
             if (bioSeconds >= 10) stopBioRecording();
         }, 1000);
 
@@ -552,12 +836,11 @@ function stopBioRecording() {
         document.getElementById('recordingBioUI').style.display = 'none';
         document.getElementById('previewBioUI').style.display = 'flex';
 
-        // إنشاء الملف الصوتي للمعاينة
         bioBlob = new Blob(bioAudioChunks, { type: 'audio/webm' });
         const audioUrl = URL.createObjectURL(bioBlob);
         document.getElementById('bioAudioPreview').src = audioUrl;
 
-        bioMediaRecorder.stream.getTracks().forEach(track => track.stop()); // قفل اللمبة بتاعت المايك
+        bioMediaRecorder.stream.getTracks().forEach(track => track.stop()); 
     };
     bioMediaRecorder.stop();
 }
@@ -568,7 +851,6 @@ function deleteBioRecord() {
     document.getElementById('previewBioUI').style.display = 'none';
     document.getElementById('startBioRecBtn').style.display = 'block';
     
-    // لو كان عنده بصمة قديمة ومسح التسجيل الجديد، نرجع نظهرله الأوبشن القديم
     if(currentProfileData && currentProfileData.voiceBioUrl) {
         document.getElementById('existingBioUi').style.display = 'block';
     }
@@ -580,29 +862,24 @@ async function uploadVoiceBio() {
     const btn = document.getElementById('uploadBioBtn');
     btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> جاري الرفع...';
     btn.disabled = true;
-    saveBtn.disabled = true; // تعطيل زرار الحفظ الرئيسي مؤقتاً
+    saveBtn.disabled = true; 
 
     try {
         const ext = 'webm';
         const storagePath = `voice_bios/${currentUser.uid}/bio_${Date.now()}.${ext}`;
         const storageRef = firebase.storage().ref().child(storagePath);
         
-        // الرفع للستوريدج
         const snapshot = await storageRef.put(bioBlob);
         const downloadUrl = await snapshot.ref.getDownloadURL();
         
-        // الحفظ في بيانات المستخدم في Firestore
         await db.collection("users").doc(currentUser.uid).update({
             voiceBioUrl: downloadUrl,
             voiceBioDuration: bioDurationText
         });
 
-        // تحديث المتغير المحلي
         currentProfileData.voiceBioUrl = downloadUrl;
-
         showMsg("تم حفظ البصمة الصوتية بنجاح 🎙️✅", "success");
         
-        // إرجاع الواجهة لزرار "مسح" أو "تسجيل جديد"
         document.getElementById('previewBioUI').style.display = 'none';
         document.getElementById('startBioRecBtn').style.display = 'block';
         document.getElementById('startBioRecBtn').innerHTML = '<i class="fa-solid fa-microphone"></i> تسجيل بصمة جديدة';
@@ -618,10 +895,6 @@ async function uploadVoiceBio() {
     }
 }
 
-// دالة لمسح البصمة القديمة
-// ==================================================
-// 🧠 محرك الرسائل الاحترافية (Chic Confirm)
-// ==================================================
 let pendingConfirmAction = null;
 
 function showChicConfirm(title, message, iconHTML, actionCallback) {
@@ -637,32 +910,24 @@ function closeChicModal() {
     pendingConfirmAction = null;
 }
 
-// ربط زر التأكيد بالدالة
 document.getElementById('chicConfirmBtn').onclick = function() {
     if(pendingConfirmAction) pendingConfirmAction();
     closeChicModal();
 };
 
-// ==================================================
-// 🗑️ دالة حذف البصمة الصوتية (بالشكل الجديد)
-// ==================================================
 function removeExistingBio() {
-    // تشغيل الرسالة الاحترافية بدل confirm() العادية
     showChicConfirm(
         "حذف البصمة الصوتية؟",
         "هل أنت متأكد من مسح بصمتك الصوتية الحالية؟ لا يمكن التراجع عن هذا الإجراء.",
         '<i class="fa-solid fa-trash-can" style="color: #ff3b30; filter: drop-shadow(0 4px 10px rgba(255, 59, 48, 0.3));"></i>',
         async function() {
-            // الكود اللي هيتنفذ لو المستخدم ضغط "تأكيد"
             showMsg("جاري الحذف...", "loading");
             try {
-                // حذف من الداتابيز
                 await db.collection("users").doc(currentUser.uid).update({
                     voiceBioUrl: firebase.firestore.FieldValue.delete(),
                     voiceBioDuration: firebase.firestore.FieldValue.delete()
                 });
                 
-                // تحديث الواجهة
                 document.getElementById('existingBioUi').style.display = 'none';
                 document.getElementById('startBioRecBtn').innerHTML = '<i class="fa-solid fa-microphone"></i> اضغط لبدء التسجيل';
                 currentProfileData.voiceBioUrl = null;
@@ -673,62 +938,6 @@ function removeExistingBio() {
             }
         }
     );
-}
-// ==================================================
-// حفظ باقي البيانات (الاسم، البايو، الخ)
-// ==================================================
-async function saveProfile() {
-    if (!currentUser) {
-        showMsg("يجب تسجيل الدخول ❌", "error");
-        return;
-    }
-    
-    const name = nameInput.value.trim();
-    const username = usernameInput.value.trim();
-    const bio = bioInput.value.trim();
-    const work = workInput.value.trim();
-    const education = eduInput.value.trim();
-    const location = locInput.value.trim();
-    const website = webInput.value.trim();
-
-    if (!name) {
-        showMsg("أدخل الاسم", "error");
-        nameInput.focus();
-        return;
-    }
-    if (name.length < 2) {
-        showMsg("الاسم قصير جداً", "error");
-        nameInput.focus();
-        return;
-    }
-
-    saveBtn.disabled = true;
-    showMsg("جاري الحفظ...", "loading");
-
-    const data = {
-        name: name,
-        username: username || "",
-        bio: bio || "",
-        work: work,
-        education: education,
-        location: location,
-        website: website,
-        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-
-    if (uploadedImageUrl) {
-        data.profilePic = uploadedImageUrl;
-    }
-
-    try {
-        await db.collection("users").doc(currentUser.uid).set(data, { merge: true });
-        showMsg("تم الحفظ بنجاح ✅", "success");
-        setTimeout(() => window.location.href = "profile.html", 1500);
-    } catch (error) {
-        console.error("Save error:", error);
-        showMsg("فشل الحفظ: " + error.message, "error");
-        saveBtn.disabled = false;
-    }
 }
 
 function showMsg(msg, type) {
@@ -744,25 +953,21 @@ function showMsg(msg, type) {
 }
 </script>
 
-<style>
-    @keyframes popInModal {
-        0% { opacity: 0; transform: scale(0.8); }
-        100% { opacity: 1; transform: scale(1); }
-    }
-</style>
-<div id="chicConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
-    <div style="background: var(--card-bg, #16161a); border: 1px solid rgba(255,255,255,0.05); border-radius: 24px; padding: 25px; width: 85%; max-width: 320px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5); animation: popInModal 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-        
-        <div id="chicIcon" style="font-size: 45px; margin-bottom: 15px;"></div>
-        <h3 id="chicTitle" style="color: #fff; font-weight: 800; margin-bottom: 10px; font-size: 18px;">تأكيد</h3>
-        <p id="chicMessage" style="color: #aaa; font-size: 13px; margin-bottom: 25px; line-height: 1.6;"></p>
-        
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button onclick="closeChicModal()" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: rgba(255,255,255,0.05); color: #fff; font-weight: bold; cursor: pointer; transition: 0.2s;">إلغاء</button>
-            <button id="chicConfirmBtn" style="flex: 1; padding: 12px; border-radius: 12px; border: none; background: #ff3b30; color: #fff; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.3); transition: 0.2s;">تأكيد</button>
+<div class="custom-modal" id="interestsSelectorModal" style="z-index: 70000 !important;">
+    <div class="modal-box pro-dialog-box" style="width: 95%; max-width: 400px; padding: 15px; height: 80vh; display: flex; flex-direction: column;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <h3 style="color: #fff; font-weight: 800; font-size: 16px;">اختر اهتماماتك</h3>
+            <i class="fa-solid fa-xmark" onclick="document.getElementById('interestsSelectorModal').style.display='none'" style="color: #ff3b30; font-size: 20px; cursor: pointer; padding: 5px;"></i>
         </div>
+
+        <input type="text" id="interestSearchInput" onkeyup="filterInterests()" placeholder="🔍 ابحث عن موهبة أو مهنة..." style="width: 100%; padding: 10px 15px; background: #0d0d0f; border: 1px solid #333; border-radius: 12px; color: #fff; outline: none; margin-bottom: 10px;">
+
+        <div id="interestsDictionary" style="flex: 1; overflow-y: auto; padding-left: 5px; scrollbar-width: thin; text-align: right;">
+        </div>
+
+        <button class="save-btn" style="margin-top: 15px; padding: 12px;" onclick="document.getElementById('interestsSelectorModal').style.display='none'">تأكيد الاختيار</button>
     </div>
 </div>
-
+<script src="theme-manager.js"></script>
 </body>
 </html>

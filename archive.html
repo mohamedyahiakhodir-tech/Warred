@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NABD - مركز الأرشيف</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/ar.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #0d0d0f;
+            --card-color: #161616;
+            --primary-gradient: linear-gradient(135deg, #5D5FEF, #7879F1);
+            --primary-solid: #5D5FEF;
+            --text-color: #eee;
+            --secondary-text: #aaa;
+            --border-color: #2a2a2a;
+            --danger-color: #ff3b30;
+            --header-bg: rgba(22, 22, 22, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Cairo", sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg-color); color: var(--text-color); min-height: 100vh; overflow-x: hidden; }
+
+        /* ================= الهيدر والتبويبات ================= */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; 
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 0; 
+            background: var(--header-bg); z-index: 50; backdrop-filter: blur(12px); 
+        }
+        .header-title { font-size: 16px; font-weight: 800; }
+
+        .archive-tabs {
+            display: flex; justify-content: space-around; background: var(--bg-color);
+            border-bottom: 1px solid var(--border-color); position: sticky; top: 55px; z-index: 40;
+        }
+        .tab-item {
+            flex: 1; text-align: center; padding: 15px 0; font-weight: 700; font-size: 14px;
+            color: var(--secondary-text); cursor: pointer; position: relative; transition: 0.3s;
+        }
+        .tab-item.active { color: var(--primary-solid); }
+        .tab-item.active::after {
+            content: ''; position: absolute; bottom: 0; left: 20%; width: 60%;
+            height: 3px; background: var(--primary-solid); border-radius: 3px 3px 0 0;
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; padding: 10px; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ================= شبكة الأرشيف (قصص وفيديو) ================= */
+        .archive-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+
+        .archive-item {
+            position: relative; width: 100%; aspect-ratio: 9/16;
+            background: rgba(255, 255, 255, 0.05); border-radius: 12px; overflow: hidden; cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1); transition: transform 0.2s, border-color 0.2s;
+        }
+        .archive-item.active-zindex { z-index: 100; border-color: var(--primary-solid); box-shadow: 0 0 15px rgba(93, 95, 239, 0.4); }
+        .archive-item:active { transform: scale(0.96); }
+
+        .archive-media-wrapper { width: 100%; height: 100%; position: relative; }
+        .archive-media { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+
+        .archive-more-btn {
+            position: absolute; top: 5px; right: 5px; width: 28px; height: 28px;
+            background: rgba(0,0,0,0.6); color: #fff; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); z-index: 10;
+        }
+
+        /* ================= قائمة المنشورات المؤرشفة ================= */
+        .archived-post-card {
+            background: var(--card-color); border: 1px solid var(--border-color);
+            border-radius: 16px; padding: 15px; margin-bottom: 15px; display: flex; gap: 15px;
+            position: relative;
+        }
+        .archived-post-media {
+            width: 70px; height: 70px; border-radius: 10px; background: #222; object-fit: cover; flex-shrink: 0;
+        }
+        .archived-post-info { flex: 1; overflow: hidden; }
+        .archived-post-text { font-size: 13px; color: #fff; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 5px; }
+        .archived-post-date { font-size: 11px; color: var(--secondary-text); }
+        .archived-post-actions { position: absolute; left: 15px; top: 15px; color: var(--secondary-text); cursor: pointer; padding: 5px; }
+
+        /* ================= القوائم المنبثقة ================= */
+        .archive-menu {
+            position: absolute; top: 40px; right: 5px; background: #1a1a1a;
+            border: 1px solid #333; border-radius: 12px; width: 150px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 101;
+            display: none; flex-direction: column; overflow: hidden;
+        }
+        .archive-menu.show { display: flex; animation: fadeInScale 0.2s ease-out; transform-origin: top right; }
+        @keyframes fadeInScale { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .archive-menu-item { padding: 12px 15px; color: #fff; font-size: 13px; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: background 0.2s; }
+        .archive-menu-item:active { background: rgba(255,255,255,0.1); }
+        .archive-menu-item.danger { color: #ff5555; border-top: 1px solid rgba(255,255,255,0.05); }
+
+        /* ================= المشغل الاحترافي ================= */
+        .archive-viewer-overlay {
+            position: fixed; inset: 0; background: #000; z-index: 99999;
+            display: none; align-items: center; justify-content: center; flex-direction: column;
+        }
+        .archive-close-btn {
+            position: absolute; top: 20px; right: 20px; width: 40px; height: 40px;
+            background: rgba(255,255,255,0.1); border-radius: 50%; color: #fff;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            cursor: pointer; z-index: 100000; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .archive-viewer-content { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+        .custom-video-wrapper { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .custom-video-element { width: 100%; height: 100%; object-fit: contain; }
+        .center-play-btn {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; height: 70px; background: rgba(0,0,0,0.6); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: #fff; font-size: 30px;
+            pointer-events: none; transition: opacity 0.3s; border: 1px solid rgba(255,255,255,0.2);
+        }
+        .custom-video-wrapper.playing .center-play-btn { opacity: 0; }
+
+        .video-controls-bar {
+            position: absolute; bottom: 30px; left: 15px; right: 15px;
+            background: rgba(20, 20, 25, 0.85); backdrop-filter: blur(10px);
+            padding: 10px 15px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex; align-items: center; gap: 10px; z-index: 10;
+        }
+        .ctrl-btn { color: #fff; font-size: 16px; cursor: pointer; width: 30px; text-align: center; }
+        .video-time { color: #fff; font-size: 11px; font-weight: bold; font-family: monospace; }
+        .video-progress-container { flex: 1; height: 6px; background: rgba(255,255,255,0.2); border-radius: 3px; position: relative; cursor: pointer; overflow: hidden; }
+        .video-progress-fill { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: var(--primary-solid); pointer-events: none; }
+
+        #toast { position: fixed; bottom: 30px; left: 50%; transform: translate(-50%, 20px); background: #222; color: #fff; padding: 12px 24px; border-radius: 50px; opacity: 0; pointer-events: none; transition: 0.4s; z-index: 1000000; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        #toast.show { opacity: 1; transform: translate(-50%, 0); }
+        
+        /* ================= صندوق تأكيد الحذف الاحترافي ================= */
+.delete-confirm-modal { 
+    position: fixed; inset: 0; z-index: 999999; 
+    display: none; align-items: center; justify-content: center; 
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); 
+}
+
+.delete-box-style { 
+    background: #1a1a1a; width: 90%; max-width: 340px; 
+    border-radius: 24px; padding: 25px 20px; 
+    border: 1px solid #333; border-top: 4px solid #ff3b30; 
+    text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
+}
+
+@keyframes popIn { 
+    from { transform: scale(0.8); opacity: 0; } 
+    to { transform: scale(1); opacity: 1; } 
+}
+
+.danger-icon-wrapper { 
+    width: 70px; height: 70px; background: rgba(255, 59, 48, 0.1); 
+    border-radius: 50%; display: flex; align-items: center; 
+    justify-content: center; margin: 0 auto 15px; 
+}
+
+.danger-icon-wrapper i { 
+    font-size: 30px; color: #ff3b30; 
+    animation: shakeTrash 2s infinite; 
+}
+
+@keyframes shakeTrash { 
+    0%, 100% { transform: rotate(0deg); } 
+    10% { transform: rotate(-15deg); } 
+    20% { transform: rotate(15deg); } 
+    30% { transform: rotate(-15deg); } 
+    40% { transform: rotate(15deg); } 
+    50% { transform: rotate(0deg); } 
+}
+
+.btn-ghost { 
+    background: transparent; border: 1px solid #444; color: #eee; 
+    padding: 12px; border-radius: 12px; font-weight: bold; 
+    cursor: pointer; flex: 1; transition: 0.2s; font-family: "Cairo";
+}
+.btn-ghost:active { background: rgba(255,255,255,0.1); }
+
+.btn-danger-glow { 
+    background: linear-gradient(45deg, #ff3b30, #ff6b6b); color: white; 
+    border: none; padding: 12px; border-radius: 12px; font-weight: bold; 
+    cursor: pointer; flex: 1; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); 
+    transition: 0.2s; font-family: "Cairo";
+}
+.btn-danger-glow:active { transform: scale(0.95); }
+
+/* ================= القائمة السفلية الاحترافية للأرشيف ================= */
+.global-sheet-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100000;
+    display: none; backdrop-filter: blur(4px); animation: fadeIn 0.3s;
+}
+.global-action-sheet {
+    position: fixed; bottom: -100%; left: 0; width: 100%;
+    background: #1c1c1e; border-radius: 24px 24px 0 0; z-index: 100001;
+    transition: bottom 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    padding-bottom: 30px; border-top: 1px solid #333;
+    box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+}
+.global-action-sheet.active { bottom: 0; }
+.sheet-btn-pro {
+    display: flex; align-items: center; gap: 15px; padding: 18px 20px;
+    font-size: 15px; font-weight: bold; color: #fff; cursor: pointer; transition: 0.2s;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.sheet-btn-pro:last-child { border-bottom: none; }
+.sheet-btn-pro:active { background: rgba(255,255,255,0.05); }
+
+/* ================= صندوق تأكيد الحذف الاحترافي ================= */
+.delete-confirm-modal { 
+    position: fixed; inset: 0; z-index: 100005; 
+    display: none; align-items: center; justify-content: center; 
+    background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); 
+}
+.delete-box-style { 
+    background: #1a1a1a; width: 90%; max-width: 340px; 
+    border-radius: 24px; padding: 25px 20px; 
+    border: 1px solid #333; border-top: 4px solid #ff3b30; 
+    text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); 
+    animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+}
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.danger-icon-wrapper { 
+    width: 70px; height: 70px; background: rgba(255, 59, 48, 0.1); 
+    border-radius: 50%; display: flex; align-items: center; 
+    justify-content: center; margin: 0 auto 15px; 
+}
+.danger-icon-wrapper i { font-size: 30px; color: #ff3b30; animation: shakeTrash 2s infinite; }
+@keyframes shakeTrash { 0%, 100% { transform: rotate(0deg); } 10% { transform: rotate(-15deg); } 20% { transform: rotate(15deg); } 30% { transform: rotate(-15deg); } 40% { transform: rotate(15deg); } 50% { transform: rotate(0deg); } }
+.btn-ghost { background: transparent; border: 1px solid #444; color: #eee; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; flex: 1; transition: 0.2s; font-family: "Cairo"; }
+.btn-ghost:active { background: rgba(255,255,255,0.1); }
+.btn-danger-glow { background: linear-gradient(45deg, #ff3b30, #ff6b6b); color: white; border: none; padding: 12px; border-radius: 12px; font-weight: bold; cursor: pointer; flex: 1; box-shadow: 0 4px 15px rgba(255, 59, 48, 0.4); transition: 0.2s; font-family: "Cairo"; }
+.btn-danger-glow:active { transform: scale(0.95); }
+
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right" onclick="history.back()" style="font-size:20px; cursor:pointer; width: 30px;"></i>
+        <div class="header-title">مركز الأرشيف <i class="fa-solid fa-box-archive" style="color: var(--primary-solid); margin-right: 5px;"></i></div>
+        <div style="width: 30px;"></div>
+    </div>
+
+    <div class="archive-tabs">
+        <div class="tab-item active" onclick="switchTab('stories')" id="tab-stories">القصص</div>
+        <div class="tab-item" onclick="switchTab('posts')" id="tab-posts">المنشورات</div>
+        <div class="tab-item" onclick="switchTab('videos')" id="tab-videos">الفيديو</div>
+    </div>
+
+    <div id="content-stories" class="tab-content active">
+        <div id="archiveGridStories" class="archive-grid">
+            <div style="grid-column: 1/-1; text-align:center; padding:50px; color:var(--primary-solid);">
+                <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="content-posts" class="tab-content">
+        <div id="archiveListPosts">
+            <div style="text-align:center; padding:50px; color:var(--primary-solid);">
+                <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="content-videos" class="tab-content">
+        <div id="archiveGridVideos" class="archive-grid">
+            <div style="grid-column: 1/-1; text-align:center; padding:50px; color:var(--primary-solid);">
+                <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="archiveFullViewer" class="archive-viewer-overlay" onclick="closeArchiveViewer()">
+        <div class="archive-close-btn" onclick="closeArchiveViewer()">
+            <i class="fa-solid fa-xmark"></i>
+        </div>
+        <div id="archiveViewerContainer" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+        </div>
+    </div>
+
+<div class="delete-confirm-modal" id="chicDeleteModal">
+    <div class="delete-box-style">
+        <div class="danger-icon-wrapper">
+            <i class="fa-solid fa-trash-can"></i>
+        </div>
+        <h3 style="color: #fff; margin-bottom: 10px; font-size: 20px; font-weight: 800;">حذف نهائي؟</h3>
+        <p style="color: #aaa; font-size: 13px; margin-bottom: 25px; line-height: 1.6;">هل أنت متأكد من الحذف النهائي؟ لا يمكن التراجع عن هذا الإجراء وسيتم مسح العنصر للأبد.</p>
+        
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ghost" onclick="closeDeleteConfirm()">تراجع</button>
+            <button class="btn-danger-glow" id="confirmDeleteActionBtn">نعم، احذف</button>
+        </div>
+    </div>
+</div>
+
+    <div id="toast"></div>
+
+<div class="global-sheet-overlay" id="archiveOptionsOverlay" onclick="closeArchiveMenu()"></div>
+<div class="global-action-sheet" id="archiveOptionsSheet">
+    <div class="sheet-handle" style="width: 40px; height: 5px; background: #444; border-radius: 10px; margin: 15px auto;"></div>
+    <div style="padding-bottom: 10px;">
+        <div class="sheet-btn-pro" onclick="executeRestore()">
+            <i class="fa-solid fa-rotate-right" style="color: var(--primary-solid); font-size: 18px; width: 25px;"></i> 
+            <span>استعادة للملف الشخصي</span>
+        </div>
+        <div class="sheet-btn-pro" style="color: #ff3b30;" onclick="showDeleteConfirmModal()">
+            <i class="fa-solid fa-trash-can" style="color: #ff3b30; font-size: 18px; width: 25px;"></i> 
+            <span>حذف نهائي</span>
+        </div>
+    </div>
+</div>
+
+<div class="delete-confirm-modal" id="chicDeleteModal">
+    <div class="delete-box-style">
+        <div class="danger-icon-wrapper"><i class="fa-solid fa-trash-can"></i></div>
+        <h3 style="color: #fff; margin-bottom: 10px; font-size: 20px; font-weight: 800;">حذف نهائي؟</h3>
+        <p style="color: #aaa; font-size: 13px; margin-bottom: 25px; line-height: 1.6;">هل أنت متأكد؟ لا يمكن التراجع عن هذا الإجراء وسيتم مسح العنصر للأبد.</p>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-ghost" onclick="closeDeleteConfirmModal()">تراجع</button>
+            <button class="btn-danger-glow" onclick="executeFinalDelete()">نعم، احذف</button>
+        </div>
+    </div>
+</div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        moment.locale('ar');
+
+        let currentUser = null;
+        
+        // منع التحميل المتكرر للتبويبات
+        let isStoriesLoaded = false;
+        let isPostsLoaded = false;
+        let isVideosLoaded = false;
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        auth.onAuthStateChanged(user => {
+            if (!user) { location.href = "index.html"; return; }
+            currentUser = user;
+            loadArchiveStories(); // التحميل الافتراضي لأول تبويب
+        });
+
+        // ================= التبديل بين الأقسام (Tabs) =================
+        function switchTab(tabName) {
+            // تحديث الأزرار
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+            
+            // تحديث المحتوى
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`content-${tabName}`).classList.add('active');
+
+            // تحميل البيانات إذا لم تكن محملة مسبقاً
+            if (tabName === 'stories' && !isStoriesLoaded) loadArchiveStories();
+            if (tabName === 'posts' && !isPostsLoaded) loadArchivePosts();
+            if (tabName === 'videos' && !isVideosLoaded) loadArchiveVideos();
+        }
+
+        // ================= 1. قسم القصص المؤرشفة (Stories) =================
+        function loadArchiveStories() {
+            const grid = document.getElementById('archiveGridStories');
+            
+            db.collection('stories')
+              .where('uid', '==', currentUser.uid)
+              .orderBy('createdAt', 'desc')
+              .get()
+              .then(snapshot => {
+                  isStoriesLoaded = true;
+                  grid.innerHTML = '';
+                  const now = Date.now();
+                  let count = 0;
+
+                  snapshot.forEach(doc => {
+                      const d = doc.data();
+                      const timeData = d.createdAt || d.timestamp;
+                      if (!timeData) return;
+
+                      const storyTime = typeof timeData.toMillis === 'function' ? timeData.toMillis() : timeData;
+                      const isExpired = (now - storyTime) > (24 * 60 * 60 * 1000);
+                      
+                      if (isExpired || d.isArchived === true) {
+                          count++;
+                          const isVideo = d.type === 'video' || (d.url && d.url.includes('.mp4'));
+                          let mediaContent = isVideo 
+                              ? `<video src="${d.url}#t=0.1" class="archive-media" preload="metadata" muted></video>` 
+                              : `<img src="${d.url}" class="archive-media" loading="lazy">`;
+
+                          const dateObj = new Date(storyTime);
+                          const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+
+                          const item = document.createElement('div');
+                          item.className = 'archive-item';
+                          item.id = `story-item-${doc.id}`;
+
+                                                    item.innerHTML = `
+                              <div class="archive-media-wrapper" onclick="viewArchivedMedia('${d.url}', '${isVideo ? 'video' : 'image'}')">
+                                  ${mediaContent}
+                                  <div style="position:absolute; bottom:0; right:0; width:100%; padding:20px 5px 5px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; font-size:10px; font-weight:bold; text-align:right;">${dateStr}</div>
+                                  ${isVideo ? '<i class="fa-solid fa-play" style="position:absolute; top:10px; left:10px; color:#fff; font-size:14px; text-shadow:0 1px 3px #000;"></i>' : ''}
+                              </div>
+                              <div class="archive-more-btn" onclick="event.stopPropagation(); openArchiveMenu('stories', '${doc.id}', '${d.url}')">
+                                  <i class="fa-solid fa-ellipsis"></i>
+                              </div>
+                          `;
+
+                          grid.appendChild(item);
+                      }
+                  });
+
+                  if(count === 0) showEmptyState(grid, 'أرشيف القصص فارغ', 'القصص التي انتهت مدتها أو أرشفتها تظهر هنا.');
+              }).catch(err => {
+                  console.error(err);
+                  grid.innerHTML = '<div style="grid-column: 1/-1; text-align:center; color:#ff3b30;">حدث خطأ في تحميل الأرشيف</div>';
+              });
+        }
+
+        // ================= 2. قسم المنشورات المؤرشفة (Posts) =================
+        function loadArchivePosts() {
+            const list = document.getElementById('archiveListPosts');
+            
+            db.collection('posts')
+              .where('uid', '==', currentUser.uid)
+              .where('isArchived', '==', true)
+              .orderBy('createdAt', 'desc')
+              .get()
+              .then(snapshot => {
+                  isPostsLoaded = true;
+                  list.innerHTML = '';
+                  
+                  if (snapshot.empty) {
+                      showEmptyState(list, 'لا توجد منشورات مؤرشفة', 'المنشورات التي تقوم بأرشفتها من ملفك الشخصي تظهر هنا.');
+                      return;
+                  }
+
+                  snapshot.forEach(doc => {
+                      const d = doc.data();
+                      const dateStr = d.createdAt ? moment(d.createdAt.toDate()).format('D MMMM YYYY') : 'تاريخ غير معروف';
+                      
+                      // تحديد هل يوجد ميديا في المنشور لعرض صورة مصغرة
+                      let mediaThumb = '';
+                      if (d.media && d.media.length > 0) {
+                          const firstMedia = d.media[0];
+                          if(firstMedia.type === 'video') {
+                              mediaThumb = `<video src="${firstMedia.url}#t=0.1" class="archived-post-media" muted></video>`;
+                          } else {
+                              mediaThumb = `<img src="${firstMedia.url}" class="archived-post-media">`;
+                          }
+                      } else if (d.imageUrl) {
+                          mediaThumb = `<img src="${d.imageUrl}" class="archived-post-media">`;
+                      } else {
+                          // منشور نصي فقط
+                          mediaThumb = `<div class="archived-post-media" style="display:flex; align-items:center; justify-content:center; background:${d.background || '#333'};"><i class="fa-solid fa-font" style="font-size:24px; color:#fff;"></i></div>`;
+                      }
+
+                      const item = document.createElement('div');
+                      item.className = 'archived-post-card';
+                      item.id = `post-item-${doc.id}`;
+
+                      item.innerHTML = `
+                          ${mediaThumb}
+                          <div class="archived-post-info">
+                              <div class="archived-post-text">${d.text || 'بدون نص'}</div>
+                              <div class="archived-post-date"><i class="fa-solid fa-clock"></i> ${dateStr}</div>
+                          </div>
+                          
+                          <div class="archived-post-actions" onclick="event.stopPropagation(); openArchiveMenu('posts', '${doc.id}')">
+                              <i class="fa-solid fa-ellipsis-vertical" style="font-size:18px;"></i>
+                          </div>
+                      `;
+
+
+                      list.appendChild(item);
+                  });
+              });
+        }
+
+        // ================= 3. قسم الفيديوهات المؤرشفة (Videos) =================
+        function loadArchiveVideos() {
+            const grid = document.getElementById('archiveGridVideos');
+            
+            // نجلب المنشورات المؤرشفة التي تحتوي على فيديو صريح
+            db.collection('posts')
+              .where('uid', '==', currentUser.uid)
+              .where('isArchived', '==', true)
+              .get()
+              .then(snapshot => {
+                  isVideosLoaded = true;
+                  grid.innerHTML = '';
+                  let count = 0;
+
+                  snapshot.forEach(doc => {
+                      const d = doc.data();
+                      // التحقق هل هو فيديو؟
+                      let isVideoPost = false;
+                      let videoUrl = '';
+
+                      if (d.media && d.media.length > 0 && d.media[0].type === 'video') {
+                          isVideoPost = true;
+                          videoUrl = d.media[0].url;
+                      }
+
+                      if (isVideoPost) {
+                          count++;
+                          const dateStr = d.createdAt ? moment(d.createdAt.toDate()).format('D MMMM YYYY') : 'قديم';
+
+                          const item = document.createElement('div');
+                          item.className = 'archive-item';
+                          item.id = `vid-item-${doc.id}`;
+
+                                                    item.innerHTML = `
+                              <div class="archive-media-wrapper" onclick="viewArchivedMedia('${videoUrl}', 'video')">
+                                  <video src="${videoUrl}#t=0.1" class="archive-media" preload="metadata" muted></video>
+                                  <div style="position:absolute; bottom:0; right:0; width:100%; padding:20px 5px 5px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; font-size:10px; font-weight:bold; text-align:right;">${dateStr}</div>
+                                  <i class="fa-solid fa-play" style="position:absolute; top:10px; left:10px; color:#fff; font-size:14px; text-shadow:0 1px 3px #000;"></i>
+                              </div>
+                              <div class="archive-more-btn" onclick="event.stopPropagation(); openArchiveMenu('posts', '${doc.id}', '${videoUrl}')">
+                                  <i class="fa-solid fa-ellipsis"></i>
+                              </div>
+                          `;
+
+
+                          grid.appendChild(item);
+                      }
+                  });
+
+                  if(count === 0) showEmptyState(grid, 'لا توجد فيديوهات مؤرشفة', 'مقاطع الفيديو التي تقوم بأرشفتها تظهر هنا.');
+              });
+        }
+
+        // ================= دوال مشتركة (الاستعادة، الحذف، القوائم) =================
+        
+        function showEmptyState(container, title, desc) {
+            container.innerHTML = `
+                <div style="grid-column: 1/-1; text-align:center; padding:80px 20px; color:var(--secondary-text);">
+                    <div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+                        <i class="fa-solid fa-box-open" style="font-size:35px; color: var(--secondary-text);"></i>
+                    </div>
+                    <h3 style="color:var(--text-color); margin-bottom:5px;">${title}</h3>
+                    <p style="font-size:13px;">${desc}</p>
+                </div>`;
+        }
+
+        function toggleMenu(menuId, itemId) {
+            const menu = document.getElementById(menuId);
+            const parentItem = document.getElementById(itemId);
+            const isVisible = menu.classList.contains('show');
+            
+            closeAllMenus();
+            
+            if (!isVisible) {
+                menu.classList.add('show');
+                if(parentItem.classList.contains('archive-item')) {
+                    parentItem.classList.add('active-zindex');
+                }
+            }
+        }
+
+        function closeAllMenus() {
+            document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
+            document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('active-zindex'));
+        }
+        document.addEventListener('click', closeAllMenus);
+
+        // دالة الاستعادة (الذكية لكل الأنواع)
+        function restoreItem(collectionName, docId) {
+            closeAllMenus();
+            if(!confirm("هل تريد استعادة هذا العنصر ليظهر للعامة مرة أخرى؟")) return;
+
+            showToast("جاري الاستعادة...");
+            
+            let updateData = { isArchived: false };
+            // إذا كانت قصة، نجدد وقتها لتظهر من جديد
+            if (collectionName === 'stories') {
+                updateData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            db.collection(collectionName).doc(docId).update(updateData).then(() => {
+                showToast("تمت الاستعادة بنجاح ✅");
+                // مسح العنصر من الشاشة
+                const el = document.getElementById(`story-item-${docId}`) || document.getElementById(`post-item-${docId}`) || document.getElementById(`vid-item-${docId}`);
+                if(el) el.remove();
+            }).catch(err => {
+                console.error(err);
+                showToast("حدث خطأ أثناء الاستعادة");
+            });
+        }
+
+        // دالة الحذف النهائي
+                // ================= دوال الحذف الاحترافي =================
+        function showDeleteConfirm(callback) {
+            const modal = document.getElementById('chicDeleteModal');
+            const confirmBtn = document.getElementById('confirmDeleteActionBtn');
+            
+            // إظهار النافذة
+            modal.style.display = 'flex';
+            if (navigator.vibrate) navigator.vibrate([50, 50]); // هزاز للتحذير
+            
+            // استنساخ الزر لمسح أي أوامر سابقة متعلقة به (لمنع تكرار الحذف بالخطأ)
+            const newBtn = confirmBtn.cloneNode(true);
+            confirmBtn.parentNode.replaceChild(newBtn, confirmBtn);
+            
+            // ربط الزر بتنفيذ أمر الحذف
+            newBtn.onclick = () => {
+                closeDeleteConfirm();
+                callback();
+            };
+        }
+
+        function closeDeleteConfirm() {
+            document.getElementById('chicDeleteModal').style.display = 'none';
+        }
+
+        // دالة الحذف النهائي (المطورة)
+        function deleteItemForever(collectionName, docId, fileUrl = null) {
+            closeAllMenus(); // قفل القوائم الصغيرة
+
+            // استدعاء النافذة الاحترافية بدلاً من confirm()
+            showDeleteConfirm(() => {
+                // 1. إخفاء العنصر من الشاشة فوراً بتأثير ناعم
+                const el = document.getElementById(`story-item-${docId}`) || document.getElementById(`post-item-${docId}`) || document.getElementById(`vid-item-${docId}`);
+                if(el) { 
+                    el.style.transition = 'all 0.3s ease';
+                    el.style.opacity = '0'; 
+                    el.style.transform = 'scale(0.8)'; 
+                    setTimeout(() => el.remove(), 300); 
+                }
+
+                // 2. الحذف الفعلي من قاعدة البيانات
+                db.collection(collectionName).doc(docId).delete().then(() => {
+                    // مسح الملف من مساحة التخزين (Storage) إن وجد
+                    if(fileUrl) {
+                        try { firebase.storage().refFromURL(fileUrl).delete(); } catch(e){}
+                    }
+                    showToast("تم الحذف نهائياً 🗑️");
+                }).catch(error => {
+                    showToast("خطأ في الحذف");
+                });
+            });
+        }
+
+        // ================= المشغل الاحترافي =================
+        function viewArchivedMedia(url, type) {
+            const viewer = document.getElementById('archiveFullViewer');
+            const container = document.getElementById('archiveViewerContainer');
+            viewer.style.display = 'flex';
+            container.innerHTML = ''; 
+
+            if (type === 'video') {
+                container.innerHTML = `
+                    <div class="custom-video-wrapper" id="customVideoWrapper" onclick="event.stopPropagation()">
+                        <video src="${url}" class="custom-video-element" id="customVideoEl" playsinline></video>
+                        <div class="center-play-btn"><i class="fa-solid fa-play"></i></div>
+                        <div class="video-controls-bar" onclick="event.stopPropagation()">
+                            <i class="fa-solid fa-pause ctrl-btn" id="playPauseBtn"></i>
+                            <div class="video-time" id="currentTimeDisplay">00:00</div>
+                            <div class="video-progress-container" id="progressBarContainer">
+                                <div class="video-progress-fill" id="progressBarFill"></div>
+                            </div>
+                            <div class="video-time" id="durationDisplay">00:00</div>
+                            <i class="fa-solid fa-volume-high ctrl-btn" id="muteBtn"></i>
+                        </div>
+                    </div>
+                `;
+
+                const wrapper = document.getElementById('customVideoWrapper');
+                const video = document.getElementById('customVideoEl');
+                const playBtn = document.getElementById('playPauseBtn');
+                const muteBtn = document.getElementById('muteBtn');
+                const progressContainer = document.getElementById('progressBarContainer');
+                const progressFill = document.getElementById('progressBarFill');
+                const currTime = document.getElementById('currentTimeDisplay');
+                const durTime = document.getElementById('durationDisplay');
+
+                video.play().then(() => wrapper.classList.add('playing')).catch(() => playBtn.className = "fa-solid fa-play ctrl-btn");
+
+                const togglePlay = () => {
+                    if (video.paused) { video.play(); wrapper.classList.add('playing'); playBtn.className = "fa-solid fa-pause ctrl-btn"; } 
+                    else { video.pause(); wrapper.classList.remove('playing'); playBtn.className = "fa-solid fa-play ctrl-btn"; }
+                };
+
+                video.addEventListener('click', togglePlay);
+                playBtn.addEventListener('click', togglePlay);
+
+                let isDragging = false;
+                video.addEventListener('timeupdate', () => {
+                    if (!isDragging) {
+                        const percent = (video.currentTime / video.duration) * 100;
+                        progressFill.style.width = `${percent}%`;
+                        currTime.innerText = formatTime(video.currentTime);
+                    }
+                    if(video.duration) durTime.innerText = formatTime(video.duration);
+                });
+
+                const updateScrub = (e) => {
+                    const rect = progressContainer.getBoundingClientRect();
+                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                    let pos = (clientX - rect.left) / rect.width;
+                    pos = Math.max(0, Math.min(1, pos));
+                    progressFill.style.width = `${pos * 100}%`;
+                    if (video.duration) {
+                        video.currentTime = pos * video.duration;
+                        currTime.innerText = formatTime(video.currentTime);
+                    }
+                };
+
+                progressContainer.addEventListener('mousedown', (e) => { isDragging = true; updateScrub(e); });
+                progressContainer.addEventListener('touchstart', (e) => { isDragging = true; updateScrub(e); }, {passive: false});
+                document.addEventListener('mousemove', (e) => { if (isDragging) { e.preventDefault(); updateScrub(e); } });
+                document.addEventListener('touchmove', (e) => { if (isDragging) { e.preventDefault(); updateScrub(e); } }, {passive: false});
+                document.addEventListener('mouseup', () => { if (isDragging) { isDragging = false; if(video.paused) togglePlay(); } });
+                document.addEventListener('touchend', () => { if (isDragging) { isDragging = false; if(video.paused) togglePlay(); } });
+
+                muteBtn.addEventListener('click', () => {
+                    video.muted = !video.muted;
+                    muteBtn.className = video.muted ? "fa-solid fa-volume-xmark ctrl-btn" : "fa-solid fa-volume-high ctrl-btn";
+                });
+                video.addEventListener('ended', () => { wrapper.classList.remove('playing'); playBtn.className = "fa-solid fa-rotate-right ctrl-btn"; });
+
+            } else {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = 'archive-viewer-content';
+                img.onclick = (e) => e.stopPropagation();
+                container.appendChild(img);
+            }
+        }
+
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return "00:00";
+            const min = Math.floor(seconds / 60);
+            const sec = Math.floor(seconds % 60);
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
+
+        function closeArchiveViewer() {
+            const viewer = document.getElementById('archiveFullViewer');
+            const container = document.getElementById('archiveViewerContainer');
+            const vid = container.querySelector('video');
+            if(vid) { vid.pause(); vid.src = ""; }
+            viewer.style.display = 'none';
+            container.innerHTML = '';
+        }
+        
+                // ================= دوال التحكم في القوائم والحذف الاحترافي =================
+        let targetArchiveCollection = '';
+        let targetArchiveDocId = '';
+        let targetArchiveFileUrl = '';
+
+        // 1. فتح القائمة السفلية
+        function openArchiveMenu(collection, docId, fileUrl = null) {
+            targetArchiveCollection = collection;
+            targetArchiveDocId = docId;
+            targetArchiveFileUrl = fileUrl;
+            
+            document.getElementById('archiveOptionsOverlay').style.display = 'block';
+            setTimeout(() => document.getElementById('archiveOptionsSheet').classList.add('active'), 10);
+            if(navigator.vibrate) navigator.vibrate(20);
+        }
+
+        // 2. إغلاق القائمة السفلية
+        function closeArchiveMenu() {
+            document.getElementById('archiveOptionsSheet').classList.remove('active');
+            setTimeout(() => document.getElementById('archiveOptionsOverlay').style.display = 'none', 300);
+        }
+
+        // 3. الاستعادة
+        function executeRestore() {
+            closeArchiveMenu();
+            showToast("جاري الاستعادة...");
+            
+            let updateData = { isArchived: false };
+            if (targetArchiveCollection === 'stories') {
+                updateData.timestamp = firebase.firestore.FieldValue.serverTimestamp();
+            }
+
+            db.collection(targetArchiveCollection).doc(targetArchiveDocId).update(updateData).then(() => {
+                showToast("تمت الاستعادة بنجاح ✅");
+                const el = document.getElementById(`story-item-${targetArchiveDocId}`) || document.getElementById(`post-item-${targetArchiveDocId}`) || document.getElementById(`vid-item-${targetArchiveDocId}`);
+                if(el) el.remove();
+            }).catch(err => {
+                showToast("حدث خطأ أثناء الاستعادة");
+            });
+        }
+
+        // 4. فتح نافذة الحذف النهائي الاحترافية
+        function showDeleteConfirmModal() {
+            closeArchiveMenu(); // اقفل القائمة السفلية الأول
+            document.getElementById('chicDeleteModal').style.display = 'flex';
+            if(navigator.vibrate) navigator.vibrate([50, 50]); // هزاز تحذيري
+        }
+
+        function closeDeleteConfirmModal() {
+            document.getElementById('chicDeleteModal').style.display = 'none';
+        }
+
+        // 5. التنفيذ الفعلي للحذف (بعد ما يدوس نعم)
+        function executeFinalDelete() {
+            closeDeleteConfirmModal();
+            showToast("جاري الحذف... 🗑️");
+
+            // إخفاء العنصر من الشاشة بأنيميشن ناعم فوراً
+            const el = document.getElementById(`story-item-${targetArchiveDocId}`) || document.getElementById(`post-item-${targetArchiveDocId}`) || document.getElementById(`vid-item-${targetArchiveDocId}`);
+            if(el) { 
+                el.style.transition = 'all 0.3s ease';
+                el.style.opacity = '0'; 
+                el.style.transform = 'scale(0.8)'; 
+                setTimeout(() => el.remove(), 300); 
+            }
+
+            // الحذف من الداتابيز والتخزين
+            db.collection(targetArchiveCollection).doc(targetArchiveDocId).delete().then(() => {
+                if(targetArchiveFileUrl) {
+                    try { firebase.storage().refFromURL(targetArchiveFileUrl).delete(); } catch(e){}
+                }
+                showToast("تم الحذف نهائياً 🗑️");
+            }).catch(error => {
+                showToast("خطأ في الحذف");
+            });
+        }
+
+    </script>
+    <script src="theme-manager.js"></script>
+</body>
+</html>

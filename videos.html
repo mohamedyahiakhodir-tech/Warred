@@ -4194,6 +4194,10 @@ snap.docChanges().forEach(change => {
     const data = change.doc.data();
     data.id = change.doc.id;
 
+    // 🛑 حماية: إخفاء تعليقات المحظورين (سواء أنا حظرته أو هو حظرني)
+    if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(data.uid)) return;
+    if (window.theyBlockedMeSet && window.theyBlockedMeSet.has(data.uid)) return;
+
     // ===========================
     // 1. حالة الإضافة (Added)
     // ===========================
@@ -5151,10 +5155,9 @@ function triggerReplyComment() {
         snap.forEach((doc, index) => {
             const docData = doc.data(); 
 
-            // فحص الحظر (مهم جداً عشان الخطأ اللي كان بيطلعلك)
-            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(docData.uid)) {
-                return; // ده return جوه forEach وده صح، مش هيعمل ايرور
-            }
+            // 🛑 حماية الردود: فحص الحظر المزدوج
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(docData.uid)) return;
+            if (window.theyBlockedMeSet && window.theyBlockedMeSet.has(docData.uid)) return;
 
             const r = {id: doc.id, ...docData};
             
@@ -6882,8 +6885,10 @@ async function doSearch(queryText) {
             html += '<div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:2px;">';
             
             snapshot.forEach(doc => {
-                // تخطي المحظورين
+                // 🛑 حماية: إخفاء الفيديوهات للمحظورين (في الاتجاهين)
                 if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(doc.data().uid)) return;
+                // إضافة الحماية من الأشخاص الذين حظروني
+                if (window.theyBlockedMeSet && window.theyBlockedMeSet.has(doc.data().uid)) return;
 
                 const d = doc.data();
                 const vid = d.media ? d.media.find(m => m.type === 'video') : null;
@@ -6915,8 +6920,9 @@ async function doSearch(queryText) {
             // فلترة يدوية للنص (لأن فايربيس معندوش بحث نصي قوي مجاني)
             const filtered = snapshot.docs.filter(doc => {
                 const txt = doc.data().text || '';
-                // تخطي المحظورين
+                // 🛑 حماية: إخفاء فيديوهات المحظورين من نتائج البحث النصي
                 if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(doc.data().uid)) return false;
+                if (window.theyBlockedMeSet && window.theyBlockedMeSet.has(doc.data().uid)) return false;
                 return txt.includes(queryText);
             });
 
@@ -6986,6 +6992,17 @@ async function openSingleVideo(pid) {
 
         const data = doc.data();
         const videoMedia = data.media ? data.media.find(m => m.type === 'video') : null;
+
+        // 🛑 حماية: منع فتح فيديو عبر رابط مباشر إذا كان صاحبه محظوراً
+        if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(data.uid) || 
+            (window.theyBlockedMeSet && window.theyBlockedMeSet.has(data.uid))) {
+            showToast("⚠️ هذا الفيديو غير متاح");
+            setTimeout(() => { 
+                window.history.replaceState({}, document.title, "videos.html");
+                loadVideos(true); 
+            }, 1500);
+            return;
+        }
 
         if (videoMedia) {
             // 3. جلب بيانات صاحب الفيديو + حالة الأونلاين
@@ -10823,6 +10840,10 @@ async function loadRecentChatsForShare() {
             const otherUid = chatData.users.find(u => u !== currentUser.uid);
             if(!otherUid) continue;
 
+            // 🛑 حماية: إخفاء المحظورين من قائمة إرسال الفيديوهات
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(otherUid)) continue;
+            if (window.theyBlockedMeSet && window.theyBlockedMeSet.has(otherUid)) continue;
+
             // نجيب بيانات الشخص (صورة واسم)
             // ملاحظة: للأداء الأفضل ممكن تخزن الاسم والصورة جوه وثيقة الشات نفسها، بس هنا هنجيبها من اليوزرز
             const userDoc = await db.collection('users').doc(otherUid).get();
@@ -11697,6 +11718,55 @@ function closeArchiveViewer() {
     container.innerHTML = '';
 }
 
+// ==========================================
+// 📦 دالة أرشفة الفيديو
+// ==========================================
+function archiveVideoAction() {
+    closeAllSheets(); // إغلاق القائمة السفلية أولاً
+
+    // استخدام المودال الشيك الموجود عندك للتأكيد
+    showChicConfirm(
+        "أرشفة الفيديو؟", 
+        "سيختفي هذا الفيديو من العامة وينتقل إلى (مركز الأرشيف) الخاص بك، ولن يراه أحد غيرك. هل تريد الاستمرار؟", 
+        '<i class="fa-solid fa-box-archive" style="color:#f5af19; font-size: 40px;"></i>', 
+        async function() {
+            try {
+                showToast("جاري الأرشفة... 📦");
+
+                // 1. تحديث حالة الفيديو في قاعدة البيانات (إضافة حقل isArchived)
+                await db.collection('posts').doc(currentOpenVideoId).update({
+                    isArchived: true
+                });
+
+                // 2. إخفاء الفيديو من الشاشة بأنيميشن ناعم (بدون ريفريش)
+                const slideElement = document.getElementById(`slide-${currentOpenVideoId}`);
+                if (slideElement) {
+                    // أنيميشن تصغير وتلاشي
+                    slideElement.style.transition = "transform 0.4s, opacity 0.4s";
+                    slideElement.style.transform = "scale(0.8)";
+                    slideElement.style.opacity = "0";
+                    
+                    // مسح العنصر بعد انتهاء الأنيميشن
+                    setTimeout(() => {
+                        slideElement.remove();
+                        
+                        // لو ده كان آخر فيديو في الشاشة، ممكن ننادي loadVideos تاني
+                        if(document.querySelectorAll('.video-slide').length === 0) {
+                            loadVideos(true);
+                        }
+                    }, 400);
+                }
+
+                if(typeof playSound === 'function') playSound('success');
+                showToast("تمت أرشفة الفيديو بنجاح ✅");
+
+            } catch(e) {
+                console.error("Archive Error:", e);
+                showToast("حدث خطأ أثناء الأرشفة، تحقق من الإنترنت");
+            }
+        }
+    );
+}
 
 
     </script>
@@ -12084,11 +12154,18 @@ function closeArchiveViewer() {
 
         <div id="ownerVideoActions" style="display: none; flex-direction: column;">
             <div class="menu-divider"></div>
+            
+            <div class="menu-item" onclick="archiveVideoAction()">
+                <i class="fa-solid fa-box-archive" style="color:#f5af19"></i>
+                <span class="menu-text">أرشفة الفيديو (إخفاء)</span>
+            </div>
+            
             <div class="menu-item danger" onclick="deleteVideoAction()">
                 <i class="fa-solid fa-trash-can"></i>
                 <span class="menu-text">حذف الفيديو نهائياً</span>
             </div>
         </div>
+
 
     </div>
 </div>

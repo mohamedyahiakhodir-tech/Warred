@@ -8633,6 +8633,248 @@ body {
     transition: background-color 0.5s ease, color 0.3s;
 }
 
+/* 1. زر البحث الصوتي وتأثير التسجيل */
+.voice-search-btn {
+    position: absolute;
+    left: 12px; /* في العربي بيكون على الشمال */
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+.voice-search-btn.listening {
+    color: #ff3b30;
+    animation: micPulse 1s infinite;
+}
+@keyframes micPulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* 2. تلوين كلمة البحث الذكي (يضمن عدم تكسير الـ HTML) */
+.highlight-text {
+    color: #000 !important;
+    background-color: var(--primary-color);
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: 900;
+    box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* 3. ستايل الحالة الفارغة الذكية (لم نجد شيئاً) */
+.smart-empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    animation: fadeIn 0.4s;
+}
+.smart-empty-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(0, 198, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+}
+.smart-empty-btn {
+    background: linear-gradient(135deg, var(--primary-color), #5D5FEF);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 25px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.3);
+    margin-top: 15px;
+    transition: 0.2s;
+}
+.smart-empty-btn:active { transform: scale(0.95); }
+    color: #000 !important;
+    background-color: var(--primary-color);
+    padding: 0 3px;
+    border-radius: 4px;
+    font-weight: 900;
+    box-shadow: 0 0 8px var(--primary-color);
+}
+
+/* شريط التعليقات المغلقة (جدار الحماية) */
+.comments-disabled-bar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 15px;
+    background: rgba(20, 20, 25, 0.95);
+    color: #ff3b30; /* لون أحمر للتنبيه */
+    font-size: 14px;
+    font-weight: 800;
+    text-align: center;
+    border-top: 1px solid rgba(255, 59, 48, 0.2);
+    cursor: not-allowed;
+    width: 100%;
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+}
+
+
+/* تأثير اللمس للمنشورات */
+.post {
+    /* أضفنا الأنيميشن للـ transform */
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.5s ease, border 0.5s ease, box-shadow 0.5s ease !important;
+    will-change: transform;
+}
+
+/* عندما يضع المستخدم إصبعه على المنشور */
+.post:active {
+    transform: scale(0.98) !important;
+    opacity: 0.9;
+}
+
+/* منع تفعيل تأثير اللمس إذا كان يسحب أفقياً (السلايدر) */
+.post-slider-wrapper:active {
+    transform: none !important;
+}
+
+/* ==================================================
+   🌟 تصميم قسم الاستكشاف (الترحيب) - معدل ومناسب للشاشة 🌟
+   ================================================== */
+.discovery-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    /* 🔥 تم تقليل المسافة العلوية لرفع النص، وإضافة مسافة سفلية لحماية الكروت من الشريط السفلي */
+    padding: 10px 0 90px 0; 
+    width: 100%;
+    animation: fadeIn 0.5s ease;
+}
+
+.discovery-title {
+    font-size: 24px; /* تصغير بسيط ليتناسب مع الرفع */
+    font-weight: 900;
+    color: #fff;
+    margin-bottom: 5px; /* تقليل المسافة */
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.discovery-subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 15px; /* 🔥 تقليل المسافة بين النص والكروت لرفعها */
+}
+
+/* حاوية السحب الأفقي (الكاروسيل) */
+.discovery-carousel {
+    display: flex;
+    gap: 12px; /* تقليل المسافة بين الكروت قليلاً */
+    overflow-x: auto;
+    padding: 0 15px 20px 15px;
+    width: 100%;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    scroll-snap-type: x mandatory;
+}
+
+.discovery-carousel::-webkit-scrollbar {
+    display: none;
+}
+
+/* الكارت الواحد (تم ضغطه ليكون أجمل) */
+.discovery-card {
+    min-width: 160px; /* 🔥 تصغير عرض الكارت */
+    max-width: 160px;
+    background: #121212; 
+    border: 1px solid #222;
+    border-radius: 16px; /* تقليل التدوير ليتناسب مع الحجم الجديد */
+    padding: 15px 12px; /* 🔥 تقليل الحشو الداخلي لرفع الأزرار */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    scroll-snap-align: center;
+    transition: transform 0.2s;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+}
+
+.discovery-card:active {
+    transform: scale(0.96);
+}
+
+/* صورة البروفايل (تم تصغيرها ورفعها) */
+.discovery-avatar {
+    width: 65px; /* 🔥 تصغير حجم الصورة */
+    height: 65px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px; /* تقليل المسافة تحت الصورة */
+    border: 2px solid transparent; 
+}
+
+.discovery-card.verified .discovery-avatar {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.3);
+}
+
+/* الاسم واليوزر */
+.discovery-name {
+    font-size: 14px; /* تصغير الخط ليتناسب مع الكارت */
+    font-weight: 800;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.discovery-username {
+    font-size: 11px;
+    color: #666;
+    margin-top: 2px;
+    margin-bottom: 12px; /* 🔥 تقليل المسافة فوق الأزرار */
+    font-family: 'Poppins', sans-serif;
+    direction: ltr;
+}
+
+/* الأزرار (صداقة ومتابعة) */
+.discovery-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px; /* مسافة أقل بين الزرارين */
+    width: 100%;
+    margin-top: auto;
+}
+
+.d-btn {
+    width: 100%;
+    padding: 8px; /* 🔥 تقليل ارتفاع الزر ليظهر بالكامل */
+    border-radius: 15px;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    border: none;
+}
+
+.d-btn-follow {
+    background: #fff;
+    color: #000;
+}
+.d-btn-follow:active { background: #ddd; }
+
+.d-btn-add {
+    background: transparent;
+    color: #fff;
+    border: 1px solid #444;
+}
+.d-btn-add:active { background: rgba(255,255,255,0.1); }
+
 
 </style>
     
@@ -8938,58 +9180,16 @@ body {
 
   
 
-   <div class="custom-modal" id="themeModal" style="z-index: 60000 !important;">
+ <div class="custom-modal" id="themeModal" style="z-index: 60000 !important;">
     <div class="modal-box" style="max-width: 400px; padding: 20px; background: #111; border-radius: 24px; border: 1px solid #333;">
         <h3 data-i18n="theme_title" style="color: #fff; margin-bottom: 5px; font-weight: 800;">🎨 عالم السمات</h3>
         <p data-i18n="theme_desc" style="color: #aaa; font-size: 13px; margin-bottom: 20px;">اختر المظهر الذي يعكس شخصيتك</p>
         
-        <div class="themes-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-height: 400px; overflow-y: auto; padding: 5px;">
-            
-            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('cosmic')" onmouseover="this.style.borderColor='#FFD700'" onmouseout="this.style.borderColor='transparent'">
-                <div style="height: 60px; background: linear-gradient(to bottom, #0f0c29, #302b63);">
-                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #0f0c29, #302b63); border: 1px solid #FFD700;"></div>
-                </div>
-                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#FFD700;">الكوني (الذهبي)</div>
-            </div>
-
-            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('blood')" onmouseover="this.style.borderColor='#ff416c'" onmouseout="this.style.borderColor='transparent'">
-                <div style="height: 60px; background: #1a0505;">
-                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #4a0e17, #1a0505); border: 1px solid rgba(255, 65, 108, 0.6);"></div>
-                </div>
-                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#ff416c;">نبيتي ناري</div>
-            </div>
-
-            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('ocean')" onmouseover="this.style.borderColor='#00c6ff'" onmouseout="this.style.borderColor='transparent'">
-                <div style="height: 60px; background: #05131f;">
-                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #001f3f, #05131f); border: 1px solid rgba(0, 198, 255, 0.6);"></div>
-                </div>
-                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#00c6ff;">أعماق المحيط</div>
-            </div>
-
-            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('nature')" onmouseover="this.style.borderColor='#38ef7d'" onmouseout="this.style.borderColor='transparent'">
-                <div style="height: 60px; background: #0a140d;">
-                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #0f2b18, #0a140d); border: 1px solid rgba(56, 239, 125, 0.6);"></div>
-                </div>
-                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#38ef7d;">عصب الغابة</div>
-            </div>
-
-            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('cyber')" onmouseover="this.style.borderColor='#fc00ff'" onmouseout="this.style.borderColor='transparent'">
-                <div style="height: 60px; background: #12041f;">
-                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: linear-gradient(135deg, #2b0845, #12041f); border: 1px solid rgba(252, 0, 255, 0.6);"></div>
-                </div>
-                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#fc00ff;">سايبر بانك</div>
-            </div>
-            
-            <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:0.2s;" onclick="applyFullTheme('default')" onmouseover="this.style.borderColor='#00C6FF'" onmouseout="this.style.borderColor='transparent'">
-                <div style="height: 60px; background: #0d0d0f;">
-                    <div style="margin: 10px auto; width: 80%; height: 30px; border-radius: 8px; background: #161616; border: 1px solid #2a2a2a;"></div>
-                </div>
-                <div style="background:#222; text-align:center; padding:8px; font-size:12px; font-weight:bold; color:#00C6FF;">الافتراضي</div>
-            </div>
-
+        <div id="dynamicThemesGrid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-height: 400px; overflow-y: auto; padding: 5px; scrollbar-width: none;">
+            <div style="text-align:center; grid-column: 1/-1; color: var(--primary-color);"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري تحميل السمات...</div>
         </div>
 
-        <button style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); color: #aaa; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; cursor: pointer;" onclick="document.getElementById('themeModal').style.display='none'" data-i18n="btn_close">إغلاق</button>
+        <button style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); color: #aaa; border: none; border-radius: 12px; margin-top: 15px; font-weight: bold; cursor: pointer; transition: 0.2s;" onclick="document.getElementById('themeModal').style.display='none'" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" data-i18n="btn_close">إغلاق</button>
     </div>
 </div>
 
@@ -9074,6 +9274,12 @@ body {
         <div class="item c-radar" onclick="playSound('click'); location.href='radar.html'" style="background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%); border:1px solid #8E2DE2;">
             <i class="fa-solid fa-satellite-dish" style="color: #fff; background: transparent;"></i> <span style="color: #fff;">الرادار</span>
         </div>
+        
+<div class="sheet-option" onclick="window.location.href='qr-text.html'">
+    <i class="fa-solid fa-qrcode" style="color: var(--primary-color); font-size: 20px; width: 30px; text-align: center;"></i>
+    <span style="flex: 1; text-align: right; font-weight: bold; color: var(--text-color);">رسائل QR مشفرة</span>
+    <i class="fa-solid fa-chevron-left" style="font-size: 14px; color: #888;"></i>
+</div>
 
         <div class="menu-separator" style="margin-top: 15px;">الترفيه</div>
 
@@ -9109,6 +9315,12 @@ body {
         <div class="item" onclick="playSound('click'); location.href='settings.html'" style="background: linear-gradient(135deg, #232526 0%, #414345 100%); border:1px solid #555;">
             <i class="fa-solid fa-gear" style="color: #fff; background: transparent;"></i> <span style="color: #fff;">الإعدادات</span>
         </div>
+
+<div class="sheet-option" onclick="openThemeModal()">
+    <i class="fa-solid fa-palette" style="color: var(--primary-color); font-size: 20px; width: 30px; text-align: center;"></i>
+    <span style="flex: 1; text-align: right; font-weight: bold; color: var(--text-color);">مظهر التطبيق</span>
+    <i class="fa-solid fa-chevron-left" style="font-size: 14px; color: #888;"></i>
+</div>
 
         <div class="item" onclick="openLanguageModal()" style="background: rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);">
             <i class="fa-solid fa-earth-americas" style="color: #00C6FF; background: transparent;"></i> 
@@ -9150,7 +9362,7 @@ body {
             </div>
         </div>
 
-        <div class="item danger" onclick="openLogoutConfirm()">
+        <div class="item danger" onclick="openLogoutModal()">
             <i class="fa-solid fa-right-from-bracket"></i> تسجيل الخروج
         </div>
     </div>
@@ -9260,6 +9472,27 @@ try {
 } catch (e) {
     console.error("Storage library missing!", e);
 }
+// ==========================================
+// 🟢 تعريف المتغيرات العامة الأساسية (يجب أن تكون في الأعلى)
+// ==========================================
+let myFollowingList = [];
+let storyGroups = [];
+let currentAppLang = localStorage.getItem('wareed_lang') || 'ar';
+
+// تعريف رتب المستخدمين
+window.USER_RANKS = [
+    { v: 20000000, name: "أسطورة", class: "badge-mythic", icon: "fa-dragon" },
+    { v: 5000000,  name: "VIP",    class: "badge-diamond", icon: "fa-gem" },
+    { v: 1000000,  name: "نخبة",   class: "badge-gold",    icon: "fa-certificate" },
+    { v: 25000,    name: "صانع",   class: "badge-silver",  icon: "fa-video" },
+    { v: 0,        name: "مبتدئ",  class: "badge-bronze",  icon: "fa-shoe-prints" }
+];
+
+// التأكد من تهيئة قاموس الترجمة لمنع الخطأ
+if (typeof appTranslations === 'undefined' || !appTranslations[currentAppLang]) {
+    currentAppLang = 'ar';
+    localStorage.setItem('wareed_lang', 'ar');
+}
 
 let currentUser = null, lastVisibleDoc = null, isLoading = false;
 let isGhost = false;
@@ -9290,6 +9523,9 @@ let blockedUsersSet = new Set();
 let tempMentionList = []; 
 let lastSuggestedDoc = null; // متغير لحفظ مكان الوقوف في التحميل
 
+let discoveryFullList = []; // سيحفظ كل المستخدمين بعد ترتيبهم
+let discoveryCurrentIndex = 0; // لنتتبع أين وصلنا في العرض (10 بـ 10)
+let isFetchingDiscovery = false; // لمنع التكرار
 
         const ghostColors = ["#ff0000", "#00ff00", "#0099ff", "#ffff00", "#ff00ff", "#00ffff", "#ff9900", "#9900ff", "#ffffff", "#00ff99"];
         const stickerCollection = ["🤣", "😂", "😅", "🥹", "😍", "🥰", "😘", "🤪", "😎", "😭", "😢", "😤", "😡", "🤬", "🤯", "😳", "😱", "😴", "🤮", "🤡", "💀", "👻", "👽", "💩", "👍", "👎", "👌", "✌️", "❤️", "💔", "🔥", "✨"];
@@ -9347,6 +9583,9 @@ function escapeHTML(str) {
         
       function closeAllSheets(keepComments = false) {
           
+              if (window.postStatusUnsub) { window.postStatusUnsub(); window.postStatusUnsub = null; }
+    if (window.replyPostStatusUnsub) { window.replyPostStatusUnsub(); window.replyPostStatusUnsub = null; }
+
     // 1. إغلاق القوائم السفلية العادية
     document.querySelectorAll('.bottom-sheet').forEach(s => {
                 // إرجاع الكرة لمكانها الطبيعي بالأسفل
@@ -9412,7 +9651,7 @@ auth.onAuthStateChanged(async user => {
     currentUser = user;
     fetchMySavedPostsInit(); // أضفها هنا بدون await
 
-    fetchMyFollowing();
+    await fetchMyFollowing();
     const doc = await db.collection('users').doc(user.uid).get();
     const d = doc.data() || {};
     
@@ -9609,6 +9848,9 @@ function monitorIncomingMessages() {
             // تجاهل لو أنا المرسل
             if (data.lastSenderId === myUid) return;
 
+            // 🛑 حماية: منع أي إشعارات منبثقة أو رنين من الأشخاص المحظورين
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(otherUserId)) return;
+
             // جلب الاسم
             const realName = await getSenderName(otherUserId);
 
@@ -9804,14 +10046,13 @@ function renderSearchHistory() {
     list.innerHTML = "";
     
     if(searchHistory.length === 0) {
-        list.innerHTML = "<div style='text-align:center; padding:20px; color:#777'>لا يوجد سجل بحث</div>";
+        list.innerHTML = `<div style='text-align:center; padding:20px; color:#777'>${typeof t === 'function' ? t('search_no_history') : 'لا يوجد سجل بحث'}</div>`;
         btn.style.display = 'none';
         return;
     }
 
     searchHistory.forEach((item, index) => {
         const div = document.createElement('div');
-        
         div.className = 'history-item';
         
         // إخفاء العناصر بعد الثالث إذا لم يكن موسعاً
@@ -9821,15 +10062,28 @@ function renderSearchHistory() {
 
         const isUser = item.type === 'user';
         const iconOrImg = isUser 
-            ? `<div class="history-avatar" style="${item.pic ? `background-image:url('${item.pic}')` : `background:${generateColor(item.id || 'x')}`}">${item.pic ? '' : (item.name[0])}</div>`
+            ? `<div class="history-avatar" style="${item.pic ? `background-image:url('${item.pic}')` : `background:${generateColor(item.id || 'x')}`}">${item.pic ? '' : (item.name ? item.name[0] : 'U')}</div>`
             : `<div class="history-avatar" style="background:rgba(255,255,255,0.05); color:#aaa;"><i class="fa-solid fa-clock-rotate-left"></i></div>`;
 
+        const safeText = (item.text || item.name || "").replace(/'/g, "\\'");
+        const safeType = item.type || 'text';
+        const safeId = item.id || '';
+
+        // 🔥 التعديل السحري هنا 🔥
+        // 1. إعطاء أمر الضغط للسطر بالكامل (الكارت كله)
+        div.onclick = function() {
+            useHistoryItem(safeText, safeType, safeId);
+        };
+
         div.innerHTML = `
-            <div class="history-info" onclick="useHistoryItem('${item.text}')">
+            <div class="history-info" style="flex: 1; pointer-events: none;">
                 ${iconOrImg}
                 <div style="font-weight:600; font-size:14px;">${item.name || item.text}</div>
             </div>
-            <i class="fa-solid fa-xmark" style="color:#555; padding:10px;" onclick="deleteHistoryItem(${index})"></i>
+            
+            <div style="padding: 10px; cursor: pointer; z-index: 10;" onclick="event.stopPropagation(); deleteHistoryItem(${index})">
+                <i class="fa-solid fa-xmark" style="color:#555;"></i>
+            </div>
         `;
         list.appendChild(div);
     });
@@ -9837,11 +10091,60 @@ function renderSearchHistory() {
     // التحكم في ظهور زر "عرض المزيد"
     if (searchHistory.length > 3) {
         btn.style.display = 'block';
-        btn.innerText = isHistoryExpanded ? t('text_show_less') : t('text_show_more');
+        btn.innerText = isHistoryExpanded ? (typeof t === 'function' ? t('text_show_less') : 'عرض أقل') : (typeof t === 'function' ? t('text_show_more') : 'عرض المزيد');
     } else {
         btn.style.display = 'none';
     }
 }
+
+// 1. دالة ذكية لتوليد كلمات بحث بديلة (تتجاهل الـ التعريف وتفكك الجمل)
+function getSmartSearchTerms(query) {
+    let cleanQuery = normalizeArabicText(query);
+    // تقسيم الجملة لكلمات، وتجاهل الحروف الفردية (مثل و، ف، ب)
+    let words = cleanQuery.split(' ').filter(w => w.length > 1); 
+    let expandedWords = [];
+
+    words.forEach(w => {
+        expandedWords.push(w);
+        // ذكاء اصطناعي مصغر للغة العربية (التعامل مع الـ التعريف)
+        if (w.startsWith('ال')) {
+            expandedWords.push(w.substring(2)); // إضافة الكلمة بدون "ال"
+        } else {
+            expandedWords.push('ال' + w);       // إضافة الكلمة مع "ال"
+            expandedWords.push('ل' + w);        // إضافة الكلمة مع "لـ"
+            expandedWords.push('ب' + w);        // إضافة الكلمة مع "بـ"
+        }
+    });
+    return expandedWords; // ترجع مصفوفة بكل الاحتمالات الممكنة للكلمة
+}
+
+// 2. دالة تقييم البوست (Scoring System)
+function calculateSmartScore(postText, exactQuery, smartWordsArray) {
+    if (!postText) return 0;
+    let score = 0;
+    const normPostText = normalizeArabicText(postText);
+    const exactNormQuery = normalizeArabicText(exactQuery);
+
+    // أ) الجائزة الكبرى: تطابق الجملة بالكامل (50 نقطة)
+    if (normPostText.includes(exactNormQuery)) {
+        score += 50;
+    }
+
+    // ب) البحث عن الكلمات الفردية ومشتقاتها
+    smartWordsArray.forEach(word => {
+        // إذا وجد الكلمة كهاشتاج (أهمية عالية جداً)
+        if (normPostText.includes('#' + word)) {
+            score += 30; 
+        }
+        // إذا وجد الكلمة عادية وسط الكلام
+        else if (normPostText.includes(word)) {
+            score += 10; 
+        }
+    });
+
+    return score;
+}
+
 // 1. دالة لتحديث عداد البحث في الداتابيز
 function updateSearchTrendCounter(term) {
     if(!term || term.startsWith('#') || term.startsWith('@')) return; // لا نحسب الهاشتاج والمنشن هنا
@@ -9936,12 +10239,26 @@ function clearSearchHistory() {
     }
 }
 
-function useHistoryItem(text, type, id) {
-    document.getElementById('superSearchInput').value = text || name;
-    if(type === 'user' && id) {
-        window.location.href = `profile.html?uid=${id}`;
+// دالة الضغط على سجل البحث (النسخة الذكية)
+function useHistoryItem(text, type = 'text', id = null) {
+    if(typeof playSound === 'function') playSound('click');
+
+    if (type === 'user' && id) {
+        // لو ضغطت على اسم شخص من السجل، افتح حسابه فوراً
+        openPage(`profile.html?uid=${id}`);
     } else {
-        performSuperSearch();
+        // لو ضغطت على كلمة بحث أو هاشتاج
+        const input = document.getElementById('superSearchInput');
+        input.value = text || "";
+        
+        // تحديث شكل الأزرار (إظهار زر X وإخفاء المايك)
+        const clearBtn = document.getElementById('clearSearchBtn');
+        const voiceBtn = document.getElementById('voiceSearchBtn');
+        if (clearBtn) clearBtn.style.display = 'block';
+        if (voiceBtn) voiceBtn.style.display = 'none';
+        
+        // تنفيذ البحث فوراً كـ "بحث جديد"
+        performSuperSearch(true);
     }
 }
 
@@ -9990,121 +10307,124 @@ function switchSearchTab(tab) {
     }
 }
 
-
-
-       function openThemeModal() { 
-    playSound('click'); 
-    closeAllSheets(); // إغلاق القوائم الأخرى
-    document.getElementById('themeModal').style.display = 'flex'; 
-}
-        // =========================================
-// 🎨 محرك السمات الشامل (Full Theme Engine) - للرئيسية
+// =========================================
+// 🎨 محرك السمات الشامل والذكي للرئيسية
 // =========================================
 
-// 1. قاعدة بيانات السمات
-const appThemesConfig = {
-    'cosmic': {
-        primary: '#FFD700',
-        appBg: 'linear-gradient(to bottom, #0f0c29, #302b63, #0f0c29)',
-        postBg: 'linear-gradient(135deg, #0f0c29 0%, #302b63 100%)',
-        postBorder: 'rgba(255, 215, 0, 0.6)',
-        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 215, 0, 0.25), inset 0 0 20px rgba(255, 215, 0, 0.1)',
-        postLine: '#FFD700'
-    },
-    'default': {
-        primary: '#00C6FF', // السماوي المميز للتطبيق
-        appBg: '#0d0d0f',
-        postBg: '#161616', // لون كارت المنشور الافتراضي
-        postBorder: '#2a2a2a',
-        postShadow: '0 10px 20px rgba(0,0,0,0.3)',
-        postLine: 'transparent'
-    },
-    'blood': {
-        primary: '#ff416c',
-        appBg: '#1a0505',
-        postBg: 'linear-gradient(135deg, #380710 0%, #1a0505 100%)',
-        postBorder: 'rgba(255, 65, 108, 0.5)',
-        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(255, 65, 108, 0.2)',
-        postLine: '#ff416c'
-    },
-    'ocean': {
-        primary: '#00c6ff',
-        appBg: '#05131f',
-        postBg: 'linear-gradient(135deg, #001f3f 0%, #05131f 100%)',
-        postBorder: 'rgba(0, 198, 255, 0.5)',
-        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(0, 198, 255, 0.2)',
-        postLine: '#00c6ff'
-    },
-    'nature': {
-        primary: '#38ef7d',
-        appBg: '#0a140d',
-        postBg: 'linear-gradient(135deg, #0f2b18 0%, #0a140d 100%)',
-        postBorder: 'rgba(56, 239, 125, 0.5)',
-        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(56, 239, 125, 0.15)',
-        postLine: '#38ef7d'
-    },
-    'cyber': {
-        primary: '#fc00ff',
-        appBg: '#12041f',
-        postBg: 'linear-gradient(135deg, #2b0845 0%, #12041f 100%)',
-        postBorder: 'rgba(252, 0, 255, 0.5)',
-        postShadow: '0 15px 35px rgba(0, 0, 0, 0.6), 0 0 25px rgba(252, 0, 255, 0.25)',
-        postLine: '#fc00ff'
+// 1. قاعدة البيانات (56 ستايل)
+window.appThemesConfig = {
+    'default': { primary: '#00C6FF', appBg: '#0d0d0f', postBg: '#161616', postBorder: '#2a2a2a' },
+    'cosmic': { primary: '#FFD700', appBg: 'linear-gradient(to bottom, #0f0c29, #302b63, #0f0c29)', postBg: 'linear-gradient(135deg, #0f0c29 0%, #302b63 100%)', postBorder: 'rgba(255, 215, 0, 0.6)' },
+    'blood': { primary: '#ff416c', appBg: '#1a0505', postBg: 'linear-gradient(135deg, #380710 0%, #1a0505 100%)', postBorder: 'rgba(255, 65, 108, 0.5)' },
+    'ocean': { primary: '#00c6ff', appBg: '#05131f', postBg: 'linear-gradient(135deg, #001f3f 0%, #05131f 100%)', postBorder: 'rgba(0, 198, 255, 0.5)' },
+    'nature': { primary: '#38ef7d', appBg: '#0a140d', postBg: 'linear-gradient(135deg, #0f2b18 0%, #0a140d 100%)', postBorder: 'rgba(56, 239, 125, 0.5)' },
+    'cyber': { primary: '#fc00ff', appBg: '#12041f', postBg: 'linear-gradient(135deg, #2b0845 0%, #12041f 100%)', postBorder: 'rgba(252, 0, 255, 0.5)' },
+    'nebula': { primary: '#8A2BE2', appBg: '#090014', postBg: 'linear-gradient(135deg, #1b003a 0%, #090014 100%)', postBorder: 'rgba(138, 43, 226, 0.5)' },
+    'starlight': { primary: '#E0FFFF', appBg: '#000814', postBg: 'linear-gradient(135deg, #001d3d 0%, #000814 100%)', postBorder: 'rgba(224, 255, 255, 0.5)' },
+    'blackhole': { primary: '#FF4500', appBg: '#000000', postBg: 'linear-gradient(135deg, #1a0500 0%, #000000 100%)', postBorder: 'rgba(255, 69, 0, 0.4)' },
+    'martian': { primary: '#FF5733', appBg: '#170501', postBg: 'linear-gradient(135deg, #330b02 0%, #170501 100%)', postBorder: 'rgba(255, 87, 51, 0.5)' },
+    'lunar': { primary: '#D3D3D3', appBg: '#0f1115', postBg: 'linear-gradient(135deg, #23272f 0%, #0f1115 100%)', postBorder: 'rgba(211, 211, 211, 0.3)' },
+    'aurora': { primary: '#00FFCC', appBg: '#001a14', postBg: 'linear-gradient(135deg, #003328 0%, #001a14 100%)', postBorder: 'rgba(0, 255, 204, 0.5)' },
+    'quasar': { primary: '#FF1493', appBg: '#12000a', postBg: 'linear-gradient(135deg, #2b0018 0%, #12000a 100%)', postBorder: 'rgba(255, 20, 147, 0.5)' },
+    'supernova': { primary: '#FDB813', appBg: '#1a1200', postBg: 'linear-gradient(135deg, #332400 0%, #1a1200 100%)', postBorder: 'rgba(253, 184, 19, 0.5)' },
+    'eclipse': { primary: '#F0E68C', appBg: '#080808', postBg: 'linear-gradient(135deg, #1c1c1c 0%, #080808 100%)', postBorder: 'rgba(240, 230, 140, 0.4)' },
+    'pluto': { primary: '#B0E0E6', appBg: '#060a12', postBg: 'linear-gradient(135deg, #0e1726 0%, #060a12 100%)', postBorder: 'rgba(176, 224, 230, 0.4)' },
+    'sunset': { primary: '#FF7E5F', appBg: '#1a0b08', postBg: 'linear-gradient(135deg, #331610 0%, #1a0b08 100%)', postBorder: 'rgba(255, 126, 95, 0.5)' },
+    'forest': { primary: '#228B22', appBg: '#051205', postBg: 'linear-gradient(135deg, #0b260b 0%, #051205 100%)', postBorder: 'rgba(34, 139, 34, 0.4)' },
+    'volcano': { primary: '#FF2400', appBg: '#120200', postBg: 'linear-gradient(135deg, #2b0500 0%, #120200 100%)', postBorder: 'rgba(255, 36, 0, 0.5)' },
+    'glacier': { primary: '#A5F2F3', appBg: '#041112', postBg: 'linear-gradient(135deg, #0a2729 0%, #041112 100%)', postBorder: 'rgba(165, 242, 243, 0.4)' },
+    'desert': { primary: '#EDC9AF', appBg: '#140f0a', postBg: 'linear-gradient(135deg, #2e2317 0%, #140f0a 100%)', postBorder: 'rgba(237, 201, 175, 0.4)' },
+    'autumn': { primary: '#D2691E', appBg: '#170a02', postBg: 'linear-gradient(135deg, #331705 0%, #170a02 100%)', postBorder: 'rgba(210, 105, 30, 0.5)' },
+    'spring': { primary: '#FFB7C5', appBg: '#140a0c', postBg: 'linear-gradient(135deg, #2e171b 0%, #140a0c 100%)', postBorder: 'rgba(255, 183, 197, 0.4)' },
+    'thunder': { primary: '#F0E68C', appBg: '#090912', postBg: 'linear-gradient(135deg, #17172b 0%, #090912 100%)', postBorder: 'rgba(240, 230, 140, 0.5)' },
+    'abyss': { primary: '#008B8B', appBg: '#010c0c', postBg: 'linear-gradient(135deg, #031c1c 0%, #010c0c 100%)', postBorder: 'rgba(0, 139, 139, 0.4)' },
+    'coral': { primary: '#FF7F50', appBg: '#170805', postBg: 'linear-gradient(135deg, #33120a 0%, #170805 100%)', postBorder: 'rgba(255, 127, 80, 0.5)' },
+    'ruby': { primary: '#E0115F', appBg: '#140108', postBg: 'linear-gradient(135deg, #2e0213 0%, #140108 100%)', postBorder: 'rgba(224, 17, 95, 0.5)' },
+    'emerald': { primary: '#50C878', appBg: '#06140b', postBg: 'linear-gradient(135deg, #0d2e1a 0%, #06140b 100%)', postBorder: 'rgba(80, 200, 120, 0.4)' },
+    'sapphire': { primary: '#0F52BA', appBg: '#010714', postBg: 'linear-gradient(135deg, #03132e 0%, #010714 100%)', postBorder: 'rgba(15, 82, 186, 0.5)' },
+    'amethyst': { primary: '#9966CC', appBg: '#0d0812', postBg: 'linear-gradient(135deg, #1e142b 0%, #0d0812 100%)', postBorder: 'rgba(153, 102, 204, 0.5)' },
+    'obsidian': { primary: '#8A2BE2', appBg: '#050505', postBg: 'linear-gradient(135deg, #141414 0%, #050505 100%)', postBorder: 'rgba(138, 43, 226, 0.3)' },
+    'gold': { primary: '#FFDF00', appBg: '#121000', postBg: 'linear-gradient(135deg, #2b2500 0%, #121000 100%)', postBorder: 'rgba(255, 223, 0, 0.5)' },
+    'silver': { primary: '#C0C0C0', appBg: '#0a0a0a', postBg: 'linear-gradient(135deg, #1f1f1f 0%, #0a0a0a 100%)', postBorder: 'rgba(192, 192, 192, 0.4)' },
+    'bronze': { primary: '#CD7F32', appBg: '#120a04', postBg: 'linear-gradient(135deg, #2b1a0a 0%, #120a04 100%)', postBorder: 'rgba(205, 127, 50, 0.4)' },
+    'diamond': { primary: '#B9F2FF', appBg: '#081012', postBg: 'linear-gradient(135deg, #132429 0%, #081012 100%)', postBorder: 'rgba(185, 242, 255, 0.5)' },
+    'topaz': { primary: '#FFC87C', appBg: '#140e06', postBg: 'linear-gradient(135deg, #2e200d 0%, #140e06 100%)', postBorder: 'rgba(255, 200, 124, 0.4)' },
+    'matrix': { primary: '#00FF41', appBg: '#000a00', postBg: 'linear-gradient(135deg, #001f00 0%, #000a00 100%)', postBorder: 'rgba(0, 255, 65, 0.5)' },
+    'vaporwave': { primary: '#FF71CE', appBg: '#0a0014', postBg: 'linear-gradient(135deg, #1d0033 0%, #0a0014 100%)', postBorder: 'rgba(255, 113, 206, 0.5)' },
+    'synthwave': { primary: '#01CDFE', appBg: '#10001a', postBg: 'linear-gradient(135deg, #280040 0%, #10001a 100%)', postBorder: 'rgba(1, 205, 254, 0.5)' },
+    'dracula': { primary: '#BD93F9', appBg: '#181920', postBg: 'linear-gradient(135deg, #282A36 0%, #181920 100%)', postBorder: 'rgba(189, 147, 249, 0.4)' },
+    'hacker': { primary: '#00FF00', appBg: '#000000', postBg: '#0a0a0a', postBorder: 'rgba(0, 255, 0, 0.6)' },
+    'gothic': { primary: '#800000', appBg: '#080808', postBg: 'linear-gradient(135deg, #1c1c1c 0%, #080808 100%)', postBorder: 'rgba(128, 0, 0, 0.5)' },
+    'toxic': { primary: '#BFFF00', appBg: '#0b1400', postBg: 'linear-gradient(135deg, #192b00 0%, #0b1400 100%)', postBorder: 'rgba(191, 255, 0, 0.4)' },
+    'steampunk': { primary: '#C39B77', appBg: '#120d09', postBg: 'linear-gradient(135deg, #291d14 0%, #120d09 100%)', postBorder: 'rgba(195, 155, 119, 0.4)' },
+    'neon_city': { primary: '#FF0055', appBg: '#050114', postBg: 'linear-gradient(135deg, #13032e 0%, #050114 100%)', postBorder: 'rgba(255, 0, 85, 0.5)' },
+    'minimal': { primary: '#FFFFFF', appBg: '#000000', postBg: '#0f0f0f', postBorder: '#333333' },
+    'crimson': { primary: '#DC143C', appBg: '#140105', postBg: 'linear-gradient(135deg, #2e030b 0%, #140105 100%)', postBorder: 'rgba(220, 20, 60, 0.5)' },
+    'mint': { primary: '#98FF98', appBg: '#07120a', postBg: 'linear-gradient(135deg, #102917 0%, #07120a 100%)', postBorder: 'rgba(152, 255, 152, 0.4)' },
+    'teal': { primary: '#008080', appBg: '#000f0f', postBg: 'linear-gradient(135deg, #002424 0%, #000f0f 100%)', postBorder: 'rgba(0, 128, 128, 0.5)' },
+    'peach': { primary: '#FFE5B4', appBg: '#14110a', postBg: 'linear-gradient(135deg, #2e2617 0%, #14110a 100%)', postBorder: 'rgba(255, 229, 180, 0.4)' },
+    'lavender': { primary: '#E6E6FA', appBg: '#0f0c14', postBg: 'linear-gradient(135deg, #231c2e 0%, #0f0c14 100%)', postBorder: 'rgba(230, 230, 250, 0.4)' },
+    'indigo': { primary: '#4B0082', appBg: '#05000a', postBg: 'linear-gradient(135deg, #120024 0%, #05000a 100%)', postBorder: 'rgba(75, 0, 130, 0.5)' },
+    'slate': { primary: '#708090', appBg: '#07080a', postBg: 'linear-gradient(135deg, #12151a 0%, #07080a 100%)', postBorder: 'rgba(112, 128, 144, 0.4)' },
+    'mustard': { primary: '#FFDB58', appBg: '#141104', postBg: 'linear-gradient(135deg, #2e270a 0%, #141104 100%)', postBorder: 'rgba(255, 219, 88, 0.4)' },
+    'olive': { primary: '#808000', appBg: '#0a0a00', postBg: 'linear-gradient(135deg, #1a1a00 0%, #0a0a00 100%)', postBorder: 'rgba(128, 128, 0, 0.4)' },
+    'rose_gold': { primary: '#B76E79', appBg: '#120a0b', postBg: 'linear-gradient(135deg, #2b181b 0%, #120a0b 100%)', postBorder: 'rgba(183, 110, 121, 0.4)' }
+};
+
+// 2. الأسماء بالعربي للتوضيح
+const themeNamesAr = {
+    'default': 'الافتراضي', 'cosmic': 'الكوني (ذهبي)', 'blood': 'نبيتي ناري', 'ocean': 'أعماق المحيط', 'nature': 'عصب الغابة', 'cyber': 'سايبر بانك',
+    'nebula': 'سديم الفضاء', 'starlight': 'ضوء النجوم', 'blackhole': 'ثقب أسود', 'martian': 'المريخ', 'lunar': 'ضوء القمر', 'aurora': 'شفق قطبي', 'quasar': 'كوازار', 'supernova': 'سوبرنوفا', 'eclipse': 'كسوف الشمس', 'pluto': 'بلوتو',
+    'sunset': 'غروب الشمس', 'forest': 'غابة عميقة', 'volcano': 'بركان ثائر', 'glacier': 'جليدي', 'desert': 'رمال الصحراء', 'autumn': 'أوراق الخريف', 'spring': 'زهر الربيع', 'thunder': 'عاصفة رعدية', 'abyss': 'الهاوية', 'coral': 'شعب مرجانية',
+    'ruby': 'ياقوت أحمر', 'emerald': 'زمرد', 'sapphire': 'ياقوت أزرق', 'amethyst': 'جمشت', 'obsidian': 'أوبسيديان', 'gold': 'ذهب خالص', 'silver': 'فضة نقية', 'bronze': 'برونز', 'diamond': 'ألماس مشع', 'topaz': 'توباز',
+    'matrix': 'ماتريكس', 'vaporwave': 'فيبور ويف', 'synthwave': 'سينث ويف', 'dracula': 'دراكولا', 'hacker': 'الهاكر', 'gothic': 'قوطي غامق', 'toxic': 'سام (Toxic)', 'steampunk': 'ستيم بانك', 'neon_city': 'مدينة النيون', 'minimal': 'بسيط (مينيمال)',
+    'crimson': 'قرمزي', 'mint': 'نعناع هادئ', 'teal': 'تركواز غامق', 'peach': 'خوخي', 'lavender': 'لافندر', 'indigo': 'نيلي عميق', 'slate': 'رمادي مزرق', 'mustard': 'خردلي', 'olive': 'زيتوني', 'rose_gold': 'روز جولد'
+};
+
+// 3. دالة توليد الكروت (ترسمها برمجياً لسرعة الأداء)
+window.renderThemesList = function() {
+    const grid = document.getElementById('dynamicThemesGrid');
+    if (!grid || !window.appThemesConfig) return;
+    
+    let generatedHtml = '';
+
+    for (const [themeKey, themeData] of Object.entries(window.appThemesConfig)) {
+        const arName = themeNamesAr[themeKey] || themeKey;
+        
+        generatedHtml += `
+        <div style="cursor:pointer; border-radius:16px; overflow:hidden; border:2px solid transparent; transition:all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);" 
+             onclick="applyFullTheme('${themeKey}')" 
+             onmouseover="this.style.borderColor='${themeData.primary}'; this.style.transform='scale(1.05)';" 
+             onmouseout="this.style.borderColor='transparent'; this.style.transform='scale(1)';">
+            <div style="height: 65px; background: ${themeData.appBg}; display:flex; align-items:center; justify-content:center;">
+                <div style="width: 75%; height: 35px; border-radius: 8px; background: ${themeData.postBg}; border: 1px solid ${themeData.postBorder}; box-shadow: 0 5px 15px rgba(0,0,0,0.5);"></div>
+            </div>
+            <div style="background:#222; text-align:center; padding:10px 5px; font-size:12px; font-weight:900; color:${themeData.primary}; border-top: 1px solid #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                ${arName}
+            </div>
+        </div>`;
+    }
+    
+    grid.innerHTML = generatedHtml;
+};
+
+// 4. الدالة المحدثة لفتح النافذة
+window.openThemeModal = function() {
+    if(typeof playSound === 'function') playSound('click');
+    if(typeof closeAllSheets === 'function') closeAllSheets(); 
+    
+    // رسم الكروت أولاً قبل الظهور
+    window.renderThemesList();
+
+    const modal = document.getElementById('themeModal');
+    if (modal) {
+        modal.style.display = 'flex'; 
     }
 };
 
-// =========================================
-// 🎨 دالة تطبيق السمة (المحصنة للرئيسية) - النسخة النهائية الصحيحة
-// =========================================
-window.applyFullTheme = function(themeName, save = true) {
-    const theme = appThemesConfig[themeName] || appThemesConfig['cosmic']; // الكوني هو الأساسي
-    const root = document.documentElement;
-
-    // 1. حقن المتغيرات الأساسية في ملف الـ CSS
-    root.style.setProperty('--primary-color', theme.primary); 
-    root.style.setProperty('--primary-solid', theme.primary); 
-    
-    // 2. تغيير متغيرات الخلفية الأساسية 
-    root.style.setProperty('--app-main-bg', theme.appBg);
-    root.style.setProperty('--bg-color', theme.appBg);
-    
-    // 3. تغيير شكل المنشورات (الكروت)
-    root.style.setProperty('--post-main-bg', theme.postBg);
-    root.style.setProperty('--post-border-color', theme.postBorder);
-    root.style.setProperty('--post-shadow-effect', theme.postShadow);
-    root.style.setProperty('--post-line-color', theme.postLine);
-
-    // 🚀 4. الإجبار الآمن: تطبيق الخلفية بدون مسح المتغيرات السابقة 🚀
-   // 🚀 4. الإجبار الآمن: تطبيق الخلفية بدون مسح المتغيرات السابقة 🚀
-document.body.style.setProperty('background', theme.appBg, 'important');
-// تم مسح سطر الـ background-attachment من هنا عشان نلغي الخداع البصري
-document.body.style.setProperty('background-size', 'cover', 'important');
- 
-    // إجبار الـ html كمان بس بأمان
-    root.style.setProperty('background', theme.appBg, 'important');
-
-    // 5. الحفظ والإغلاق
-    if (save) {
-        localStorage.setItem('nabd_active_theme', themeName);
-        if(typeof playSound === 'function') playSound('success');
-        if(typeof showToast === 'function') showToast("تم تطبيق السمة بنجاح 🎨");
-        
-        // إغلاق النافذة بطريقة آمنة
-        const modal = document.getElementById('themeModal');
-        if(modal) modal.style.display = 'none';
-        
-        // إغلاق أي خلفية شفافة أخرى لو مفتوحة
-        const overlay = document.getElementById('globalOverlay');
-        if(overlay) overlay.style.display = 'none';
-    }
-};
-
-// 3. تهيئة السمة عند فتح التطبيق (مهم جداً للتحميل التلقائي)
-// 3. تهيئة السمة عند فتح التطبيق (مهم جداً للتحميل التلقائي)
-document.addEventListener("DOMContentLoaded", () => {
-    // في الصفحة الرئيسية، السمة الافتراضية المفضلة هي cosmic بناءً على تصميمك
-    const savedTheme = localStorage.getItem('nabd_active_theme') || 'cosmic';
-    window.applyFullTheme(savedTheme, false);
+// 5. تحميل الكروت احتياطياً أول ما الصفحة تفتح
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(window.renderThemesList, 500);
 });
 
 
@@ -10135,6 +10455,15 @@ async function loadPosts(more = false) {
     const list = document.getElementById('postsList');
     const sentinel = document.getElementById('scrollSentinel');
 
+    // 1. تأكيد جلب قائمة المتابعين أولاً قبل أي شيء
+    if (typeof fetchMyFollowing === 'function') {
+        await fetchMyFollowing();
+    }
+    
+    // التأكد إن القائمة فيها رقمك على الأقل عشان تشوف بوستاتك
+    if (typeof myFollowingList === 'undefined') window.myFollowingList = [];
+    if (!myFollowingList.includes(currentUser.uid)) myFollowingList.push(currentUser.uid);
+
     if (!more) {
         list.innerHTML = getSkeletonHTML(); 
         sentinel.style.display = 'none'; 
@@ -10143,113 +10472,143 @@ async function loadPosts(more = false) {
         sentinel.innerHTML = '<div class="skeleton sk-line" style="width:120px; height:10px; border-radius:10px; margin:auto; opacity:0.7"></div>'; 
     }
 
-    let q = db.collection('posts').orderBy('createdAt', 'desc').limit(20);
+    // جلب كمية كبيرة (50 منشور)
+    let q = db.collection('posts').orderBy('createdAt', 'desc').limit(50);
     if (more && lastVisibleDoc) q = q.startAfter(lastVisibleDoc);
 
-    // 🔥 النظام الجديد: إعداد المهلة الزمنية (Timeout)
     let isTimeout = false;
     const timeoutTimer = setTimeout(() => {
-        isTimeout = true; // تم تفعيل المهلة
+        isTimeout = true; 
         isLoading = false;
         if(typeof finishLoadingBar === "function") finishLoadingBar();
         
-        // تصميم احترافي لرسالة الخطأ وزر التحديث
         const errorHTML = `
             <div class="empty-state-container" style="padding: 40px 10px; animation: fadeIn 0.3s;">
                 <div class="empty-icon-box" style="border-color: var(--danger-color); background: rgba(255, 59, 48, 0.1);">
                     <i class="fa-solid fa-wifi" style="color: var(--danger-color);"></i>
                 </div>
-                <div class="empty-title">${t('err_connection')}</div>
-                <div class="empty-desc">يبدو أن الإنترنت ضعيف أو منقطع.</div>
+                <div class="empty-title">${typeof t === 'function' ? t('err_connection') : 'ضعف الاتصال'}</div>
                 <button class="empty-btn" onclick="loadPosts()" style="border-color: var(--danger-color); color: var(--danger-color);">
-                    <i class="fa-solid fa-rotate-right"></i> ${t('btn_refresh')}
+                    <i class="fa-solid fa-rotate-right"></i> تحديث
                 </button>
             </div>`;
 
-        if (!more) {
-            list.innerHTML = errorHTML;
-        } else {
-            sentinel.innerHTML = `<button class="empty-btn" onclick="loadPosts(true)">${t('btn_refresh')} 👇</button>`;
-        }
-    }, 10000); // 10 ثواني أقصى مدة للانتظار
+        if (!more) { list.innerHTML = errorHTML; } 
+        else { sentinel.innerHTML = `<button class="empty-btn" onclick="loadPosts(true)">تحديث 👇</button>`; }
+    }, 10000); 
 
     try {
         const snap = await q.get();
 
-        // 🔥 إذا وصلت البيانات، نلغي المؤقت فوراً
         clearTimeout(timeoutTimer);
-        
-        // إذا كان المؤقت قد نفذ بالفعل، نتجاهل هذه البيانات حتى لا تتداخل
         if (isTimeout) return;
 
         if (!more) list.innerHTML = ""; 
 
-        if (snap.empty) {
-            const emptyDesign = `
-                <div class="empty-state-container" style="padding: 40px 10px; padding-bottom: 120px;">
-                    <div class="empty-icon-box"><i class="fa-solid fa-check-double"></i></div>
-                    <div class="empty-title">${more ? t('empty_end_title') : t('empty_posts_title')}</div>
-                    <div class="empty-desc">${more ? t('empty_end_desc') : t('empty_posts_desc')}</div>
-                    <button class="empty-btn" onclick="loadPosts()"><i class="fa-solid fa-rotate-right"></i> ${t('btn_refresh')}</button>
-                </div>`;
+        // 🔥 واجهة الاستكشاف (الترحيب) الموحدة 🔥
+        const discoveryHTML = `
+            <div class="discovery-container" id="mainDiscoveryBox">
+                <div class="discovery-title" id="discTitle">مرحباً بك في وريد</div>
+                <div class="discovery-subtitle" id="discSubtitle">تابع أشخاصاً لبدء رؤية محتواهم</div>
+                <div class="discovery-carousel" id="discoveryCarousel" onscroll="handleDiscoveryScroll()"></div>
+            </div>
+        `;
 
-            if (!more) { list.innerHTML = emptyDesign; sentinel.style.display = 'none'; } 
-            else { sentinel.style.display = 'block'; sentinel.innerHTML = emptyDesign; }
-            
+        // ==========================================
+        // الحالة الأولى: قاعدة البيانات لا تحتوي على أي منشورات إطلاقاً
+        // ==========================================
+        if (snap.empty) {
+            if (!more) { 
+                // المستخدم فتح التطبيق ومفيش أي بوستات خالص -> نعرض الاستكشاف الترحيبي
+                list.innerHTML = discoveryHTML;
+                sentinel.style.display = 'none'; 
+                if(typeof initDiscoverySystem === 'function') initDiscoverySystem();
+            } 
+            else { 
+                // المستخدم وصل لآخر بوست في السكرول -> نعرض الاستكشاف في الأسفل
+                sentinel.style.display = 'none'; 
+                if(!document.getElementById('mainDiscoveryBox')) {
+                    list.insertAdjacentHTML('beforeend', discoveryHTML);
+                    document.getElementById('discTitle').innerText = "نهاية المنشورات ✨";
+                    document.getElementById('discSubtitle').innerText = "اكتشف وتابع أشخاصاً جدد لرؤية المزيد";
+                    if(typeof initDiscoverySystem === 'function') initDiscoverySystem();
+                }
+            }
             if(typeof finishLoadingBar === "function") finishLoadingBar();
             isLoading = false;
             return;
         }
 
         lastVisibleDoc = snap.docs[snap.docs.length - 1];
-        const suggestionsHTML = (!more) ? await renderSuggestedFriendsSection() : "";
-        let postCounter = 0;
+        let renderedPostsCount = 0; 
 
+        // رسم المنشورات
         for (const doc of snap.docs) {
             const postData = doc.data();
+            
             if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(postData.uid)) continue; 
+            
+            // 🔥 السر هنا: إخفاء أي شخص لست تتابعه 🔥
+            if (!myFollowingList.includes(postData.uid)) continue;
+
+            // يمكنك تفعيل هذا السطر إذا أردت إخفاء المنشورات التي مر عليها 24 ساعة
+            /*
+            if (postData.createdAt) {
+                const postTime = postData.createdAt.toDate().getTime();
+                const now = Date.now();
+                if ((now - postTime) / (1000 * 60 * 60) > 24) continue; 
+            }
+            */
 
             await renderPost({ id: doc.id, ...postData });
-            postCounter++;
-
-            if (postCounter === 3 && suggestionsHTML) {
-                const sugDiv = document.createElement('div');
-                sugDiv.className = "feed-suggestions-wrapper"; 
-                sugDiv.innerHTML = suggestionsHTML;
-                list.appendChild(sugDiv);
-            }
+            renderedPostsCount++;
         }
 
-        if(more) {
-            sentinel.innerHTML = ''; 
-            sentinel.style.display = 'block'; 
-            sentinel.style.height = '20px'; 
+        // ==========================================
+        // الحالة الثانية: تقييم ما تم رسمه بعد فلترة المتابعين
+        // ==========================================
+        if (!more && renderedPostsCount === 0) {
+            // جلبنا 50 بوست بس طلعوا كلهم لناس إنت مش متابعهم (حسابك جديد)
+            list.innerHTML = discoveryHTML;
+            sentinel.style.display = 'none';
+            if(typeof initDiscoverySystem === 'function') initDiscoverySystem();
         } else {
-            sentinel.style.display = 'block';
+            // جلبنا بوستات لأصحابك بنجاح
+            if(more) {
+                sentinel.innerHTML = ''; 
+                sentinel.style.display = 'block'; 
+                sentinel.style.height = '20px'; 
+            } else {
+                sentinel.style.display = 'block';
+            }
+
+            // لو الدفعة اللي جات أقل من 50، معناها إن الداتابيز خلصت (نهاية الفيد)
+            if (snap.docs.length < 50) {
+                sentinel.style.display = 'none';
+                if(!document.getElementById('mainDiscoveryBox')) {
+                    list.insertAdjacentHTML('beforeend', discoveryHTML);
+                    document.getElementById('discTitle').innerText = "نهاية المنشورات ✨";
+                    document.getElementById('discSubtitle').innerText = "اكتشف وتابع أشخاصاً جدد لرؤية المزيد";
+                    if(typeof initDiscoverySystem === 'function') initDiscoverySystem();
+                }
+            }
         }
 
     } catch (e) {
         clearTimeout(timeoutTimer);
         console.error("Error loading posts:", e);
-        if(!more && !isTimeout) {
-             list.innerHTML = `
-             <div class="empty-state-container">
-                <div class="empty-icon-box" style="border-color: var(--danger-color);"><i class="fa-solid fa-triangle-exclamation" style="color: var(--danger-color);"></i></div>
-                <div class="empty-title">${t('toast_error')}</div>
-                <button class="empty-btn" onclick="loadPosts()"><i class="fa-solid fa-rotate-right"></i> ${t('btn_refresh')}</button>
-             </div>`;
-        }
     }
 
     if(typeof finishLoadingBar === "function") finishLoadingBar();
     isLoading = false;
-    if(navigator.vibrate) navigator.vibrate(5);
 }
 
 
 
 // دالة لتحديد أيقونة الخصوصية بناءً على الحالة
         async function renderPost(p) {
+            
+            if (p.type === 'repost' && p.originalOwnerUid && typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(p.originalOwnerUid)) return;
         const postPrivacy = p.privacy || p.visibility || 'public';
         
         // 🔍 فحص هل المنشور يحتوي على فيديو أم لا (أساسي أو إعادة نشر)
@@ -10898,13 +11257,16 @@ function deletePost() {
 // ==========================================
 // 2. دالة التنفيذ الفعلي (مستقلة وتعمل 100%)
 // ==========================================
+// ==========================================
+// 2. دالة التنفيذ الفعلي (تحذف المنشور والتعليق المثبت معاً)
+// ==========================================
 async function performFinalDelete(idToDelete) {
     // إخفاء المودال فوراً عشان المستخدم ميضغطش مرتين
     document.getElementById('deleteConfirmModal').style.display = 'none';
     playSound('click'); 
 
     if (!idToDelete) {
-        showToast(t('toast_err_post_id'));
+        showToast(typeof t === 'function' ? t('toast_err_post_id') : "خطأ في التحديد");
         return;
     }
 
@@ -10912,24 +11274,29 @@ async function performFinalDelete(idToDelete) {
         // حذف من قاعدة البيانات
         await db.collection("posts").doc(idToDelete).delete();
         
-        // حذف من الشاشة (بأنيميشن)
+        // 🔥 التعديل هنا: استهداف "الحاوية الأم" لحذف المنشور والتعليق معاً
+        const wrapperEl = document.getElementById(`unit-${idToDelete}`) || document.getElementById(`search-unit-${idToDelete}`);
         const postEl = document.getElementById(`post-${idToDelete}`);
-                if(postEl) {
-            postEl.style.transition = "0.5s";
-            postEl.style.transform = "scale(0)";
-            postEl.style.opacity = "0";
-            setTimeout(() => postEl.remove(), 500);
+        
+        const elementToRemove = wrapperEl || postEl;
+
+        if(elementToRemove) {
+            elementToRemove.style.transition = "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+            elementToRemove.style.transform = "scale(0)";
+            elementToRemove.style.opacity = "0";
+            
+            // إزالة العنصر من الشاشة بعد انتهاء الأنيميشن
+            setTimeout(() => elementToRemove.remove(), 500);
         }
 
         // استخدام المفتاح المترجم لرسالة نجاح الحذف
-        showToast(t('toast_deleted'));
+        showToast(typeof t === 'function' ? t('toast_deleted') : "تم الحذف بنجاح 🗑️");
 
     } catch(e) {
         console.error("Delete Error:", e);
-        // استخدام المفتاح المترجم لرسالة فشل الحذف في التوست
-        showToast(t('toast_del_fail'));
-        // استخدام المفتاح المترجم للتنبيه المنبثق عند الفشل
-        alert(t('alert_del_fail'));
+        // رسائل الفشل
+        showToast(typeof t === 'function' ? t('toast_del_fail') : "فشل الحذف");
+        alert(typeof t === 'function' ? t('alert_del_fail') : "فشل الحذف، تأكد من الصلاحيات.");
     }
 }
 
@@ -11081,6 +11448,43 @@ function openComments(pid, ownerUid, targetCommentId = null) {
     let unreadCommentsCount = 0; 
 
     document.getElementById('cmSheet').classList.add('active');
+    
+        // 🔥 حماية: مراقبة حالة البوست لحظياً لإخفاء/إظهار مربع الكتابة 🔥
+    if (window.postStatusUnsub) window.postStatusUnsub();
+    
+    window.postStatusUnsub = db.collection('posts').doc(pid).onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            const isDisabled = data.commentsDisabled === true; // هل التعليقات مغلقة؟
+            
+            const inputArea = document.querySelector('#cmSheet .input-area-container');
+            const suggestedEmojis = document.getElementById('suggestedEmojis');
+            let disabledMsg = document.getElementById('cmDisabledMsg');
+            
+            // إنشاء شريط القفل لو مش موجود
+            if (!disabledMsg) {
+                disabledMsg = document.createElement('div');
+                disabledMsg.id = 'cmDisabledMsg';
+                disabledMsg.className = 'comments-disabled-bar';
+                document.getElementById('commentFooter').appendChild(disabledMsg);
+            }
+
+            if (isDisabled) {
+                // إخفاء المربع والأدوات فوراً
+                if (inputArea) inputArea.style.display = 'none';
+                if (suggestedEmojis) suggestedEmojis.style.display = 'none';
+                
+                // إظهار رسالة القفل
+                disabledMsg.innerHTML = `<i class="fa-solid fa-lock"></i> ${typeof t === 'function' && t('comments_are_disabled') ? t('comments_are_disabled') : 'التعليقات مغلقة لهذا المنشور'}`;
+                disabledMsg.style.display = 'flex';
+            } else {
+                // إرجاع كل حاجة لطبيعتها لو صاحب البوست فتحها تاني
+                if (inputArea) inputArea.style.display = 'flex';
+                disabledMsg.style.display = 'none';
+            }
+        }
+    });
+
         // تحريك الكرة للأعلى بعيداً عن التعليقات
     if (typeof window.moveOrbForComments === 'function') {
         window.moveOrbForComments(true);
@@ -11722,6 +12126,37 @@ function stopRecordingProcess() {
     }
         
     document.getElementById('repliesSheet').classList.add('active');
+        // 🔥 حماية الردود: مراقبة حالة البوست لإخفاء مربع الرد فوراً 🔥
+    if (window.replyPostStatusUnsub) window.replyPostStatusUnsub();
+    
+    window.replyPostStatusUnsub = db.collection('posts').doc(currentPostId).onSnapshot(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            const isDisabled = data.commentsDisabled === true;
+            
+            const inputArea = document.querySelector('#repliesSheet .input-area-container');
+            let disabledMsg = document.getElementById('replyDisabledMsg');
+            
+            if (!disabledMsg) {
+                disabledMsg = document.createElement('div');
+                disabledMsg.id = 'replyDisabledMsg';
+                disabledMsg.className = 'comments-disabled-bar';
+                document.querySelector('#repliesSheet .cm-footer').appendChild(disabledMsg);
+            }
+
+            if (isDisabled) {
+                // إخفاء مربع الرد
+                if (inputArea) inputArea.style.display = 'none';
+                disabledMsg.innerHTML = `<i class="fa-solid fa-lock"></i> ${typeof t === 'function' && t('comments_are_disabled') ? t('comments_are_disabled') : 'الردود مغلقة لهذا المنشور'}`;
+                disabledMsg.style.display = 'flex';
+            } else {
+                // إظهار المربع
+                if (inputArea) inputArea.style.display = 'flex';
+                disabledMsg.style.display = 'none';
+            }
+        }
+    });
+
     document.querySelector('.fb-icons').classList.add('hide-nav');
 
     // 🔥 الاستماع لتحديثات التفاعل والوقت للتعليق الأساسي في الخلفية 🔥
@@ -12413,7 +12848,7 @@ function handleReplyInputTyping(textarea) {
 
 
       async function sendReplyToComment(sticker = null, isSticker = false, giftData = null) {
-        const inp = document.getElementById('cmInput'); // (خليها 'replyInput' لو بتعدل دالة الردود)
+    const inp = document.getElementById('replyInput'); // تم تصحيح cmInput إلى replyInput هنا
     
     // 🔥 تجميع المنشنات وإضافة "سطر جديد"
     let mentionString = "";
@@ -12424,19 +12859,19 @@ function handleReplyInputTyping(textarea) {
     let textValue = inp ? inp.value.trim() : "";
     let txt = "";
     
-    if (stickerContent) {
-        txt = stickerContent;
+    // 💡 تم تصحيح الخطأ هنا: استخدام sticker بدلاً من stickerContent 💡
+    if (sticker) {
+        txt = sticker;
     } else {
         // لو في منشن ونص، افصلهم بسطرين.. لو منشن بس ابعته
-                if (mentionString) {
+        if (mentionString) {
             txt = textValue ? (mentionString + " " + textValue) : mentionString;
         } else {
             txt = textValue;
         }
-
     }
 
-    if(!txt && !isSticker && !giftData) return;
+    if(!txt && !isSticker && !giftData && !pendingReplyFile) return; // تم إضافة حماية لو في ملف بيترفع
 
     if (typeof playSound === 'function') playSound('sent'); 
     
@@ -12468,7 +12903,7 @@ function handleReplyInputTyping(textarea) {
                 .collection('replies').doc(selectedReply.id)
                 .update({ text: txt });
                 
-            if (typeof showToast === 'function') showToast(t('toast_reply_updated'));
+            if (typeof showToast === 'function') showToast(typeof t === 'function' ? t('toast_reply_updated') : 'تم التحديث');
             
             isEditingReply = false;
             
@@ -12535,29 +12970,29 @@ function handleReplyInputTyping(textarea) {
             }
 
             // 4. إرسال الإشعارات
-            
             // إشعار لصاحب التعليق الأصلي
-            if (currentParentComment.uid !== currentUser.uid) {
-                let notifText = giftData ? `${t('gift_sent_you')} (${giftData.name}) 🎁` : t('text_reply_to_comment'); 
-                pushNotification(currentParentComment.uid, 'reply', notifText, null, currentPostId, currentParentComment.id, newReplyRef.id);
+            if (currentParentComment && currentParentComment.uid !== currentUser.uid) {
+                let notifText = giftData ? `${typeof t === 'function' ? t('gift_sent_you') : 'أرسل لك'} (${giftData.name}) 🎁` : (typeof t === 'function' ? t('text_reply_to_comment') : 'رد على تعليقك'); 
+                if(typeof pushNotification === 'function') pushNotification(currentParentComment.uid, 'reply', notifText, null, currentPostId, currentParentComment.id, newReplyRef.id);
             }
 
             // إشعار للأشخاص المذكورين (المنشن)
             if (finalMentions.length > 0) {
                 finalMentions.forEach(m => {
-                    if (m.uid !== currentUser.uid && m.uid !== currentParentComment.uid) {
-                        pushNotification(m.uid, 'reply', t('notif_mentioned_reply'), null, currentPostId, currentParentComment.id, newReplyRef.id);
+                    if (m.uid !== currentUser.uid && (!currentParentComment || m.uid !== currentParentComment.uid)) {
+                        if(typeof pushNotification === 'function') pushNotification(m.uid, 'reply', typeof t === 'function' ? t('notif_mentioned_reply') : 'ذكرك في رد', null, currentPostId, currentParentComment ? currentParentComment.id : null, newReplyRef.id);
                     }
                 });
             }
             
-            if (typeof showToast === 'function') showToast(t('toast_reply_sent_success') || "تم إرسال الرد ✅");
+            if (typeof showToast === 'function') showToast(typeof t === 'function' ? t('toast_reply_sent_success') : "تم إرسال الرد ✅");
         }
 
     } catch (e) {
         console.error("Error sending reply:", e);
-        if (typeof showToast === 'function') showToast(t('error_reply_failed'));
+        if (typeof showToast === 'function') showToast(typeof t === 'function' ? t('error_reply_failed') : "فشل الإرسال");
     }
+
     // 🧹 تنظيف الواجهة وإرجاعها لطبيعتها
     if (inp) {
         inp.value = ""; 
@@ -12566,13 +13001,13 @@ function handleReplyInputTyping(textarea) {
     
     // 🔥 تفريغ قائمة المنشن ورسم المربع تاني عشان يقفل الدورين
     window.tempMentionList = [];
-    if(inp) renderMentionTags(inp.id);
+    if(typeof renderMentionTags === 'function' && inp) renderMentionTags(inp.id);
     
     // استعادة شكل الأزرار (المايك)
     if(inp && inp.id === 'cmInput' && typeof handleInputTyping === 'function') handleInputTyping(inp);
     if(inp && inp.id === 'replyInput' && typeof handleReplyInputTyping === 'function') handleReplyInputTyping(inp);
 
-      } 
+}
 
         // 1. دالة فتح خيارات التعليق
 function openCommentOptions(c) {
@@ -12818,7 +13253,11 @@ if (isMine) {
     document.getElementById('optionsBackdrop').style.display = 'block'; 
 }
 
-        function closeRepliesSheet() { document.getElementById('repliesSheet').classList.remove('active'); currentParentComment = null; }
+        function closeRepliesSheet() {
+            
+                if (window.replyPostStatusUnsub) { window.replyPostStatusUnsub(); window.replyPostStatusUnsub = null; }
+
+            document.getElementById('repliesSheet').classList.remove('active'); currentParentComment = null; }
         function showChicConfirm(title, msg, icon, callback) { document.getElementById('chicTitle').innerText = title; document.getElementById('chicMessage').innerText = msg; document.getElementById('chicIcon').innerHTML = icon; document.getElementById('chicConfirmModal').style.display='flex'; document.getElementById('chicConfirmBtn').onclick = () => { callback(); document.getElementById('chicConfirmModal').style.display='none'; }; }
         function closeChicModal() { document.getElementById('chicConfirmModal').style.display='none'; }
     // استبدال دالة sharePost القديمة بهذه النسخة الجديدة
@@ -14243,18 +14682,29 @@ function fallbackCopyTextToClipboard(text) {
 
 
 /* --- دالة إخفاء المنشور --- */
+/* --- دالة إخفاء المنشور (تخفي المنشور والتعليق المثبت معاً) --- */
 function hidePost() {
     playSound('click');
-    // إخفاء العنصر بصرياً
-    const postEl = document.getElementById(`post-${currentPostId}`);
-    if(postEl) {
-        postEl.style.transition = "0.5s";
-        postEl.style.opacity = "0";
-        postEl.style.transform = "scale(0.9)";
-        setTimeout(() => postEl.remove(), 500);
+    const pid = window.currentPostId || currentPostId;
+    
+    // 🔥 التعديل هنا: استهداف "الحاوية الأم" اللي بتجمع البوست والتعليق الخارجي
+    const wrapperEl = document.getElementById(`unit-${pid}`) || document.getElementById(`search-unit-${pid}`);
+    const postEl = document.getElementById(`post-${pid}`);
+    
+    // لو الحاوية موجودة هنخفيها، لو مش موجودة (لأي سبب) هنخفي البوست نفسه
+    const elementToHide = wrapperEl || postEl;
+
+    if(elementToHide) {
+        elementToHide.style.transition = "all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
+        elementToHide.style.opacity = "0";
+        elementToHide.style.transform = "scale(0.9)";
+        
+        // إزالة العنصر من الشاشة بعد انتهاء الأنيميشن
+        setTimeout(() => elementToHide.remove(), 500);
     }
+    
     // استخدام مفتاح إخفاء المنشور المترجم
-    showToast(t('toast_hidden'));
+    showToast(typeof t === 'function' ? t('toast_hidden') : "تم إخفاء المنشور");
     closeAllSheets();
 }
 
@@ -14345,7 +14795,7 @@ function renderUserCardInSearch(doc) {
     
     <div style="flex:1" onclick="openPage('profile.html?uid=${doc.id}')">
         <div style="font-weight:bold; color:var(--text-color); unicode-bidi: isolate;" dir="auto">
-            ${highlightMatch(u.name, currentSearchQuery)} ${isMe} 
+            ${safeHighlight(u.name, currentSearchQuery)} ${isMe} 
             ${u.isVerified ? getBadge(true, false) : ''}
         </div>
     </div>
@@ -14355,9 +14805,19 @@ function renderUserCardInSearch(doc) {
 
     document.getElementById('resPeople').appendChild(div);
 }
+
  async function renderFullPostInSearch(p, targetId = 'resPosts') {
+     
+         // 0. فحص وجود فيديو في المنشور
+    let hasVideoContent = false;
+    if (p.type === 'video' || (p.media && p.media.some(m => m.type === 'video'))) {
+        hasVideoContent = true;
+    }
+
     // 1. جلب بيانات المستخدم
-    let u = { name: "مستخدم", pic: defaultAvatar, isVerified: false };
+    let u = { name: "مستخدم", pic: defaultAvatar, isVerified: false, isOnline: false, totalViews: 0 };
+    let specialBadgeHtml = "";
+
     try {
         const ud = await db.collection('users').doc(p.uid).get();
         if(ud.exists) { 
@@ -14365,176 +14825,652 @@ function renderUserCardInSearch(doc) {
             u.name = d.name; 
             u.pic = d.profilePic || defaultAvatar;
             u.isVerified = d.isVerified; 
+            u.totalViews = d.totalViews || 0;
+            
+            // حالة الأونلاين
+            if (window.isOnlineFeatureEnabled && d.lastSeen) {
+                const now = new Date();
+                const lastSeenDate = d.lastSeen.toDate();
+                if ((now - lastSeenDate) / 1000 < 300) u.isOnline = true;
+            }
+
+            // اللقب المخصص (VIP)
+            if (d.specialBadge) {
+                const now = new Date();
+                const expiry = d.specialBadge.expiresAt ? d.specialBadge.expiresAt.toDate() : new Date(now.getTime() + 99999);
+                if (now < expiry) {
+                    specialBadgeHtml = `
+                        <div class="post-vip-badge" style="border-color: ${d.specialBadge.color}">
+                            <i class="fa-solid ${d.specialBadge.icon} post-vip-icon" style="color: ${d.specialBadge.color}"></i>
+                            <span class="post-vip-text">${d.specialBadge.text}</span>
+                        </div>
+                    `;
+                }
+            }
         }
     } catch(e){}
 
-    const isLiked = p.likes && p.likes[currentUser.uid];
+    const rankHtml = getRankHTML(u.totalViews);
+    const postPrivacy = p.privacy || p.visibility || 'public';
+    const isPostSaved = window.mySavedPostsSet && window.mySavedPostsSet.has(p.id);
+    const saveIconClass = isPostSaved ? 'fa-solid fa-bookmark' : 'fa-regular fa-bookmark';
+    const saveBtnStyle = isPostSaved ? 'color: var(--primary-solid);' : 'color: var(--secondary-text);';
+
     const likesCount = p.likes ? Object.keys(p.likes).length : 0;
-    
-    // --- إصلاح النص: تنظيفه من السطور وعلامات التنصيص عشان الزر يشتغل ---
-    const rawText = p.text || '';
-    const safeText = rawText.replace(/'/g, "\\'").replace(/"/g, '&quot;').replace(/\n/g, '\\n');
+    const currentReact = p.likes && currentUser ? p.likes[currentUser.uid] : null;
+    let reactIcon = '<i class="fa-regular fa-heart"></i>';
+    let reactClass = '';
+    const reactionIcons = {
+        'like': '<i class="fa-solid fa-thumbs-up"></i>',
+        'love': '<i class="fa-solid fa-heart"></i>',
+        'haha': '😂', 'wow': '😮', 'sad': '😢', 'angry': '😡', 'slipper': '🩴'
+    };
 
-    // 2. تجهيز الميديا
+    if (currentReact && reactionIcons[currentReact]) {
+        reactIcon = reactionIcons[currentReact];
+        reactClass = `react-${currentReact}`;
+    } else if (p.likes && currentUser && p.likes[currentUser.uid] === true) {
+        reactIcon = '<i class="fa-solid fa-heart"></i>';
+        reactClass = 'liked';
+    }
+
+    // 2. تجهيز الميديا والمحتوى
     let contentHtml = "";
+    
+    // زر الترجمة
+    let translateBtnHtml = "";
+    let translateBlockHtml = "";
+    if (p.text && p.text.trim() !== "") {
+        const encodedPostText = encodeURIComponent(p.text);
+        translateBtnHtml = `
+        <div id="post-trans-btn-${p.id}" class="post-translate-btn" 
+             onmousedown="startGlobalTransPress(event, '${p.id}', 'post', '${encodedPostText}')" 
+             ontouchstart="startGlobalTransPress(event, '${p.id}', 'post', '${encodedPostText}')" 
+             onmouseup="cancelGlobalTransPress(event, '${p.id}', 'post', '${encodedPostText}')" 
+             ontouchend="cancelGlobalTransPress(event, '${p.id}', 'post', '${encodedPostText}')"
+             onmouseleave="clearTimeout(transPressTimer)">
+            <i class="fa-solid fa-language"></i> <span>${t('text_translate_show') || 'ترجمة'}</span>
+        </div>`;
+        
+        translateBlockHtml = `
+            <div id="post-trans-block-${p.id}" class="post-translation-block"></div>
+            <div id="post-raw-text-${p.id}" style="display:none;">${escapeHTML(p.text)}</div>
+        `;
+    }
 
+    // حالة الخلفية الملونة
     if (p.background) {
+        let finalBodyText = p.contentHtml ? p.contentHtml : processPostText(p.text, [], 'bottom');
         contentHtml = `
-            <div class="colored-post-body" style="background:${p.background}; min-height:200px; display:flex; align-items:center; justify-content:center; text-align:center; padding:15px; font-weight:800; font-size:20px; color:#fff; direction:rtl;">
-                ${processPostText(p.text, currentSearchQuery)}
-            </div>`;
-    } else {
-        if (p.text) {
-            contentHtml += `<div class="post-text" style="padding:10px 15px;">${processPostText(p.text, currentSearchQuery)}</div>`;
+        <div class="colored-post-body" style="background:${p.background}; min-height:200px; display:flex; align-items:center; justify-content:center; text-align:center; padding:15px; font-weight:800; font-size:20px; color:#fff; direction:rtl;">
+            ${safeHighlight(finalBodyText, currentSearchQuery)}
+        </div>
+        <div style="display: flex; justify-content: flex-end; padding: 0 15px;">${translateBtnHtml}</div>
+        ${translateBlockHtml}`;
+    } 
+    // حالة البوست العادي
+    else {
+        const hasMedia = (p.media && p.media.length > 0) || (p.linkMeta && p.linkMeta.url);
+        const clampClass = hasMedia ? 'limit-media' : 'limit-text';
+        
+        let finalHtml = "";
+        if (p.contentHtml) {
+            finalHtml = p.contentHtml;
+        } else if (p.text) {
+            finalHtml = processPostText(p.text, p.mentionsList || []); 
         }
 
-        if (p.media && p.media.length) {
-            let gridClass = p.media.length > 1 ? 'double' : 'single';
-            contentHtml += `<div class="media-grid ${gridClass}">`;
-            
-            p.media.forEach((m, idx) => {
-                // داخل دالة renderPost عندما يكون نوع الميديا فيديو:
-if (m.type === 'video') {
-    const uniqueVideoId = `vid-${p.id}-${idx}`;
-    const muteIcon = isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high';
-    const onMetaLoad = `this.classList.add(this.videoWidth > this.videoHeight ? 'video-landscape' : 'video-portrait')`;
+        if (finalHtml) {
+            contentHtml += `
+            <div style="width: 100%; display: block; text-align: right; direction: rtl;">
+                <div class="post-text ${clampClass}" id="search-text-${p.id}" style="text-align: right !important;">${safeHighlight(finalHtml.trim(), currentSearchQuery)}</div>
+                <div class="post-text-controls" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <div class="read-more-btn" id="search-btn-${p.id}" onclick="togglePostText('${p.id}')">... ${t('text_show_more') || 'عرض المزيد'}</div>
+                    ${translateBtnHtml}
+                </div>
+                ${translateBlockHtml}
+            </div>`;
+        }
 
-    contentHtml += `
-    <div class="media-item-wrapper" style="position:relative; width:100%; height:auto; background:#000; display:flex; justify-content:center; align-items:center; border-radius: 12px; overflow: hidden;">
-        
-        <video src="${m.url}" id="${uniqueVideoId}" 
-            class="media-item" 
-            loop playsinline ${isGlobalMuted ? 'muted' : ''} 
-            onloadedmetadata="${onMetaLoad}"
-            onclick="window.location.href = 'videos.html?openVideo=${p.id}'; event.stopPropagation();"
-            onplay="incrementViewCount('${p.id}'); startLiveViews('${p.id}')" 
-            onpause="stopLiveViews()">
-        </video>
-        
-        <div id="play_btn_${uniqueVideoId}" 
-             onclick="toggleFeedVideo('${uniqueVideoId}', event)"
-             style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:80px; height:80px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;">
-             <i class="fa-solid fa-circle-play" style="color:rgba(255,255,255,0.9); font-size:45px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.5)); transition:0.2s;"></i>
-        </div>
+        // الميديا (صور وفيديو)
+        if (p.media && p.media.length > 0) {
+            if (p.media.length === 1) {
+                const m = p.media[0];
+                if (m.type === 'video') {
+                    const uniqueVideoId = `search-vid-${p.id}-0`;
+                    const muteIcon = isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high';
+                    const onMetaLoad = `this.classList.add(this.videoWidth > this.videoHeight ? 'video-landscape' : 'video-portrait')`;
 
-        <div style="position:absolute; bottom:15px; left:15px; color:#fff; font-size:12px; background:rgba(0,0,0,0.6); padding:4px 10px; border-radius:20px; pointer-events:none; display:flex; align-items:center; gap:6px; z-index:20; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);">
-            <i class="fa-regular fa-eye"></i> <span id="vid-views-${p.id}">${formatNumber(p.views || 0)}</span>
-        </div>
-
-        <div class="video-mute-btn" onclick="toggleMute(event)" style="z-index:20;"><i class="fa-solid ${muteIcon}"></i></div>
-    </div>`;
-}
- else {
-                    contentHtml += `<img src="${m.url}" class="media-item" onclick="viewImage('${m.url}', '${p.id}'); event.stopPropagation();">`;
+                    contentHtml += `
+                    <div class="media-item-wrapper" style="position:relative; width:100%; height:auto; background:#000; display:flex; justify-content:center; align-items:center; border-radius: 12px; overflow: hidden; margin-top: 8px;">
+                        <video src="${m.url}" id="${uniqueVideoId}" class="media-item" loop playsinline ${isGlobalMuted ? 'muted' : ''} onloadedmetadata="${onMetaLoad}" onclick="window.location.href = 'videos.html?openVideo=${p.id}'; event.stopPropagation();" onplay="incrementViewCount('${p.id}'); startLiveViews('${p.id}')" onpause="stopLiveViews()"></video>
+                        <div id="play_btn_${uniqueVideoId}" onclick="toggleFeedVideo('${uniqueVideoId}', event)" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:80px; height:80px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;">
+                             <i class="fa-solid fa-circle-play" style="color:rgba(255,255,255,0.9); font-size:45px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.5)); transition:0.2s;"></i>
+                        </div>
+                        <div style="position:absolute; bottom:15px; left:15px; color:#fff; font-size:12px; background:rgba(0,0,0,0.6); padding:4px 10px; border-radius:20px; pointer-events:none; display:flex; align-items:center; gap:6px; z-index:20; backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.1);">
+                            <i class="fa-regular fa-eye"></i> <span id="vid-views-${p.id}">${formatNumber(p.views || 0)}</span>
+                        </div>
+                        <div class="video-mute-btn" onclick="toggleMute(event)" style="z-index:20;"><i class="fa-solid ${muteIcon}"></i></div>
+                    </div>`;
+                } else {
+                    contentHtml += `<div style="background:#000; border-radius:12px; overflow:hidden; margin-top:8px;"><img src="${m.url}" class="media-item video-portrait" loading="lazy" style="width:100%; object-fit:contain; display:block; max-height:500px;" onclick="viewImage('${m.url}', '${p.id}'); event.stopPropagation();"></div>`;
                 }
-            });
-            contentHtml += `</div>`;
+            } else {
+                let slidesHtml = '';
+                let dotsHtml = '';
+                p.media.forEach((m, idx) => {
+                    dotsHtml += `<div class="slider-dot ${idx === 0 ? 'active' : ''}" id="search-dot-${p.id}-${idx}"></div>`;
+                    if (m.type === 'video') {
+                        const uniqueVideoId = `search-vid-${p.id}-${idx}`;
+                        const muteIcon = isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high';
+                        const onMetaLoad = `this.classList.add(this.videoWidth > this.videoHeight ? 'video-landscape' : 'video-portrait')`;
+
+                        slidesHtml += `
+                        <div class="post-slide media-item-wrapper" style="position:relative; width:100%; height:100%; background:#000; display:flex; justify-content:center; align-items:center;">
+                            <video src="${m.url}" id="${uniqueVideoId}" class="media-item" loop playsinline ${isGlobalMuted ? 'muted' : ''} onloadedmetadata="${onMetaLoad}" onclick="window.location.href = 'videos.html?openVideo=${p.id}'; event.stopPropagation();" onplay="incrementViewCount('${p.id}'); startLiveViews('${p.id}')" onpause="stopLiveViews()"></video>
+                            <div id="play_btn_${uniqueVideoId}" onclick="toggleFeedVideo('${uniqueVideoId}', event)" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:80px; height:80px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;">
+                                 <i class="fa-solid fa-circle-play" style="color:rgba(255,255,255,0.9); font-size:45px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.5)); transition:0.2s;"></i>
+                            </div>
+                            <div class="video-mute-btn" onclick="toggleMute(event)" style="z-index:20;"><i class="fa-solid ${muteIcon}"></i></div>
+                        </div>`;
+                    } else {
+                        slidesHtml += `<div class="post-slide"><img src="${m.url}" loading="lazy" style="width:100%; object-fit:contain; max-height:500px;" onclick="viewImage('${m.url}', '${p.id}'); event.stopPropagation();"></div>`;
+                    }
+                });
+
+                contentHtml += `
+                <div class="post-slider-wrapper">
+                    <div class="slider-counter"><span id="search-counter-current-${p.id}">1</span>/${p.media.length}</div>
+                    <div class="post-slider-container" id="search-slider-${p.id}" onscroll="handleSliderScroll('${p.id}', ${p.media.length})">
+                        ${slidesHtml}
+                    </div>
+                    <div class="slider-dots">
+                        ${dotsHtml}
+                    </div>
+                </div>`;
+            }
         }
     }
 
-    // 3. بناء الكارت
-    const div = document.createElement('div');
-    div.className = 'post'; 
-    div.style.border = "1px solid var(--border-color)";
-    div.style.marginBottom = "10px";
-    div.id = `search-post-${p.id}`;
-    
-    div.innerHTML = `
-        <div class="post-header">
-            <div class="user-info" onclick="goToProfile('${p.uid}')">
-                <div class="post-avatar" style="background-image:url('${u.pic}'); background-color:transparent;"></div>
-                <div class="user-details">
-                   
-<h4 dir="auto" style="unicode-bidi: isolate;">
-    ${highlightMatch(u.name, currentSearchQuery)} ${getBadge(u.isVerified, false)}
-</h4>
+    const safeTextForBtn = encodeURIComponent(p.text || '');
+    let followBtnHtml = "";
+    if (currentUser && p.uid !== currentUser.uid) {
+        followBtnHtml = `<button class="mini-follow-btn" onclick="toggleMiniFollow(this, '${p.uid}', event)">${t('btn_follow') || 'متابعة'} <i class="fa-solid fa-plus"></i></button>`;
+    }
 
-                    <span>${moment(p.createdAt?.toDate()).fromNow()}</span>
+    // 3. بناء الكارت النهائي (نسخة طبق الأصل من الرئيسية)
+    const wrapper = document.createElement('div');
+    wrapper.className = 'feed-unit'; 
+    wrapper.id = `search-unit-${p.id}`;
+
+    wrapper.innerHTML = `
+        <div class="post" id="post-${p.id}" style="margin-bottom: 0;">
+            <div class="post-header">
+                <div class="user-info">
+                    <div class="post-avatar ${u.isOnline ? 'online' : ''}" style="background-image:url('${u.pic}');" onclick="goToProfile('${p.uid}'); event.stopPropagation();"></div>
+                    <div class="user-details">
+                        <div class="name-row-container">
+                            <span class="post-username-text" onclick="goToProfile('${p.uid}'); event.stopPropagation();">${safeHighlight(u.name, currentSearchQuery)}</span>
+                            ${getBadge(u.isVerified, false)} 
+                            ${followBtnHtml}
+                        </div>
+                        <div style="display:flex; align-items:center; gap:6px; color:var(--secondary-text); font-size:11px; margin-top:2px;">
+                            <span>${moment(p.createdAt?.toDate()).fromNow()}</span>
+                            <span style="font-size:6px; opacity:0.6">•</span>
+                            <span id="privacy-icon-${p.id}">${getPrivacyIcon(postPrivacy)}</span>
+                            ${rankHtml ? `<span style="margin-right:5px">${rankHtml}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="options-btn-wrapper">
+                    <i class="fa-solid fa-ellipsis" onclick="openOptions('${p.id}', '${p.uid}', decodeURIComponent('${safeTextForBtn}'), '${p.privacy || 'public'}')" style="cursor:pointer; padding:5px; color:var(--secondary-text)"></i>
                 </div>
             </div>
-            <i class="fa-solid fa-ellipsis" onclick="openOptions('${p.id}', '${p.uid}', '${safeText}', '${p.privacy || 'public'}')" style="cursor:pointer; padding:5px; color:var(--secondary-text)"></i>
-        </div>
-        
-        ${contentHtml}
-                   
-       <div class="post-actions" style="position: relative;"> <div class="reactions-box" id="react-box-${p.id}">
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'like')">👍</span>
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'love')">❤️</span>
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'haha')">😂</span>
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'wow')">😮</span>
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'sad')">😢</span>
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'angry')">😡</span>
-            <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'slipper')" title="شبشب">🩴</span>
-        </div>
 
-                <div class="post-actions" style="position: relative;">
-
-<div class="action-btn ${reactClass}" 
-     id="btn-react-${p.id}"
-     onmousedown="startPress(event, '${p.id}')" 
-     ontouchstart="startPress(event, '${p.id}')" 
-     onmouseup="cancelPress(event, '${p.id}', '${p.uid}')" 
-     ontouchend="cancelPress(event, '${p.id}', '${p.uid}')"
-     onmouseleave="resetPress('${p.id}')">
+            ${contentHtml}
      
-     <span class="curr-icon">${reactIcon}</span>
-     
-     <span id="cnt-${p.id}" 
-           style="pointer-events: none; padding: 5px; font-weight: bold;">
-           ${likesCount > 0 ? likesCount : 'أعجبني'}
-     </span>
-</div>
+            <div class="post-stats-bar" onclick="openReactionsSheet('${p.id}')">
+                <div class="stats-right">
+                    <div class="reactions-stack">${getTopReactionsHTML(p.likes)}</div>
+                    <span class="stats-text" id="stats-cnt-${p.id}">${likesCount > 0 ? formatNumber(likesCount) : (t('text_first_react') || 'أعجبني')}</span>
+                </div>
 
-            <div class="action-btn" onclick="openComments('${p.id}', '${p.uid}')">
-                <i class="fa-regular fa-comment"></i> <span>تعليق</span>
+                <div class="stats-left" style="display: flex; align-items: center; gap: 8px;">
+                    <span onclick="event.stopPropagation(); openComments('${p.id}', '${p.uid}')" style="cursor: pointer;"><span id="post-comment-text-${p.id}">${p.commentsCount > 0 ? formatNumber(p.commentsCount) + ' تعليق' : ''}</span></span>
+                    ${p.sharesCount > 0 ? `<span id="post-share-text-${p.id}">• ${formatNumber(p.sharesCount)} مشاركة</span>` : ''}
+                </div>
             </div>
 
-            <div class="action-btn" onclick="sharePost('${p.id}', '${p.uid}')">
-                <i class="fa-solid fa-share-nodes"></i> <span>مشاركة</span>
+            <div class="post-actions" style="position: relative;">
+                <div class="reactions-box" id="react-box-${p.id}">
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'like')">👍</span>
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'love')">❤️</span>
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'haha')">😂</span>
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'wow')">😮</span>
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'sad')">😢</span>
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'angry')">😡</span>
+                    <span class="reaction-icon" onclick="submitReaction('${p.id}', '${p.uid}', 'slipper')" title="شبشب">🩴</span>
+                </div>
+
+                <div class="action-btn ${reactClass}" id="btn-react-${p.id}" onmousedown="startPress(event, '${p.id}')" ontouchstart="startPress(event, '${p.id}')" onmouseup="cancelPress(event, '${p.id}', '${p.uid}')" ontouchend="cancelPress(event, '${p.id}', '${p.uid}')" onmouseleave="resetPress('${p.id}')">
+                     <span class="curr-icon">${reactIcon}</span>
+                     <span id="cnt-${p.id}" style="pointer-events: none; padding: 5px; font-weight: bold;">${likesCount > 0 ? likesCount : (t('post_btn_like') || 'أعجبني')}</span>
+                </div>
+
+                ${p.commentsDisabled ? `
+                    <div class="action-btn" style="opacity: 0.5;" onclick="event.stopPropagation(); showToast('التعليقات مغلقة 🔒')">
+                        <i class="fa-solid fa-lock"></i> <span>مغلقة</span>
+                    </div>
+                ` : `
+                    <div class="action-btn" onclick="event.stopPropagation(); openComments('${p.id}', '${p.uid}')">
+                        <i class="fa-regular fa-comment"></i> <span id="post-comment-btn-${p.id}">${Math.max(0, p.commentsCount || 0)}</span>
+                    </div>
+                `}
+
+                <div class="action-btn" onclick="toggleSaveDirect('${p.id}', this)" style="${saveBtnStyle}">
+                    <i class="${saveIconClass}"></i> <span id="save-count-${p.id}" style="margin-right:5px; font-size:12px; font-weight:bold;">${p.savesCount > 0 ? p.savesCount : ''}</span>
+                </div>
+
+                <div class="action-btn" onclick="sharePost('${p.id}', '${p.uid}')">
+                    <i class="fa-solid fa-paper-plane"></i>
+                    <span id="share-count-${p.id}">${p.sharesCount > 0 ? p.sharesCount : ''}</span>
+                </div>
             </div>
+        </div>
+    `;
 
-        </div>
-
-        <div class="action-btn" onclick="openComments('${p.id}', '${p.uid}')">
-            <i class="fa-regular fa-comment"></i> <span>${Math.max(0, p.commentsCount || 0)}</span>
-        </div>
-
-        <div class="action-btn" onclick="toggleSaveDirect('${p.id}', this)">
-            <i class="fa-regular fa-bookmark"></i>
-        </div>
-        <div class="action-btn" onclick="sharePost('${p.id}', '${p.uid}')">
-            <i class="fa-solid fa-share-nodes"></i>
-        </div>
-    </div>
-`;
     const container = document.getElementById(targetId);
     if(container) {
-        container.appendChild(div);
-        div.querySelectorAll('video').forEach(v => {
-            if(window.videoObserver) window.videoObserver.observe(v);
-        });
+        container.appendChild(wrapper);
+        
+        // تشغيل مراقبات المشاهدات وقص النص للمنشور الجديد
+        setTimeout(() => {
+            const postCardElement = document.getElementById(`post-${p.id}`);
+            if (postCardElement && hasVideoContent) postViewObserver.observe(postCardElement);
+            
+            const textEl = document.getElementById(`search-text-${p.id}`);
+            if(textEl) textResizeObserver.observe(textEl);
+            
+            // تشغيل مشغل الفيديو التلقائي
+            wrapper.querySelectorAll('video').forEach(v => {
+                if(window.videoObserver) window.videoObserver.observe(v);
+            });
+        }, 0);
     }
 }
 
 
+// دالة توحيد الحروف العربية (تتجاهل الهمزات والتشكيل والهاء/التاء)
+function normalizeArabicText(text) {
+    if (!text) return "";
+    return text.replace(/[أإآا]/g, 'ا')
+               .replace(/ة/g, 'ه')
+               .replace(/ى/g, 'ي')
+               .replace(/[\u064B-\u065F]/g, '') // إزالة التشكيل
+               .toLowerCase();
+}
 
-
-function highlightMatch(text, query) {
-    // 1. لو مفيش نص أصلاً أو مفيش كلمة بحث، رجع النص زي ما هو
-    if (!text || !query) return text;
-
-    // 2. إنشاء "تعبير نمطي" (Regex) للبحث عن الكلمة
-    // الرمز 'gi' يعني: ابحث في النص كله (Global) وتجاهل حالة الأحرف (Insensitive)
-    const regex = new RegExp(`(${query})`, 'gi');
-
-    // 3. استبدال أي تطابق بـ نفس الكلمة لكن داخل Span واخد الكلاس بتاعنا
+// دالة التلوين الآمنة (لا تكسر أكواد HTML مثل الصور والروابط)
+function safeHighlight(text, query) {
+    if (!query || !text) return text;
+    // تنظيف الكلمة من أي رموز قد تكسر الـ Regex
+    const cleanQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Regex ذكي: يبحث عن الكلمة فقط إذا لم تكن داخل وسوم HTML (<...>)
+    const regex = new RegExp(`(?![^<]*>)(${cleanQuery})`, 'gi');
     return text.replace(regex, '<span class="highlight-text">$1</span>');
 }
-// دالة شاملة لمعالجة النص (هاشتاج + منشن + تلوين بحث)
-// دالة شاملة لمعالجة النص (حماية + هاشتاج + منشن + تلوين بحث)
-/* ==========================================
-   دوال النظام الذكي (يوتيوب + روابط + إصلاح الصور)
-   ========================================== */
+let liveSearchTimeout = null;
+
+// يتم استدعاؤها مع كل حرف يكتبه المستخدم
+function handleLiveSearch() {
+    const val = document.getElementById('superSearchInput').value.trim();
+    const clearBtn = document.getElementById('clearSearchBtn');
+    const voiceBtn = document.getElementById('voiceSearchBtn');
+
+    // تبديل الأزرار (المايك يختفي ويظهر زر X عند الكتابة)
+    if (val.length > 0) {
+        clearBtn.style.display = 'block';
+        if(voiceBtn) voiceBtn.style.display = 'none';
+    } else {
+        clearBtn.style.display = 'none';
+        if(voiceBtn) voiceBtn.style.display = 'block';
+        clearSearchInput();
+        return;
+    }
+
+    clearTimeout(liveSearchTimeout);
+    
+    // الانتظار نصف ثانية بعد توقف المستخدم عن الكتابة لتنفيذ البحث
+    if (val.length >= 2) {
+        document.getElementById('searchLoader').style.display = 'block';
+        liveSearchTimeout = setTimeout(() => {
+            performSuperSearch(true); // true تعني أنه بحث جديد (Reset)
+        }, 500);
+    }
+}
+
+// محرك البحث الصوتي (يستخدم تقنيات المتصفح المدمجة)
+function startVoiceSearch() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        showToast("متصفحك لا يدعم البحث الصوتي 🎙️❌");
+        return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+    
+    recognition.lang = localStorage.getItem('wareed_lang') === 'en' ? 'en-US' : 'ar-SA';
+    recognition.interimResults = false;
+    
+    const voiceBtn = document.getElementById('voiceSearchBtn');
+
+    recognition.onstart = function() {
+        voiceBtn.classList.add('listening');
+        if(typeof playSound === 'function') playSound('click');
+        showToast("تحدث الآن... 🎙️");
+    };
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        document.getElementById('superSearchInput').value = transcript;
+        handleLiveSearch(); // تشغيل البحث الحي بالنص الملتقط
+    };
+
+    recognition.onerror = function() {
+        voiceBtn.classList.remove('listening');
+        showToast("لم نتمكن من سماعك بوضوح");
+    };
+
+    recognition.onend = function() {
+        voiceBtn.classList.remove('listening');
+    };
+
+    recognition.start();
+}
+// متغيرات التمرير اللانهائي
+// متغيرات التمرير اللانهائي (تأكد من وجودها قبل الدالة)
+let lastSearchPostDoc = null;
+let isSearchLoadingMore = false;
+
+// 🔥 المحرك الرئيسي للبحث الذكي الشامل 🔥
+async function performSuperSearch(isNewSearch = true) {
+    // إيقاف الفيديوهات في الخلفية لمنع تداخل الصوت
+    document.querySelectorAll('#postsList video').forEach(v => v.pause());
+
+    const rawVal = document.getElementById('superSearchInput').value.trim();
+    if (!rawVal) return;
+
+    currentSearchQuery = rawVal;
+    const normTerm = normalizeArabicText(rawVal.replace('#', '')); // الكلمة المعالجة للبحث
+
+    // تحديث الترند والتاريخ وتجهيز الشاشة لو كان بحثاً جديداً
+    if (isNewSearch) {
+        updateSearchTrendCounter(rawVal);
+        addToHistory({ type: 'text', text: rawVal, name: rawVal });
+        
+        // تفريغ النتائج القديمة
+        document.getElementById('resPeople').innerHTML = "";
+        document.getElementById('resPosts').innerHTML = "";
+        document.getElementById('resNabdVideos').innerHTML = "";
+        document.getElementById('resHashtags').innerHTML = "";
+        
+        lastSearchPostDoc = null; // تصفير التمرير اللانهائي
+        
+        document.getElementById('searchHistorySection').style.display = 'none';
+        document.getElementById('searchResultsSection').style.display = 'block';
+        document.getElementById('searchResultTabs').style.display = 'flex';
+        document.getElementById('searchLoader').style.display = 'block';
+        document.getElementById('noResultsMsg').style.display = 'none';
+        
+        switchSearchTab('all');
+    }
+
+    try {
+        let totalFound = 0; // عداد لمعرفة هل وجدنا نتائج أم لا
+
+        // ==========================================
+        // --- أ. بحث الأشخاص والهاشتاجات (في البحث الجديد فقط) ---
+        // ==========================================
+        if (isNewSearch) {
+            // 1. بحث الأشخاص
+                        // 1. بحث الأشخاص
+            const userSnap = await db.collection('users')
+                .where('name', '>=', rawVal).where('name', '<=', rawVal + '\uf8ff').limit(5).get();
+            
+            if (!userSnap.empty) {
+                let usersAdded = 0; // عداد لمعرفة هل تم إضافة أشخاص فعلاً أم تم فلترتهم كلهم
+                let tempHTML = '<div style="padding:10px;font-weight:bold;color:var(--secondary-text)">أشخاص</div>';
+                
+                userSnap.forEach(doc => {
+                    // 🛑 حماية ذكية: اخفي الشخص من البحث *فقط* لو هو اللي حاظرني!
+                    // لكن لو أنا اللي حاظره، هسيبه يظهر عشان أقدر أدخل بروفايله وأفك الحظر.
+                    if (window.theyBlockedMeSet && window.theyBlockedMeSet.has(doc.id)) return;
+                    
+                    // لو عدى من الفلتر، ارسمه
+                    if (usersAdded === 0) {
+                        document.getElementById('resPeople').insertAdjacentHTML('beforeend', tempHTML);
+                    }
+                    renderUserCardInSearch(doc);
+                    usersAdded++;
+                });
+
+                if (usersAdded > 0) totalFound++; // نزود العداد العام لو لقينا حد مش حاظرنا
+            }
+
+            // 2. بحث الهاشتاجات الذكي (Smart Hashtag Search)
+
+
+            // 2. بحث الهاشتاجات الذكي (Smart Hashtag Search)
+            const cleanVal = rawVal.replace('#', '').trim();
+            const smartWords = getSmartSearchTerms(cleanVal); 
+
+            const hashSnap = await db.collection('hashtags').orderBy('postsCount', 'desc').limit(50).get();
+            let matchedHashtags = [];
+
+            hashSnap.forEach(doc => {
+                const h = doc.data();
+                const normHash = normalizeArabicText(h.name || "");
+                let matchScore = 0;
+                
+                smartWords.forEach(word => {
+                    if (normHash === word) matchScore += 50;           
+                    else if (normHash.includes(word)) matchScore += 10; 
+                });
+
+                if (matchScore > 0) {
+                    matchedHashtags.push({ ...h, score: matchScore });
+                }
+            });
+
+            matchedHashtags.sort((a, b) => b.score - a.score || b.postsCount - a.postsCount);
+            const finalHashtags = matchedHashtags.slice(0, 5);
+
+            if (finalHashtags.length > 0) {
+                totalFound++;
+                document.getElementById('resHashtags').insertAdjacentHTML('beforeend', '<div style="padding:10px;font-weight:bold;color:var(--primary-color)">هاشتاجات مقترحة</div>');
+                
+                finalHashtags.forEach(h => {
+                    const div = document.createElement('div');
+                    div.className = 'hashtag-card';
+                    div.onclick = () => { 
+                        document.getElementById('superSearchInput').value = '#' + h.name; 
+                        performSuperSearch(); 
+                        switchSearchTab('all'); 
+                    };
+                    
+                    const highlightedName = safeHighlight(h.name, cleanVal);
+                    div.innerHTML = `
+                        <div class="hash-icon-circle"><i class="fa-solid fa-hashtag"></i></div>
+                        <div class="hash-info">
+                            <h4>#${highlightedName}</h4>
+                            <div class="hash-stats"><span>${formatNumber(h.postsCount || 0)} منشور</span></div>
+                        </div>`;
+                    document.getElementById('resHashtags').appendChild(div);
+                });
+            }
+        }
+
+        // ==========================================
+        // --- ب. بحث المنشورات (شامل وذكي في كل الداتابيز) ---
+        // ==========================================
+        let postsQuery = db.collection('posts');
+
+        if (rawVal.startsWith('#')) {
+            const cleanTag = rawVal.replace('#', '');
+            postsQuery = postsQuery.where('text', '>=', `#${cleanTag}`).where('text', '<=', `#${cleanTag}\uf8ff`);
+        } else {
+            postsQuery = postsQuery.orderBy('createdAt', 'desc');
+        }
+        
+        // جلب 50 نتيجة كحد أقصى في كل سحبة
+        postsQuery = postsQuery.limit(50);
+
+        if (!isNewSearch && lastSearchPostDoc) {
+            postsQuery = postsQuery.startAfter(lastSearchPostDoc);
+        }
+
+        const postsSnap = await postsQuery.get();
+        let filteredPosts = [];
+
+        if (!postsSnap.empty) {
+            lastSearchPostDoc = postsSnap.docs[postsSnap.docs.length - 1]; 
+            
+            // توليد الكلمات الذكية للبحث
+            const smartWords = getSmartSearchTerms(rawVal);
+
+            // الفلترة الذكية والتقييم
+                    postsSnap.forEach(doc => {
+            const p = { id: doc.id, ...doc.data() };
+            
+            // 🛑 حماية: إخفاء منشورات المحظورين من نتائج البحث
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(p.uid)) return;
+
+            if (rawVal.startsWith('#')) {
+
+                    filteredPosts.push(p);
+                } else {
+                    const postScore = calculateSmartScore(p.text, rawVal, smartWords);
+                    if (postScore > 0) {
+                        p.smartScore = postScore; 
+                        filteredPosts.push(p);
+                    }
+                }
+            });
+
+            // ترتيب البوستات بناءً على "الأكثر صلة"
+            if (!rawVal.startsWith('#')) {
+                filteredPosts.sort((a, b) => b.smartScore - a.smartScore);
+            }
+
+            // تطبيق فلاتر البحث الزمنية الخاصة بك
+            const now = new Date();
+            filteredPosts = filteredPosts.filter(p => {
+                if (!p.createdAt) return false;
+                const postDate = p.createdAt.toDate();
+                
+                if (filterSettings.date === 'specific' && filterSettings.specificDate) {
+                    const pYear = postDate.getFullYear();
+                    const pMonth = String(postDate.getMonth() + 1).padStart(2, '0');
+                    const pDay = String(postDate.getDate()).padStart(2, '0');
+                    return `${pYear}-${pMonth}-${pDay}` === filterSettings.specificDate;
+                }
+                
+                if (filterSettings.date !== 'all' && filterSettings.date !== 'specific') {
+                    const diffHours = (now - postDate) / (1000 * 60 * 60);
+                    if (filterSettings.date === '24h') return diffHours <= 24;
+                    if (filterSettings.date === 'week') return diffHours <= 168;
+                    if (filterSettings.date === 'month') return diffHours <= 720;
+                }
+                return true;
+            });
+
+            // ترتيب الفلاتر (إعجاب أو أحدث)
+            if (filterSettings.sort === 'likes') {
+                filteredPosts.sort((a, b) => (b.likes ? Object.keys(b.likes).length : 0) - (a.likes ? Object.keys(a.likes).length : 0));
+            } else if (filterSettings.sort === 'date') {
+                filteredPosts.sort((a, b) => b.createdAt - a.createdAt);
+            }
+
+            // رسم المنشورات والفيديوهات
+            if (filteredPosts.length > 0) {
+                totalFound++;
+                filteredPosts.forEach(p => {
+                    if (p.type === 'video' || (p.media && p.media.some(m => m.type === 'video'))) {
+                        renderFullPostInSearch(p, 'resNabdVideos');
+                    } else {
+                        renderFullPostInSearch(p, 'resPosts');
+                    }
+                });
+            }
+        }
+
+        document.getElementById('searchLoader').style.display = 'none';
+
+        // ==========================================
+        // --- ج. الحالة الفارغة الذكية (Smart Empty State) ---
+        // ==========================================
+        if (isNewSearch && totalFound === 0 && filteredPosts.length === 0) {
+            const emptyContainer = document.getElementById('noResultsMsg');
+            emptyContainer.style.display = 'block';
+            emptyContainer.innerHTML = `
+                <div style="padding:40px 20px; text-align:center; animation: fadeIn 0.4s;">
+                    <div style="width:80px; height:80px; background:rgba(0, 198, 255, 0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; margin: 0 auto 15px;">
+                        <i class="fa-solid fa-magnifying-glass-minus" style="font-size:35px; color:var(--primary-color);"></i>
+                    </div>
+                    <h3 style="color:#fff; margin-bottom:8px;">لم نجد شيئاً!</h3>
+                    <p style="color:#aaa; font-size:13px; margin-bottom:20px;">لا توجد نتائج تطابق "<b>${rawVal}</b>"</p>
+                    <button onclick="createNewPostWithQuery('${rawVal}')" style="background:linear-gradient(135deg, var(--primary-color), #5D5FEF); color:#fff; border:none; padding:12px 24px; border-radius:25px; font-weight:bold; cursor:pointer; box-shadow:0 4px 15px rgba(0, 198, 255, 0.3); transition: 0.2s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">
+                        <i class="fa-solid fa-pen-nib"></i> كن أول من ينشر عنها
+                    </button>
+                </div>
+            `;
+        }
+
+        isSearchLoadingMore = false;
+
+    } catch (e) {
+        console.error("Search Engine Error:", e);
+        document.getElementById('searchLoader').style.display = 'none';
+        isSearchLoadingMore = false;
+    }
+}
+
+
+// دالة تطبيق الفلاتر (تستخدم متغيرات الفلتر الموجودة لديك)
+function applySearchFilters(postsArray) {
+    // ضع هنا نفس كود الفلترة الخاص بك (الوقت، الإعجابات) الذي كان موجوداً في الدالة القديمة
+    // ...
+    return postsArray; // يرجع المصفوفة المفلترة
+}
+
+// دالة الزر في الحالة الفارغة الذكية
+function createNewPostWithQuery(query) {
+    closeSearchPage(); // إغلاق البحث
+    
+    // حفظ الكلمة في الذاكرة لتوضع أوتوماتيكياً في مربع إنشاء البوست
+    sessionStorage.setItem('temp_post_content', `أتحدث عن #${query.replace(/\s+/g, '_')} `);
+    
+    // التوجه لصفحة إنشاء البوست
+    openPage('create_post.html'); 
+}
+
+// 🌐 التمرير اللانهائي للبحث
+// التمرير اللانهائي للبحث (مؤمّن داخل DOMContentLoaded لمنع خطأ null)
+document.addEventListener('DOMContentLoaded', () => {
+    const searchContentBox = document.querySelector('.sp-content');
+    if (searchContentBox) {
+        searchContentBox.addEventListener('scroll', function(e) {
+            const el = e.target;
+            if (el.scrollHeight - el.scrollTop - el.clientHeight < 150) {
+                if (!isSearchLoadingMore && lastSearchPostDoc) {
+                    isSearchLoadingMore = true;
+                    document.getElementById('searchLoader').style.display = 'block';
+                    performSuperSearch(false); 
+                }
+            }
+        });
+    }
+});
 
 // 1. دالة قوية جداً لاستخراج ID اليوتيوب من أي رابط
 function getYouTubeID(url) {
@@ -14888,174 +15824,6 @@ function setSpecificDate(input) {
 }
 
 
-
-
-
-// 3. تفعيل الضغط على السجل (History)
-function useHistoryItem(text, type, id) {
-    if(type === 'user' && id) {
-        // 🔥 التعديل هنا: يفتح في النافذة العائمة
-        openPage(`profile.html?uid=${id}`);
-    } else {
-        document.getElementById('superSearchInput').value = text || "";
-        performSuperSearch();
-    }
-}
-
-
-// 4. دالة البحث الرئيسية (تم تعديلها لتقبل الفلترة)
-async function performSuperSearch() {
-    // إيقاف الفيديوهات في الخلفية
-    document.querySelectorAll('#postsList video').forEach(v => v.pause());
-
-    const val = document.getElementById('superSearchInput').value.trim();
-    if (!val) return;
-updateSearchTrendCounter(val);
-    addToHistory({ type: 'text', text: val, name: val });
-    currentSearchQuery = val;
-
-    // تجهيز الشاشة
-    document.getElementById('searchHistorySection').style.display = 'none';
-    document.getElementById('searchResultsSection').style.display = 'block';
-    document.getElementById('searchResultTabs').style.display = 'flex';
-    document.getElementById('searchLoader').style.display = 'block';
-    document.getElementById('noResultsMsg').style.display = 'none';
-
-    // تفريغ النتائج
-    document.getElementById('resPeople').innerHTML = "";
-    document.getElementById('resPosts').innerHTML = "";
-    document.getElementById('resNabdVideos').innerHTML = "";
-    document.getElementById('resHashtags').innerHTML = "";
-
-    switchSearchTab('all');
-
-    try {
-        // --- 1. بحث الأشخاص ---
-        const userSnap = await db.collection('users')
-            .where('name', '>=', val).where('name', '<=', val + '\uf8ff').limit(5).get();
-        if (!userSnap.empty) {
-            document.getElementById('resPeople').insertAdjacentHTML('beforeend', '<div style="padding:10px;font-weight:bold;color:var(--secondary-text)"></div>');
-            userSnap.forEach(doc => renderUserCardInSearch(doc));
-        }
-
-        // --- 2. بحث الهاشتاجات ---
-        const cleanTag = val.replace('#', '');
-        const hashSnap = await db.collection('hashtags')
-            .where('name', '>=', cleanTag).where('name', '<=', cleanTag + '\uf8ff').limit(5).get();
-        if (!hashSnap.empty) {
-            document.getElementById('resHashtags').insertAdjacentHTML('beforeend', '<div style="padding:10px;font-weight:bold;color:var(--primary-color)">هاشتاجات</div>');
-            hashSnap.forEach(doc => {
-                const h = doc.data();
-                const div = document.createElement('div');
-                div.className = 'hashtag-card';
-                div.onclick = () => { 
-                    document.getElementById('superSearchInput').value = '#' + h.name;
-                    performSuperSearch(); 
-                    switchSearchTab('all');
-                };
-                div.innerHTML = `
-                    <div class="hash-icon-circle"><i class="fa-solid fa-hashtag"></i></div>
-                    <div class="hash-info"><h4>#${h.name}</h4><div class="hash-stats"><span>${formatNumber(h.postsCount||0)} منشور</span></div></div>`;
-                document.getElementById('resHashtags').appendChild(div);
-            });
-        }
-
-        // --- 3. بحث المنشورات وتطبيق الفلتر ---
-        const allRecentPosts = await db.collection('posts').orderBy('createdAt', 'desc').limit(100).get();
-        
-        let filteredPosts = [];
-        const term = val.toLowerCase().replace('#', '');
-
-        // تصفية بالنص
-        allRecentPosts.forEach(doc => {
-            const p = { id: doc.id, ...doc.data() };
-            const txt = (p.text || "").toLowerCase();
-            if (txt.includes(term)) {
-                filteredPosts.push(p);
-            }
-        });
-
-        // 🔥 تطبيق فلتر التاريخ (الكود الجديد هنا) 🔥
-        const now = new Date();
-        filteredPosts = filteredPosts.filter(p => {
-            if (!p.createdAt) return false;
-            const postDate = p.createdAt.toDate();
-
-            // أ) لو مختار يوم محدد
-            if (filterSettings.date === 'specific' && filterSettings.specificDate) {
-                // تحويل تاريخ المنشور لنص (2024-12-31) للمقارنة
-                const pYear = postDate.getFullYear();
-                const pMonth = String(postDate.getMonth() + 1).padStart(2, '0');
-                const pDay = String(postDate.getDate()).padStart(2, '0');
-                const postDateString = `${pYear}-${pMonth}-${pDay}`;
-                
-                return postDateString === filterSettings.specificDate;
-            }
-
-            // ب) الفلاتر العادية
-            if (filterSettings.date !== 'all' && filterSettings.date !== 'specific') {
-                const diffHours = (now - postDate) / (1000 * 60 * 60);
-                if (filterSettings.date === '24h') return diffHours <= 24;
-                if (filterSettings.date === 'week') return diffHours <= 168;
-                if (filterSettings.date === 'month') return diffHours <= 720;
-            }
-            return true;
-        });
-
-        // ترتيب
-        if (filterSettings.sort === 'likes') {
-            filteredPosts.sort((a, b) => {
-                const likesA = a.likes ? Object.keys(a.likes).length : 0;
-                const likesB = b.likes ? Object.keys(b.likes).length : 0;
-                return likesB - likesA;
-            });
-        } else if (filterSettings.sort === 'date') {
-            filteredPosts.sort((a, b) => b.createdAt - a.createdAt);
-        }
-
-        // إخفاء التحميل وعرض النتائج
-        document.getElementById('searchLoader').style.display = 'none';
-
-        if (filteredPosts.length > 0) {
-            const postsContainer = document.getElementById('resPosts');
-            const videoContainer = document.getElementById('resNabdVideos');
-            let videoHeaderAdded = false;
-            let postsHeaderAdded = false;
-
-            filteredPosts.forEach(p => {
-                if (p.type === 'video' || (p.media && p.media.some(m => m.type === 'video'))) {
-                    if (!videoHeaderAdded) {
-                        videoContainer.insertAdjacentHTML('beforeend', '<div style="padding:10px;font-weight:bold;color:var(--primary-color)">فيديوهات</div>');
-                        videoHeaderAdded = true;
-                    }
-                    renderFullPostInSearch(p, 'resNabdVideos');
-                }
-                if (!postsHeaderAdded) {
-                    postsContainer.insertAdjacentHTML('beforeend', '<div style="padding:10px;font-weight:bold;color:var(--secondary-text)">منشورات</div>');
-                    postsHeaderAdded = true;
-                }
-                renderFullPostInSearch(p, 'resPosts');
-            });
-        }
-
-        if (userSnap.empty && hashSnap.empty && filteredPosts.length === 0) {
-            document.getElementById('noResultsMsg').style.display = 'block';
-        }
-
-    } catch (e) {
-        console.error(e);
-        document.getElementById('searchLoader').style.display = 'none'; // إخفاء اللودر فوراً
-        
-        // إظهار رسالة خطأ ذكية
-        const errorContainer = document.getElementById('noResultsMsg');
-        errorContainer.style.display = 'block';
-        errorContainer.innerHTML = `
-            <i class="fa-solid fa-satellite-dish" style="font-size: 30px; color: var(--danger-color); margin-bottom: 10px;"></i>
-            <div style="font-weight:bold; color:#fff;">${t('err_connection')}</div>
-            <div style="font-size:12px; color:#aaa; margin-top:5px; cursor:pointer; text-decoration:underline;" onclick="performSuperSearch()">اضغط هنا للمحاولة مجدداً</div>
-        `;
-    }
-}
 // تم تعديل حرف F الكبير إلى f صغير لتعريف الدالة بشكل صحيح
 function applyFilters() {
     playSound('click');
@@ -17711,13 +18479,16 @@ async function uploadReplyMedia(input) {
     }
 }
 
+// مصفوفة جديدة مخصصة للناس اللي حظروني أنا
+window.theyBlockedMeSet = new Set(); 
+
 async function fetchBlockedUsersList() {
     if (!currentUser) return;
     
-    blockedUsersSet.clear(); // تنظيف القائمة لضمان عدم التكرار
+    blockedUsersSet.clear(); 
+    window.theyBlockedMeSet.clear(); // تصفير القائمة الجديدة
 
     try {
-        // بنبحث في كل المحادثات اللي أنت طرف فيها
         const snapshot = await db.collection('chats')
             .where('users', 'array-contains', currentUser.uid)
             .get();
@@ -17725,23 +18496,26 @@ async function fetchBlockedUsersList() {
         snapshot.forEach(doc => {
             const data = doc.data();
             
-            // الشرط: لو المصفوفة blockedBy موجودة وفيها أي حد (سواء أنت حظرته أو هو حظرك)
             if (data.blockedBy && data.blockedBy.length > 0) {
-                
-                // هات رقم الشخص التاني
                 const otherUid = data.users.find(u => u !== currentUser.uid);
                 
                 if (otherUid) {
-                    blockedUsersSet.add(otherUid); // ضيفه للقائمة السوداء
+                    // إضافة عامة لإخفاء البوستات والقصص في الحالتين
+                    blockedUsersSet.add(otherUid); 
+                    
+                    // 🚨 السر هنا: لو الطرف التاني هو اللي حظرني، نضيفه في القائمة دي
+                    if (data.blockedBy.includes(otherUid)) {
+                        window.theyBlockedMeSet.add(otherUid);
+                    }
                 }
             }
         });
         
-        console.log("تم تحديث قائمة الحظر، العدد:", blockedUsersSet.size);
     } catch (e) {
         console.error("خطأ في جلب قائمة الحظر:", e);
     }
 }
+
 // 1. متغيرات لتحديد مكان اللمس
 let touchStartX = 0;
 let touchStartY = 0;
@@ -17869,8 +18643,16 @@ async function fetchSuggestions(type, term, drop, inp, fullWord) {
         if (snapshot.empty && term.length > 0) {
             html = '<div style="padding:10px; text-align:center; color:#555; font-size:12px;">لا يوجد مستخدم</div>';
         } else {
-            snapshot.forEach(doc => {
+            
+                        snapshot.forEach(doc => {
+                // 🛑 حماية: إخفاء المحظورين تماماً من قائمة المنشن (في الاتجاهين)
+                if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(doc.id)) return;
+
                 const d = doc.data();
+                
+                // 🔥 تنظيف الاسم من أي رموز تكسر الكود
+
+            
                 
                 // 🔥 تنظيف الاسم من أي رموز تكسر الكود
                 const safeName = d.name.replace(/['"\\\n\r]/g, ""); 
@@ -17995,6 +18777,9 @@ async function loadDirectShareFriends() {
             const chatData = doc.data();
             const otherUid = chatData.users.find(u => u !== currentUser.uid);
             
+                        // 🛑 حماية: إخفاء المحظورين من قائمة إرسال المنشورات
+            if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(otherUid)) continue;
+
             // جلب بيانات الصديق
             const userDoc = await db.collection('users').doc(otherUid).get();
             if (!userDoc.exists) continue;
@@ -18196,13 +18981,22 @@ document.addEventListener('touchstart', function(e) {
     // 1. لو هو بيحمل أصلاً، متعملش حاجة
     if (isRefreshingNow) return;
 
+    // 🚀 الحارس الجديد: لو صفحة البحث أو القائمة الجانبية مفتوحين، نوقف السحب نهائياً في الموقع كله
+    const isSearchOpen = document.getElementById('fullSearchPage') && document.getElementById('fullSearchPage').classList.contains('active');
+    const isSideMenuOpen = document.getElementById('sideMenu') && document.getElementById('sideMenu').classList.contains('open');
+    
+    if (isSearchOpen || isSideMenuOpen) return;
+
     // 2. نتأكد إننا في أعلى الصفحة تماماً
     if (window.scrollY <= 5) {
-        // حماية: لو فاتحين أي قائمة، صورة، أو كرة اليورانيوم، نوقف السحب
+        // حماية إضافية: لو لمس أي قائمة، صورة، كرة، أو شاشات فوقية، نوقف السحب
         if (e.target.closest('#uraniumOrb') || 
             e.target.closest('.bottom-sheet.active') || 
             e.target.closest('.custom-modal[style*="flex"]') ||
-            e.target.closest('.lightbox.active')) {
+            e.target.closest('.lightbox.active') ||
+            e.target.closest('.search-page-overlay') || // يمنع السحب داخل البحث
+            e.target.closest('.side-menu')              // يمنع السحب داخل القائمة الجانبية
+        ) {
             return;
         }
 
@@ -18307,7 +19101,6 @@ function getTextDirection(text) {
 }
 
 // ================= متغيرات القصص =================
-let storyGroups = [];
 let currentGroupIndex = 0;
 let currentStoryIndex = 0;
 let storyTimer = null;
@@ -18415,10 +19208,13 @@ async function renderStories() {
         const otherUids = Object.keys(storiesMap).filter(uid => uid !== currentUser.uid);
 
         for (const uid of otherUids) {
-            // تخطي المحظورين (لو القائمة موجودة)
+            // 1. تخطي المحظورين (لو القائمة موجودة)
             if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(uid)) continue;
 
-            // جلب بيانات الصديق (بالدالة الناقصة اللي هنضيفها تحت)
+            // 2. 🔥 التعديل: تخطي أي شخص لست تتابعه (إظهار قصص الأصدقاء فقط) 🔥
+            if (typeof myFollowingList !== 'undefined' && !myFollowingList.includes(uid)) continue;
+
+            // جلب بيانات الصديق
             let u = await fetchAndCacheUser(uid);
             
             // إضافة للمجموعة
@@ -18451,6 +19247,7 @@ async function renderStories() {
         }
     });
 }
+
 
 // ================= فتح وتشغيل القصة =================
 function openStoryViewer(groupIndex) {
@@ -18651,6 +19448,9 @@ function showStoryViewers() {
             list.innerHTML = '<div style="text-align:center; padding:20px; color:#777;">لا توجد مشاهدات بعد</div>';
         } else {
             viewers.forEach(async uid => {
+                // 🛑 حماية: إخفاء المحظورين من قائمة مشاهدات القصص
+                if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(uid)) return;
+
                 let u = usersCache[uid];
                 if(!u) u = await fetchAndCacheUser(uid);
                 
@@ -19357,6 +20157,9 @@ async function filterReactions(selectedType) {
 
     // جلب بيانات المستخدمين ورسمهم
     for (const item of filteredUsers) {
+        // 🛑 حماية: إخفاء الأشخاص المحظورين من قائمة المتفاعلين (اللايكات)
+        if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(item.uid)) continue;
+
         // نستخدم الكاش أو نجيب البيانات
         let u = usersCache[item.uid];
         if (!u) {
@@ -19474,6 +20277,9 @@ async function startCommentRotation(postId, ownerUid) {
             let allComments = snap.docs.map(doc => ({id: doc.id, ...doc.data()}));
 
             let filteredComments = allComments.filter(c => {
+                // 🛑 حماية ذكية: إخفاء تعليقات المحظورين من الظهور أسفل المنشور من الخارج
+                if (typeof blockedUsersSet !== 'undefined' && blockedUsersSet.has(c.uid)) return false;
+
                 if (c.isGift) return true;
                 if (c.isAudio || c.isVideo || c.isImage || c.isSticker) return false;
                 if (c.mentionsList && c.mentionsList.length > 0) return false;
@@ -19828,7 +20634,6 @@ async function loadLiveTrends() {
 // ⚠️ مهم: ضيف استدعاء الدالة دي جوه openFullSearch() عشان تشتغل لما تفتح البحث
 
 // 1. قائمة المتابعين (عشان نستبعدهم من الاقتراحات)
-let myFollowingList = [];
 
 // دالة لجلب قائمة من أتابعهم
 async function fetchMyFollowing() {
@@ -21573,7 +22378,6 @@ function resetTransPress() {
 // ==========================================
 
 // 1. تحديد اللغة الحالية (مع حماية لو القيمة المحفوظة غلط)
-let currentAppLang = localStorage.getItem('wareed_lang') || 'ar';
 if (!appTranslations[currentAppLang]) {
     currentAppLang = 'ar'; // لو اللغة باظت، ارجع للعربي الافتراضي
     localStorage.setItem('wareed_lang', 'ar');
@@ -22750,13 +23554,142 @@ function handleSliderScroll(postId, totalSlides) {
     }
 }
 
-window.USER_RANKS = [
-    { v: 20000000, name: "أسطورة", class: "badge-mythic", icon: "fa-dragon" },
-    { v: 5000000,  name: "VIP",    class: "badge-diamond", icon: "fa-gem" },
-    { v: 1000000,  name: "نخبة",   class: "badge-gold",    icon: "fa-certificate" },
-    { v: 25000,    name: "صانع",   class: "badge-silver",  icon: "fa-video" },
-    { v: 0,        name: "مبتدئ",  class: "badge-bronze",  icon: "fa-shoe-prints" }
-];
+
+// ==================================================
+// 🚀 نظام الاستكشاف الذكي (ترحيب المستخدمين الجدد)
+// ==================================================
+
+// 1. الدالة الأساسية لجلب كل المستخدمين وترتيبهم ذكياً
+async function initDiscoverySystem() {
+    if (isFetchingDiscovery) return;
+    isFetchingDiscovery = true;
+    discoveryFullList = [];
+    discoveryCurrentIndex = 0;
+
+    const carousel = document.getElementById('discoveryCarousel');
+    if (!carousel) return;
+
+    carousel.innerHTML = '<div style="width:100%; text-align:center; padding:40px; color:#aaa;"><i class="fa-solid fa-circle-notch fa-spin"></i> جاري البحث عن المميزين...</div>';
+
+    try {
+        // نأخذ عينة كبيرة (مثلاً 50 مستخدم) لترتيبهم محلياً
+        const snap = await db.collection('users').limit(50).get();
+        
+        let usersArray = [];
+
+        snap.forEach(doc => {
+            const u = doc.data();
+            const uid = doc.id;
+
+            // استبعاد: نفسي + المحظورين + الأشخاص اللي متابعهم أصلاً
+            if (uid !== currentUser.uid && 
+               (typeof myFollowingList === 'undefined' || !myFollowingList.includes(uid)) &&
+               (typeof blockedUsersSet === 'undefined' || !blockedUsersSet.has(uid))) {
+                
+                usersArray.push({ id: uid, ...u });
+            }
+        });
+
+        // 🔥 خوارزمية الترتيب الذكية 🔥
+        usersArray.sort((a, b) => {
+            // حساب نقاط (Score) لكل مستخدم
+            let scoreA = 0;
+            let scoreB = 0;
+
+            // 1. الأولوية للموثقين
+            if (a.isVerified) scoreA += 10000;
+            if (b.isVerified) scoreB += 10000;
+
+            // 2. عدد المتابعين (لو الحقل موجود)
+            let followersA = a.followersCount || (a.followers ? a.followers.length : 0);
+            let followersB = b.followersCount || (b.followers ? b.followers.length : 0);
+            scoreA += followersA * 10;
+            scoreB += followersB * 10;
+
+            // 3. التفاعل (المشاهدات الكلية كمؤشر للنشاط)
+            scoreA += (a.totalViews || 0);
+            scoreB += (b.totalViews || 0);
+
+            // الترتيب التنازلي (الأعلى نقاطاً أولاً)
+            return scoreB - scoreA;
+        });
+
+        discoveryFullList = usersArray;
+        carousel.innerHTML = ''; // تنظيف اللودر
+
+        if (discoveryFullList.length === 0) {
+            carousel.innerHTML = '<div style="width:100%; text-align:center; color:#777;">لا يوجد مستخدمين لاقتراحهم حالياً</div>';
+        } else {
+            // عرض أول 10 أشخاص
+            renderNextDiscoveryBatch();
+        }
+
+    } catch (e) {
+        console.error("Discovery Error:", e);
+        carousel.innerHTML = '<div style="width:100%; text-align:center; color:#ff3b30;">فشل التحميل، حاول لاحقاً</div>';
+    }
+    
+    isFetchingDiscovery = false;
+}
+
+// 2. دالة رسم 10 أشخاص كل مرة يتم استدعاؤها
+function renderNextDiscoveryBatch() {
+    const carousel = document.getElementById('discoveryCarousel');
+    if (!carousel) return;
+
+    // استخراج الـ 10 أشخاص التاليين
+    const batch = discoveryFullList.slice(discoveryCurrentIndex, discoveryCurrentIndex + 10);
+    
+    if (batch.length === 0) return; // وصلنا للنهاية
+
+    batch.forEach(u => {
+        const pic = u.profilePic || "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+        const isVerifiedClass = u.isVerified ? 'verified' : '';
+        const badge = u.isVerified ? '<i class="fa-solid fa-check-circle" style="color:#20D5EC; font-size:12px;"></i>' : '';
+        const username = u.username ? `@${u.username}` : `@user_${u.id.substring(0,5)}`;
+
+        const cardHTML = `
+            <div class="discovery-card ${isVerifiedClass}" id="disc-card-${u.id}">
+                <img src="${pic}" class="discovery-avatar" onclick="openPage('profile.html?uid=${u.id}')">
+                
+                <div class="discovery-name" onclick="openPage('profile.html?uid=${u.id}')">
+                    ${u.name} ${badge}
+                </div>
+                <div class="discovery-username">${username}</div>
+                
+                <div class="discovery-btn-group">
+                    <button class="d-btn d-btn-follow" onclick="toggleMiniFollow(this, '${u.id}', event)">
+                        متابعة
+                    </button>
+                    <button class="d-btn d-btn-add" onclick="toggleFriendRequest(this, '${u.id}')">
+                        <i class="fa-solid fa-user-plus"></i> إضافة
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        carousel.insertAdjacentHTML('beforeend', cardHTML);
+    });
+
+    discoveryCurrentIndex += 10;
+}
+
+// 3. دالة مراقبة السحب (Infinite Scroll الأفقي)
+function handleDiscoveryScroll() {
+    const carousel = document.getElementById('discoveryCarousel');
+    if (!carousel) return;
+
+    // حساب مسافة السحب (Math.abs مهمة جداً لأن السحب بالعربي RTL يعطي قيماً سالبة في بعض المتصفحات)
+    const scrollPos = Math.abs(carousel.scrollLeft) + carousel.clientWidth;
+    
+    // إذا اقترب من نهاية السحب (بفارق 50 بيكسل)
+    if (scrollPos >= carousel.scrollWidth - 50) {
+        // إذا كان لا يزال هناك أشخاص في القائمة لم يتم عرضهم
+        if (discoveryCurrentIndex < discoveryFullList.length) {
+            renderNextDiscoveryBatch();
+        }
+    }
+}
 
 
     </script>
@@ -22803,10 +23736,11 @@ window.USER_RANKS = [
         <i class="fa-solid fa-arrow-right back-btn" onclick="closeSearchPage()"></i>
         <div class="sp-input-wrapper">
             <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="superSearchInput" data-i18n-placeholder="search_placeholder" placeholder="بحث..." autocomplete="off">
+            <input type="text" id="superSearchInput" oninput="handleLiveSearch()" data-i18n-placeholder="search_placeholder" placeholder="بحث..." autocomplete="off">
             <i class="fa-solid fa-xmark clear-btn" onclick="clearSearchInput()" style="display:none" id="clearSearchBtn"></i>
+            <i class="fa-solid fa-microphone voice-search-btn" id="voiceSearchBtn" onclick="startVoiceSearch()"></i>
         </div>
-            <i class="fa-solid fa-sliders" onclick="openFilterSheet()" style="padding:10px; font-size:20px; cursor:pointer; color:var(--primary-color);"></i>
+          <i class="fa-solid fa-sliders" onclick="openFilterSheet()" style="padding:10px; font-size:20px; cursor:pointer; color:var(--primary-color);"></i>
         <button class="sp-search-btn" onclick="performSuperSearch()" data-i18n="search_btn">بحث</button>
     </div>
 
@@ -23605,7 +24539,7 @@ placeholder="${typeof t === 'function' ? t('replies_placeholder') : 'اكتب ر
         </div>
     </div>
 </div>
-
+<script src="theme-manager.js"></script>
 
 </body>
 </html>

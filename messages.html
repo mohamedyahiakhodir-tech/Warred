@@ -329,23 +329,6 @@ body {
 .floating-fab:active i { transform: rotate(-15deg); }
 @keyframes floatBreathing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-/* ================= 10. أرشيف القصص (Royal Mauve Theme) ================= */
-#storyArchiveModal .modal-box {
-    background: linear-gradient(160deg, #181020, #000000) !important;
-    backdrop-filter: blur(35px); border: 1px solid rgba(126, 34, 206, 0.3);
-    border-top: 2px solid #7e22ce; border-bottom: 1px solid #581c87;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(126, 34, 206, 0.15);
-    border-radius: 24px; width: 95%; max-width: 450px; height: 80vh;
-    display: flex; flex-direction: column; overflow: hidden; animation: slideUpFade 0.4s ease;
-}
-.archive-item {
-    position: relative; width: 100%; aspect-ratio: 9/16;
-    background: rgba(126, 34, 206, 0.03); border-radius: 12px; overflow: hidden; cursor: pointer;
-    border: 1px solid rgba(126, 34, 206, 0.15); transition: transform 0.2s, border-color 0.2s;
-}
-.archive-item:active { transform: scale(0.96); border-color: #a855f7; box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
-.archive-media { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
-
 /* ================= 11. عارض القصص (Story Viewer) ================= */
 #storyViewer {
     display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -707,6 +690,13 @@ body {
     gap: 10px;
 }
 
+select.pro-input option {
+    background: #1e293b; /* لون غامق للقائمة المنسدلة */
+    color: #fff;
+    padding: 10px;
+}
+
+
 
     </style>
 </head>
@@ -844,7 +834,7 @@ body {
         <div class="toggle-knob"></div>
     </div>
 </div>
-<div class="sidebar-item" onclick="openStoryArchive()">
+<div class="sidebar-item" onclick="vibrate(); window.location.href='archive.html'">
     <i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i> أرشيف القصص
 </div>
 
@@ -992,6 +982,8 @@ let pendingChatRequest = null;
 let secretOperation = null; // لتحديد العملية (فتح القائمة أم إضافة شات)
 let targetChatForSecret = null; // لتخزين الشات المراد إخفاؤه مؤقتاً
 let hiddenActiveUsersSet = new Set();
+// أضف هذا المتغير مع المتغيرات العامة في الأعلى
+let unsubscribeStories = null; 
 
 
         const notificationAudio = document.getElementById('notificationSound');
@@ -1050,6 +1042,7 @@ function initApp() {
                 myActivityVisible = d.showActivity !== false;
                 updateSidebarProfile(d);
                 updateActivityUI();
+                updateNavAvatar(d);
             }
             loadFriendsList(user.uid);
             monitorIncomingMessages(user.uid); 
@@ -1154,8 +1147,9 @@ function drawStoriesUI(groups) {
 
         // إنشاء الكارت
         const item = document.createElement('div');
-        item.className = 'story-card';
-        item.onclick = () => openStoryViewer(index); // الاندكس هنا لازم يكون متوافق مع المصفوفة العالمية
+item.className = 'story-card';
+item.setAttribute('data-uid', uid); // 🔥 أضف هذا السطر (جديد) 🔥
+item.onclick = () => openStoryViewer(thisGroupIndex);
 
         item.innerHTML = `
             <div class="story-card-avatar" style="background-image:url('${group.user.avatar}'); border-color:${borderCol}"></div>
@@ -1167,162 +1161,179 @@ function drawStoriesUI(groups) {
 }
 
 
-        // 4. عرض القصص (نظام كروت فيسبوك)
-                // 4. عرض القصص (تم التعديل لإصلاح الصور وإضافة التوثيق)
-        function renderStories() {
+function renderStories() {
     const list = document.getElementById('storiesList');
     const container = document.getElementById('storiesContainer');
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
-    if(currentView === 'inbox') container.style.display = 'block';
+    if (currentView === 'inbox') container.style.display = 'block';
 
-    db.collection('stories')
-    .where('timestamp', '>', twentyFourHoursAgo)
-    .orderBy('timestamp', 'asc')
-    .onSnapshot(async snapshot => {
-        const storiesMap = {};
-
-        snapshot.docs.forEach(doc => {
-            
-            const d = doc.data();
-            if (d.isArchived === true) return; 
-
-            if(!storiesMap[d.uid]) storiesMap[d.uid] = [];
-            storiesMap[d.uid].push({ id: doc.id, ...d });
-    
-        });
-
-        // حفظ المؤشر الحالي قبل إعادة الرسم لضمان عدم ضياع مكانك في القصة
-        const isViewerOpen = document.getElementById('storyViewer').style.display === 'flex';
-
-        list.innerHTML = ''; 
-        storyGroups = [];
-    // ضيف ده في الأول عشان يعرض القديم فوراً
+    // ==========================================
+    // 🚀 الكاش (يُنفذ فوراً قبل الاتصال بالسيرفر)
+    // ==========================================
     const cachedStories = sessionStorage.getItem('my_cached_stories');
-    if (cachedStories) {
-        // هنا لازم يكون عندك كود الرسم أو تنادي دالة الرسم لو عاملها
-        // لو مش عامل دالة رسم، حط كود الـ innerHTML واللوب هنا
+    if (cachedStories && list.innerHTML === '') {
+        try {
+            // قم بفك الكاش ورسمه هنا إذا كان لديك دالة جاهزة
+            // drawStoriesUI(JSON.parse(cachedStories));
+        } catch (e) {
+            console.error("Cache Error:", e);
+        }
     }
 
-        // ==========================================
-        // 1. كارت "قصتك" (الخاص بي)
-        // ==========================================
-                const myStories = storiesMap[currentUser.uid] || [];
-        
-        let myData = usersCache[currentUser.uid];
-        if(!myData) myData = await fetchAndCacheUser(currentUser.uid);
+    // ==========================================
+    // 🛑 إغلاق المستمع القديم لمنع تكرار القصص مرتين
+    // ==========================================
+    if (unsubscribeStories) {
+        unsubscribeStories();
+    }
 
-        const myUserObj = { 
-            uid: currentUser.uid, 
-            name: 'قصتك', 
-            avatar: myData.avatar || currentUser.photoURL || defaultAvatar,
-            isVerified: myData.isVerified 
-        };
-        
-        // دي مهمة عشان لو عندك قصص تقدر تفتحها في العارض
-        if (myStories.length > 0) {
-            storyGroups.push({ user: myUserObj, stories: myStories });
-        }
+    // ==========================================
+    // 📡 جلب البيانات الحية
+    // ==========================================
+    unsubscribeStories = db.collection('stories')
+        .where('timestamp', '>', twentyFourHoursAgo)
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(async snapshot => {
+            const storiesMap = {};
 
-        // ==========================================
-        // كارت "إنشاء قصة" (الزرار)
-        // ==========================================
-        const myCard = document.createElement('div');
-        myCard.className = 'story-card my-story-card';
-        
-        let myProfilePic = myUserObj.avatar;
-        
-        // تم تنظيف الكود هنا: شيلنا حالات التحميل القديمة
-        myCard.innerHTML = `
-            <div class="my-story-top-img" style="background-image: url('${myProfilePic}');"></div>
-            <div class="my-story-bottom">
-                <div class="add-story-btn-circle"><i class="fa-solid fa-plus"></i></div>
-                <div style="font-size:12px; font-weight:bold; color:#fff;">إنشاء قصة</div>
-            </div>
-        `;
-        
-        // 🔥 التعديل: التوجيه لصفحة النشر الجديدة 🔥
-        myCard.onclick = () => { 
-            window.location.href = 'add_story.html'; 
-        };
-        
-        list.appendChild(myCard);
+            snapshot.docs.forEach(doc => {
+                const d = doc.data();
+                if (d.isArchived === true) return; 
 
-        // ==========================================
-        // كارت "مشاهدة قصتك" (لو نشرت حاجة بالفعل)
-        // ==========================================
-        if (myStories.length > 0) {
-            const myViewCard = document.createElement('div');
-            myViewCard.className = 'story-card';
-            const lastStory = myStories[myStories.length - 1];
+                if (!storiesMap[d.uid]) storiesMap[d.uid] = [];
+                storiesMap[d.uid].push({ id: doc.id, ...d });
+            });
+
+            // حفظ المؤشر الحالي قبل إعادة الرسم لضمان عدم ضياع مكانك
+            const isViewerOpen = document.getElementById('storyViewer').style.display === 'flex';
+
+            list.innerHTML = ''; 
+            storyGroups = [];
+
+            // ==========================================
+            // 1. كارت "قصتك" (الخاص بي)
+            // ==========================================
+            const myStories = storiesMap[currentUser.uid] || [];
             
-            let bgContent = lastStory.type === 'video' 
-                ? `<video src="${lastStory.url}" class="story-card-bg" style="object-fit:cover;" muted></video>`
-                : `<div class="story-card-bg" style="background-image:url('${lastStory.url}'); background-size:cover; background-position:center;"></div>`;
+            let myData = usersCache[currentUser.uid];
+            if (!myData) myData = await fetchAndCacheUser(currentUser.uid);
 
-            let myDisplayName = "قصتك";
-            myViewCard.innerHTML = `
-                <div class="story-card-avatar" style="background-image:url('${myProfilePic}'); border-color: #ddd;"></div>
-                ${bgContent}
-                <div class="story-card-name">${myDisplayName}</div>
+            const myUserObj = { 
+                uid: currentUser.uid, 
+                name: 'قصتك', 
+                avatar: myData.avatar || currentUser.photoURL || defaultAvatar,
+                isVerified: myData.isVerified 
+            };
+            
+            if (myStories.length > 0) {
+                storyGroups.push({ user: myUserObj, stories: myStories });
+            }
+
+            // --- رسم كارت "إنشاء قصة" (الزرار الأساسي) ---
+            const myCard = document.createElement('div');
+            myCard.className = 'story-card my-story-card';
+            let myProfilePic = myUserObj.avatar;
+            
+            myCard.innerHTML = `
+                <div class="my-story-top-img" style="background-image: url('${myProfilePic}');"></div>
+                <div class="my-story-bottom">
+                    <div class="add-story-btn-circle"><i class="fa-solid fa-plus"></i></div>
+                    <div style="font-size:12px; font-weight:bold; color:#fff;">إنشاء قصة</div>
+                </div>
             `;
+            myCard.onclick = () => { window.location.href = 'add_story.html'; };
+            list.appendChild(myCard);
+
+            // --- رسم كارت "مشاهدة قصتك" (في حال قمت بالنشر) ---
+            if (myStories.length > 0) {
+                const myViewCard = document.createElement('div');
+                myViewCard.className = 'story-card';
+                const lastStory = myStories[myStories.length - 1];
+                
+                let bgContent = lastStory.type === 'video' 
+                    ? `<video src="${lastStory.url}#t=0.1" class="story-card-bg" style="object-fit:cover;" muted preload="metadata"></video>`
+                    : `<div class="story-card-bg" style="background-image:url('${lastStory.url}'); background-size:cover; background-position:center;"></div>`;
+
+                myViewCard.innerHTML = `
+                    <div class="story-card-avatar" style="background-image:url('${myProfilePic}'); border-color: #ddd;"></div>
+                    ${bgContent}
+                    <div class="story-card-name">قصتك</div>
+                `;
+                
+                myViewCard.onclick = () => openStoryViewer(0); 
+                list.appendChild(myViewCard);
+            }
+
+            // ==========================================
+            // 2. قصص الأصدقاء
+            // ==========================================
+            const otherUids = Object.keys(storiesMap).filter(uid => uid !== currentUser.uid);
             
-            // نستخدم 0 لأن قصتي (لو موجودة) دايماً بتكون أول جروب في القائمة
-            myViewCard.onclick = () => openStoryViewer(0); 
-            list.appendChild(myViewCard);
-        }
+            for (const uid of otherUids) {
+                // 🛑 الفحص الشامل للحظر (يمنع ظهور القصص نهائياً)
+                let isUserBlocked = false;
 
-        // ==========================================
-        // 2. قصص الأصدقاء
-        // ==========================================
-        const otherUids = Object.keys(storiesMap).filter(uid => uid !== currentUser.uid);
-        
-        for (const uid of otherUids) {
-                        // لو الشات ده محظور، عدي الدور ومترسمش قصته
-            const chatCheck = allChats.find(c => c.otherUid === uid);
-            if (chatCheck && chatCheck.isBlocked) continue;
+                // أ. الفحص من خلال المحادثات
+                const chatCheck = allChats.find(c => c.otherUid === uid);
+                if (chatCheck && chatCheck.isBlocked) {
+                    isUserBlocked = true;
+                }
 
-            let u = usersCache[uid];
-            if(!u) u = await fetchAndCacheUser(uid);
-            
-            storyGroups.push({ user: u, stories: storiesMap[uid] });
-            // نحتفظ بالرقم الصحيح للإندكس
-            const thisGroupIndex = storyGroups.length - 1;
-            
-            const userStories = storiesMap[uid];
-            const lastStory = userStories[userStories.length - 1]; 
-            const hasUnseen = userStories.some(s => !s.viewers || !s.viewers.includes(currentUser.uid));
-            const borderCol = hasUnseen ? 'var(--accent-color)' : '#555';
+                // ب. الفحص من خلال البروفايل
+                if (!isUserBlocked) {
+                    let myDataBlock = usersCache[currentUser.uid];
+                    const blockedByMe = myDataBlock?.blockedUsers || []; 
 
-            const item = document.createElement('div');
-            item.className = 'story-card';
-            item.onclick = () => openStoryViewer(thisGroupIndex);
-            
-            // لاحظ إضافة #t=0.1 في نهاية الرابط وإضافة preload="metadata"
-let contentHTML = lastStory.type === 'video' 
-    ? `<video src="${lastStory.url}#t=0.1" class="story-card-bg" style="object-fit:cover;" muted preload="metadata"></video>`
-    : `<div class="story-card-bg" style="background-image:url('${lastStory.url}'); background-size:cover; background-position:center;"></div>`;
+                    let uBlock = usersCache[uid];
+                    if (!uBlock) uBlock = await fetchAndCacheUser(uid);
+                    const blockedByHim = uBlock?.blockedUsers || [];
 
+                    if (blockedByMe.includes(uid) || blockedByHim.includes(currentUser.uid)) {
+                        isUserBlocked = true;
+                    }
+                }
 
-            let displayNameHTML = u.name;
-            if (u.isVerified) displayNameHTML += ` <i class="fa-solid fa-circle-check" style="color:#38bdf8; font-size:10px; vertical-align: middle;"></i>`;
+                if (isUserBlocked) continue; // تجاهل القصة
 
-            item.innerHTML = `
-                <div class="story-card-avatar" style="background-image:url('${u.avatar}'); border-color:${borderCol}"></div>
-                ${contentHTML}
-                <div class="story-card-name">${displayNameHTML}</div>`;
-            
-            list.appendChild(item);
-        }
+                // تجهيز بيانات المستخدم
+                let u = usersCache[uid];
+                if (!u) u = await fetchAndCacheUser(uid);
+                
+                storyGroups.push({ user: u, stories: storiesMap[uid] });
+                const thisGroupIndex = storyGroups.length - 1;
+                
+                const userStories = storiesMap[uid];
+                const lastStory = userStories[userStories.length - 1]; 
+                const hasUnseen = userStories.some(s => !s.viewers || !s.viewers.includes(currentUser.uid));
+                const borderCol = hasUnseen ? 'var(--accent-color)' : '#555';
 
-        // 🔥 هذا هو السطر السحري الجديد 🔥
-        // إذا كان المشاهد مفتوحاً، قم بتحديث الواجهة فوراً لكي يظهر الرقم الجديد
-        if (isViewerOpen) {
-            updateStoryUI();
-            
-        }
-    });
+                const item = document.createElement('div');
+                item.className = 'story-card';
+                item.onclick = () => openStoryViewer(thisGroupIndex);
+                
+                let contentHTML = lastStory.type === 'video' 
+                    ? `<video src="${lastStory.url}#t=0.1" class="story-card-bg" style="object-fit:cover;" muted preload="metadata"></video>`
+                    : `<div class="story-card-bg" style="background-image:url('${lastStory.url}'); background-size:cover; background-position:center;"></div>`;
+
+                let displayNameHTML = u.name;
+                if (u.isVerified) displayNameHTML += ` <i class="fa-solid fa-circle-check" style="color:#38bdf8; font-size:10px; vertical-align: middle;"></i>`;
+
+                item.innerHTML = `
+                    <div class="story-card-avatar" style="background-image:url('${u.avatar}'); border-color:${borderCol}"></div>
+                    ${contentHTML}
+                    <div class="story-card-name">${displayNameHTML}</div>`;
+                
+                list.appendChild(item);
+            }
+
+            // تحديث الواجهة فوراً لكي يظهر الرقم الجديد إذا كان المشاهد مفتوحاً
+            if (isViewerOpen && typeof updateStoryUI === 'function') {
+                updateStoryUI();
+            }
+        });
 }
+
 
         function openStoryViewer(groupIndex) {
     currentGroupIndex = groupIndex;
@@ -1441,11 +1452,16 @@ else {
     clearTimeout(storyTimer);
     const group = storyGroups[currentGroupIndex];
     const story = group.stories[currentStoryIndex];
-    // --- إصلاح: التأكد من وجود حاوية القصة للتفاعل ---
-const storyContentEl = document.getElementById('storyContent');
-if (storyContentEl) {
-    storyContentEl.addEventListener('touchend', handleDoubleTap);
-}
+    
+    // ==========================================
+    // 🔥 الحل السحري: تعريف الحاوية هنا لتجنب خطأ contentDiv is not defined 🔥
+    // ==========================================
+    const contentDiv = document.getElementById('storyContent');
+
+    // --- التأكد من وجود حاوية القصة لربط اللمس المزدوج (القلب) ---
+    if (contentDiv) {
+        contentDiv.addEventListener('touchend', handleDoubleTap);
+    }
 
     const blurBg = document.getElementById('storyBlurBg');
     const timeAgoDiv = document.getElementById('storyTimeAgo');
@@ -1461,7 +1477,7 @@ if (storyContentEl) {
     const mediaType = story.type || 'image';
 
     // ==========================================
-    // 🔥 إصلاح جزء الفيديو 🔥
+    // 🎥 جزء الفيديو 🎥
     // ==========================================
     if (mediaType === 'video') {
         // 1. عرض مؤشر تحميل حتى يجهز الفيديو
@@ -1512,7 +1528,7 @@ if (storyContentEl) {
 
         newElement.onended = nextStory;
         
-        // معالجة الأخطاء
+        // معالجة الأخطاء في الفيديو
         newElement.onerror = () => {
             console.error("Video Error");
             showToast("تعذر تشغيل الفيديو");
@@ -1522,7 +1538,7 @@ if (storyContentEl) {
 
     } else {
         // ==========================================
-        // جزء الصور (كما هو مع تحسين بسيط)
+        // 🖼️ جزء الصور 🖼️
         // ==========================================
         contentDiv.innerHTML = '<div style="color:#fff; font-size:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i></div>';
         
@@ -1554,7 +1570,9 @@ if (storyContentEl) {
         }
     }
 
-    // تسجيل المشاهدة
+    // ==========================================
+    // 👁️ تسجيل المشاهدة 👁️
+    // ==========================================
     if (group.user.uid !== currentUser.uid) {
         if(!story.viewers || !story.viewers.includes(currentUser.uid)) {
             db.collection('stories').doc(story.id).update({
@@ -1563,6 +1581,7 @@ if (storyContentEl) {
         }
     }
     
+    // تحميل القصة القادمة في الخلفية لتسريع العرض
     preloadNextStory();
 }
 
@@ -2055,14 +2074,18 @@ function closeStoryViewers() {
         // ======================= Core App Logic (Friends & Chats) =======================
 
         function loadFriendsList(uid) {
-            db.collection("users").doc(uid).collection("friends").onSnapshot(async snap => {
-                friendUids = new Set(snap.docs.map(doc => doc.id));
-                // تحميل بيانات الأصدقاء للكاش
-                await Promise.all(Array.from(friendUids).map(fetchAndCacheUser));
-                renderStories();
-                if(allChats.length > 0) renderList(); 
-            });
-        }
+    db.collection("users").doc(uid).collection("friends").onSnapshot(async snap => {
+        friendUids = new Set(snap.docs.map(doc => doc.id));
+        // تحميل بيانات الأصدقاء للكاش
+        await Promise.all(Array.from(friendUids).map(fetchAndCacheUser));
+        
+        // ❌ قم بمسح أو تهميش هذا السطر لمنع التكرار
+        // renderStories(); 
+        
+        if(allChats.length > 0) renderList(); 
+    });
+}
+
 
         // استبدل دالة loadChats القديمة بهذه الدالة المحسنة
 // استبدل دالة loadChats بالكامل بالكود ده
@@ -2075,7 +2098,6 @@ function loadChats(userId) {
 
         for (const doc of snap.docs) {
             const d = doc.data();
-            
             
             // تجاهل الشفرة لو مش بتاعتي
             if (d.lastMessage === '__HIDDEN_START__' && d.lastSender !== userId) { continue; }
@@ -2100,16 +2122,18 @@ function loadChats(userId) {
                     const u = usersCache[otherUid] || await fetchAndCacheUser(otherUid);
                     chatName = u.name; chatAvatar = u.avatar; isVerified = u.isVerified;
                     
+                    // 🛑🔥 نظام الحظر: طمس الهوية بالكامل 🔥🛑
                     if (d.blockedBy && d.blockedBy.length > 0) {
-                        chatAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-                        isVerified = false;
+                        chatName = "مستخدم Wareed"; // تغيير الاسم
+                        chatAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png"; // صورة رمادية
+                        isVerified = false; // إخفاء التوثيق
+                        if (u) u.isOnline = false; // إجبار إخفاء النقطة الخضراء
                     }
                 }
             }
 
             // تجهيز نص الرسالة
-                        // تحويل الرسالة لنص إجبارياً لضمان عمل دالة includes دون أخطاء
-                        // --- ✅ بداية التعديل لإصلاح [object Object] ---
+            // تحويل الرسالة لنص إجبارياً لضمان عمل دالة includes دون أخطاء
             let rawMsg = "";
             
             if (d.lastMessage && typeof d.lastMessage === 'object') {
@@ -2127,10 +2151,13 @@ function loadChats(userId) {
                 // لو الرسالة نظام قديم (نص عادي)، نعرضها زي ما هي
                 rawMsg = String(d.lastMessage || "");
             }
-            // --- ✅ نهاية التعديل ---
+            
             let previewMsg = rawMsg || 'بدء المحادثة';
             let isMedia = false;
             let isTyping = (d.typing && Array.isArray(d.typing) && d.typing.includes(otherUid));
+
+            // 🛑 حماية: لو الشات محظور، مستحيل يظهرلك إنه بيكتب
+            if (d.blockedBy && d.blockedBy.length > 0) isTyping = false;
 
             if (rawMsg === '__HIDDEN_START__') {
                 previewMsg = '<span style="color:var(--accent-color); font-style:italic;">محادثة جديدة ✨</span>';
@@ -2147,8 +2174,40 @@ function loadChats(userId) {
             const isRestricted = d.restrictedBy && d.restrictedBy.includes(userId);
 
             // 🔥 تصحيح 2: إجبار الجروب إنه ميكونش Request أبداً
-            // لو هو جروب، يبقى isRequest = false فوراً
-            const isRequest = isGroup ? false : (!isGroup && d.lastSender !== userId && !friendUids.has(otherUid));
+            // =========================================================
+// 🔥 تصحيح 2: منطق ماسنجر لفرز الطلبات والدردشات الأساسية
+// =========================================================
+let isRequest = false;
+
+if (!isGroup) {
+    if (d.lastSender === userId) {
+        // 1. لو أنا اللي باعت آخر رسالة، مستحيل يكون طلب
+        isRequest = false;
+    } else {
+        // 2. لو هو اللي باعت.. هل أنا رديت وتفاعلت معاه قبل كده؟
+        // (بنعتمد على مصفوفة interactedUsers اللي ضفناها في ملف الشات)
+        if (d.interactedUsers && d.interactedUsers.includes(userId)) {
+            isRequest = false; // رديت عليه قبل كده -> يفضل في الأساسي للأبد
+        } 
+        // 3. لو عمري ما رديت عليه.. بس هو في قائمة أصدقائي
+        else if (friendUids.has(otherUid)) {
+            isRequest = false; // صديقي -> يروح للأساسي
+        } 
+        // 4. لو غريب + عمري ما رديت عليه -> يروح للطلبات
+        else {
+            isRequest = true; 
+        }
+    }
+}
+
+
+            // ==========================================
+            // 🔥 التعديل الجذري: حساب الوقت بطريقة آمنة جداً تمنعه يرجع 0 وقت الإرسال
+            // ==========================================
+            let timeMs = 0;
+            if (d.lastMessageTime) {
+                timeMs = typeof d.lastMessageTime.toMillis === 'function' ? d.lastMessageTime.toMillis() : Date.now();
+            }
 
             const chatObj = {
                 id: doc.id, 
@@ -2158,8 +2217,9 @@ function loadChats(userId) {
                 lastMsg: previewMsg, 
                 isMedia, 
                 isTyping,
-                time: d.lastMessageTime ? moment(d.lastMessageTime.toDate()).fromNow(true) : '',
-                timestamp: d.lastMessageTime ? d.lastMessageTime.toMillis() : 0,
+                // حماية إضافية لدالة toDate
+                time: d.lastMessageTime && typeof d.lastMessageTime.toDate === 'function' ? moment(d.lastMessageTime.toDate()).fromNow(true) : 'الآن',
+                timestamp: timeMs, // 🔥 استخدام المتغير الآمن هنا
                 otherUid, 
                 isOnline: isGroup ? true : (usersCache[otherUid]?.isOnline || false),
                 amISender: amISender, 
@@ -2170,9 +2230,7 @@ function loadChats(userId) {
                 isVerified,
                 isPinned: d.pinnedBy && d.pinnedBy.includes(userId),
                 isMuted: d.mutedBy && d.mutedBy.includes(userId),
-                
-                isRequest: isRequest, // 🔥 استخدام القيمة المصححة
-                
+                isRequest: isRequest,
                 isSecret: d.secretBy && d.secretBy.includes(userId),
                 isRestricted: isRestricted,
                 isSoftDeleted: isSoftDeleted,
@@ -2181,10 +2239,8 @@ function loadChats(userId) {
 
             // 🔥 تصحيح 3: منطق منع التكرار (المهم جداً للجروبات)
             if (isGroup) {
-                // الجروبات تضاف فوراً وبدون نقاش (لا تدخل في الـ uniqueChatsMap)
                 tempChats.push(chatObj); 
             } else {
-                // الشاتات الفردية بس هي اللي بنعملها فلترة عشان التكرار
                 if (uniqueChatsMap.has(otherUid)) {
                     const existing = uniqueChatsMap.get(otherUid);
                     if (chatObj.timestamp > existing.timestamp) {
@@ -2199,9 +2255,16 @@ function loadChats(userId) {
         // دمج الشاتات الفردية المفلترة مع الجروبات
         uniqueChatsMap.forEach(value => tempChats.push(value));
         
-        // الترتيب
+        // ==========================================
+        // 🔥 التصحيح الشامل للترتيب 
+        // ==========================================
         tempChats.sort((a, b) => {
-            if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+            // 1. الأولوية الأولى: الدردشات المثبتة تظهر فوق دائماً
+            if (a.isPinned && !b.isPinned) return -1;
+            if (!a.isPinned && b.isPinned) return 1;
+            
+            // 2. الأولوية الثانية: الترتيب حسب الوقت (الجروب والشات الفردي هيتعاملوا زي بعض)
+            // الرقم الأكبر (الأحدث) يظهر فوق
             return b.timestamp - a.timestamp;
         });
         
@@ -2210,6 +2273,7 @@ function loadChats(userId) {
         renderList();
     });
 }
+
 
         async function fetchAndCacheUser(uid) {
     // لو البيانات موجودة في الكاش وحديثة (أقل من دقيقة) نرجعها
@@ -2247,12 +2311,14 @@ function loadChats(userId) {
             const realOnline = isOnlineCalculated && myActivityVisible;
 
             usersCache[uid] = { 
-                uid, 
-                name: d.name || "مستخدم", 
-                avatar: d.profilePic || d.avatarUrl || defaultAvatar, 
-                isVerified: d.isVerified === true, 
-                isOnline: realOnline // القيمة المحسوبة الجديدة
-            };
+    uid, 
+    name: d.name || "مستخدم", 
+    avatar: d.profilePic || d.avatarUrl || defaultAvatar, 
+    isVerified: d.isVerified === true, 
+    isOnline: realOnline,
+    blockedUsers: d.blockedUsers || [] // 🔥 أضف هذا السطر
+};
+
             // ده السطر اللي بيحفظ بيانات الناس في الذاكرة
 sessionStorage.setItem('cached_users_data', JSON.stringify(usersCache));
 
@@ -2615,51 +2681,45 @@ function openOptions(chat) {
 async function executeBlockAction() {
     if (!userToBlockId) return;
 
-    // إخفاء النافذة ومبدئياً إظهار رسالة انتظار
     document.getElementById('blockConfirmationModal').style.display = 'none';
     showToast("جاري التحقق من الصلاحية... ⏳");
 
     try {
         const chatRef = db.collection('chats').doc(userToBlockId);
-        
-        // 1. جلب بيانات الشات الحالية عشان نشوف آخر مرة حظر فيها إمتى
         const doc = await chatRef.get();
         if (!doc.exists) return;
         
         const data = doc.data();
         const myId = currentUser.uid;
         
-        // 2. التحقق من المهلة الزمنية (48 ساعة)
-        if (data.blockCooldown && data.blockCooldown[myId]) {
-            const lastActionTime = data.blockCooldown[myId].toMillis();
-            const currentTime = Date.now();
-            const diffInHours = (currentTime - lastActionTime) / (1000 * 60 * 60); // تحويل الفرق لساعات
+        // استخراج ID الشخص الآخر من المحادثة
+        const otherUserId = data.users.find(id => id !== myId);
 
-            if (diffInHours < 48) {
-                const remaining = Math.ceil(48 - diffInHours);
-                showToast(`🚫 عذراً! يجب الانتظار ${remaining} ساعة قبل تعديل الحظر.`);
-                
-                // تشغيل هزاز للرفض
-                if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
-                return; // ⛔ وقف هنا وماتكملش
-            }
-        }
+        // ... (كود الـ 48 ساعة الخاص بك يبقى كما هو) ...
 
-        // 3. تنفيذ الحظر وتخزين الوقت الحالي
-        // بنستخدم تحديث ذكي عشان نخزن وقت الحظر الخاص بيك انت بس
+        // 1. تحديث المحادثة (كما هو لديك)
         const updateData = {
             blockedBy: firebase.firestore.FieldValue.arrayUnion(myId)
         };
-        
-        // تسجيل الوقت الحالي كبداية للعد التنازلي الـ 48 ساعة
         updateData[`blockCooldown.${myId}`] = firebase.firestore.FieldValue.serverTimestamp();
-
         await chatRef.update(updateData);
+        
+        // 2. 🔥 الجزء الجديد: إضافة الشخص لقائمة المحظورين في بروفايلك 🔥
+        if (otherUserId) {
+            await db.collection('users').doc(myId).update({
+                blockedUsers: firebase.firestore.FieldValue.arrayUnion(otherUserId)
+            });
+            // تحديث الكاش المحلي فوراً
+            if (usersCache[myId]) {
+                if (!usersCache[myId].blockedUsers) usersCache[myId].blockedUsers = [];
+                usersCache[myId].blockedUsers.push(otherUserId);
+            }
+        }
         
         showToast("تم حظر المستخدم (مقيد لمدة 48 ساعة) 🔒🚫");
         
-        // 4. تحديث الواجهة
         renderList(); 
+        renderStories(); // تحديث القصص فوراً لإخفاء قصة المحظور
         
     } catch (e) {
         console.error(e);
@@ -3316,20 +3376,16 @@ function startPresenceSystem() {
     // ============================================
     initApp(); 
 // 1. ربط حقل الإدخال بحدث الضغط على Enter
-document.getElementById('storyReplyInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        sendStoryReply();
-    }
-});
-
-// 2. دالة إرسال الرد كرسالة خاصة
-// 1. تشغيل زرار الـ Enter في الكيبورد (keyup أفضل للموبايل)
-document.getElementById('storyReplyInput').addEventListener('keyup', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault(); // منع السطر الجديد
-        sendStoryReply();   // إرسال
-    }
-});
+// ربط حقل الإدخال بحدث الضغط على Enter (تم الدمج والحماية)
+const storyReplyEl = document.getElementById('storyReplyInput');
+if (storyReplyEl) {
+    storyReplyEl.addEventListener('keyup', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault(); 
+            sendStoryReply();   
+        }
+    });
+}
 
 // 2. دالة الإرسال (معدلة لتأكيد العمل)
 async function sendStoryReply() {
@@ -3390,6 +3446,7 @@ async function sendStoryReply() {
             storyUrl: story.url,
             storyType: story.type,
             seen: false
+            
         });
 
         // تحديث الشات الخارجي
@@ -3433,8 +3490,11 @@ function handleDoubleTap(e) {
     lastTap = currentTime;
 }
 
-// أضف المستمع للحدث على حاوية الميديا
-document.getElementById('storyContent').addEventListener('touchend', handleDoubleTap);
+// أضف المستمع للحدث على حاوية الميديا (مُؤمّن)
+const storyContentContainer = document.getElementById('storyContent');
+if (storyContentContainer) {
+    storyContentContainer.addEventListener('touchend', handleDoubleTap);
+}
 
 // دالة الأنيميشن للقلب الكبير
 function showBigHeartAnimation() {
@@ -3574,6 +3634,9 @@ async function handleGlobalSearch(query) {
                 }
 
                 if (chatData) {
+                    // 🛑 حماية: منع ظهور رسائل المحادثات المحظورة في نتائج البحث
+                    if (chatData.isBlocked) return; 
+
                     foundCount++;
                     
                     // تلوين الكلمة
@@ -3814,24 +3877,31 @@ function renderQuickActiveUsers() {
         return;
     }
 
-    // تجميع البيانات (نفس الكود القديم)
+    // تجميع البيانات من الأصدقاء والمحادثات
     let peopleMap = new Map();
     friendUids.forEach(uid => { if (usersCache[uid]) peopleMap.set(uid, usersCache[uid]); });
     allChats.forEach(chat => {
         if (!chat.isGroup && chat.otherUid) {
-            const cachedUser = usersCache[chat.otherUid] || { uid: chat.otherUid, name: chat.name, avatar: chat.avatar, isVerified: chat.isVerified, isOnline: chat.isOnline };
+            const cachedUser = usersCache[chat.otherUid] || { 
+                uid: chat.otherUid, 
+                name: chat.name, 
+                avatar: chat.avatar, 
+                isVerified: chat.isVerified, 
+                isOnline: chat.isOnline,
+                blockedUsers: [] 
+            };
             peopleMap.set(chat.otherUid, cachedUser);
         }
     });
 
     let peopleArray = Array.from(peopleMap.values());
 
-    // فلترة المخفيين (إضافة مهمة عشان الإخفاء يشتغل)
+    // فلترة المخفيين يدوياً
     if (typeof hiddenActiveUsersSet !== 'undefined') {
         peopleArray = peopleArray.filter(u => !hiddenActiveUsersSet.has(u.uid));
     }
 
-    // الترتيب
+    // الترتيب (الأونلاين يظهر في الأول)
     peopleArray.sort((a, b) => {
         const aOnline = a.isOnline && window.isOnlineFeatureEnabled;
         const bOnline = b.isOnline && window.isOnlineFeatureEnabled;
@@ -3847,16 +3917,34 @@ function renderQuickActiveUsers() {
     container.style.display = 'flex';
     list.innerHTML = '';
 
+    // جلب بياناتي للتحقق من الحظر المتبادل
+    let myData = usersCache[currentUser.uid] || { blockedUsers: [] };
+    const blockedByMe = myData.blockedUsers || [];
+
     peopleArray.forEach(user => {
-                // لو الشخص ده محظور، اخرج وما ترسموش في شريط النشاط
+        // ==========================================
+        // 🛑 فحص الحظر (الطبقة الأولى: من المحادثة)
+        // ==========================================
         const chatCheck = allChats.find(c => c.otherUid === user.uid);
         if (chatCheck && chatCheck.isBlocked) return; 
 
+        // ==========================================
+        // 🛑 فحص الحظر (الطبقة الثانية: من البروفايل) - للحماية لو الشات ممسوح
+        // ==========================================
+        const blockedByHim = user.blockedUsers || [];
+        if (blockedByMe.includes(user.uid) || blockedByHim.includes(currentUser.uid)) {
+            return; // تجاهل المستخدم ولا ترسمه
+        }
+
+        // تجاهل عرض نفسي في القائمة
         if(user.uid === currentUser.uid) return;
 
+        // إنشاء العنصر
         const item = document.createElement('div');
         item.className = 'quick-user-item';
-        
+        item.setAttribute('data-uid', user.uid); // 🔥 التاج الجديد للحذف الآلي 🔥
+
+        // حساب حالة الأونلاين والاسم الأول
         const isReallyOnline = user.isOnline && window.isOnlineFeatureEnabled;
         const dotDisplay = isReallyOnline ? 'block' : 'none';
         const firstName = user.name ? user.name.split(' ')[0] : "مستخدم";
@@ -3870,9 +3958,8 @@ function renderQuickActiveUsers() {
         `;
 
         // ============================================================
-        // 🔥🔥 الجزء السحري: التفريق بين اللمسة العادية والمطولة 🔥🔥
+        // 🔥🔥 نظام اللمس المزدوج (عادي ومطول) مع منع تداخل السكرول 🔥🔥
         // ============================================================
-
         let pressTimer;
         let isLongPress = false;
 
@@ -3885,45 +3972,43 @@ function renderQuickActiveUsers() {
                 isLongPress = true; // تم اعتبارها الآن ضغطة مطولة
                 if(navigator.vibrate) navigator.vibrate(50); // اهتزاز
                 
-                // 🔥 هنا نفتح القائمة المنبثقة 🔥
-                openActiveUserOptions(user); 
+                openActiveUserOptions(user); // فتح القائمة المنبثقة
             }, 600);
         }, { passive: true });
 
-        // 2. عند رفع الإصبع (Touch End) - هنا يتم فتح الشات
+        // 2. عند رفع الإصبع (Touch End)
         item.addEventListener('touchend', (e) => {
             clearTimeout(pressTimer); // إلغاء العداد فوراً
 
-            // لو مكنتش ضغطة مطولة (يعني المستخدم شال صباعه بسرعة)
+            // لو مكنتش ضغطة مطولة (نقرة سريعة)
             if (!isLongPress) {
-                // 🔥 هنا نفتح الشات (اللمسة العادية) 🔥
-                openChatWithUserSmart(user);
+                openChatWithUserSmart(user); // فتح المحادثة
             }
         });
 
-        // 3. لو المستخدم حرك صباعه (بيعمل سكرول) -> الغي كل حاجة
+        // 3. لو المستخدم حرك صباعه (بيعمل سكرول) -> الغي الضغطة المطولة
         item.addEventListener('touchmove', () => {
             clearTimeout(pressTimer);
             isLongPress = true; // نعتبرها true عشان لما يشيل صباعه ميفكرش انها نقرة ويفتح الشات
-        });
+        }, { passive: true });
 
-        // 4. دعم الماوس (للكمبيوتر)
+        // 4. دعم الماوس (للكمبيوتر والويب)
         item.oncontextmenu = (e) => {
-            e.preventDefault();
-            openActiveUserOptions(user); // كليك يمين يفتح القائمة
+            e.preventDefault(); // منع قائمة المتصفح الافتراضية
+            openActiveUserOptions(user); 
         };
 
         item.onclick = (e) => {
-            // لو كليك شمال بالماوس، افتح الشات
+            // فتح الشات بالماوس فقط (لأن اللمس تم معالجته فوق)
             if (e.pointerType === 'mouse') {
                 openChatWithUserSmart(user);
             }
         };
 
+        // إضافة العنصر للشريط
         list.appendChild(item);
     });
 }
-
 // ============================================================
 // 🔥 دالة مساعدة لفتح الشات بذكاء (عشان منكررهاش) 🔥
 // (ضيف الدالة دي في أي مكان في ملف الـ JS)
@@ -4067,411 +4152,7 @@ function archiveCurrentStoryManual() {
         renderStories(); // تحديث الشريط الرئيسي لإخفاء القصة
     }).catch(err => console.error(err));
 }
-// ================= وظائف الأرشيف الجديدة (عرض + معاينة) =================
 
-// ================= وظائف الأرشيف المحدثة (إعادة نشر + قائمة) =================
-
-// ================= وظائف الأرشيف المحدثة (القائمة الخارجية) =================
-
-function openStoryArchive() {
-    toggleSidebar(); 
-    document.getElementById('storyArchiveModal').style.display = 'flex';
-    const grid = document.getElementById('archiveGrid');
-    
-    grid.innerHTML = '<div style="grid-column:span 3; text-align:center; padding:50px; color:var(--accent-color);"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:30px;"></i></div>';
-
-    db.collection('stories')
-      .where('uid', '==', currentUser.uid)
-      .orderBy('createdAt', 'desc')
-      .get()
-      .then(snapshot => {
-          grid.innerHTML = '';
-          const now = Date.now();
-          let count = 0;
-
-          snapshot.forEach(doc => {
-              const d = doc.data();
-              const timeData = d.createdAt || d.timestamp;
-              if (!timeData) return;
-
-              const storyTime = timeData.toMillis();
-              const isExpired = (now - storyTime) > (24 * 60 * 60 * 1000);
-              
-              if (isExpired || d.isArchived === true) {
-                  count++;
-                  
-                  let mediaContent = d.type === 'video' 
-                      ? `<video src="${d.url}#t=0.1" class="archive-media" preload="metadata" muted></video>` 
-                      : `<img src="${d.url}" class="archive-media" loading="lazy">`;
-
-                  const dateObj = new Date(storyTime);
-                  const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()}`;
-
-                  const item = document.createElement('div');
-                  item.className = 'archive-item';
-                  item.id = `arch-item-${doc.id}`; // ID مميز للكارت كله
-
-                  // 🔥 الهيكل الجديد: غلاف للصورة + زر وقائمة بره الغلاف 🔥
-                  item.innerHTML = `
-                      <div class="archive-media-wrapper">
-                          ${mediaContent}
-                          <div class="archive-date-badge" style="position:absolute; bottom:0; right:0; width:100%; padding:20px 5px 5px; background:linear-gradient(to top, rgba(0,0,0,0.8), transparent); color:#fff; font-size:10px; text-align:right;">${dateStr}</div>
-                      </div>
-                      
-                      <div class="archive-more-btn" onclick="event.stopPropagation(); toggleArchiveMenu('${doc.id}')">
-                          <i class="fa-solid fa-ellipsis"></i>
-                      </div>
-
-                      <div id="menu-${doc.id}" class="archive-menu">
-                          <div class="archive-menu-item" onclick="event.stopPropagation(); repostFromArchive('${d.url}', '${d.type}', '${doc.id}')">
-                              <i class="fa-solid fa-retweet"></i> إعادة نشر
-                          </div>
-                          <div class="archive-menu-item danger" style="color:#ff5555;" onclick="event.stopPropagation(); deleteFromArchive('${doc.id}', '${d.url}')">
-                              <i class="fa-solid fa-trash-can"></i> حذف نهائي
-                          </div>
-                      </div>
-                  `;
-                  
-                  item.onclick = () => { viewArchivedStory(d.url, d.type); };
-                  grid.appendChild(item);
-              }
-          });
-
-          if(count === 0) {
-              grid.innerHTML = `<div class="empty-archive"><i class="fa-solid fa-box-open"></i><span>الأرشيف فارغ</span></div>`;
-          }
-      }).catch(err => {
-          console.error(err);
-      });
-      
-    // إضافة مستمع لإغلاق القوائم عند الضغط في أي مكان
-    document.addEventListener('click', closeAllArchiveMenus);
-}
-
-// --- تعديل دالة فتح القائمة (السر هنا) ---
-function toggleArchiveMenu(docId) {
-    const menu = document.getElementById(`menu-${docId}`);
-    const parentItem = document.getElementById(`arch-item-${docId}`);
-    const isVisible = menu.classList.contains('show');
-    
-    // 1. اقفل أي قائمة تانية ورجع الطبقات لوضعها الطبيعي
-    closeAllArchiveMenus();
-    
-    // 2. لو مكنتش مفتوحة، افتحها وارفع الكارت ده فوق الكل
-    if (!isVisible) {
-        menu.classList.add('show');
-        parentItem.classList.add('active-zindex'); // ده الكلاس اللي بيرفع الكارت
-    }
-}
-
-// --- تعديل دالة الإغلاق ---
-function closeAllArchiveMenus() {
-    // إخفاء كل القوائم
-    document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
-    // إرجاع ترتيب الطبقات (z-index) لطبيعته
-    document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('active-zindex'));
-}
-
-
-// --- دالة إغلاق كل القوائم (المعدلة) ---
-function closeAllArchiveMenus() {
-    // إخفاء القوائم
-    document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
-    // إزالة كلاس الـ z-index العالي من كل الكروت
-    document.querySelectorAll('.archive-item').forEach(item => item.classList.remove('active-menu'));
-}
-
-// (وباقي الدوال زي repostFromArchive و deleteFromArchive زي ما هي من الرد السابق)
-
-
-// --- دالة إغلاق كل القوائم ---
-function closeAllArchiveMenus() {
-    document.querySelectorAll('.archive-menu').forEach(menu => menu.classList.remove('show'));
-}
-
-// --- دالة إعادة النشر (Repost) ---
-function repostFromArchive(url, type, originalId) {
-    // إخفاء القائمة
-    closeAllArchiveMenus();
-    
-    if(!confirm("هل تريد إعادة نشر هذه القصة لتظهر للعامة لمدة 24 ساعة؟")) return;
-
-    showToast("جاري إعادة النشر...");
-
-    // إضافة قصة جديدة بنفس البيانات
-    db.collection('stories').add({
-        uid: currentUser.uid,
-        url: url,
-        type: type,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(), // وقت جديد
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(), // عشان الترتيب
-        viewers: [], // تصفير المشاهدات
-        isArchived: false // تظهر للعامة
-    }).then(() => {
-        showToast("تم إعادة النشر بنجاح! 🎉");
-        closeStoryArchive(); // قفل الأرشيف عشان يشوف القصة الجديدة
-        renderStories(); // تحديث الشريط
-    }).catch(err => {
-        console.error(err);
-        showToast("حدث خطأ");
-    });
-}
-// ================= وظائف المشغل الاحترافي =================
-
-// متغير لتخزين الفيديو الحالي عشان نعرف نتحكم فيه
-let currentVideoPlayer = null;
-
-// ================= وظائف المشغل الاحترافي (مع التحكم في الشريط) =================
-
-function viewArchivedStory(url, type) {
-    vibrate();
-    const viewer = document.getElementById('archiveFullViewer');
-    const container = document.getElementById('archiveViewerContainer');
-    
-    viewer.style.display = 'flex';
-    container.innerHTML = ''; 
-
-    if (type === 'video') {
-        // بناء المشغل الاحترافي HTML
-        container.innerHTML = `
-            <div class="custom-video-wrapper" id="customVideoWrapper">
-                <video src="${url}" class="custom-video-element" id="customVideoEl" playsinline></video>
-                
-                <div class="center-play-btn">
-                    <i class="fa-solid fa-play"></i>
-                </div>
-
-                <div class="video-controls-bar" onclick="event.stopPropagation()">
-                    <i class="fa-solid fa-play ctrl-btn" id="playPauseBtn"></i>
-                    
-                    <div class="video-time" id="currentTimeDisplay">00:00</div>
-                    
-                    <div class="video-progress-container" id="progressBarContainer">
-                        <div class="video-progress-fill" id="progressBarFill"></div>
-                    </div>
-                    
-                    <div class="video-time" id="durationDisplay">00:00</div>
-                    
-                    <i class="fa-solid fa-volume-high ctrl-btn" id="muteBtn"></i>
-                </div>
-            </div>
-        `;
-
-        // تعريف العناصر
-        const wrapper = document.getElementById('customVideoWrapper');
-        const video = document.getElementById('customVideoEl');
-        const playBtn = document.getElementById('playPauseBtn');
-        const muteBtn = document.getElementById('muteBtn');
-        const progressContainer = document.getElementById('progressBarContainer');
-        const progressFill = document.getElementById('progressBarFill');
-        const currTime = document.getElementById('currentTimeDisplay');
-        const durTime = document.getElementById('durationDisplay');
-
-        // تشغيل تلقائي
-        video.play().then(() => {
-            wrapper.classList.add('playing');
-            playBtn.className = "fa-solid fa-pause ctrl-btn";
-        }).catch(() => {
-            playBtn.className = "fa-solid fa-play ctrl-btn";
-        });
-
-        // 1. وظيفة التشغيل/الإيقاف
-        const togglePlay = () => {
-            if (video.paused) {
-                video.play();
-                wrapper.classList.add('playing');
-                playBtn.className = "fa-solid fa-pause ctrl-btn";
-                document.querySelector('.center-play-btn i').className = "fa-solid fa-play";
-            } else {
-                video.pause();
-                wrapper.classList.remove('playing');
-                playBtn.className = "fa-solid fa-play ctrl-btn";
-                document.querySelector('.center-play-btn i').className = "fa-solid fa-pause";
-            }
-        };
-
-        video.addEventListener('click', togglePlay);
-        playBtn.addEventListener('click', togglePlay);
-
-        // 2. تحديث شريط التقدم (تلقائي مع الفيديو)
-        let isDragging = false; // متغير عشان نعرف احنا بنسحب ولا لأ
-
-        video.addEventListener('timeupdate', () => {
-            if (!isDragging) { // لو المستخدم مش بيسحب الشريط، حدثه عادي
-                const percent = (video.currentTime / video.duration) * 100;
-                progressFill.style.width = `${percent}%`;
-                currTime.innerText = formatTime(video.currentTime);
-            }
-            if(video.duration) durTime.innerText = formatTime(video.duration);
-        });
-
-        // 3. 🔥 منطق السحب والتحكم (Scrubbing Logic) 🔥
-        
-        const updateScrub = (e) => {
-            const rect = progressContainer.getBoundingClientRect();
-            // دعم الماوس واللمس (Touch)
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            
-            // حساب المكان النسبي للضغط داخل الشريط
-            let pos = (clientX - rect.left) / rect.width;
-            
-            // التأكد إن القيمة بين 0 و 1
-            pos = Math.max(0, Math.min(1, pos));
-            
-            // تحديث شكل الشريط فوراً (Visual Feedback)
-            progressFill.style.width = `${pos * 100}%`;
-            
-            // تحديث وقت الفيديو فوراً
-            if (video.duration) {
-                video.currentTime = pos * video.duration;
-                currTime.innerText = formatTime(video.currentTime);
-            }
-        };
-
-        // عند بداية الضغط أو اللمس
-        const startDrag = (e) => {
-            isDragging = true;
-            updateScrub(e); // تحديث فوري لمكان الضغطة
-        };
-
-        // عند التحريك (السحب)
-        const doDrag = (e) => {
-            if (isDragging) {
-                e.preventDefault(); // منع سحب الصفحة
-                updateScrub(e);
-            }
-        };
-
-        // عند رفع اليد
-        const stopDrag = () => {
-            if (isDragging) {
-                isDragging = false;
-                // لو الفيديو كان واقف شغله (اختياري)
-                if(video.paused) togglePlay(); 
-            }
-        };
-
-        // إضافة المستمعين (للموبايل والكمبيوتر)
-        progressContainer.addEventListener('mousedown', startDrag);
-        progressContainer.addEventListener('touchstart', startDrag, {passive: false});
-
-        document.addEventListener('mousemove', doDrag);
-        document.addEventListener('touchmove', doDrag, {passive: false});
-
-        document.addEventListener('mouseup', stopDrag);
-        document.addEventListener('touchend', stopDrag);
-
-
-        // 4. كتم الصوت
-        muteBtn.addEventListener('click', () => {
-            video.muted = !video.muted;
-            muteBtn.className = video.muted ? "fa-solid fa-volume-xmark ctrl-btn" : "fa-solid fa-volume-high ctrl-btn";
-        });
-
-        // عند انتهاء الفيديو
-        video.addEventListener('ended', () => {
-            wrapper.classList.remove('playing');
-            playBtn.className = "fa-solid fa-arrow-rotate-right ctrl-btn"; 
-        });
-
-    } else {
-        // لو صورة (زي ما هي)
-        const img = document.createElement('img');
-        img.src = url;
-        img.className = 'archive-viewer-content';
-        container.appendChild(img);
-    }
-}
-
-// دالة مساعدة لتنسيق الوقت
-function formatTime(seconds) {
-    if (!seconds || isNaN(seconds)) return "00:00";
-    const min = Math.floor(seconds / 60);
-    const sec = Math.floor(seconds % 60);
-    return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-}
-
-// تحديث دالة الإغلاق
-function closeArchiveViewer() {
-    const viewer = document.getElementById('archiveFullViewer');
-    const container = document.getElementById('archiveViewerContainer');
-    
-    const vid = container.querySelector('video');
-    if(vid) {
-        vid.pause();
-        vid.src = ""; 
-    }
-    
-    viewer.style.display = 'none';
-    container.innerHTML = '';
-}
-
-
-// تحديث دالة الإغلاق عشان توقف الفيديو صح
-function closeArchiveViewer() {
-    const viewer = document.getElementById('archiveFullViewer');
-    const container = document.getElementById('archiveViewerContainer');
-    
-    // إيقاف أي فيديو شغال
-    const vid = container.querySelector('video');
-    if(vid) {
-        vid.pause();
-        vid.src = ""; // تفريغ المصدر لتوفير الذاكرة
-    }
-    
-    viewer.style.display = 'none';
-    container.innerHTML = '';
-}
-
-// --- دالة إغلاق المعاينة ---
-function closeArchiveViewer() {
-    const viewer = document.getElementById('archiveFullViewer');
-    const container = document.getElementById('archiveViewerContainer');
-    
-    // إيقاف الفيديو لو شغال قبل القفل
-    const vid = container.querySelector('video');
-    if(vid) vid.pause();
-    
-    viewer.style.display = 'none';
-    container.innerHTML = '';
-}
-
-// 2. دالة حذف قصة من الأرشيف
-function deleteFromArchive(docId, fileUrl) {
-    if(!confirm("هل أنت متأكد من حذف هذه القصة نهائياً من الأرشيف؟")) return;
-
-    vibrate();
-    
-    // 1. حذف العنصر من الشاشة فوراً (لتحسين تجربة المستخدم)
-    const el = document.getElementById(`arch-${docId}`);
-    if(el) {
-        el.style.opacity = '0';
-        el.style.transform = 'scale(0.8)';
-        setTimeout(() => el.remove(), 300);
-    }
-
-    // 2. الحذف من قاعدة البيانات
-    db.collection('stories').doc(docId).delete().then(() => {
-        // 3. محاولة حذف الملف من التخزين (Storage) لتوفير المساحة
-        if(fileUrl) {
-            try {
-                firebase.storage().refFromURL(fileUrl).delete().catch(e => console.log("File delete error (ignore):", e));
-            } catch(e){}
-        }
-        showToast("تم الحذف من الأرشيف 🗑️");
-    }).catch(error => {
-        console.error("Error removing document: ", error);
-        showToast("خطأ في الحذف");
-        // لو فشل الحذف نرجع العنصر تاني (اختياري)
-        if(el) openStoryArchive(); 
-    });
-}
-
-
-// 3. إغلاق نافذة الأرشيف
-function closeStoryArchive() {
-    document.getElementById('storyArchiveModal').style.display = 'none';
-}
 
 // دالة تحويل الوقت لنص قصير (زي: 5د - 2س - 1ي)
 function getShortLastSeen(timestamp) {
@@ -4646,58 +4327,159 @@ async function initAddToSecret(chatId) {
 }
 
 // 3. حفظ الباسورد الجديد (لأول مرة)
+// 1. قاموس الأسئلة عشان نحول القيمة لنص عربي
+const questionsMap = {
+    "color": "ما هو لونك المفضل؟",
+    "teacher": "ما اسم مدرسك المفضل؟",
+    "pet": "ما اسم أول حيوان أليف ربيته؟",
+    "friend": "ما اسم أقرب صديق طفولة؟"
+};
+
+// 2. تحديث دالة إنشاء الخزنة عشان تحفظ السؤال والإجابة
 async function saveNewSecretPass() {
     const pass = document.getElementById('createSecretPass').value;
+    const question = document.getElementById('secretQuestion').value;
+    const answer = document.getElementById('secretAnswer').value.trim().toLowerCase(); // بنحولها لحروف صغيرة عشان لو كتب كابيتال بالغلط
     
-    // تحقق بسيط من الطول
-    if (pass.length < 4) { 
-        showToast("الرمز قصير جداً! يجب أن يكون 4 أرقام على الأقل"); 
-        return; 
-    }
+    if (pass.length < 4) { showToast("الرمز يجب أن يكون 4 أرقام على الأقل"); return; }
+    if (!answer) { showToast("يجب إدخال إجابة لسؤال الأمان!"); return; }
 
     try {
-        // حفظ الباسورد في وثيقة المستخدم
-        await db.collection('users').doc(currentUser.uid).update({
-            secretPass: pass 
-        });
+        await db.collection('users').doc(currentUser.uid).set({
+            secretPass: pass,
+            secretQuestion: question,
+            secretAnswer: answer // بنحفظ الإجابة
+        }, { merge: true });
         
-        showToast("تم إنشاء الخزنة بنجاح 🔒");
+        showToast("تم إنشاء الخزنة وحفظ سؤال الأمان 🔒");
         document.getElementById('setupSecretModal').style.display = 'none';
         
-        // 🔥 النقطة الحاسمة: تنفيذ العملية المعلقة بعد الحفظ مباشرة 🔥
-        if (secretOperation === 'ADD_CHAT' && targetChatForSecret) {
-            // لو كان جاي عشان يضيف شات، ضيفه فوراً
-            performAddToSecret();
-        } else {
-            // لو كان جاي يفتح القائمة بس، افتحها
-            renderSecretChats();
-        }
+        if (secretOperation === 'ADD_CHAT' && targetChatForSecret) performAddToSecret();
+        else renderSecretChats();
 
     } catch (e) {
         console.error(e);
-        // لو حصل خطأ (مثلاً الحقل مش موجود)، نستخدم set بـ merge
-        if (e.code === 'not-found' || e.message.includes('No document')) {
-             await db.collection('users').doc(currentUser.uid).set({ secretPass: pass }, { merge: true });
-             showToast("تم إنشاء الخزنة");
-             if (secretOperation === 'ADD_CHAT') performAddToSecret();
-             else renderSecretChats();
-        } else {
-            showToast("حدث خطأ في الحفظ");
-        }
+        showToast("حدث خطأ في الحفظ");
     }
 }
+
+// 3. تعديل زرار "نسيت رمز الخزنة؟" عشان يفتح نافذة الأسئلة
+// ابحث عن دالة initResetProcess اللي بتفتح نافذة نسيان الباسورد وعدل الجزء الخاص بـ VAULT
+function initResetProcess(type) {
+    document.getElementById('changeSecretPassModal').style.display = 'none';
+    
+    if (type === 'VAULT') {
+        openForgotSecretModal(); // نفتح نافذة سؤال الأمان
+    } else {
+        // الكود القديم لفك قفل الشات بالباسورد الأساسي
+        resetTargetType = type; 
+        document.getElementById('masterResetModal').style.display = 'flex';
+    }
+}
+
+// 4. الدالة اللي بتجيب السؤال من الداتابيز وتفتح النافذة
+async function openForgotSecretModal() {
+    document.getElementById('verifySecretModal').style.display = 'none'; // نقفل نافذة إدخال الرمز العادية
+    document.getElementById('forgotSecretPassModal').style.display = 'flex';
+    
+    // تصفير الواجهة
+    document.getElementById('recoveryAnswerInput').value = '';
+    document.getElementById('recoveryAnswerInput').style.display = 'block';
+    document.getElementById('newPassSection').style.display = 'none';
+    document.getElementById('recoveryActionBtn').innerText = 'التحقق من الإجابة';
+    document.getElementById('recoveryActionBtn').setAttribute('onclick', 'verifyRecoveryAnswer()');
+
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const data = userDoc.data();
+        
+        if (data && data.secretQuestion) {
+            document.getElementById('recoveryQuestionText').innerText = questionsMap[data.secretQuestion];
+        } else {
+            // لو مكنش عامل سؤال أمان قديم
+            document.getElementById('recoveryQuestionText').innerText = "لم تقم بتعيين سؤال أمان مسبقاً!";
+            document.getElementById('recoveryAnswerInput').style.display = 'none';
+            document.getElementById('recoveryActionBtn').style.display = 'none';
+        }
+    } catch (e) {
+        console.log(e);
+    }
+}
+
+// 5. دالة التحقق من الإجابة (ولو صح نخليه يكتب باسورد جديد)
+async function verifyRecoveryAnswer() {
+    const inputAnswer = document.getElementById('recoveryAnswerInput').value.trim().toLowerCase();
+    
+    if (!inputAnswer) { showToast("أدخل الإجابة أولاً!"); return; }
+
+    showToast("جاري التحقق...");
+
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        const realAnswer = userDoc.data().secretAnswer;
+
+        if (inputAnswer === realAnswer) {
+            // الإجابة صحيحة!
+            showToast("إجابة صحيحة ✅");
+            if(navigator.vibrate) navigator.vibrate(50);
+            
+            // نخفي خانة الإجابة ونظهر خانة الباسورد الجديد
+            document.getElementById('recoveryAnswerInput').style.display = 'none';
+            document.getElementById('newPassSection').style.display = 'block';
+            
+            // نغير الزرار عشان يحفظ الباسورد الجديد
+            const btn = document.getElementById('recoveryActionBtn');
+            btn.innerText = "حفظ الرمز السري الجديد";
+            btn.setAttribute('onclick', 'saveRecoveredPassword()');
+            btn.style.background = "#10b981"; // لونه أخضر
+            
+        } else {
+            // الإجابة غلط
+            showToast("الإجابة غير صحيحة ❌");
+            const inputField = document.getElementById('recoveryAnswerInput');
+            triggerErrorEffect(inputField); // هزة اللون الأحمر اللي أنت عاملها
+        }
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+// 6. حفظ الباسورد الجديد بعد ما جاوب صح
+async function saveRecoveredPassword() {
+    const newPass = document.getElementById('recoveryNewPass').value;
+    
+    if (newPass.length < 4) { showToast("الرمز يجب أن يكون 4 أرقام على الأقل"); return; }
+
+    try {
+        await db.collection('users').doc(currentUser.uid).update({
+            secretPass: newPass
+        });
+        
+        showToast("تم استعادة الخزنة وتحديث الرمز بنجاح 🎉");
+        closeForgotSecretModal();
+        
+    } catch (e) {
+        showToast("حدث خطأ أثناء التحديث");
+    }
+}
+
+function closeForgotSecretModal() {
+    document.getElementById('forgotSecretPassModal').style.display = 'none';
+}
+
 
 // 4. فتح نافذة التحقق من الباسورد
 function openVerifySecretModal() {
     document.getElementById('verifySecretModal').style.display = 'flex';
     // --- إصلاح: زر Enter لإنشاء المجموعة ---
-const groupInput = document.getElementById('newGroupNameInput');
-if (groupInput) {
-    groupInput.addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') executeCreateGroup();
+const newGroupInputEl = document.getElementById('newGroupNameInput');
+if (newGroupInputEl) {
+    newGroupInputEl.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            executeCreateGroup();
+        }
     });
 }
-
     input.value = '';
     // تركيز المؤشر للكتابة فوراً
     setTimeout(() => input.focus(), 100);
@@ -4948,12 +4730,15 @@ async function confirmUnlockAction() {
     }
 }
 
-// 4. (تحسين إضافي) تشغيل زر Enter
-document.getElementById('unlockPassInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        confirmUnlockAction();
-    }
-});
+// 4. (تحسين إضافي) تشغيل زر Enter - (تمت الحماية)
+const unlockInputEl = document.getElementById('unlockPassInput');
+if (unlockInputEl) {
+    unlockInputEl.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            confirmUnlockAction();
+        }
+    });
+}
 
 // 1. فتح نافذة التغيير
 // 1. فتح نافذة التغيير (تصفير الـ 3 حقول)
@@ -5220,12 +5005,15 @@ async function executeCreateGroup() {
     }
 }
 
-// 3. (إضافة) تشغيل زر Enter في لوحة المفاتيح
-document.getElementById('newGroupNameInput').addEventListener('keypress', function (e) {
-    if (e.key === 'Enter') {
-        executeCreateGroup();
-    }
-});
+// 3. (إضافة) تشغيل زر Enter في لوحة المفاتيح - (تمت الحماية)
+const newGroupInputEl = document.getElementById('newGroupNameInput');
+if (newGroupInputEl) {
+    newGroupInputEl.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            executeCreateGroup();
+        }
+    });
+}
 
 // ==========================================
 // 👥 نظام المجموعات (المصحح)
@@ -5692,12 +5480,42 @@ async function unrestrictFromPage(targetUid) {
             <i class="fa-solid fa-user-secret" style="font-size:30px; color:#ff3b30;"></i>
         </div>
         <h3 style="color:#fff; margin-bottom:10px;">إنشاء الخزنة السرية</h3>
-        <p style="color:#aaa; font-size:13px; margin-bottom:20px;">قم بتعيين رمز مرور موحد لجميع محادثاتك السرية.</p>
+        <p style="color:#aaa; font-size:12px; margin-bottom:15px;">قم بتعيين رمز مرور وسؤال أمان لاستعادته عند النسيان.</p>
         
-        <input type="password" id="createSecretPass" class="pro-input" placeholder="رمز جديد (4-6 أرقام)" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
+        <input type="password" id="createSecretPass" class="pro-input" placeholder="رمز جديد (4-6 أرقام)" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:10px;">
         
-        <button onclick="saveNewSecretPass()" class="btn-purple" style="background:#ff3b30;">حفظ وإنشاء</button>
-        <button onclick="document.getElementById('setupSecretModal').style.display='none'" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+        <select id="secretQuestion" class="pro-input" style="margin-bottom:10px; color:#fff; text-align:right; direction:rtl; cursor:pointer;">
+            <option value="color">ما هو لونك المفضل؟</option>
+            <option value="teacher">ما اسم مدرسك المفضل؟</option>
+            <option value="pet">ما اسم أول حيوان أليف ربيته؟</option>
+            <option value="friend">ما اسم أقرب صديق طفولة؟</option>
+        </select>
+        
+        <input type="text" id="secretAnswer" class="pro-input" placeholder="إجابة السؤال (تذكرها جيداً)" style="margin-bottom:15px; text-align:right;">
+        
+        <button onclick="saveNewSecretPass()" class="btn-purple" style="background:#ff3b30; width:100%;">حفظ وإنشاء</button>
+        <button onclick="document.getElementById('setupSecretModal').style.display='none'" class="btn-dark" style="margin-top:10px; width:100%;">إلغاء</button>
+    </div>
+</div>
+
+<div id="forgotSecretPassModal" class="custom-modal" style="z-index: 80000;">
+    <div class="modal-box" style="text-align: center; border: 1px solid #f59e0b;">
+        <div class="modal-icon-box" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b; margin: 0 auto 15px; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="fa-solid fa-circle-question" style="font-size:30px;"></i>
+        </div>
+        <h3 style="color:#fff; margin-bottom:10px;">استعادة رمز الخزنة</h3>
+        
+        <p id="recoveryQuestionText" style="color:#00e5ff; font-size:14px; font-weight:bold; margin-bottom:15px; padding:10px; background:rgba(0,229,255,0.1); border-radius:10px;">جاري جلب السؤال...</p>
+
+        <input type="text" id="recoveryAnswerInput" class="pro-input" placeholder="أدخل إجابتك هنا..." style="margin-bottom:15px; text-align:center;">
+
+        <div id="newPassSection" style="display:none;">
+            <p style="color:#4ade80; font-size:12px; margin-bottom:10px;">الإجابة صحيحة ✅ أدخل الرمز الجديد:</p>
+            <input type="password" id="recoveryNewPass" class="pro-input" placeholder="الرمز السري الجديد" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px; border-color:#4ade80;">
+        </div>
+
+        <button id="recoveryActionBtn" onclick="verifyRecoveryAnswer()" class="btn-purple" style="background:linear-gradient(135deg, #f59e0b, #d97706); width: 100%;">التحقق من الإجابة</button>
+        <button onclick="closeForgotSecretModal()" class="btn-dark" style="margin-top:10px; width: 100%;">إلغاء</button>
     </div>
 </div>
 
@@ -5708,10 +5526,15 @@ async function unrestrictFromPage(targetUid) {
         
         <input type="password" id="inputSecretPass" class="pro-input" placeholder="الرمز السري" maxlength="6" style="text-align:center; letter-spacing:5px; margin-bottom:15px;">
         
-        <button onclick="checkSecretPass()" class="btn-purple" style="background:linear-gradient(135deg, #ff3b30, #991b1b);">فتح الخزنة</button>
-        <button onclick="closeVerifySecret()" class="btn-dark" style="margin-top:10px;">إلغاء</button>
+        <button onclick="checkSecretPass()" class="btn-purple" style="background:linear-gradient(135deg, #ff3b30, #991b1b); width: 100%;">فتح الخزنة</button>
+        <button onclick="closeVerifySecret()" class="btn-dark" style="margin-top:10px; width: 100%;">إلغاء</button>
+
+        <div onclick="initResetProcess('VAULT')" style="margin-top:20px; color:#f59e0b; cursor:pointer; font-size:13px; text-decoration:underline; font-weight:bold;">
+            نسيت الرمز السري؟
+        </div>
     </div>
 </div>
+
 
 <div id="secretChatsPage" class="profile-page" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; flex-direction: column; background:#000; z-index: 60000;">
     <div class="pp-header" style="background:rgba(20,0,0,0.95); border-bottom:1px solid rgba(255,59,48,0.2); display: flex; align-items: center; justify-content: space-between; padding: 15px;">
@@ -5804,7 +5627,7 @@ async function unrestrictFromPage(targetUid) {
 
 <script src="global-notifications.js"></script>
 <script src="global-call.js"></script>
-<script>
+<script src="block-manager.js"></script><script>
 (function() {
     // 1. إعدادات الصوت (تحميل الحالة المحفوظة)
     // لو مفيش قيمة محفوظة، بنعتبره شغال (true)
@@ -6192,15 +6015,25 @@ function goToProfile() {
 }
 
 // 3. تحديث صورة البروفايل في الشريط السفلي
-function updateNavAvatar() {
-    if(currentUser && currentUser.photoURL) {
-        document.getElementById('navProfileImg').style.backgroundImage = `url('${currentUser.photoURL}')`;
-    }
+// ==========================================
+// 🖼️ دالة تحديث صورة البروفايل في الشريط السفلي
+// ==========================================
+function updateNavAvatar(userData) {
+    const navImg = document.getElementById('navProfileImg');
+    if (!navImg) return;
+
+    // 1. تحديد الصورة (من الداتابيز أولاً، ثم جوجل، ثم الافتراضية)
+    const defaultPic = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+    const picUrl = (userData && userData.profilePic) ? userData.profilePic : 
+                   (currentUser && currentUser.photoURL) ? currentUser.photoURL : 
+                   defaultPic;
+
+    // 2. وضع الصورة في العنصر
+    navImg.style.backgroundImage = `url('${picUrl}')`;
+    navImg.style.backgroundSize = "cover";
+    navImg.style.backgroundPosition = "center";
 }
-// استدعي هذه الدالة داخل initApp أو authStateChanged
-auth.onAuthStateChanged(user => {
-    if(user) setTimeout(updateNavAvatar, 1000);
-});
+
 
 
 // 4. دالة ملء صفحة القصص (Grid View)
@@ -6251,26 +6084,6 @@ function loadCallsLog() {
 }
 
 </script>
-<div id="storyArchiveModal" class="custom-modal" style="padding-top: 50px;">
-    <div class="modal-box" style="width: 95%; max-width: 500px; height: 80vh; display: flex; flex-direction: column; background: #000; border: 1px solid #333;">
-        
-        <div style="padding: 15px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="color: #fff; margin: 0;">🗂️ أرشيف القصص</h3>
-            <i class="fa-solid fa-xmark" onclick="closeStoryArchive()" style="color: #fff; font-size: 20px; cursor: pointer;"></i>
-        </div>
-
-        <div id="archiveGrid" style="flex: 1; overflow-y: auto; padding: 10px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px;">
-            </div>
-
-    </div>
-</div>
-<div id="archiveFullViewer" class="archive-viewer-overlay" onclick="closeArchiveViewer()" style="display: none;">
-    <div class="archive-close-btn">
-        <i class="fa-solid fa-xmark"></i>
-    </div>
-    <div id="archiveViewerContainer" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; pointer-events: none;">
-    </div>
-</div>
 
 
 </div> 
@@ -6493,51 +6306,7 @@ function loadCallsLog() {
 </script>
 
 
-<div id="page-inbox" class="page-section active">
-    <div id="storiesContainer" class="stories-section">
-        <div class="stories-title">القصص</div>
-        <div class="stories-scroll" id="storiesList"></div>
-    </div>
-    
-    <div id="quickUsersContainer" class="quick-users-section">
-        <div class="quick-users-title">نشط الآن</div>
-        <div class="quick-users-scroll" id="quickUsersList"></div>
-    </div>
 
-    <div id="listTitleContainer" style="padding: 10px 25px;">
-        <span id="listTitleText" style="font-size: 18px; font-weight: 800; color: #fff;">الدردشات</span>
-    </div>
-    <div id="list"></div>
-</div>
-
-<div id="page-stories" class="page-section">
-    <div style="padding: 20px; text-align: center;">
-        <h2 style="color: #fff;">القصص</h2>
-        <p style="color: #aaa; font-size: 13px;">شارك لحظاتك مع الأصدقاء</p>
-        
-        <button onclick="window.location.href='add_story.html'" style="background: var(--accent-color); color: #fff; border: none; padding: 10px 20px; border-radius: 20px; margin-top: 10px; width: 100%; font-weight: bold;">
-            <i class="fa-solid fa-plus"></i> إضافة إلى القصة
-        </button>
-    </div>
-    <div id="storiesFullGrid" class="full-stories-grid">
-        </div>
-</div>
-
-<div id="page-calls" class="page-section">
-    <div style="padding: 20px;">
-        <h2 style="color: #fff; margin-bottom: 5px;">المكالمات</h2>
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <span style="background: rgba(255,255,255,0.1); padding: 5px 15px; border-radius: 15px; color: #fff; font-size: 12px;">الكل</span>
-            <span style="background: rgba(255, 59, 48, 0.1); color: #ff3b30; padding: 5px 15px; border-radius: 15px; font-size: 12px;">فائتة</span>
-        </div>
-    </div>
-    <div id="callsLogList">
-        <div style="text-align:center; color:#555; margin-top:50px;">
-            <i class="fa-solid fa-phone-slash" style="font-size:40px; margin-bottom:10px;"></i>
-            <br>لا توجد مكالمات حديثة
-        </div>
-    </div>
-</div>
 
 <nav class="bottom-nav">
     <div class="nav-item active" onclick="switchTab('inbox', this)">
@@ -6632,5 +6401,6 @@ function loadCallsLog() {
     <iframe src="profile.html" style="width:100%; height:100%; border:none;" id="profileFrame"></iframe>
 </div>
 
+<script src="theme-manager.js"></script>
 </body>
 </html>

@@ -308,13 +308,12 @@
         }
 
         // 3. جلب المحظورين
-        async function loadBlockedUsers() {
+                async function loadBlockedUsers() {
             const container = document.getElementById('listContainer');
             
             try {
-                const snapshot = await db.collection('chats')
-                    .where('users', 'array-contains', currentUserId)
-                    .get();
+                // 🔥 التعديل هنا: جلب المحظورين من القائمة الفعلية وليس من المحادثات
+                const snapshot = await db.collection('users').doc(currentUserId).collection('blockedUsers').get();
 
                 if (snapshot.empty) {
                     renderEmptyState();
@@ -322,34 +321,27 @@
                 }
 
                 const promises = snapshot.docs.map(async (doc) => {
-                    const chatData = doc.data();
-                    
-                    // التحقق من الحظر
-                    if (!chatData.blockedBy || !chatData.blockedBy.includes(currentUserId)) {
-                        return null;
-                    }
-
-                    const otherUid = chatData.users.find(u => u !== currentUserId);
+                    const otherUid = doc.id; // الـ ID الخاص بالشخص المحظور
                     let userData = { name: "مستخدم غير معروف", avatar: defaultAvatar };
                     
-                    if(otherUid) {
-                        try {
-                            const userDoc = await db.collection('users').doc(otherUid).get();
-                            if(userDoc.exists) {
-                                const d = userDoc.data();
-                                userData = {
-                                    name: d.name || "مستخدم",
-                                    avatar: d.profilePic || d.avatarUrl || defaultAvatar
-                                };
-                            }
-                        } catch(e) { console.log("User fetch error", e); }
-                    }
+                    try {
+                        const userDoc = await db.collection('users').doc(otherUid).get();
+                        if(userDoc.exists) {
+                            const d = userDoc.data();
+                            userData = {
+                                name: d.name || "مستخدم",
+                                avatar: d.profilePic || d.avatarUrl || defaultAvatar
+                            };
+                        }
+                    } catch(e) { console.log("User fetch error", e); }
 
-                    return { chatId: doc.id, ...userData };
+                    // محاولة جلب ID المحادثة (لفك حظر الشات لاحقاً)
+                    const chatId = [currentUserId, otherUid].sort().join("_");
+
+                    return { chatId: chatId, uid: otherUid, ...userData };
                 });
 
-                const results = await Promise.all(promises);
-                blockedUsersList = results.filter(user => user !== null);
+                blockedUsersList = await Promise.all(promises);
 
                 updateCount(blockedUsersList.length);
 
@@ -426,42 +418,74 @@
         }
 
         async function executeUnblock() {
-            if(!targetChatId) return;
+    if(!targetChatId) return;
 
-            const btn = document.getElementById('confirmUnblockBtn');
-            btn.innerText = "جاري التنفيذ...";
-            
-            try {
-                await db.collection('chats').doc(targetChatId).update({
-                    blockedBy: firebase.firestore.FieldValue.arrayRemove(currentUserId)
-                });
+    const btn = document.getElementById('confirmUnblockBtn');
+    const originalText = btn.innerText;
+    btn.innerText = "جاري التنفيذ...";
+    btn.disabled = true; 
+    
+    try {
+        const batch = db.batch();
 
-                // إزالة العنصر من القائمة محلياً
-                const card = document.getElementById(`card_${targetChatId}`);
-                if(card) {
-                    card.style.transform = "translateX(20px)";
-                    card.style.opacity = "0";
-                    setTimeout(() => card.remove(), 300);
-                }
-
-                // تحديث المصفوفة المحلية
-                blockedUsersList = blockedUsersList.filter(u => u.chatId !== targetChatId);
-                updateCount(blockedUsersList.length);
-
-                if(blockedUsersList.length === 0) {
-                    setTimeout(renderEmptyState, 300);
-                }
-
-                closeModal();
-                showToast();
-                btn.innerText = "نعم، رفع الحظر"; // إعادة النص للأصل
-
-            } catch (e) {
-                alert("حدث خطأ أثناء العملية");
-                console.error(e);
-                closeModal();
-            }
+        const otherUser = blockedUsersList.find(u => u.chatId === targetChatId);
+        
+        if (!otherUser || !otherUser.uid) {
+            throw new Error("الـ UID غير موجود.");
         }
+
+        // 1. تحديث حالة الشات (عشان الشات يرجع يشتغل)
+        const chatRef = db.collection('chats').doc(targetChatId);
+        batch.update(chatRef, {
+            blockedBy: firebase.firestore.FieldValue.arrayRemove(currentUserId)
+        });
+
+        // 2. حذف الحظر من قائمتك أنت
+        const myBlockRef = db.collection('users').doc(currentUserId)
+                           .collection('blockedUsers').doc(otherUser.uid); 
+        batch.delete(myBlockRef);
+
+        // 3. 🔥 السطر المفقود: حذف الحظر من قائمة الطرف الآخر (كي يختفي من عنده) 🔥
+        const hisBlockedByRef = db.collection('users').doc(otherUser.uid)
+                               .collection('blockedBy').doc(currentUserId);
+        batch.delete(hisBlockedByRef);
+
+        // 4. 🔥 إصلاح أخطاء قواعد البيانات (تسجيل وقت فك الحظر لقاعدة الـ 48 ساعة) 🔥
+        const cooldownRef = db.collection('users').doc(currentUserId)
+                            .collection('unblockCooldowns').doc(otherUser.uid);
+        batch.set(cooldownRef, { unblockedAt: firebase.firestore.FieldValue.serverTimestamp() });
+
+        await batch.commit();
+
+        // تنظيف الذاكرة المحلية
+        if (typeof window.globalBlockList !== 'undefined') {
+            window.globalBlockList.delete(otherUser.uid);
+        }
+
+        // إخراج العنصر بحركة انسيابية
+        const card = document.getElementById(`card_${targetChatId}`);
+        if(card) {
+            card.style.transform = "translateX(-100px)";
+            card.style.opacity = "0";
+            setTimeout(() => card.remove(), 300);
+        }
+
+        blockedUsersList = blockedUsersList.filter(u => u.chatId !== targetChatId);
+        updateCount(blockedUsersList.length);
+
+        if(blockedUsersList.length === 0) setTimeout(renderEmptyState, 300);
+
+        closeModal();
+        showToast();
+
+    } catch (e) {
+        console.error("Unblock Error:", e);
+        alert("فشل إلغاء الحظر، تأكد من اتصالك بالإنترنت.");
+    } finally {
+        btn.innerText = originalText;
+        btn.disabled = false;
+    }
+}
 
         // 5. الوظائف المساعدة
         function updateCount(num) {
@@ -491,5 +515,6 @@
             }
         }
     </script>
+    <script src="theme-manager.js"></script>
 </body>
 </html>

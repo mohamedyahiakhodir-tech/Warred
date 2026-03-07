@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>إعدادات المبدع - تعديل الصفحة</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.css" />
+
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --surface-color: #18181b;
+            --surface-hover: #27272a;
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --text-main: #ffffff;
+            --text-muted: #a1a1aa;
+            --border-light: rgba(255, 255, 255, 0.08);
+            --danger: #ef4444;
+            --glass-bg: rgba(24, 24, 27, 0.85);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Tajawal", sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg-dark); 
+            color: var(--text-main); 
+            overflow-x: hidden; 
+            padding-bottom: 100px; /* مساحة واسعة من تحت */
+        }
+
+        /* 1. الهيدر الاحترافي */
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 20px 24px; 
+            background: var(--glass-bg); 
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-light); 
+            position: sticky; top: 0; z-index: 100; 
+        }
+        .header h3 { font-size: 20px; font-weight: 800; letter-spacing: 0.5px; }
+        .header i { font-size: 22px; cursor: pointer; color: var(--text-main); transition: color 0.2s; }
+        .header i:hover { color: var(--primary); }
+
+        /* 2. منطقة الغلاف والصورة الشخصية (تعديل التداخل) */
+        .visual-preview-section {
+            position: relative;
+            background: var(--bg-dark);
+            margin-bottom: 90px; /* مساحة كبيرة عشان الصورة النص-نص */
+        }
+        
+        .cover-area {
+            width: 100%;
+            height: 220px; /* غلاف أكبر واحترافي */
+            background: linear-gradient(135deg, #1e1e24, #2b1055, var(--primary));
+            position: relative;
+            background-size: cover !important;
+            background-position: center !important;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+        
+        .camera-btn {
+            position: absolute;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.15);
+            transition: all 0.3s ease;
+            z-index: 10;
+            font-size: 18px;
+        }
+        .camera-btn:hover { background: var(--primary); transform: scale(1.1); }
+        
+        .avatar-area {
+            position: absolute;
+            bottom: -65px; /* تنزيل الصورة عشان تبقى نصها في الغلاف ونصها براه */
+            right: 30px; /* مسافة حلوة من اليمين */
+            width: 130px; /* حجم صورة أكبر */
+            height: 130px;
+            border-radius: 50%;
+            border: 6px solid var(--bg-dark); /* إطار يفصلها عن الغلاف */
+            background-color: var(--surface-color);
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* شادو احترافي يبرزها */
+            z-index: 15;
+        }
+        .avatar-camera { bottom: 0; left: 0; width: 40px; height: 40px; }
+
+        /* 3. الأقسام وعناصر التعديل (فرد المساحات) */
+        .section-block { padding: 0 20px; margin-bottom: 40px; }
+        .section-header { 
+            font-size: 17px; font-weight: 800; color: var(--primary); 
+            margin-bottom: 16px; display: flex; align-items: center; gap: 10px; 
+            letter-spacing: 0.5px; padding-right: 5px;
+        }
+        
+        .edit-card {
+            background: var(--surface-color);
+            border: 1px solid var(--border-light);
+            border-radius: 20px; /* حواف دائرية انسيابية */
+            padding: 5px 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .edit-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 24px 0; /* مساحة كبيرة بين كل عنصر والتاني */
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .edit-item:last-child { border-bottom: none; }
+        .edit-item:hover { opacity: 0.8; }
+        .edit-item:hover .edit-item-icon { color: var(--primary); transform: translateX(-8px); }
+        
+        .edit-item-content { flex: 1; text-align: right; padding-left: 20px; }
+        .edit-item-title { font-size: 17px; font-weight: 800; margin-bottom: 8px; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
+        .edit-item-title i { color: var(--text-muted); font-size: 18px; width: 20px; text-align: center; }
+        .edit-item-value { font-size: 15px; color: var(--text-muted); line-height: 1.8; }
+        .edit-item-icon { color: var(--text-muted); font-size: 20px; transition: all 0.3s; }
+
+        /* 4. النوافذ المنبثقة (Modals) */
+        .modal-overlay { 
+            position: fixed; inset: 0; 
+            background: rgba(0,0,0,0.8); 
+            backdrop-filter: blur(10px);
+            z-index: 9999; 
+            display: flex; align-items: flex-end; justify-content: center; 
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease; 
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-box { 
+            background: var(--surface-color); 
+            width: 100%; max-width: 600px; 
+            border-radius: 30px 30px 0 0; 
+            padding: 30px 24px 40px; 
+            border-top: 1px solid var(--border-light);
+            transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            max-height: 85vh; overflow-y: auto;
+        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-header h3 { font-size: 20px; font-weight: 800; }
+        .btn-close { 
+            background: var(--bg-dark); width: 40px; height: 40px; border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--text-muted); cursor: pointer; border: 1px solid var(--border-light);
+            font-size: 18px;
+        }
+        .btn-close:hover { color: var(--danger); border-color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        
+        /* 5. المدخلات والأزرار */
+        .pro-input { 
+            width: 100%; background: var(--bg-dark); border: 2px solid var(--border-light); 
+            color: var(--text-main); padding: 18px; border-radius: 16px; 
+            outline: none; font-size: 16px; transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        .pro-input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1); }
+        textarea.pro-input { min-height: 140px; resize: none; line-height: 1.6; }
+        
+        .btn-save { 
+            background: var(--primary); color: #fff; border: none; 
+            padding: 18px; width: 100%; border-radius: 16px; 
+            font-size: 17px; font-weight: 800; cursor: pointer; 
+            transition: background 0.3s, transform 0.1s; 
+            display: flex; justify-content: center; align-items: center; gap: 10px;
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+        .btn-save:hover { background: var(--primary-hover); }
+        .btn-save:active { transform: scale(0.98); }
+        
+        .btn-outline {
+            background: transparent; color: var(--text-main); border: 2px solid var(--border-light);
+            box-shadow: none;
+        }
+        .btn-outline:hover { background: var(--surface-hover); border-color: var(--text-muted); }
+
+        /* 6. شبكة الألوان والفئات (مكتبة 50+ لون) */
+        .color-grid-container {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+            margin-top: 15px;
+        }
+        /* Custom Scrollbar */
+        .color-grid-container::-webkit-scrollbar { width: 6px; }
+        .color-grid-container::-webkit-scrollbar-track { background: var(--bg-dark); border-radius: 10px; }
+        .color-grid-container::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 10px; }
+
+        .color-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); 
+            gap: 12px; 
+            padding-bottom: 20px;
+        }
+        .color-box { 
+            aspect-ratio: 1; /* خليناها مربعات شيك */
+            border-radius: 16px; cursor: pointer; border: 3px solid transparent; 
+            transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .color-box:hover { transform: scale(1.1); border-color: #fff; z-index: 2; }
+        
+        .category-list { display: flex; flex-direction: column; gap: 12px; }
+        .category-item { 
+            padding: 18px; background: var(--bg-dark); border: 2px solid var(--border-light); 
+            border-radius: 16px; cursor: pointer; font-weight: 700; transition: all 0.2s; 
+            display: flex; justify-content: space-between; align-items: center; font-size: 16px;
+        }
+        .category-item.active { border-color: var(--primary); background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+        .category-item.active::after { content: '\f00c'; font-family: 'FontAwesome'; font-size: 18px;}
+
+        /* 7. منطقة القص (Cropper) */
+        #cropperContainer { width: 100%; height: 60vh; margin-bottom: 20px; }
+        .cover-camera { 
+    bottom: 20px !important; 
+    left: 20px !important; 
+    right: auto !important; 
+    top: auto !important; 
+}
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <i class="fa-solid fa-arrow-right" onclick="location.href='profile.html'"></i>
+        <h3>إعدادات الملف الشخصي</h3>
+        <div style="width: 22px;"></div>
+    </div>
+
+    <div class="visual-preview-section">
+        <div class="cover-area" id="pageCover">
+            <div class="camera-btn cover-camera" onclick="openModal('coverOptionsModal')"><i class="fa-solid fa-palette"></i></div>
+        </div>
+        
+        <div class="avatar-area" id="pageAvatar">
+            <div class="camera-btn avatar-camera" onclick="document.getElementById('avatarUpload').click()"><i class="fa-solid fa-camera"></i></div>
+            <input type="file" id="avatarUpload" accept="image/*" style="display: none;" onchange="loadCropper(this, 'avatar')">
+            <input type="file" id="coverUpload" accept="image/*" style="display: none;" onchange="loadCropper(this, 'cover')">
+        </div>
+    </div>
+
+    <div class="section-block">
+        <div class="section-header"><i class="fa-solid fa-circle-info"></i> المعلومات الأساسية</div>
+        <div class="edit-card">
+            <div class="edit-item" onclick="openModal('bioModal')">
+                <div class="edit-item-content">
+                    <div class="edit-item-title"><i class="fa-solid fa-quote-right"></i> السيرة الذاتية</div>
+                    <div class="edit-item-value" id="displayBio">جاري التحميل...</div>
+                </div>
+                <i class="fa-solid fa-chevron-left edit-item-icon"></i>
+            </div>
+            
+            <div class="edit-item" onclick="openModal('categoryModal')">
+                <div class="edit-item-content">
+                    <div class="edit-item-title"><i class="fa-solid fa-hashtag"></i> فئة المحتوى</div>
+                    <div class="edit-item-value" id="displayCategory">منشئ محتوى نبض</div>
+                </div>
+                <i class="fa-solid fa-chevron-left edit-item-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-block">
+        <div class="section-header"><i class="fa-solid fa-layer-group"></i> تفاصيل إضافية</div>
+        <div class="edit-card">
+            <div class="edit-item" onclick="openModal('locationModal')">
+                <div class="edit-item-content">
+                    <div class="edit-item-title"><i class="fa-solid fa-map-location-dot"></i> الموقع الجغرافي</div>
+                    <div class="edit-item-value" id="displayLocation">غير محدد</div>
+                </div>
+                <i class="fa-solid fa-chevron-left edit-item-icon"></i>
+            </div>
+
+            <div class="edit-item" onclick="openModal('socialModal')">
+                <div class="edit-item-content">
+                    <div class="edit-item-title"><i class="fa-solid fa-link"></i> روابط السوشيال ميديا</div>
+                    <div class="edit-item-value" id="displaySocial">أضف حساباتك (يوتيوب، تيك توك...)</div>
+                </div>
+                <i class="fa-solid fa-chevron-left edit-item-icon"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="cropperModal" style="z-index: 10000;">
+        <div class="modal-box" style="height: 100vh; border-radius: 0; max-width: 100%;">
+            <div class="modal-header">
+                <h3 id="cropperTitle">ضبط الصورة</h3>
+                <div class="btn-close" onclick="closeModal('cropperModal')"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <div id="cropperContainer"></div>
+            <button class="btn-save" id="cropSaveBtn" onclick="executeCropAndUpload()"><i class="fa-solid fa-cloud-arrow-up"></i> حفظ ورفع الصورة</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="coverOptionsModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تخصيص الغلاف</h3>
+                <div class="btn-close" onclick="closeModal('coverOptionsModal')"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <button class="btn-save btn-outline" onclick="document.getElementById('coverUpload').click(); closeModal('coverOptionsModal');">
+                <i class="fa-regular fa-image"></i> رفع صورة من الهاتف
+            </button>
+            
+            <div style="margin-top: 30px; font-weight: 800; color: var(--text-main); font-size: 16px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                <i class="fa-solid fa-palette" style="color: var(--primary)"></i> أو اختر من مكتبة الألوان (50+ لون):
+            </div>
+            <div class="color-grid-container">
+                <div class="color-grid" id="colorGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="bioModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تعديل السيرة الذاتية</h3>
+                <div class="btn-close" onclick="closeModal('bioModal')"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <textarea id="inputBio" class="pro-input" placeholder="اكتب نبذة جذابة عنك لمتابعيك تعبر عن شخصيتك ومحتواك..."></textarea>
+            <button class="btn-save" onclick="saveData('bio')"><i class="fa-solid fa-check"></i> حفظ التغييرات</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="categoryModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>اختر فئة المحتوى</h3>
+                <div class="btn-close" onclick="closeModal('categoryModal')"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <div class="category-list" id="categoryList"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="locationModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>تحديد الموقع الجغرافي</h3>
+                <div class="btn-close" onclick="closeModal('locationModal')"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            <input type="text" id="inputLocation" class="pro-input" placeholder="مثال: القاهرة، مصر">
+            <button class="btn-save" onclick="saveData('location')"><i class="fa-solid fa-check"></i> حفظ التغييرات</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="socialModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>ربط الحسابات الأخرى</h3>
+                <div class="btn-close" onclick="closeModal('socialModal')"><i class="fa-solid fa-xmark"></i></div>
+            </div>
+            
+            <div style="max-height: 50vh; overflow-y: auto; padding-right: 5px; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+                <input type="text" id="inputYoutube" class="pro-input" placeholder="رابط YouTube" style="margin-bottom:0;">
+                <input type="text" id="inputTiktok" class="pro-input" placeholder="رابط TikTok" style="margin-bottom:0;">
+                <input type="text" id="inputFacebook" class="pro-input" placeholder="رابط Facebook" style="margin-bottom:0;">
+                <input type="text" id="inputInstagram" class="pro-input" placeholder="رابط Instagram" style="margin-bottom:0;">
+                <input type="text" id="inputX" class="pro-input" placeholder="رابط X (Twitter)" style="margin-bottom:0;">
+                <input type="text" id="inputWhatsapp" class="pro-input" placeholder="رابط WhatsApp" style="margin-bottom:0;">
+                <input type="text" id="inputSnapchat" class="pro-input" placeholder="رابط Snapchat" style="margin-bottom:0;">
+                <input type="text" id="inputThreads" class="pro-input" placeholder="رابط Threads" style="margin-bottom:0;">
+                <input type="text" id="inputTwitch" class="pro-input" placeholder="رابط Twitch" style="margin-bottom:0;">
+                <input type="text" id="inputLine" class="pro-input" placeholder="رابط LINE" style="margin-bottom:0;">
+                <input type="text" id="inputWechat" class="pro-input" placeholder="رابط WeChat" style="margin-bottom:0;">
+                <input type="text" id="inputPinterest" class="pro-input" placeholder="رابط Pinterest" style="margin-bottom:0;">
+                <input type="text" id="inputTumblr" class="pro-input" placeholder="رابط Tumblr" style="margin-bottom:0;">
+                <input type="text" id="inputSoundcloud" class="pro-input" placeholder="رابط SoundCloud" style="margin-bottom:0;">
+                <input type="text" id="inputKwai" class="pro-input" placeholder="رابط Kwai (كواي)" style="margin-bottom:0;">
+                <input type="text" id="inputLikee" class="pro-input" placeholder="رابط Likee (لايكي)" style="margin-bottom:0;">
+            </div>
+
+            <button class="btn-save" onclick="saveData('social')"><i class="fa-solid fa-link"></i> حفظ الحسابات</button>
+        </div>
+    </div>
+
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/croppie/2.6.5/croppie.min.js"></script>
+
+    <script>
+        // إعدادات الفايربيس (تأكد إنها زي ملفك الأساسي)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDpvqNAReChsHn5tFJSp7vV_EJHmtD2x4c",
+            authDomain: "pools-e4381.firebaseapp.com",
+            projectId: "pools-e4381",
+            storageBucket: "pools-e4381.firebasestorage.app", 
+            messagingSenderId: "339799216046",
+            appId: "1:339799216046:web:26e437a7b7d5c24fe9023f"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+
+        let currentUser = null;
+
+        const categories = [
+            "منشئ محتوى نبض", "جيمر (Gamer)", "شخصية عامة", "إعلامي", 
+            "فلوجر (Vlogger)", "فنان / رسام", "رياضي / فتنس", "رائد أعمال", "صانع محتوى كوميدي", "صانع محتوى تعليمي"
+        ];
+
+        auth.onAuthStateChanged(async user => {
+            if (!user) { location.href = "index.html"; return; }
+            currentUser = user;
+            loadPageData();
+            renderCategories();
+            renderCoverColors();
+        });
+
+                        async function loadPageData() {
+            const doc = await db.collection("users").doc(currentUser.uid).get();
+            if (doc.exists) {
+                const d = doc.data();
+                
+                if (d.profilePic) document.getElementById('pageAvatar').style.backgroundImage = `url('${d.profilePic}')`;
+                if (d.coverImage) document.getElementById('pageCover').style.background = `url('${d.coverImage}') center/cover no-repeat`;
+                else if (d.coverGradient) document.getElementById('pageCover').style.background = d.coverGradient;
+                
+                document.getElementById('displayBio').innerText = d.bio || "اضغط لإضافة سيرة ذاتية...";
+                document.getElementById('inputBio').value = d.bio || "";
+                
+                document.getElementById('displayCategory').innerText = d.creatorCategory || "منشئ محتوى نبض";
+                
+                document.getElementById('displayLocation').innerText = d.location || "غير محدد";
+                document.getElementById('inputLocation').value = d.location || "";
+
+                // تحميل كل الروابط
+                if(d.socialLinks && Object.keys(d.socialLinks).length > 0) {
+                    document.getElementById('displaySocial').innerText = "تم ربط الحسابات بنجاح";
+                    document.getElementById('inputYoutube').value = d.socialLinks.youtube || "";
+                    document.getElementById('inputTiktok').value = d.socialLinks.tiktok || "";
+                    document.getElementById('inputFacebook').value = d.socialLinks.facebook || "";
+                    document.getElementById('inputInstagram').value = d.socialLinks.instagram || "";
+                    document.getElementById('inputX').value = d.socialLinks.x || d.socialLinks.twitter || "";
+                    document.getElementById('inputWhatsapp').value = d.socialLinks.whatsapp || "";
+                    document.getElementById('inputSnapchat').value = d.socialLinks.snapchat || "";
+                    document.getElementById('inputThreads').value = d.socialLinks.threads || "";
+                    document.getElementById('inputTwitch').value = d.socialLinks.twitch || "";
+                    document.getElementById('inputLine').value = d.socialLinks.line || "";
+                    document.getElementById('inputWechat').value = d.socialLinks.wechat || "";
+                    document.getElementById('inputPinterest').value = d.socialLinks.pinterest || "";
+                    document.getElementById('inputTumblr').value = d.socialLinks.tumblr || "";
+                    document.getElementById('inputSoundcloud').value = d.socialLinks.soundcloud || "";
+                    document.getElementById('inputKwai').value = d.socialLinks.kwai || "";
+                    document.getElementById('inputLikee').value = d.socialLinks.likee || "";
+                } else {
+                    document.getElementById('displaySocial').innerText = "أضف حساباتك (يوتيوب، تيك توك...)";
+                }
+            }
+        }
+
+
+        // --- نظام الـ Modals بالأنيميشن ---
+        function openModal(id) { 
+            const modal = document.getElementById(id);
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+        }
+
+        function closeModal(id) { 
+            const modal = document.getElementById(id);
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                if(id === 'cropperModal' && croppieInstance) {
+                    croppieInstance.destroy();
+                    croppieInstance = null;
+                }
+            }, 300);
+        }
+
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', function(e) {
+                if(e.target === this) closeModal(this.id);
+            });
+        });
+
+        // --- نظام تحريك وقص الصور (Croppie) ---
+        let croppieInstance = null;
+        let currentCropType = '';
+
+        function loadCropper(input, type) {
+            if (!input.files || !input.files[0]) return;
+            currentCropType = type;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                openModal('cropperModal');
+                const container = document.getElementById('cropperContainer');
+                container.innerHTML = ''; 
+                
+                document.getElementById('cropperTitle').innerText = type === 'avatar' ? 'تعديل الصورة الشخصية' : 'تعديل الغلاف';
+
+                let croppieOpts = type === 'avatar' 
+                    ? { viewport: { width: 220, height: 220, type: 'circle' }, boundary: { width: '100%', height: '100%' }, showZoomer: true }
+                    : { viewport: { width: window.innerWidth - 60, height: 200, type: 'square' }, boundary: { width: '100%', height: '100%' }, showZoomer: true };
+
+                croppieInstance = new Croppie(container, croppieOpts);
+                croppieInstance.bind({ url: e.target.result });
+            }
+            reader.readAsDataURL(input.files[0]);
+            input.value = ''; 
+        }
+
+        async function executeCropAndUpload() {
+            if (!croppieInstance) return;
+            const btn = document.getElementById('cropSaveBtn');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> جاري المعالجة والرفع...';
+            btn.style.opacity = '0.7';
+            btn.disabled = true;
+
+            try {
+                const result = await croppieInstance.result({ type: 'blob', size: 'viewport', format: 'jpeg', quality: 0.9 });
+                const safeName = `${currentCropType}_${Date.now()}.jpg`;
+                const folder = currentCropType === 'avatar' ? 'avatars' : 'covers';
+                const ref = storage.ref().child(`${folder}/${currentUser.uid}/${safeName}`);
+                
+                const snapshot = await ref.put(result);
+                const url = await snapshot.ref.getDownloadURL();
+
+                if (currentCropType === 'avatar') {
+                    await db.collection("users").doc(currentUser.uid).update({ profilePic: url });
+                    document.getElementById('pageAvatar').style.backgroundImage = `url('${url}')`;
+                } else {
+                    await db.collection("users").doc(currentUser.uid).update({ coverImage: url, coverGradient: firebase.firestore.FieldValue.delete() });
+                    document.getElementById('pageCover').style.background = `url('${url}') center/cover no-repeat`;
+                }
+                closeModal('cropperModal');
+            } catch (e) {
+                console.error(e);
+                alert("حدث خطأ أثناء الرفع، تأكد من اتصالك بالإنترنت.");
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> حفظ ورفع الصورة';
+                btn.style.opacity = '1';
+                btn.disabled = false;
+            }
+        }
+
+        // --- مكتبة الـ 50+ لون احترافي ---
+        function renderCoverColors() {
+            const grid = document.getElementById('colorGrid');
+            const premiumGradients = [
+                // Dark & Elegant
+                "linear-gradient(135deg, #0f2027, #203a43, #2c5364)", "linear-gradient(135deg, #141e30, #243b55)",
+                "linear-gradient(135deg, #000000, #434343)", "linear-gradient(135deg, #232526, #414345)",
+                "linear-gradient(135deg, #0f0c29, #302b63, #24243e)", "linear-gradient(135deg, #1e1e24, #2b1055, #6366f1)",
+                // Purples & Violets
+                "linear-gradient(135deg, #8e2de2, #4a00e0)", "linear-gradient(135deg, #cc2b5e, #753a88)",
+                "linear-gradient(135deg, #b92b27, #1565C0)", "linear-gradient(135deg, #8A2387, #E94057, #F27121)",
+                "linear-gradient(135deg, #654ea3, #eaafc8)", "linear-gradient(135deg, #ff00cc, #333399)",
+                "linear-gradient(135deg, #ec008c, #fc6767)", "linear-gradient(135deg, #41295a, #2F0743)",
+                "linear-gradient(135deg, #c31432, #240b36)", "linear-gradient(135deg, #f12711, #f5af19)",
+                // Blues & Ocean
+                "linear-gradient(135deg, #1cb5e0, #000046)", "linear-gradient(135deg, #005AA7, #FFFDE4)",
+                "linear-gradient(135deg, #1D976C, #93F9B9)", "linear-gradient(135deg, #1A2980, #26D0CE)",
+                "linear-gradient(135deg, #3a7bd5, #3a6073)", "linear-gradient(135deg, #0B486B, #F56217)",
+                "linear-gradient(135deg, #2bc0e4, #eaecc6)", "linear-gradient(135deg, #085078, #85D8CE)",
+                "linear-gradient(135deg, #4b6cb7, #182848)", "linear-gradient(135deg, #5C258D, #4389A2)",
+                // Greens & Nature
+                "linear-gradient(135deg, #11998e, #38ef7d)", "linear-gradient(135deg, #134E5E, #71B280)",
+                "linear-gradient(135deg, #00b09b, #96c93d)", "linear-gradient(135deg, #004FF9, #FFF94C)",
+                "linear-gradient(135deg, #56ab2f, #a8e063)", "linear-gradient(135deg, #114357, #F29492)",
+                // Sunset & Warm
+                "linear-gradient(135deg, #ff4b2b, #ff416c)", "linear-gradient(135deg, #FF416C, #FF4B2B)",
+                "linear-gradient(135deg, #f7ff00, #db36a4)", "linear-gradient(135deg, #ff9966, #ff5e62)",
+                "linear-gradient(135deg, #F09819, #EDDE5D)", "linear-gradient(135deg, #FF512F, #DD2476)",
+                "linear-gradient(135deg, #AA076B, #61045F)", "linear-gradient(135deg, #e52d27, #b31217)",
+                // Neon & Cyberpunk
+                "linear-gradient(135deg, #00c6ff, #0072ff)", "linear-gradient(135deg, #FEAC5E, #C779D0, #4BC0C8)",
+                "linear-gradient(135deg, #83a4d4, #b6fbff)", "linear-gradient(135deg, #ff0844, #ffb199)",
+                "linear-gradient(135deg, #9D50BB, #6E48AA)", "linear-gradient(135deg, #3494E6, #EC6EAD)",
+                "linear-gradient(135deg, #00C9FF, #92FE9D)", "linear-gradient(135deg, #fc4a1a, #f7b733)",
+                // Soft & Minimalist
+                "linear-gradient(135deg, #EAEAEA, #DBDBDB)", "linear-gradient(135deg, #abbaab, #ffffff)",
+                "linear-gradient(135deg, #ECE9E6, #FFFFFF)", "linear-gradient(135deg, #bdc3c7, #2c3e50)"
+            ];
+
+            premiumGradients.forEach(grad => {
+                const div = document.createElement('div');
+                div.className = 'color-box';
+                div.style.background = grad;
+                div.onclick = async () => {
+                    closeModal('coverOptionsModal');
+                    document.getElementById('pageCover').style.background = grad;
+                    await db.collection("users").doc(currentUser.uid).update({ coverGradient: grad, coverImage: firebase.firestore.FieldValue.delete() });
+                };
+                grid.appendChild(div);
+            });
+        }
+
+        function renderCategories() {
+            const list = document.getElementById('categoryList');
+            const currentCat = document.getElementById('displayCategory').innerText;
+            list.innerHTML = '';
+            categories.forEach(cat => {
+                const div = document.createElement('div');
+                div.className = `category-item ${cat === currentCat ? 'active' : ''}`;
+                div.innerHTML = `<span>${cat}</span>`;
+                div.onclick = () => saveCategory(cat);
+                list.appendChild(div);
+            });
+        }
+
+        async function saveCategory(cat) {
+            document.getElementById('displayCategory').innerText = cat;
+            closeModal('categoryModal');
+            renderCategories(); 
+            await db.collection("users").doc(currentUser.uid).update({ creatorCategory: cat });
+        }
+
+                async function saveData(type) {
+            try {
+                if (type === 'bio') {
+                    const val = document.getElementById('inputBio').value;
+                    document.getElementById('displayBio').innerText = val || "اضغط لإضافة سيرة ذاتية...";
+                    await db.collection("users").doc(currentUser.uid).update({ bio: val });
+                    closeModal('bioModal');
+                    
+                } else if (type === 'location') {
+                    const val = document.getElementById('inputLocation').value;
+                    document.getElementById('displayLocation').innerText = val || "غير محدد";
+                    await db.collection("users").doc(currentUser.uid).update({ location: val });
+                    closeModal('locationModal');
+                    
+                } else if (type === 'social') {
+                    // تجميع كل الروابط
+                    const links = {
+                        youtube: document.getElementById('inputYoutube').value.trim(),
+                        tiktok: document.getElementById('inputTiktok').value.trim(),
+                        facebook: document.getElementById('inputFacebook').value.trim(),
+                        instagram: document.getElementById('inputInstagram').value.trim(),
+                        x: document.getElementById('inputX').value.trim(),
+                        whatsapp: document.getElementById('inputWhatsapp').value.trim(),
+                        snapchat: document.getElementById('inputSnapchat').value.trim(),
+                        threads: document.getElementById('inputThreads').value.trim(),
+                        twitch: document.getElementById('inputTwitch').value.trim(),
+                        line: document.getElementById('inputLine').value.trim(),
+                        wechat: document.getElementById('inputWechat').value.trim(),
+                        pinterest: document.getElementById('inputPinterest').value.trim(),
+                        tumblr: document.getElementById('inputTumblr').value.trim(),
+                        soundcloud: document.getElementById('inputSoundcloud').value.trim(),
+                        kwai: document.getElementById('inputKwai').value.trim(),
+                        likee: document.getElementById('inputLikee').value.trim()
+                    };
+
+                    // تنظيف: نحفظ فقط الخانات الممتلئة لعدم إرهاق الداتابيز
+                    const cleanedLinks = {};
+                    for (const key in links) {
+                        if (links[key] !== "") {
+                            cleanedLinks[key] = links[key];
+                        }
+                    }
+
+                    const hasLinks = Object.keys(cleanedLinks).length > 0;
+                    document.getElementById('displaySocial').innerText = hasLinks ? "تم ربط الحسابات بنجاح" : "أضف حساباتك (يوتيوب، تيك توك...)";
+                    
+                    await db.collection("users").doc(currentUser.uid).update({ socialLinks: cleanedLinks });
+                    closeModal('socialModal');
+                }
+
+            } catch (e) {
+                console.error("Error saving data:", e);
+                alert("حدث خطأ أثناء الحفظ!");
+            }
+        }
+
+    </script>
+    <script src="theme-manager.js"></script>
+
+</body>
+</html>
