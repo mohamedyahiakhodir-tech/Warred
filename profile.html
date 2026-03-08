@@ -180,7 +180,19 @@ button { border: none; outline: none; background: none; cursor: pointer; }
 .user-details h4 { font-size: 15px; font-weight: 700; margin-bottom: 2px; display: flex; align-items: center; gap: 5px; }
 .user-details span { font-size: 12px; color: var(--secondary-text); }
 .post-text { padding: 0 15px 12px; font-size: 15px; line-height: 1.6; color: var(--text-color); white-space: pre-wrap; }
-.post-text.has-bg { min-height: 280px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 26px; font-weight: 800; color: #fff; padding: 30px; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+.post-text {
+    font-family: 'Tajawal', sans-serif !important; 
+    font-size: 15px !important; 
+    line-height: 1.6 !important; 
+    color: var(--text-color) !important; 
+    text-align: right !important;
+    direction: rtl !important;
+    /* السر هنا: حشوة (Padding) صغيرة وواقعية من الأعلى والأسفل */
+    padding: 10px 15px !important; 
+    margin-bottom: 5px !important;
+    word-break: break-word !important; 
+    white-space: pre-wrap !important;
+}
 
 .media-grid { display: grid; gap: 2px; margin-top: 5px; background: #000; overflow: hidden; }
 .media-grid.single { grid-template-columns: 1fr; }
@@ -4712,75 +4724,6 @@ body.light-mode .skeleton-anim {
     transform: none !important;
 }
 
-.post-text {
-    transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s ease !important;
-    border-radius: 12px !important;
-    will-change: transform;
-}
-.post-text:active {
-    transform: scale(0.97) !important;
-    background-color: rgba(255, 255, 255, 0.05) !important;
-}
-.post-text.has-bg:active {
-    transform: scale(0.95) !important;
-    filter: brightness(0.85) !important;
-}
-
-/* ========================================= */
-/* ✒️ تخصيص خطوط القراءة والكتابة (احترافي) */
-/* ========================================= */
-
-.post-text {
-    font-family: 'Tajawal', sans-serif !important; 
-    font-size: 16px !important; 
-    line-height: 1.8 !important; 
-    font-weight: 500 !important; 
-    letter-spacing: 0.2px !important; 
-    color: rgba(255, 255, 255, 0.92) !important; 
-    text-align: right !important;
-    direction: rtl !important;
-    padding: 0 18px 12px !important;
-    word-break: break-word !important; 
-    overflow-wrap: break-word !important;
-    -webkit-font-smoothing: antialiased !important;
-    -moz-osx-font-smoothing: grayscale !important;
-}
-
-.post-text.has-bg {
-    font-family: 'Alexandria', sans-serif !important; 
-    font-size: 24px !important; 
-    font-weight: 800 !important;
-    line-height: 1.6 !important;
-    color: #ffffff !important; 
-    text-align: center !important;
-    padding: 40px 30px !important; 
-    border-radius: 16px !important; 
-    margin: 5px 15px 15px !important; 
-    text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.15) !important;
-}
-
-body.light-mode .post-text {
-    color: #1a1a1a !important; 
-    font-weight: 700 !important; 
-}
-
-.post-text a, .post-text .text-link {
-    color: var(--primary-color, #00C6FF) !important;
-    font-family: 'Tajawal', sans-serif !important;
-    font-weight: 800 !important; 
-    text-decoration: none !important;
-    transition: opacity 0.2s ease !important;
-}
-.post-text a:active, .post-text .text-link:active {
-    opacity: 0.6 !important;
-}
-
-.cm-text {
-    font-family: 'Tajawal', sans-serif !important;
-    font-size: 14.5px !important;
-    line-height: 1.6 !important;
-    font-weight: 500 !important;
-}
 
 .smart-textarea, 
 .pro-textarea, 
@@ -5165,6 +5108,166 @@ body.creator-mode #friendsSeparator {
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
+/* ========================================= */
+/* التنسيق الموحد والنظيف لنصوص المنشورات */
+/* ========================================= */
+.post-text {
+    font-family: 'Tajawal', sans-serif !important;
+    font-size: 15px !important;
+    line-height: 1.5 !important; /* تم تقليل المسافة بين السطور */
+    font-weight: 500 !important;
+    color: var(--text-color) !important;
+    text-align: right !important;
+    direction: rtl !important;
+    padding: 8px 15px !important; /* مسافة داخلية صغيرة على القد */
+    margin: 0 0 5px 0 !important;
+    word-break: break-word !important;
+    white-space: pre-wrap !important;
+    height: auto !important; /* إجبار المربع ياخد حيز النص فقط */
+    min-height: fit-content !important;
+}
+
+/* للمنشورات ذات الخلفية الملونة (تم تقليل المساحات الفاضية) */
+.post-text.has-bg {
+    font-family: 'Alexandria', sans-serif !important;
+    font-size: 24px !important;
+    font-weight: 800 !important;
+    line-height: 1.6 !important;
+    color: #ffffff !important;
+    text-align: center !important;
+    padding: 20px 15px !important; /* تم تقليلها من 40px لـ 20px */
+    min-height: 120px !important; /* تم تقليلها من 200px لـ 120px */
+    border-radius: 16px !important;
+    margin: 5px 15px 15px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 5px 15px rgba(0,0,0,0.15) !important;
+}
+
+/* تأثير التمدد عند الضغط على "عرض المزيد" */
+.post-text {
+    transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    overflow: hidden !important;
+}
+
+/* ========================================= */
+/* 🎵 شريط الموسيقى/الصوت أسفل الفيديو       */
+/* ========================================= */
+.post-music-bar {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    left: 55px; /* لترك مساحة لزر الصوت */
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    z-index: 20;
+    overflow: hidden;
+    pointer-events: none; /* عشان متمنعش الضغط على الفيديو */
+}
+
+.music-icon {
+    font-size: 12px;
+    color: var(--primary-solid);
+    animation: musicBounce 2s infinite alternate;
+}
+
+.music-ticker {
+    white-space: nowrap;
+    animation: tickerScroll 10s linear infinite;
+    display: inline-block;
+}
+
+@keyframes musicBounce {
+    0% { transform: scale(1) rotate(0deg); }
+    100% { transform: scale(1.2) rotate(15deg); }
+}
+
+@keyframes tickerScroll {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* ========================================= */
+/* 🎙️ مشغل التعليق الصوتي للمنشورات         */
+/* ========================================= */
+.post-voiceover-container {
+    margin: 10px 15px;
+    padding: 10px 15px;
+    background: rgba(0, 198, 255, 0.08);
+    border: 1px solid rgba(0, 198, 255, 0.2);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    direction: ltr; /* اتجاه المشغل من اليسار لليمين */
+}
+
+.vo-play-btn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: #fff;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 198, 255, 0.3);
+    transition: transform 0.2s;
+}
+.vo-play-btn:active { transform: scale(0.9); }
+
+.vo-slider-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.vo-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--primary-solid);
+    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-end;
+}
+
+.vo-slider {
+    width: 100%;
+    height: 4px;
+    border-radius: 2px;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+}
+.vo-slider::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+}
 
 </style>
 
@@ -5538,9 +5641,10 @@ body.creator-mode #friendsSeparator {
     <i class="fa-solid fa-chart-simple"></i> لوحة المعلومات الاحترافية
 </button>
 
-        <button class="btn-creator-create" onclick="location.href='create_post.html'">
-            <i class="fa-solid fa-plus"></i> إنشاء
-        </button>
+      <button class="btn-creator-create" onclick="location.href='creator_studio.html'">
+    <i class="fa-solid fa-plus"></i> إنشاء احترافي
+</button>
+
     </div>
 
         <div class="profile-tabs">
@@ -6188,6 +6292,8 @@ function getGhostIdentity(uid) {
 }
 
         let profileUid = new URLSearchParams(location.search).get("uid");
+        const defaultAvatar = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
         let currentUser = null, profileData = {}, currentUserName = "مستخدم", currentUserVerified = false, currentUserPic = "";
       
         let lastVisibleDoc = null, isLoading = false, currentPostId = null, currentPostOwnerUid = null;
@@ -6358,7 +6464,7 @@ const videoObserver = new IntersectionObserver((entries) => {
     
     listeners.forEach(unsub => unsub()); listeners = [];
     
-    const myDoc = await db.collection("users").doc(currentUser.uid).get();
+        const myDoc = await db.collection("users").doc(currentUser.uid).get();
     if(myDoc.exists) {
         const md = myDoc.data();
         currentUserName = md.name || "مستخدم";
@@ -6374,32 +6480,25 @@ const videoObserver = new IntersectionObserver((entries) => {
             menuNameEl.innerHTML = currentUserName + " " + menuBadge;
         }
 
+        // تحديث صورة القائمة الجانبية (بالصورة الافتراضية)
         const menuAvatarElem = document.getElementById('menuAvatar');
         if (menuAvatarElem) {
-            if (md.profilePic) {
-                menuAvatarElem.style.backgroundImage = `url('${md.profilePic}')`;
-                menuAvatarElem.innerText = "";
-            } else {
-                menuAvatarElem.innerText = currentUserName ? currentUserName[0] : 'U';
-                menuAvatarElem.style.backgroundColor = generateColor(currentUser.uid);
-                menuAvatarElem.style.backgroundImage = "none";
-            }
+            menuAvatarElem.style.backgroundImage = `url('${md.profilePic || defaultAvatar}')`;
+            menuAvatarElem.innerText = "";
+            menuAvatarElem.style.backgroundColor = "transparent";
         }
 
-        // 🔥🔥 صورة الشريط السفلي 🔥🔥
+        // 🔥🔥 صورة الشريط السفلي (بالصورة الافتراضية) 🔥🔥
         const bottomAvatar = document.getElementById('bottomNavAvatar');
         if(bottomAvatar) {
-            if (md.profilePic) {
-                bottomAvatar.style.backgroundImage = `url('${md.profilePic}')`;
-                bottomAvatar.innerText = "";
-            } else {
-                bottomAvatar.style.backgroundColor = generateColor(currentUser.uid);
-                bottomAvatar.style.backgroundImage = "none";
-            }
+            bottomAvatar.style.backgroundImage = `url('${md.profilePic || defaultAvatar}')`;
+            bottomAvatar.innerText = "";
+            bottomAvatar.style.backgroundColor = "transparent";
         }
         
         if(typeof updateOnlineToggleUI === 'function') updateOnlineToggleUI();
     }
+
     
     // ==================================================
     // 🔔🔥 الإضافة الجديدة: مراقب الإشعارات اللحظية للرسائل 🔥🔔
@@ -6686,12 +6785,14 @@ const videoObserver = new IntersectionObserver((entries) => {
                     };
                 }
 
-                const av = document.getElementById('avatar');
-                if(d.profilePic) {
-                    av.style.backgroundImage = `url('${d.profilePic}')`; av.innerText = "";
-                } else {
-                    av.innerText = disp[0].toUpperCase(); av.style.backgroundColor = generateColor(profileUid); av.style.backgroundImage = "none";
-                }
+                // تحديث صورة البروفايل الأساسية
+const av = document.getElementById('avatar');
+if (av) {
+    av.style.backgroundImage = `url('${d.profilePic || defaultAvatar}')`;
+    av.innerText = "";
+    av.style.backgroundColor = "var(--card-color)";
+}
+
                 // ==================================================
                 // 📸 تفعيل الضغط الذكي على الصورة الشخصية
                 // ==================================================
@@ -7258,23 +7359,37 @@ window.addToVideoGrid = function(url, title, viewsCount, postId) {
                     innerMediaHtml = `<div style="background:#000; height:250px;"><img src="${m.url}" style="width:100%; height:100%; object-fit:contain; display:block;" onclick="window.event.stopPropagation(); viewImage('${m.url}', '${p.originalPostId}')"></div>`;
                 } 
                 else if (m.type === 'video') {
-                    const uniqueVidId = `repost-vid-${p.id}`;
-                    const muteIcon = window.isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high';
-                    
-                    innerMediaHtml = `
-                    <div class="repost-video-wrapper" style="position:relative; width:100%; height:250px; background:#000;">
-                        <video id="${uniqueVidId}" src="${m.url}" ${window.isGlobalMuted ? 'muted' : ''} loop playsinline 
-                               style="width:100%; height:100%; object-fit:contain; opacity:0.9; cursor:pointer;"
-                               onclick="window.event.preventDefault(); window.event.stopPropagation(); window.location.href='videos.html?openVideo=${p.originalPostId}';">
-                        </video>
-                        <div id="play_btn_${uniqueVidId}" onclick="window.event.preventDefault(); window.event.stopPropagation(); window.toggleFeedVideo('${uniqueVidId}')" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:60px; height:60px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;">
-                             <i class="fa-solid fa-circle-play" style="color:rgba(255,255,255,0.9); font-size:40px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.5)); transition:0.2s;"></i>
-                        </div>
-                        <div class="video-mute-btn" onclick="window.event.preventDefault(); window.event.stopPropagation(); window.toggleMute('${uniqueVidId}')" style="position: absolute; bottom: 10px; right: 10px; width: 32px; height: 32px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; z-index: 20; backdrop-filter: blur(2px); border: 1px solid rgba(255,255,255,0.1);">
-                            <i class="fa-solid ${muteIcon}"></i>
-                        </div>
-                    </div>`;
-                }
+    const uniqueVidId = `repost-vid-${p.id}`;
+    const muteIcon = window.isGlobalMuted ? 'fa-volume-xmark' : 'fa-volume-high';
+    
+    // 👇 استخراج اسم الموسيقى (نعطي الأولوية لاسم الصوت الأصلي، ولو مفيش نعرض اسم صاحب المنشور الأصلي)
+    const orgNameForMusic = (p.originalContent && p.originalContent.name) ? p.originalContent.name : 'مستخدم';
+    const musicName = p.musicName || (p.originalContent && p.originalContent.musicName) || `الصوت الأصلي - ${orgNameForMusic}`;
+    
+    innerMediaHtml = `
+    <div class="repost-video-wrapper" style="position:relative; width:100%; height:250px; background:#000;">
+        <video id="${uniqueVidId}" src="${m.url}" ${window.isGlobalMuted ? 'muted' : ''} loop playsinline 
+               style="width:100%; height:100%; object-fit:contain; opacity:0.9; cursor:pointer;"
+               onclick="window.event.preventDefault(); window.event.stopPropagation(); window.location.href='videos.html?openVideo=${p.originalPostId}';">
+        </video>
+        
+        <div id="play_btn_${uniqueVidId}" onclick="window.event.preventDefault(); window.event.stopPropagation(); window.toggleFeedVideo('${uniqueVidId}')" style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:60px; height:60px; display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:10;">
+             <i class="fa-solid fa-circle-play" style="color:rgba(255,255,255,0.9); font-size:40px; filter:drop-shadow(0 0 10px rgba(0,0,0,0.5)); transition:0.2s;"></i>
+        </div>
+        
+        <div class="video-mute-btn" onclick="window.event.preventDefault(); window.event.stopPropagation(); window.toggleMute('${uniqueVidId}')" style="position: absolute; bottom: 10px; right: 10px; width: 32px; height: 32px; background: rgba(0, 0, 0, 0.6); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; z-index: 20; backdrop-filter: blur(2px); border: 1px solid rgba(255,255,255,0.1);">
+            <i class="fa-solid ${muteIcon}"></i>
+        </div>
+
+        <div class="post-music-bar" style="position: absolute; bottom: 10px; right: 50px; left: 10px; display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-size: 11px; font-weight: bold; z-index: 20; overflow: hidden; pointer-events: none;">
+            <i class="fa-solid fa-music music-icon" style="color: var(--primary-solid); animation: musicBounce 2s infinite alternate;"></i>
+            <div style="width: 100%; overflow: hidden;">
+                <div class="music-ticker" style="white-space: nowrap; animation: tickerScroll 10s linear infinite; display: inline-block;">${musicName}</div>
+            </div>
+        </div>
+    </div>`;
+}
+
             } 
             // --- 🌟 لو أكثر من صورة (سلايدر داخل الـ Repost) 🌟 ---
             else {
@@ -7409,13 +7524,13 @@ window.addToVideoGrid = function(url, title, viewsCount, postId) {
             }
             
             // 🔥 3. تحديد إظهار زر عرض المزيد وحالة مؤشر الماوس
-            const btnDisplay = needsReadMore ? 'inline-block' : 'none';
-            const cursorStyle = needsReadMore ? 'pointer' : 'default'; // الماوس يتغير لو فيه عرض مزيد
+                        const btnDisplay = needsReadMore ? 'inline-block' : 'none';
+            const cursorStyle = needsReadMore ? 'pointer' : 'default'; 
             
-            contentHtml += `
-            <div style="width: 100%; display: block; text-align: right; direction: rtl;">
+                        contentHtml += `
+            <div style="width: 100%; display: block; margin: 0; padding: 0;">
                 <div class="post-text ${clampClass}" id="text-${p.id}" 
-                     style="text-align: right !important; cursor: ${cursorStyle}; -webkit-touch-callout: none; user-select: none;"
+                     style="cursor: ${cursorStyle}; -webkit-touch-callout: none; user-select: none;"
                      onmousedown="startPostTextPress(event, '${p.id}')"
                      ontouchstart="startPostTextPress(event, '${p.id}')"
                      onmouseup="cancelPostTextPress()"
@@ -7425,8 +7540,8 @@ window.addToVideoGrid = function(url, title, viewsCount, postId) {
                      ${processedText.trim()}
                 </div>
                 
-                <div class="post-text-controls" style="display: flex; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: 5px;">
-                    <div class="read-more-btn" id="btn-${p.id}" onclick="togglePostText('${p.id}')" style="display: ${btnDisplay}; margin:0;">
+                <div class="post-text-controls" style="display: ${needsReadMore || translateBtnHtml ? 'flex' : 'none'}; justify-content: space-between; align-items: center; padding: 0 15px; margin-top: 2px;">
+                    <div class="read-more-btn" id="btn-${p.id}" onclick="togglePostText('${p.id}')" style="display: ${btnDisplay}; margin:0; font-size: 12px; padding: 2px 0;">
                         ... عرض المزيد
                     </div>
                     <div style="margin-right: auto;">
@@ -7435,6 +7550,7 @@ window.addToVideoGrid = function(url, title, viewsCount, postId) {
                 </div>
                 ${translateBlockHtml}
             </div>`;
+
         }
 
         // ب) إضافة الميديا بنظام السلايدر الجديد (اترك هذا الجزء كما هو عندك)
@@ -7526,18 +7642,43 @@ window.addToVideoGrid = function(url, title, viewsCount, postId) {
     }
 
     // ============================================================
+    // 🎙️ التحقق من وجود تعليق صوتي (Voiceover) ورسم المشغل
+    // ============================================================
+    let voiceoverHtml = "";
+    if (p.voiceoverUrl) {
+        const uniqueAudioId = `vo_${p.id}`;
+        voiceoverHtml = `
+        <div class="post-voiceover-container" onclick="event.stopPropagation()">
+            <button class="vo-play-btn" onclick="window.togglePostVoiceover('${uniqueAudioId}', this)">
+                <i class="fa-solid fa-play"></i>
+            </button>
+            <div class="vo-slider-wrapper">
+                <div class="vo-title">تعليق صوتي للمبدع <i class="fa-solid fa-microphone-lines"></i></div>
+                <input type="range" class="vo-slider" id="vo_slider_${uniqueAudioId}" value="0" min="0" max="100" step="0.1" oninput="window.seekPostVoiceover('${uniqueAudioId}', this)">
+            </div>
+            <span id="vo_time_${uniqueAudioId}" style="font-size: 12px; font-weight: bold; color: #aaa; min-width: 40px; text-align: center;">00:00</span>
+            <audio id="${uniqueAudioId}" src="${p.voiceoverUrl}" preload="metadata" ontimeupdate="window.updatePostVoiceoverProgress('${uniqueAudioId}')" onended="window.resetPostVoiceover('${uniqueAudioId}')"></audio>
+        </div>`;
+    }
+
+    // ============================================================
+    // بناء الكارت النهائي (The Final Post Element)
+    // ============================================================
+        // ============================================================
     // بناء الكارت النهائي (The Final Post Element)
     // ============================================================
     const div = document.createElement('div');
     const isMyPost = (typeof currentUser !== 'undefined' && p.uid === currentUser.uid);
-div.className = p.isPinnedToProfile ? 'post pinned-post-card' : 'post';
-if (isMyPost) div.classList.add('is-mine'); // هذا الكلاس هو الذي يظهر الزر في وضع المنشئ
-div.id = `post-${p.id}`;
+    div.className = p.isPinnedToProfile ? 'post pinned-post-card' : 'post';
+    if (isMyPost) div.classList.add('is-mine'); 
+    div.id = `post-${p.id}`;
+    
     div.innerHTML = `
         ${pinnedBadgeHtml} 
+        
         <div class="post-header">
             <div class="user-info" onclick="location.href='profile.html?uid=${p.uid}'" style="cursor:pointer;">
-                <div class="post-avatar" style="${profileData.profilePic ? `background-image:url('${profileData.profilePic}')` : `background-color:${generateColor(p.uid)}`}">${profileData.profilePic ? '' : (profileData.name || 'U')[0]}</div>
+                <div class="post-avatar" style="background-image:url('${profileData.profilePic || defaultAvatar}');"></div>
                 <div class="user-details">
                     <h4>${profileData.name || 'مستخدم'} ${profileData.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#3897f0;font-size:14px;"></i>' : ''}</h4>
                     
@@ -7555,6 +7696,8 @@ div.id = `post-${p.id}`;
         </div>
         
         ${contentHtml}
+
+        ${voiceoverHtml}
 
         <div class="post-insights-btn" onclick="openPostInsights('${p.id}')">
             <i class="fa-solid fa-chart-simple"></i> عرض الرؤى والأداء
@@ -7639,7 +7782,6 @@ div.id = `post-${p.id}`;
     // تشغيل المراقب للفيديوهات (للتشغيل التلقائي أثناء السكرول)
     div.querySelectorAll('video').forEach(v => videoObserver.observe(v));
 }
-
 
     
         function checkRelationship() {
@@ -8170,13 +8312,13 @@ logActivity('like', 'أعجبت بمنشور', pid, postOwnerUid);
                         clickAction = "showToast('⛔ هوية محمية')";
                     } else {
                         let finalPic = c.pic;
-                        if (typeof currentUser !== 'undefined' && currentUser && c.uid === currentUser.uid && !finalPic) finalPic = typeof currentUserPic !== 'undefined' ? currentUserPic : "";
-                        else if (typeof profileData !== 'undefined' && c.uid === (typeof profileUid !== 'undefined' ? profileUid : "") && !finalPic) finalPic = profileData.profilePic;
+                        if (currentUser && c.uid === currentUser.uid && !finalPic) finalPic = currentUserPic;
+                        else if (profileData && c.uid === profileUid && !finalPic) finalPic = profileData.profilePic;
                         
-                        avatarStyle = finalPic ? 
-                            `background: url('${finalPic}') center/cover no-repeat; border: 1px solid var(--border-color);` : 
-                            `background: ${generateColor(c.uid || 'user')}; border: 1px solid var(--border-color); display:grid; place-items:center;`;
-                        if (finalPic) avatarContent = '';
+                        // استخدام الصورة الافتراضية دائماً بدلاً من توليد الألوان
+                        finalPic = finalPic || defaultAvatar;
+                        avatarStyle = `background: url('${finalPic}') center/cover no-repeat; border: 1px solid var(--border-color);`;
+                        avatarContent = '';
                     }
 
                     let hash = 0;
@@ -9889,10 +10031,9 @@ function loadRealtimeReplies(commentId) {
             let displayName = r.name || "مستخدم";
             let displayPic = r.pic;
             let clickAction = `location.href='profile.html?uid=${r.uid}'`;
-            let avatarContent = displayPic ? '' : (r.name ? r.name[0] : 'U');
-            let avatarStyle = displayPic ? 
-                `background-image:url('${displayPic}')` : 
-                `background-color:${generateColor(r.uid)}`;
+            let finalReplyPic = displayPic || defaultAvatar;
+            let avatarContent = '';
+            let avatarStyle = `background-image:url('${finalReplyPic}'); background-size: cover; background-position: center;`;
             let verifiedIcon = r.isVerified ? '<i class="fa-solid fa-circle-check" style="color:#3897f0; font-size:10px; margin-right:3px;"></i>' : '';
             let nameStyle = ""; 
 
@@ -11366,24 +11507,20 @@ function loadFriendsWidget() {
         const promises = snap.docs.map(doc => db.collection("users").doc(doc.id).get());
         const friendsDocs = await Promise.all(promises);
 
-        friendsDocs.forEach(doc => {
+                friendsDocs.forEach(doc => {
             if(!doc.exists) return;
             const f = doc.data();
-            const pic = f.profilePic || "";
+            const pic = f.profilePic || defaultAvatar;
             const name = f.name || "مستخدم";
-            const color = generateColor(doc.id);
             
-            // تصميم الكارت (الصورة + الاسم)
-            const bgStyle = pic ? `background-image: url('${pic}')` : `background-color: ${color}; display:grid; place-items:center; color:#fff; font-size:20px;`;
-            const content = pic ? '' : name[0];
-
             grid.innerHTML += `
                 <div class="friend-card" onclick="location.href='profile.html?uid=${doc.id}'">
-                    <div class="friend-card-img" style="${bgStyle}">${content}</div>
+                    <div class="friend-card-img" style="background-image: url('${pic}');"></div>
                     <div class="friend-card-name">${name}</div>
                 </div>
             `;
         });
+
     });
 }
 
@@ -11669,19 +11806,17 @@ function editProfileDetails() {
     location.href = 'edit.html'; // أو تفتح مودال تعديل سريع
 }
 // دالة معالجة النصوص (النسخة النهائية المحمية من التداخل)
+// دالة معالجة النصوص (النسخة المنظفة من المسافات)
 function processPostText(text, mentionsList = [], mentionPosition = 'bottom') {
     if (!text) return "";
     
-    // تنظيف النص وحمايته
     let processed = text.trim().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 
-    // تحويل الروابط
     processed = processed.replace(/((https?:\/\/|www\.)[^\s]+)/g, (url) => {
         let href = url.startsWith('www.') ? 'http://' + url : url;
         return `<a href="${href}" target="_blank" class="post-link" onclick="event.stopPropagation();">${url}</a>`;
     });
 
-    // تحويل الهاشتاج
     processed = processed.replace(/(^|\s)(#[^\s<]+)/g, '$1<span class="text-link" style="color:var(--primary-solid); font-weight:bold;" onclick="searchForHashtag(event, \'$2\')">$2</span>');
 
     const mentionRegex = /(^|\s)@([^\s<]+)/g;
@@ -11717,21 +11852,20 @@ function processPostText(text, mentionsList = [], mentionPosition = 'bottom') {
 
             const clickAction = uid ? `onclick="event.stopPropagation(); location.href='profile.html?uid=${uid}'"` : "";
 
-            // 🔥 التعديل الأول: استخدمنا padding-bottom بدل margin عشان الكود ميمسحوش
-            mentionContainerHTML = `<div style="display: flex; justify-content: flex-start; align-items: center; width: 100%; direction: rtl; padding-bottom: 6px; gap: 5px;"><div class="mention-chip" ${clickAction}><img src="${userPic}" class="mention-chip-img"><span class="mention-chip-name">${displayName}</span></div>${counterHTML}</div>`;
+            // كبسولة المنشن بحجمها الطبيعي
+            mentionContainerHTML = `<div style="display: flex; justify-content: flex-start; align-items: center; width: 100%; direction: rtl; padding-bottom: 4px; gap: 5px;"><div class="mention-chip" ${clickAction}><img src="${userPic}" class="mention-chip-img"><span class="mention-chip-name">${displayName}</span></div>${counterHTML}</div>`;
         } 
         
         return space;
     });
 
-    // 🔥 التعديل الثاني: استخدمنا padding-top للنص عشان يفصل عن الكبسولة بسطر واحد هادي جداً
+    // 🔥 إرجاع النص بدون مسافات إضافية (بدون padding-top مبالغ فيه)
     if (mentionPosition === 'top') {
-        return mentionContainerHTML + `<div style="display: block; width: 100%; text-align: right; padding-top: 4px;">${processed.trim()}</div>`;
+        return mentionContainerHTML + `<div style="display: block; width: 100%; text-align: right;">${processed.trim()}</div>`;
     } else {
-        return `<div style="display: block; width: 100%; text-align: right; padding-bottom: 4px;">${processed.trim()}</div>` + mentionContainerHTML;
+        return `<div style="display: block; width: 100%; text-align: right;">${processed.trim()}</div>` + mentionContainerHTML;
     }
 }
-
 
 // 5. رفع الصوت لفايربيس (باستخدام المسار الصحيح)
 async function uploadCommentVoiceToFirebase(blob) {
@@ -20297,6 +20431,73 @@ window.saveCoverGradient = async function(gradient) {
 window.closeCoverModal = function() {
     const modal = document.getElementById('coverPickerModal');
     if(modal) modal.style.display = 'none';
+};
+
+window.togglePostVoiceover = function(audioId, btnElement) {
+    const audio = document.getElementById(audioId);
+    const icon = btnElement.querySelector('i');
+    if (!audio) return;
+
+    if (audio.paused) {
+        // إيقاف أي صوت أو فيديو آخر يعمل حالياً في الصفحة
+        document.querySelectorAll('audio, video').forEach(media => {
+            if (media.id !== audioId && !media.paused) media.pause();
+        });
+        
+        // إرجاع أيقونات الصوت الأخرى لعلامة (Play)
+        document.querySelectorAll('.vo-play-btn i').forEach(i => {
+            if (i !== icon) i.className = 'fa-solid fa-play';
+        });
+
+        audio.play();
+        icon.className = 'fa-solid fa-pause';
+        if(navigator.vibrate) navigator.vibrate(20);
+    } else {
+        audio.pause();
+        icon.className = 'fa-solid fa-play';
+    }
+};
+
+window.updatePostVoiceoverProgress = function(audioId) {
+    const audio = document.getElementById(audioId);
+    const slider = document.getElementById(`vo_slider_${audioId}`);
+    const timeDisplay = document.getElementById(`vo_time_${audioId}`);
+
+    if (!audio || !slider || !timeDisplay) return;
+
+    // تحديث حركة الشريط ولونه
+    if (audio.duration) {
+        const percent = (audio.currentTime / audio.duration) * 100;
+        slider.value = percent;
+        slider.style.background = `linear-gradient(to right, var(--primary-solid) ${percent}%, rgba(255,255,255,0.2) ${percent}%)`;
+    }
+
+    // تحديث الوقت النصي
+    const m = Math.floor(audio.currentTime / 60);
+    const s = Math.floor(audio.currentTime % 60).toString().padStart(2, '0');
+    timeDisplay.innerText = `${m}:${s}`;
+};
+
+window.seekPostVoiceover = function(audioId, sliderElement) {
+    const audio = document.getElementById(audioId);
+    if (audio && audio.duration) {
+        audio.currentTime = (sliderElement.value / 100) * audio.duration;
+    }
+};
+
+window.resetPostVoiceover = function(audioId) {
+    const audio = document.getElementById(audioId);
+    const slider = document.getElementById(`vo_slider_${audioId}`);
+    // العثور على زر التشغيل الخاص بهذا الريكورد
+    const btnIcon = document.querySelector(`button[onclick*="${audioId}"] i`);
+
+    if (btnIcon) btnIcon.className = 'fa-solid fa-play';
+    if (slider) {
+        slider.value = 0;
+        slider.style.background = 'rgba(255,255,255,0.2)';
+    }
+    const timeDisplay = document.getElementById(`vo_time_${audioId}`);
+    if (timeDisplay) timeDisplay.innerText = "00:00";
 };
 </script>
 
